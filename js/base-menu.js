@@ -6,8 +6,7 @@ function baseMenu () {
 		$("#tmpl_actions_menu").replaceWith(d20plus.html.actionsMenu);
 
 		const getTokenWhisperPart = () => d20plus.cfg.getOrDefault("token", "massRollWhisperName") ? "/w gm Rolling for @{selected|token_name}...\n" : "";
-
-		Mousetrap.bind("b b", function () { // back on layer
+		if (d20.engine?.canvas){	Mousetrap.bind("b b", function () { // back on layer
 			const n = d20plus.engine.getSelectedToMove();
 			d20plus.engine.backwardOneLayer(n);
 			return false;
@@ -17,7 +16,8 @@ function baseMenu () {
 			const n = d20plus.engine.getSelectedToMove();
 			d20plus.engine.forwardOneLayer(n);
 			return false;
-		});
+		});}
+	
 
 		/**
 		 * @param token A token.
