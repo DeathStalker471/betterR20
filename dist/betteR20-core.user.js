@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name         betteR20-beta-core
+// @name         betteR20-Jumpgate-beta-core
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
 // @version      1.35.186.12j
-// @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/tree/JumpGateTest/dist/betteR20-core.meta.js
-// @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/tree/JumpGateTest/dist/betteR20-core.user.js
+// @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/betteR20-core.meta.js
+// @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
 // @author       TheGiddyLimit/Redweller/DeathStalker471
 
@@ -31,7 +31,7 @@ CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
 B20_VERSION = `1.35.186.12j`;
-B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/tree/JumpGateTest/dist/`;
+B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";

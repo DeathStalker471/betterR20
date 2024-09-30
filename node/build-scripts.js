@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const SCRIPT_VERSION = "1.35.186.12j";
-const SCRIPT_REPO = "https://raw.githubusercontent.com/DeathStalker471/betterR20/tree/JumpGateTest/dist/";
+const SCRIPT_REPO = "https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 -- Beta features overview:
@@ -32,7 +32,7 @@ const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 `;
 
 const AUTHORS_CORE = `TheGiddyLimit/Redweller/DeathStalker471`;
-const AUTHORS_5ETOOLS = `5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller/DeathStalker471`;
+const AUTHORS_5ETOOLS = `5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller`;
 
 const matchString = `
 // @match        https://app.roll20.net/editor
@@ -54,7 +54,7 @@ const analyticsBlocking = `
 
 function getHeader (name, info) {
 	return `// ==UserScript==
-// @name         betteR20-beta-${name}
+// @name         betteR20-Jumpgate-beta-${name}
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
 // @version      ${SCRIPT_VERSION}
