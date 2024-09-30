@@ -2,11 +2,11 @@
 // @name         betteR20-beta-core
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.35.186.12
-// @updateURL    https://raw.githubusercontent.com/redweller/betterR20/dev-beta/dist/betteR20-core.meta.js
-// @downloadURL  https://raw.githubusercontent.com/redweller/betterR20/dev-beta/dist/betteR20-core.user.js
+// @version      1.35.186.12j
+// @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/tree/JumpGateTest/dist/betteR20-core.meta.js
+// @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/tree/JumpGateTest/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
-// @author       TheGiddyLimit/Redweller
+// @author       TheGiddyLimit/Redweller/DeathStalker471
 
 // @match        https://app.roll20.net/editor
 // @match        https://app.roll20.net/editor#*
@@ -30,8 +30,8 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.35.186.12`;
-B20_REPO_URL = `https://raw.githubusercontent.com/redweller/betterR20/dev-beta/dist/`;
+B20_VERSION = `1.35.186.12j`;
+B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/tree/JumpGateTest/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";
@@ -14999,8 +14999,7 @@ function baseMenu () {
 		$("#tmpl_actions_menu").replaceWith(d20plus.html.actionsMenu);
 
 		const getTokenWhisperPart = () => d20plus.cfg.getOrDefault("token", "massRollWhisperName") ? "/w gm Rolling for @{selected|token_name}...\n" : "";
-
-		Mousetrap.bind("b b", function () { // back on layer
+		if (d20.engine?.canvas){	Mousetrap.bind("b b", function () { // back on layer
 			const n = d20plus.engine.getSelectedToMove();
 			d20plus.engine.backwardOneLayer(n);
 			return false;
@@ -15010,7 +15009,8 @@ function baseMenu () {
 			const n = d20plus.engine.getSelectedToMove();
 			d20plus.engine.forwardOneLayer(n);
 			return false;
-		});
+		});}
+	
 
 		/**
 		 * @param token A token.
@@ -16250,9 +16250,12 @@ function baseWeather () {
 
 			cachedSetCanvasSize(e, n);
 		};
-
-		cv.width = cvBuf.width = d20.engine.canvas.width;
-		cv.height = cvBuf.height = d20.engine.canvas.height;
+		if (d20.engine?.canvas)
+			{cv.width = cvBuf.width = d20.engine.canvas.width;
+			cv.height = cvBuf.height = d20.engine.canvas.height;}
+		else{cv.width = cvBuf.width = d20.engine.canvasWidth;
+			cv.height = cvBuf.height = d20.engine.canvasHeight;}
+		
 
 		const ctx = cv.getContext("2d");
 
@@ -27922,9 +27925,9 @@ const D20plus = function (version) {
 
 		(function waitForEnhancementSuite () {
 			let hasRunInit = false;
+
 			if (window.d20 || window.enhancementSuiteEnabled || window.currentPlayer?.d20) {
 				d20plus.ut.log("Bootstrapping...");
-
 				// r20es will expose the d20 variable if we wait
 				// this should always trigger after window.onload has fired, but track init state just in case
 				(function waitForD20 () {
@@ -27932,14 +27935,6 @@ const D20plus = function (version) {
 					if ((typeof window.d20 !== "undefined" || window.currentPlayer?.d20) && !$("#loading-overlay").is(":visible") && !hasRunInit) {
 						hasRunInit = true;
 						if (!window.d20) window.d20 = window.currentPlayer.d20;
-						if (!d20.engine?.canvas) {
-							d20plus.ut.showFullScreenWarning({
-								title: "JUMPGATE IS NOT SUPPORTED",
-								message: "Your game appears to run on Jumpgate that is not supported",
-								instructions: "Jumpgate can't be disabled or enabled for a game, it is chosen upon the game creation. Please either disable betteR20, or switch to a game that utilizes the old roll20 engine",
-							});
-							return;
-						}
 						d20plus.Init();
 					} else {
 						setTimeout(waitForD20, 50);

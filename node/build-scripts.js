@@ -1,7 +1,7 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.35.186.12";
-const SCRIPT_REPO = "https://raw.githubusercontent.com/redweller/betterR20/dev-beta/dist/";
+const SCRIPT_VERSION = "1.35.186.12j";
+const SCRIPT_REPO = "https://raw.githubusercontent.com/DeathStalker471/betterR20/tree/JumpGateTest/dist/";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 -- Beta features overview:
@@ -31,8 +31,8 @@ const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 ⦁ better source selector behavior
 `;
 
-const AUTHORS_CORE = `TheGiddyLimit/Redweller`;
-const AUTHORS_5ETOOLS = `5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller`;
+const AUTHORS_CORE = `TheGiddyLimit/Redweller/DeathStalker471`;
+const AUTHORS_5ETOOLS = `5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller/DeathStalker471`;
 
 const matchString = `
 // @match        https://app.roll20.net/editor
