@@ -2,7 +2,7 @@
 // @name         betteR20-Jumpgate-beta-5et2014
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.35.186.12j
+// @version      1.35.186.12j.1
 // @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/betteR20-5et2014.meta.js
 // @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/betteR20-5et2014.user.js
 // @description  Enhance your Roll20 experience

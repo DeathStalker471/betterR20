@@ -193,10 +193,10 @@ function d20plusItems () {
 		const cleanDmg2 = removeDiceTags(data.dmg2);
 
 		let armorclass = "";
-		if (type === "S") armorclass = `+${data.ac}`;
-		if (type === "LA") armorclass = `${data.ac} + Dex`;
-		if (type === "MA") armorclass = `${data.ac} + Dex (max 2)`;
-		if (type === "HA") armorclass = data.ac;
+		if (type === "S" || type === "S|XPHB") armorclass = `+${data.ac}`;
+		if (type === "LA" || type === "LA|XPHB") armorclass = `${data.ac} + Dex`;
+		if (type === "MA" || type === "MA|XPHB") armorclass = `${data.ac} + Dex (max 2)`;
+		if (type === "HA" || type === "HA|XPHB") armorclass = data.ac;
 		let properties = "";
 		if (data.property) {
 			let propertieslist = data.property;

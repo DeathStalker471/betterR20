@@ -38,7 +38,10 @@ const betteR20Core = function () {
 				d20plus.journal.addJournalCommands();
 				d20plus.menu.addSelectedTokenCommands();
 				d20plus.art.addCustomArtSearch();
+				if (d20.engine?.canvas)
+					{	
 				d20plus.engine.addTokenHover();
+					}
 				d20plus.engine.enhanceTransmogrifier();
 				d20plus.engine.removeLinkConfirmation();
 				d20plus.artBrowse.initRepoBrowser();
@@ -50,7 +53,10 @@ const betteR20Core = function () {
 			}
 			d20plus.engine.enhancePathWidths();
 			// d20plus.ut.fix3dDice(); // FIXME(165) re-enable when we have a better solution
+			if (d20.engine?.canvas)
+				{	
 			d20plus.engine.addLayers();
+				}
 			d20plus.weather.addWeather();
 			d20plus.engine.repairPrototypeMethods();
 			d20plus.engine.disableFrameRecorder();

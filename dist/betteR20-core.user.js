@@ -2,7 +2,7 @@
 // @name         betteR20-Jumpgate-beta-core
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.35.186.12j
+// @version      1.35.186.12j.1
 // @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/betteR20-core.meta.js
 // @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
@@ -30,7 +30,7 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.35.186.12j`;
+B20_VERSION = `1.35.186.12j.1`;
 B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
@@ -27844,7 +27844,10 @@ const betteR20Core = function () {
 				d20plus.journal.addJournalCommands();
 				d20plus.menu.addSelectedTokenCommands();
 				d20plus.art.addCustomArtSearch();
+				if (d20.engine?.canvas)
+					{	
 				d20plus.engine.addTokenHover();
+					}
 				d20plus.engine.enhanceTransmogrifier();
 				d20plus.engine.removeLinkConfirmation();
 				d20plus.artBrowse.initRepoBrowser();
@@ -27856,7 +27859,10 @@ const betteR20Core = function () {
 			}
 			d20plus.engine.enhancePathWidths();
 			// d20plus.ut.fix3dDice(); // FIXME(165) re-enable when we have a better solution
+			if (d20.engine?.canvas)
+				{	
 			d20plus.engine.addLayers();
+				}
 			d20plus.weather.addWeather();
 			d20plus.engine.repairPrototypeMethods();
 			d20plus.engine.disableFrameRecorder();
