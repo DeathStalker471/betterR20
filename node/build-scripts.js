@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.35.186.12j.1";
+const SCRIPT_VERSION = "1.35.186.12j.2";
 const SCRIPT_REPO = "https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes

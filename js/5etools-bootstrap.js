@@ -82,15 +82,16 @@ const betteR205etools = function () {
 			if (d20.engine?.canvas)
 				{
 			d20plus.engine.addLayers();
-				}
-			d20plus.weather.addWeather();
+			d20plus.weather.addWeather();}
 			d20plus.engine.repairPrototypeMethods();
 			d20plus.engine.disableFrameRecorder();
 			d20plus.engine.fixPolygonTool();
 			// d20plus.ut.fixSidebarLayout();
 			d20plus.chat.enhanceChat();
+			if (d20.engine?.canvas)
+				{
 			d20plus.ba.initBetterActions();
-
+				}
 			// Clear BrewUtil cache
 			BrewUtil2._storage = new StorageUtilMemory();
 

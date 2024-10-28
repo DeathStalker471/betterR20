@@ -2,7 +2,7 @@
 // @name         betteR20-Jumpgate-beta-core
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.35.186.12j.1
+// @version      1.35.186.12j.2
 // @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/betteR20-core.meta.js
 // @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
@@ -30,7 +30,7 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.35.186.12j.1`;
+B20_VERSION = `1.35.186.12j.2`;
 B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/JumpGateTest/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
@@ -14006,13 +14006,17 @@ function d20plusEngine () {
 		// ensure tokens have editable sight
 		$("#tmpl_tokeneditor").replaceWith(d20plus.html.tokenEditor);
 		// show dynamic lighting/etc page settings
-		$("#tmpl_pagesettings").replaceWith(d20plus.engine._makePageSettings());
+		if(d20.engine?.canvas)
+		{		$("#tmpl_pagesettings").replaceWith(d20plus.engine._makePageSettings());
+		}
+		
 		// swap templates stashed in page.view.template for each page
 		d20.Campaign.pages.models.forEach(page => page.view.template = $.jqotec("#tmpl_pagesettings"));
 	};
 
 	d20plus.engine._makePageSettings = () => {
-		return `<script id='tmpl_pagesettings' type='text/html'>
+		if (d20.engine?.canvas){
+			return `<script id='tmpl_pagesettings' type='text/html'>
 			<ul class='nav nav-tabs pagedetails_navigation'>
 				${d20plus.html.pageSettingsNavTabs}
 			</ul>
@@ -14020,7 +14024,17 @@ function d20plusEngine () {
 				${d20plus.html.pageSettings}
 				${d20plus.html.pageSettingsWeather}
 			</div>
-		</script>`;
+		</script>`;}
+		else {
+			return `<script id='tmpl_pagesettings' type='text/html'>
+			<ul class='nav nav-tabs pagedetails_navigation'>
+				${d20plus.html.pageSettingsNavTabs}
+			</ul>
+			<div class='tab-content'>
+				${d20plus.html.pageSettings}
+			</div>
+		</script>`;}
+		
 	};
 
 	d20plus.engine.enhancePageSelector = () => {

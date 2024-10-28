@@ -108,7 +108,7 @@ function d20plusSpells () {
 		if (!data.range) data.range = "Self";
 		if (!data.duration) data.duration = "Instantaneous";
 		if (!data.components) data.components = "";
-		if (!data.time) data.components = "1 action";
+		if (!data.time) data.time = "1 action";
 
 		const r20Data = {};
 		if (data.roll20) Object.assign(r20Data, data.roll20);

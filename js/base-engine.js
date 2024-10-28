@@ -91,13 +91,17 @@ function d20plusEngine () {
 		// ensure tokens have editable sight
 		$("#tmpl_tokeneditor").replaceWith(d20plus.html.tokenEditor);
 		// show dynamic lighting/etc page settings
-		$("#tmpl_pagesettings").replaceWith(d20plus.engine._makePageSettings());
+		if(d20.engine?.canvas)
+		{		$("#tmpl_pagesettings").replaceWith(d20plus.engine._makePageSettings());
+		}
+		
 		// swap templates stashed in page.view.template for each page
 		d20.Campaign.pages.models.forEach(page => page.view.template = $.jqotec("#tmpl_pagesettings"));
 	};
 
 	d20plus.engine._makePageSettings = () => {
-		return `<script id='tmpl_pagesettings' type='text/html'>
+		if (d20.engine?.canvas){
+			return `<script id='tmpl_pagesettings' type='text/html'>
 			<ul class='nav nav-tabs pagedetails_navigation'>
 				${d20plus.html.pageSettingsNavTabs}
 			</ul>
@@ -105,7 +109,17 @@ function d20plusEngine () {
 				${d20plus.html.pageSettings}
 				${d20plus.html.pageSettingsWeather}
 			</div>
-		</script>`;
+		</script>`;}
+		else {
+			return `<script id='tmpl_pagesettings' type='text/html'>
+			<ul class='nav nav-tabs pagedetails_navigation'>
+				${d20plus.html.pageSettingsNavTabs}
+			</ul>
+			<div class='tab-content'>
+				${d20plus.html.pageSettings}
+			</div>
+		</script>`;}
+		
 	};
 
 	d20plus.engine.enhancePageSelector = () => {
