@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.35.186.14ab";
+const SCRIPT_VERSION = "1.35.186.14ac";
 const SCRIPT_REPO = "https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/dev-beta-death/dist/";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
