@@ -11,6 +11,7 @@
 	},
 	"repository": "5etools/5etoolsR20",
 	"dependencies": {
+		"js-beautify": "^1.15.2",
 		"rollup": "^4.20.0"
 	},
 	"devDependencies": {
