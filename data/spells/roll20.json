@@ -56,14 +56,18 @@
 		"name": "Conjure the Deep Haze",
 		"source": "DoDk",
 		"data": {
-			"Save": "Constitution"
+			"Save": "Constitution",
+			"Damage": "8d6",
+			"Save Success": "Half damage"
 		}
 	},
 	{
 		"name": "Delerium Blast",
 		"source": "DoDk",
 		"data": {
-			"Save": "Intelligence"
+			"Save": "Intelligence",
+			"Damage": "10d6",
+			"Save Success": "Half damage"
 		}
 	},
 	{
@@ -508,6 +512,8 @@
 			"Save": "Dexterity",
 			"Damage": "3d10",
 			"Damage Type": "Lightning",
+			"Secondary Damage": "1d10",
+			"Secondary Damage Type": "Lightning",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
 			"Higher Spell Slot Dice": "1"
@@ -719,6 +725,8 @@
 			"Save": "Dexterity",
 			"Damage": "12d6",
 			"Damage Type": "Fire",
+			"Secondary Damage": "1d6",
+			"Secondary Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
 			"Higher Spell Slot Dice": "1"
@@ -2082,7 +2090,7 @@
 			"Save": "Intelligence",
 			"Damage": "1d6",
 			"Damage Type": "Psychic",
-			"Secondary Damage": "2d6",
+			"Secondary Damage": "1d6",
 			"Secondary Damage Type": "Psychic",
 			"data-Cantrip Scaling": "dice"
 		}
@@ -3024,6 +3032,8 @@
 			"Save": "Dexterity",
 			"Damage": "3d10",
 			"Damage Type": "Lightning",
+			"Secondary Damage": "1d10",
+			"Secondary Damage Type": "Lightning",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
 			"Higher Spell Slot Dice": "1"
@@ -3326,6 +3336,8 @@
 			"Save": "Dexterity",
 			"Damage": "12d6",
 			"Damage Type": "Fire",
+			"Secondary Damage": "1d6",
+			"Secondary Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
 			"Higher Spell Slot Dice": "1"
@@ -3402,6 +3414,8 @@
 		"data": {
 			"Damage": "2d8",
 			"Damage Type": "Radiant",
+			"Secondary Damage": "1d8",
+			"Secondary Damage Type": "Radiant",
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1"
 		}

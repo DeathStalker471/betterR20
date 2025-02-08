@@ -42,7 +42,10 @@ async function main () {
 		if (!pth.endsWith(".json")) continue;
 		if (_BLOCKLIST_FILENAMES_JSON.has(path.basename(pth))) continue;
 		const pathSiteDir = path.join(SRC_PATH, pth);
-		if (!fs.existsSync(pathSiteDir)) throw new Error(`File ${pth} does not exist in 5etools data!`);
+		if (!fs.existsSync(pathSiteDir)) {
+			msg.warn(`File ${pth} does not exist in 5etools data! Skipping.`);
+			continue;
+		}
 		fs.copyFileSync(pathSiteDir, pth);
 	}
 
@@ -53,7 +56,10 @@ async function main () {
 		if (!pth.endsWith(".json")) continue;
 		if (_BLOCKLIST_FILENAMES_JSON.has(path.basename(pth))) continue;
 		const pathSiteDir = path.join(SRC_2014_PATH, pth.replace("data2014", "data"));
-		if (!fs.existsSync(pathSiteDir)) throw new Error(`File ${pth} does not exist in 5etools data!`);
+		if (!fs.existsSync(pathSiteDir)) {
+			msg.warn(`File ${pth} does not exist in 5etools data! Skipping.`);
+			continue;
+		}
 		fs.copyFileSync(pathSiteDir, pth);
 	}
 
