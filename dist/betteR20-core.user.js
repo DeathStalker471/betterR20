@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name         betteR20-beta-core
+// @name         betteR20-beta-core-death
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.35.186.14a
-// @updateURL    https://raw.githubusercontent.com/redweller/betterR20/dev-beta/dist/betteR20-core.meta.js
-// @downloadURL  https://raw.githubusercontent.com/redweller/betterR20/dev-beta/dist/betteR20-core.user.js
+// @version      1.35.186.14ab
+// @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/dev-beta-death/dist/betteR20-core.meta.js
+// @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/dev-beta-death/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
 // @author       TheGiddyLimit/Redweller
 
@@ -30,8 +30,8 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.35.186.14a`;
-B20_REPO_URL = `https://raw.githubusercontent.com/redweller/betterR20/dev-beta/dist/`;
+B20_VERSION = `1.35.186.14ab`;
+B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/dev-beta-death/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";
