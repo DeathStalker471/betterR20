@@ -42,6 +42,8 @@ function d20plusObjects () {
 					try {
 						const tokenUrl = `${IMG_URL}objects/tokens/${source}/${name}.webp`;
 						const avatar = data.tokenUrl || Parser.nameToTokenName(tokenUrl);
+						const tokenUrlFallBack = `${IMG_URL_REPO}objects/tokens/${source}/${name}.webp`;
+						const avatarFallBack = data.tokenUrlFallBack || Parser.nameToTokenName(tokenUrlFallBack);
 						character.size = data.size;
 						character.name = name;
 						character.senses = data.senses ? data.senses instanceof Array ? data.senses.join(", ") : data.senses : null;
@@ -50,8 +52,16 @@ function d20plusObjects () {
 							url: avatar,
 							type: "HEAD",
 							error: function () {
-								d20plus.importer.getSetAvatarImage(character, `${IMG_URL}blank-friendly.webp`);
-							},
+								$.ajax({
+									url: avatarFallBack,
+									type: "HEAD",
+									error: function () {
+										d20plus.importer.getSetAvatarImage(character, `${IMG_URL_REPO}blank-friendly.webp`);
+									},
+									success: function () {
+										d20plus.importer.getSetAvatarImage(character, avatarFallBack);
+									},
+								});							},
 							success: function () {
 								d20plus.importer.getSetAvatarImage(character, avatar);
 							},
