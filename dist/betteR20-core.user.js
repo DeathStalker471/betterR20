@@ -2,7 +2,7 @@
 // @name         betteR20-beta-core-death
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.35.186.14d
+// @version      1.35.186.14e
 // @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/dev-beta-death/dist/betteR20-core.meta.js
 // @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/dev-beta-death/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
@@ -30,7 +30,7 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.35.186.14d`;
+B20_VERSION = `1.35.186.14e`;
 B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/dev-beta-death/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
@@ -28062,82 +28062,106 @@ Parser.attrChooseToFull = function (attList) {
 	}
 };
 
-Parser.numberToText = function (number) {
+Parser.numberToText = function (number, {isOrdinalForm = false} = {}) {
 	if (number == null) throw new TypeError(`undefined or null object passed to parser`);
-	if (Math.abs(number) >= 100) return `${number}`;
+	if (Math.abs(number) >= 100) return isOrdinalForm ? Parser.getOrdinalForm(number) : `${number}`;
 
-	return `${number < 0 ? "negative " : ""}${Parser.numberToText._getPositiveNumberAsText(Math.abs(number))}`;
+	return `${number < 0 ? "negative " : ""}${Parser.numberToText._getPositiveNumberAsText({number: Math.abs(number), isOrdinalForm})}`;
 };
 
-Parser.numberToText._getPositiveNumberAsText = num => {
-	const [preDotRaw, postDotRaw] = `${num}`.split(".");
+Parser.numberToText._getPositiveNumberAsText = ({number, isOrdinalForm}) => {
+	const [preDotRaw, postDotRaw] = `${number}`.split(".");
 
-	if (!postDotRaw) return Parser.numberToText._getPositiveIntegerAsText(num);
+	if (!postDotRaw) return Parser.numberToText._getPositiveIntegerAsText({number, isOrdinalForm});
 
-	let preDot = preDotRaw === "0" ? "" : `${Parser.numberToText._getPositiveIntegerAsText(Math.trunc(num))} and `;
+	if (isOrdinalForm) return `${preDotRaw}.${Parser.getOrdinalForm(postDotRaw)}`;
 
+	const {str: strPostDot, isPretty: isPrettyPostDot} = Parser.numberToText._getPostDot({postDotRaw});
+
+	if (!isPrettyPostDot) return `${number}`;
+
+	return preDotRaw === "0"
+		? strPostDot
+		: `${Parser.numberToText._getPositiveIntegerAsText({number: Math.trunc(number), isOrdinalForm})} and ${strPostDot}`;
+};
+
+Parser.numberToText._getPostDot = ({postDotRaw}) => {
 	// See also: `Parser.numberToVulgar`
 	switch (postDotRaw) {
-		case "125": return `${preDot}one-eighth`;
-		case "2": return `${preDot}one-fifth`;
-		case "25": return `${preDot}one-quarter`;
-		case "375": return `${preDot}three-eighths`;
-		case "4": return `${preDot}two-fifths`;
-		case "5": return `${preDot}one-half`;
-		case "6": return `${preDot}three-fifths`;
-		case "625": return `${preDot}five-eighths`;
-		case "75": return `${preDot}three-quarters`;
-		case "8": return `${preDot}four-fifths`;
-		case "875": return `${preDot}seven-eighths`;
+		case "125": return {str: `one-eighth`, isPretty: true};
+		case "2": return {str: `one-fifth`, isPretty: true};
+		case "25": return {str: `one-quarter`, isPretty: true};
+		case "375": return {str: `three-eighths`, isPretty: true};
+		case "4": return {str: `two-fifths`, isPretty: true};
+		case "5": return {str: `one-half`, isPretty: true};
+		case "6": return {str: `three-fifths`, isPretty: true};
+		case "625": return {str: `five-eighths`, isPretty: true};
+		case "75": return {str: `three-quarters`, isPretty: true};
+		case "8": return {str: `four-fifths`, isPretty: true};
+		case "875": return {str: `seven-eighths`, isPretty: true};
 
 		default: {
 			// Handle recursive
 			const asNum = Number(`0.${postDotRaw}`);
 
-			if (asNum.toFixed(2) === (1 / 3).toFixed(2)) return `${preDot}one-third`;
-			if (asNum.toFixed(2) === (2 / 3).toFixed(2)) return `${preDot}two-thirds`;
+			if (asNum.toFixed(2) === (1 / 3).toFixed(2)) return {str: `one-third`, isPretty: true};
+			if (asNum.toFixed(2) === (2 / 3).toFixed(2)) return {str: `two-thirds`, isPretty: true};
 
-			if (asNum.toFixed(2) === (1 / 6).toFixed(2)) return `${preDot}one-sixth`;
-			if (asNum.toFixed(2) === (5 / 6).toFixed(2)) return `${preDot}five-sixths`;
+			if (asNum.toFixed(2) === (1 / 6).toFixed(2)) return {str: `one-sixth`, isPretty: true};
+			if (asNum.toFixed(2) === (5 / 6).toFixed(2)) return {str: `five-sixths`, isPretty: true};
+
+			return {str: `${postDotRaw}`, isPretty: false};
 		}
 	}
 };
 
-Parser.numberToText._getPositiveIntegerAsText = num => {
-	switch (num) {
-		case 0: return "zero";
-		case 1: return "one";
-		case 2: return "two";
-		case 3: return "three";
-		case 4: return "four";
-		case 5: return "five";
-		case 6: return "six";
-		case 7: return "seven";
-		case 8: return "eight";
-		case 9: return "nine";
-		case 10: return "ten";
-		case 11: return "eleven";
-		case 12: return "twelve";
-		case 13: return "thirteen";
-		case 14: return "fourteen";
-		case 15: return "fifteen";
-		case 16: return "sixteen";
-		case 17: return "seventeen";
-		case 18: return "eighteen";
-		case 19: return "nineteen";
-		case 20: return "twenty";
-		case 30: return "thirty";
-		case 40: return "forty";
-		case 50: return "fifty";
-		case 60: return "sixty";
-		case 70: return "seventy";
-		case 80: return "eighty";
-		case 90: return "ninety";
+Parser.numberToText._getPositiveIntegerAsText = ({number, isOrdinalForm}) => {
+	switch (number) {
+		case 0: return Parser.numberToText._getOptionallyOrdinal({number, str: "zero", isOrdinalForm});
+		case 1: return Parser.numberToText._getOptionallyOrdinal({number, str: "one", isOrdinalForm});
+		case 2: return Parser.numberToText._getOptionallyOrdinal({number, str: "two", isOrdinalForm});
+		case 3: return Parser.numberToText._getOptionallyOrdinal({number, str: "three", isOrdinalForm});
+		case 4: return Parser.numberToText._getOptionallyOrdinal({number, str: "four", isOrdinalForm});
+		case 5: return Parser.numberToText._getOptionallyOrdinal({number, str: "five", isOrdinalForm});
+		case 6: return Parser.numberToText._getOptionallyOrdinal({number, str: "six", isOrdinalForm});
+		case 7: return Parser.numberToText._getOptionallyOrdinal({number, str: "seven", isOrdinalForm});
+		case 8: return Parser.numberToText._getOptionallyOrdinal({number, str: "eight", isOrdinalForm});
+		case 9: return Parser.numberToText._getOptionallyOrdinal({number, str: "nine", isOrdinalForm});
+		case 10: return Parser.numberToText._getOptionallyOrdinal({number, str: "ten", isOrdinalForm});
+		case 11: return Parser.numberToText._getOptionallyOrdinal({number, str: "eleven", isOrdinalForm});
+		case 12: return Parser.numberToText._getOptionallyOrdinal({number, str: "twelve", isOrdinalForm});
+		case 13: return Parser.numberToText._getOptionallyOrdinal({number, str: "thirteen", isOrdinalForm});
+		case 14: return Parser.numberToText._getOptionallyOrdinal({number, str: "fourteen", isOrdinalForm});
+		case 15: return Parser.numberToText._getOptionallyOrdinal({number, str: "fifteen", isOrdinalForm});
+		case 16: return Parser.numberToText._getOptionallyOrdinal({number, str: "sixteen", isOrdinalForm});
+		case 17: return Parser.numberToText._getOptionallyOrdinal({number, str: "seventeen", isOrdinalForm});
+		case 18: return Parser.numberToText._getOptionallyOrdinal({number, str: "eighteen", isOrdinalForm});
+		case 19: return Parser.numberToText._getOptionallyOrdinal({number, str: "nineteen", isOrdinalForm});
+		case 20: return Parser.numberToText._getOptionallyOrdinal({number, str: "twenty", isOrdinalForm});
+		case 30: return Parser.numberToText._getOptionallyOrdinal({number, str: "thirty", isOrdinalForm});
+		case 40: return Parser.numberToText._getOptionallyOrdinal({number, str: "forty", isOrdinalForm});
+		case 50: return Parser.numberToText._getOptionallyOrdinal({number, str: "fifty", isOrdinalForm});
+		case 60: return Parser.numberToText._getOptionallyOrdinal({number, str: "sixty", isOrdinalForm});
+		case 70: return Parser.numberToText._getOptionallyOrdinal({number, str: "seventy", isOrdinalForm});
+		case 80: return Parser.numberToText._getOptionallyOrdinal({number, str: "eighty", isOrdinalForm});
+		case 90: return Parser.numberToText._getOptionallyOrdinal({number, str: "ninety", isOrdinalForm});
 		default: {
-			const str = String(num);
-			return `${Parser.numberToText._getPositiveIntegerAsText(Number(`${str[0]}0`))}-${Parser.numberToText._getPositiveIntegerAsText(Number(str[1]))}`;
+			const str = String(number);
+			return `${Parser.numberToText._getPositiveIntegerAsText({number: Number(`${str[0]}0`)})}-${Parser.numberToText._getPositiveIntegerAsText({number: Number(str[1]), isOrdinalForm})}`;
 		}
 	}
+};
+
+Parser.numberToText._getOptionallyOrdinal = ({number, str, isOrdinalForm}) => {
+	if (!isOrdinalForm) return str;
+	switch (number) {
+		case 1: return "first";
+		case 2: return "second";
+		case 3: return "third";
+	}
+	if (str.endsWith("y")) return `${str.slice(0, -1)}ieth`;
+	if (str.endsWith("ve")) return `${str.slice(0, -2)}fth`;
+	return `${str}th`;
 };
 
 Parser.textToNumber = function (str) {
@@ -28145,16 +28169,16 @@ Parser.textToNumber = function (str) {
 	if (!isNaN(str)) return Number(str);
 	switch (str) {
 		case "zero": return 0;
-		case "one": case "a": case "an": return 1;
-		case "two": case "double": return 2;
-		case "three": case "triple": return 3;
-		case "four": case "quadruple": return 4;
-		case "five": return 5;
-		case "six": return 6;
-		case "seven": return 7;
-		case "eight": return 8;
-		case "nine": return 9;
-		case "ten": return 10;
+		case "one": case "a": case "an": case "first": return 1;
+		case "two": case "double": case "second": return 2;
+		case "three": case "triple": case "third": return 3;
+		case "four": case "quadruple": case "fourth": return 4;
+		case "five": case "fifth": return 5;
+		case "six": case "sixth": return 6;
+		case "seven": case "seventh": return 7;
+		case "eight": case "eighth": return 8;
+		case "nine": case "ninth": return 9;
+		case "ten": case "tenth": return 10;
 		case "eleven": return 11;
 		case "twelve": return 12;
 		case "thirteen": return 13;
@@ -28305,7 +28329,7 @@ Parser.getSpeedString = (ent, {isMetric = false, isSkipZeroWalk = false, isLongF
 
 		if (ent.speed.choose && !ent.speed.hidden?.includes("choose")) {
 			joiner = "; ";
-			stack.push(`${ent.speed.choose.from.sort().joinConjunct(", ", " or ")} ${ent.speed.choose.amount} ${unit}${ent.speed.choose.note ? ` ${ent.speed.choose.note}` : ""}`);
+			stack.push(`${ent.speed.choose.from.sort().map(prop => Parser._getSpeedString_getSpeedName({prop, styleHint})).joinConjunct(", ", " or ")} ${ent.speed.choose.amount} ${unit}${ent.speed.choose.note ? ` ${ent.speed.choose.note}` : ""}`);
 		}
 
 		return stack.join(joiner) + (ent.speed.note ? ` ${ent.speed.note}` : "");
@@ -28319,7 +28343,7 @@ Parser._getSpeedString_addSpeedMode = ({ent, prop, stack, isMetric, isSkipZeroWa
 	if (ent.speed.alternate && ent.speed.alternate[prop]) ent.speed.alternate[prop].forEach(speed => Parser._getSpeedString_addSpeed({prop, speed, isMetric, unit, stack, styleHint}));
 };
 Parser._getSpeedString_addSpeed = ({prop, speed, isMetric, unit, stack, styleHint}) => {
-	const ptName = prop === "walk" ? "" : `${prop[styleHint === "classic" ? "toString" : "toTitleCase"]()} `;
+	const ptName = Parser._getSpeedString_getSpeedName({prop, styleHint});
 	const ptValue = Parser._getSpeedString_getVal({prop, speed, isMetric});
 	const ptUnit = speed === true ? "" : ` ${unit}`;
 	const ptCondition = Parser._getSpeedString_getCondition({speed});
@@ -28335,6 +28359,7 @@ Parser._getSpeedString_getVal = ({prop, speed, isMetric}) => {
 	return isMetric ? Parser.metric.getMetricNumber({originalValue: num, originalUnit: Parser.UNT_FEET}) : num;
 };
 Parser._getSpeedString_getCondition = ({speed}) => speed.condition ? ` ${Renderer.get().render(speed.condition)}` : "";
+Parser._getSpeedString_getSpeedName = ({prop, styleHint}) => prop === "walk" ? "" : `${prop[styleHint === "classic" ? "toString" : "toTitleCase"]()} `;
 
 Parser.SPEED_MODES = ["walk", "burrow", "climb", "fly", "swim"];
 
@@ -28406,7 +28431,7 @@ Parser.crToNumber = function (cr, opts = {}) {
 	if (cr === "Unknown" || cr === "\u2014" || cr == null) return isDefaultNull ? null : VeCt.CR_UNKNOWN;
 	if (cr.cr) return Parser.crToNumber(cr.cr, opts);
 
-	const parts = cr.trim().split("/");
+	const parts = cr.trim().split("/").filter(Boolean);
 	if (!parts.length || parts.length >= 3) return isDefaultNull ? null : VeCt.CR_CUSTOM;
 	if (isNaN(parts[0])) return isDefaultNull ? null : VeCt.CR_CUSTOM;
 
@@ -28428,10 +28453,11 @@ Parser.numberToCr = function (number, safe) {
 };
 
 Parser.crToPb = function (cr) {
-	if (cr === "Unknown" || cr == null) return 0;
-	cr = cr.cr || cr;
-	if (Parser.crToNumber(cr) < 5) return 2;
-	return Math.ceil(cr / 4) + 1;
+	const crNumber = Parser.crToNumber(cr);
+	if (crNumber === VeCt.CR_UNKNOWN) return 0;
+	if (crNumber === VeCt.CR_CUSTOM || crNumber < 0) return null;
+	if (crNumber < 5) return 2;
+	return Math.ceil(crNumber / 4) + 1;
 };
 
 Parser.levelToPb = function (level) {
@@ -29473,6 +29499,25 @@ Parser.UNT_INCHES = "inches";
 Parser.UNT_FEET = "feet";
 Parser.UNT_YARDS = "yards";
 Parser.UNT_MILES = "miles";
+
+Parser.UNT_CUBIC_FEET = "cubic feet";
+
+Parser.getNormalizedUnit = function (unit) {
+	if (unit == null) return unit;
+
+	unit = unit.toLowerCase().trim();
+
+	switch (unit) {
+		case "inch": case "in.": case "in": case Parser.UNT_INCHES: return Parser.UNT_INCHES;
+		case "foot": case "ft.": case "ft": case Parser.UNT_FEET: return Parser.UNT_FEET;
+		case "yard": case "yd.": case "yd": case Parser.UNT_YARDS: return Parser.UNT_YARDS;
+		case "mile": case "mi.": case "mi": case Parser.UNT_MILES: return Parser.UNT_MILES;
+
+		case "pound": case "pounds": case "lbs.": case "lb.": case "lb": case Parser.UNT_LBS: return Parser.UNT_LBS;
+		default: return unit;
+	}
+};
+
 Parser.SP_DIST_TYPE_TO_FULL = {
 	[Parser.UNT_INCHES]: "Inches",
 	[Parser.UNT_FEET]: "Feet",
@@ -29502,9 +29547,9 @@ Parser.SP_RANGE_TO_ICON = {
 	[Parser.RNG_CYLINDER]: "fa-database",
 	[Parser.RNG_SELF]: "fa-street-view",
 	[Parser.RNG_SIGHT]: "fa-eye",
-	[Parser.RNG_UNLIMITED_SAME_PLANE]: "fa-globe-americas",
+	[Parser.RNG_UNLIMITED_SAME_PLANE]: "fa-earth-americas",
 	[Parser.RNG_UNLIMITED]: "fa-infinity",
-	[Parser.RNG_TOUCH]: "fa-hand-paper",
+	[Parser.RNG_TOUCH]: "fa-hand",
 };
 
 Parser.spRangeTypeToIcon = function (range) {
@@ -29551,7 +29596,9 @@ Parser.spRangeToShortHtml._getAreaStyleString = function (range) {
 	return `<span class="fas fa-fw ${Parser.spRangeTypeToIcon(range.type)} help-subtle" title="${Parser.spRangeTypeToFull(range.type)}"></span>`;
 };
 
-Parser.spRangeToFull = function (range) {
+Parser.spRangeToFull = function (range, {styleHint, isDisplaySelfArea = false} = {}) {
+	styleHint ||= VetoolsConfig.get("styleSwitcher", "style");
+
 	switch (range.type) {
 		case Parser.RNG_SPECIAL: return Parser.spRangeTypeToFull(range.type);
 		case Parser.RNG_POINT: return Parser.spRangeToFull._renderPoint(range);
@@ -29563,7 +29610,7 @@ Parser.spRangeToFull = function (range) {
 		case Parser.RNG_SPHERE:
 		case Parser.RNG_HEMISPHERE:
 		case Parser.RNG_CYLINDER:
-			return Parser.spRangeToFull._renderArea(range);
+			return Parser.spRangeToFull._renderArea({range, styleHint, isDisplaySelfArea});
 	}
 };
 Parser.spRangeToFull._renderPoint = function (range) {
@@ -29583,7 +29630,8 @@ Parser.spRangeToFull._renderPoint = function (range) {
 			return `${dist.amount} ${dist.amount === 1 ? Parser.getSingletonUnit(dist.type) : dist.type}`;
 	}
 };
-Parser.spRangeToFull._renderArea = function (range) {
+Parser.spRangeToFull._renderArea = function ({range, styleHint, isDisplaySelfArea = false}) {
+	if (styleHint !== "classic" && !isDisplaySelfArea) return "Self";
 	const size = range.distance;
 	return `Self (${size.amount}-${Parser.getSingletonUnit(size.type)}${Parser.spRangeToFull._getAreaStyleString(range)}${range.type === Parser.RNG_CYLINDER ? `${size.amountSecondary != null && size.typeSecondary != null ? `, ${size.amountSecondary}-${Parser.getSingletonUnit(size.typeSecondary)}-high` : ""} cylinder` : ""})`;
 };
@@ -29898,57 +29946,67 @@ Parser.monTypeFromPlural = function (type) {
 	return Parser._parse_bToA(Parser.MON_TYPE_TO_PLURAL, type);
 };
 
-Parser.getFullImmRes = function (toParse, {isPlainText = false, isTitleCase = false} = {}) {
-	if (!toParse?.length) return "";
+/* -------------------------------------------- */
 
-	let maxDepth = 0;
-
-	const renderString = (str, {isTitleCase = false} = {}) => {
-		if (isTitleCase) str = str.toTitleCase();
-		return isPlainText ? Renderer.stripTags(`${str}`) : Renderer.get().render(`${str}`);
-	};
-
-	const render = (val, depth = 0) => {
-		maxDepth = Math.max(maxDepth, depth);
-		if (typeof val === "string") return renderString(val, {isTitleCase});
-
-		if (val.special) return renderString(val.special);
-
-		const stack = [];
-
-		if (val.preNote) stack.push(renderString(val.preNote));
-
-		const prop = val.immune ? "immune" : val.resist ? "resist" : val.vulnerable ? "vulnerable" : null;
-		if (prop) {
-			const toJoin = val[prop].length === Parser.DMG_TYPES.length && CollectionUtil.deepEquals(Parser.DMG_TYPES, val[prop])
-				? ["all damage"[isTitleCase ? "toTitleCase" : "toString"]()]
-				: val[prop].map(nxt => render(nxt, depth + 1));
-			stack.push(renderString(depth ? toJoin.join(maxDepth ? "; " : ", ") : toJoin.joinConjunct(", ", " and ")));
-		}
-
-		if (val.note) stack.push(renderString(val.note));
-
-		return stack.join(" ");
-	};
-
-	const arr = toParse.map(it => render(it));
-
-	if (arr.length <= 1) return arr.join("");
-
-	let out = "";
-	for (let i = 0; i < arr.length - 1; ++i) {
-		const it = arr[i];
-		const nxt = arr[i + 1];
-
-		const orig = toParse[i];
-		const origNxt = toParse[i + 1];
-
-		out += it;
-		out += (it.includes(",") || nxt.includes(",") || (orig && orig.cond) || (origNxt && origNxt.cond)) ? "; " : ", ";
-	}
-	out += arr.last();
-	return out;
+Parser._getFullImmRes_isSimpleTerm = val => {
+	if (typeof val === "string" || val.special) return true;
+	const prop = Parser._getFullImmRes_getNextProp(val);
+	return prop == null;
 };
+
+Parser._getFullImmRes_getNextProp = obj => obj.immune ? "immune" : obj.resist ? "resist" : obj.vulnerable ? "vulnerable" : null;
+
+Parser._getFullImmRes_getRenderedString = (str, {isPlainText = false, isTitleCase = false} = {}) => {
+	if (isTitleCase) str = str.toTitleCase();
+	return isPlainText ? Renderer.stripTags(`${str}`) : Renderer.get().render(`${str}`);
+};
+
+Parser._getFullImmRes_getRenderedObject = (obj, {isPlainText = false, isTitleCase = false} = {}) => {
+	const stack = [];
+
+	if (obj.preNote) stack.push(Parser._getFullImmRes_getRenderedString(obj.preNote, {isPlainText}));
+
+	const prop = Parser._getFullImmRes_getNextProp(obj);
+	if (prop) stack.push(Parser._getFullImmRes_getRenderedArray(obj[prop], {isPlainText, isTitleCase, isGroup: true}));
+
+	if (obj.note) stack.push(Parser._getFullImmRes_getRenderedString(obj.note, {isPlainText}));
+
+	return stack.join(" ");
+};
+
+Parser._getFullImmRes_getRenderedArray = (values, {isPlainText = false, isTitleCase = false, isGroup = false} = {}) => {
+	if (values.length === Parser.DMG_TYPES.length && CollectionUtil.deepEquals(Parser.DMG_TYPES, values)) {
+		return "all damage"[isTitleCase ? "toTitleCase" : "toString"]();
+	}
+
+	return values
+		.map((val, i, arr) => {
+			const isSimpleCur = Parser._getFullImmRes_isSimpleTerm(val);
+
+			const rendCur = isSimpleCur
+				? val.special
+					? Parser._getFullImmRes_getRenderedString(val.special, {isPlainText, isTitleCase: false})
+					: Parser._getFullImmRes_getRenderedString(val, {isPlainText, isTitleCase})
+				: Parser._getFullImmRes_getRenderedObject(val, {isPlainText, isTitleCase});
+
+			if (i === arr.length - 1) return rendCur;
+
+			const isSimpleNxt = Parser._getFullImmRes_isSimpleTerm(arr[i + 1]);
+
+			if (!isSimpleCur || !isSimpleNxt) return `${rendCur}; `;
+			if (!isGroup || i !== arr.length - 2 || arr.length < 2) return `${rendCur}, `;
+			if (arr.length === 2) return `${rendCur} and `;
+			return `${rendCur}, and `;
+		})
+		.join("");
+};
+
+Parser.getFullImmRes = function (values, {isPlainText = false, isTitleCase = false} = {}) {
+	if (!values?.length) return "";
+	return Parser._getFullImmRes_getRenderedArray(values, {isPlainText, isTitleCase});
+};
+
+/* -------------------------------------------- */
 
 Parser.getFullCondImm = function (condImm, {isPlainText = false, isEntry = false, isTitleCase = false} = {}) {
 	if (isPlainText && isEntry) throw new Error(`Options "isPlainText" and "isEntry" are mutually exclusive!`);
@@ -30059,6 +30117,167 @@ Parser.monLanguageTagToFull = function (tag) {
 
 Parser.ENVIRONMENTS = ["arctic", "coastal", "desert", "forest", "grassland", "hill", "mountain", "swamp", "underdark", "underwater", "urban"];
 
+Parser.ENVIRONMENT__PLANAR_FEYWILD = "planar, feywild";
+Parser.ENVIRONMENT__PLANAR_SHADOWFELL = "planar, shadowfell";
+
+Parser.ENVIRONMENT__PLANAR_WATER = "planar, water";
+Parser.ENVIRONMENT__PLANAR_EARTH = "planar, earth";
+Parser.ENVIRONMENT__PLANAR_FIRE = "planar, fire";
+Parser.ENVIRONMENT__PLANAR_AIR = "planar, air";
+
+Parser.ENVIRONMENT__PLANAR_OOZE = "planar, ooze";
+Parser.ENVIRONMENT__PLANAR_MAGMA = "planar, magma";
+Parser.ENVIRONMENT__PLANAR_ASH = "planar, ash";
+Parser.ENVIRONMENT__PLANAR_ICE = "planar, ice";
+
+Parser.ENVIRONMENT__PLANAR_ELEMENTAL_CHAOS = "planar, elemental chaos";
+
+Parser.ENVIRONMENT__PLANAR_ETHEREAL = "planar, ethereal";
+Parser.ENVIRONMENT__PLANAR_ASTRAL = "planar, astral";
+
+Parser.ENVIRONMENT__PLANAR_ARBOREA = "planar, arborea";
+Parser.ENVIRONMENT__PLANAR_ARCADIA = "planar, arcadia";
+Parser.ENVIRONMENT__PLANAR_BEASTLANDS = "planar, beastlands";
+Parser.ENVIRONMENT__PLANAR_BYTOPIA = "planar, bytopia";
+Parser.ENVIRONMENT__PLANAR_ELYSIUM = "planar, elysium";
+Parser.ENVIRONMENT__PLANAR_MOUNT_CELESTIA = "planar, mount celestia";
+Parser.ENVIRONMENT__PLANAR_YSGARD = "planar, ysgard";
+
+Parser.ENVIRONMENT__PLANAR_ABYSS = "planar, abyss";
+Parser.ENVIRONMENT__PLANAR_ACHERON = "planar, acheron";
+Parser.ENVIRONMENT__PLANAR_CARCERI = "planar, carceri";
+Parser.ENVIRONMENT__PLANAR_GEHENNA = "planar, gehenna";
+Parser.ENVIRONMENT__PLANAR_HADES = "planar, hades";
+Parser.ENVIRONMENT__PLANAR_NINE_HELLS = "planar, nine hells";
+Parser.ENVIRONMENT__PLANAR_PANDEMONIUM = "planar, pandemonium";
+
+Parser.ENVIRONMENT__PLANAR_LIMBO = "planar, limbo";
+Parser.ENVIRONMENT__PLANAR_MECHANUS = "planar, mechanus";
+Parser.ENVIRONMENT__PLANAR_OUTLANDS = "planar, outlands";
+
+Parser.ENVIRONMENT__GROUP_PLANAR = "planar";
+Parser.ENVIRONMENT__GROUP_PLANAR_TRANSITIVE = "planar, transitive";
+Parser.ENVIRONMENT__GROUP_PLANAR_ELEMENTAL = "planar, elemental";
+Parser.ENVIRONMENT__GROUP_PLANAR_INNER = "planar, inner";
+Parser.ENVIRONMENT__GROUP_PLANAR_UPPER = "planar, upper";
+Parser.ENVIRONMENT__GROUP_PLANAR_LOWER = "planar, lower";
+
+Parser.ENVIRONMENT_GROUPS = {
+	[Parser.ENVIRONMENT__GROUP_PLANAR_TRANSITIVE]: [
+		Parser.ENVIRONMENT__PLANAR_ETHEREAL,
+		Parser.ENVIRONMENT__PLANAR_ASTRAL,
+	],
+	[Parser.ENVIRONMENT__GROUP_PLANAR_ELEMENTAL]: [
+		Parser.ENVIRONMENT__PLANAR_WATER,
+		Parser.ENVIRONMENT__PLANAR_EARTH,
+		Parser.ENVIRONMENT__PLANAR_FIRE,
+		Parser.ENVIRONMENT__PLANAR_AIR,
+	],
+	[Parser.ENVIRONMENT__GROUP_PLANAR_INNER]: [
+		Parser.ENVIRONMENT__PLANAR_WATER,
+		Parser.ENVIRONMENT__PLANAR_EARTH,
+		Parser.ENVIRONMENT__PLANAR_FIRE,
+		Parser.ENVIRONMENT__PLANAR_AIR,
+
+		Parser.ENVIRONMENT__PLANAR_OOZE,
+		Parser.ENVIRONMENT__PLANAR_MAGMA,
+		Parser.ENVIRONMENT__PLANAR_ASH,
+		Parser.ENVIRONMENT__PLANAR_ICE,
+
+		Parser.ENVIRONMENT__PLANAR_ELEMENTAL_CHAOS,
+	],
+	[Parser.ENVIRONMENT__GROUP_PLANAR_UPPER]: [
+		Parser.ENVIRONMENT__PLANAR_ARBOREA,
+		Parser.ENVIRONMENT__PLANAR_ARCADIA,
+		Parser.ENVIRONMENT__PLANAR_BEASTLANDS,
+		Parser.ENVIRONMENT__PLANAR_BYTOPIA,
+		Parser.ENVIRONMENT__PLANAR_ELYSIUM,
+		Parser.ENVIRONMENT__PLANAR_MOUNT_CELESTIA,
+		Parser.ENVIRONMENT__PLANAR_YSGARD,
+	],
+	[Parser.ENVIRONMENT__GROUP_PLANAR_LOWER]: [
+		Parser.ENVIRONMENT__PLANAR_ABYSS,
+		Parser.ENVIRONMENT__PLANAR_ACHERON,
+		Parser.ENVIRONMENT__PLANAR_CARCERI,
+		Parser.ENVIRONMENT__PLANAR_GEHENNA,
+		Parser.ENVIRONMENT__PLANAR_HADES,
+		Parser.ENVIRONMENT__PLANAR_NINE_HELLS,
+		Parser.ENVIRONMENT__PLANAR_PANDEMONIUM,
+	],
+};
+Parser.ENVIRONMENT_GROUPS[Parser.ENVIRONMENT__GROUP_PLANAR] = [
+	...Parser.ENVIRONMENT_GROUPS[Parser.ENVIRONMENT__GROUP_PLANAR_TRANSITIVE],
+	...Parser.ENVIRONMENT_GROUPS[Parser.ENVIRONMENT__GROUP_PLANAR_INNER],
+	...Parser.ENVIRONMENT_GROUPS[Parser.ENVIRONMENT__GROUP_PLANAR_UPPER],
+	...Parser.ENVIRONMENT_GROUPS[Parser.ENVIRONMENT__GROUP_PLANAR_LOWER],
+	Parser.ENVIRONMENT__PLANAR_LIMBO,
+	Parser.ENVIRONMENT__PLANAR_MECHANUS,
+	Parser.ENVIRONMENT__PLANAR_OUTLANDS,
+];
+
+Parser.getExpandedEnvironments = function (env) {
+	if (!Parser.ENVIRONMENT_GROUPS[env]) return env;
+	return [...Parser.ENVIRONMENT_GROUPS[env]];
+};
+
+Parser.ENVIRONMENT_DISPLAY_NAMES = {
+	[Parser.ENVIRONMENT__PLANAR_FEYWILD]: "Planar (Feywild)",
+	[Parser.ENVIRONMENT__PLANAR_SHADOWFELL]: "Planar (Shadowfell)",
+
+	[Parser.ENVIRONMENT__PLANAR_WATER]: "Planar (Elemental Plane of Water)",
+	[Parser.ENVIRONMENT__PLANAR_EARTH]: "Planar (Elemental Plane of Earth)",
+	[Parser.ENVIRONMENT__PLANAR_FIRE]: "Planar (Elemental Plane of Fire)",
+	[Parser.ENVIRONMENT__PLANAR_AIR]: "Planar (Elemental Plane of Air)",
+
+	[Parser.ENVIRONMENT__PLANAR_OOZE]: "Planar (Para-elemental Plane of Ooze)",
+	[Parser.ENVIRONMENT__PLANAR_MAGMA]: "Planar (Para-elemental Plane of Magma)",
+	[Parser.ENVIRONMENT__PLANAR_ASH]: "Planar (Para-elemental Plane of Ash)",
+	[Parser.ENVIRONMENT__PLANAR_ICE]: "Planar (Para-elemental Plane of Ice)",
+
+	[Parser.ENVIRONMENT__PLANAR_ELEMENTAL_CHAOS]: "Planar (Elemental Chaos)",
+
+	[Parser.ENVIRONMENT__PLANAR_ETHEREAL]: "Planar (Ethereal Plane)",
+	[Parser.ENVIRONMENT__PLANAR_ASTRAL]: "Planar (Astral Plane)",
+
+	[Parser.ENVIRONMENT__PLANAR_ARBOREA]: "Planar (Arborea)",
+	[Parser.ENVIRONMENT__PLANAR_ARCADIA]: "Planar (Arcadia)",
+	[Parser.ENVIRONMENT__PLANAR_BEASTLANDS]: "Planar (Beastlands)",
+	[Parser.ENVIRONMENT__PLANAR_BYTOPIA]: "Planar (Bytopia)",
+	[Parser.ENVIRONMENT__PLANAR_ELYSIUM]: "Planar (Elysium)",
+	[Parser.ENVIRONMENT__PLANAR_MOUNT_CELESTIA]: "Planar (Mount Celestia)",
+	[Parser.ENVIRONMENT__PLANAR_YSGARD]: "Planar (Ysgard)",
+
+	[Parser.ENVIRONMENT__PLANAR_ABYSS]: "Planar (Abyss)",
+	[Parser.ENVIRONMENT__PLANAR_ACHERON]: "Planar (Acheron)",
+	[Parser.ENVIRONMENT__PLANAR_CARCERI]: "Planar (Carceri)",
+	[Parser.ENVIRONMENT__PLANAR_GEHENNA]: "Planar (Gehenna)",
+	[Parser.ENVIRONMENT__PLANAR_HADES]: "Planar (Hades)",
+	[Parser.ENVIRONMENT__PLANAR_NINE_HELLS]: "Planar (Nine Hells)",
+	[Parser.ENVIRONMENT__PLANAR_PANDEMONIUM]: "Planar (Pandemonium)",
+
+	[Parser.ENVIRONMENT__PLANAR_LIMBO]: "Planar (Limbo)",
+	[Parser.ENVIRONMENT__PLANAR_MECHANUS]: "Planar (Mechanus)",
+
+	[Parser.ENVIRONMENT__PLANAR_OUTLANDS]: "Planar (Outlands)",
+
+	[Parser.ENVIRONMENT__GROUP_PLANAR_TRANSITIVE]: "Planar (Transitive Planes)",
+	[Parser.ENVIRONMENT__GROUP_PLANAR_ELEMENTAL]: "Planar (Elemental Planes)",
+	[Parser.ENVIRONMENT__GROUP_PLANAR_INNER]: "Planar (Inner Planes)",
+	[Parser.ENVIRONMENT__GROUP_PLANAR_UPPER]: "Planar (Upper Planes)",
+	[Parser.ENVIRONMENT__GROUP_PLANAR_LOWER]: "Planar (Lower Planes)",
+};
+
+Parser.getEnvironmentDisplayName = function (env) {
+	return Parser.ENVIRONMENT_DISPLAY_NAMES[env] || env.toTitleCase();
+};
+
+Parser.TREASURE_TYPES = ["arcana", "armaments", "implements", "relics"];
+
+Parser.getTreasureTypeEntry = function (typ) {
+	if (Parser.TREASURE_TYPES.includes(typ)) return `{@table Random Magic Items - ${typ.toTitleCase()}|${Parser.SRC_XDMG}|${typ.toTitleCase()}}`;
+	return typ.toTitleCase();
+};
+
 // psi-prefix functions are for parsing psionic data, and shared with the roll20 script
 Parser.PSI_ABV_TYPE_TALENT = "T";
 Parser.PSI_ABV_TYPE_DISCIPLINE = "D";
@@ -30105,6 +30324,7 @@ Parser.prereqPatronToShort = function (patron) {
 };
 
 Parser.FEAT_CATEGORY_TO_FULL = {
+	"D": "Dragonmark",
 	"G": "General",
 	"O": "Origin",
 	"FS": "Fighting Style",
@@ -30303,6 +30523,29 @@ Parser.CAT_ID_DECK = 52;
 Parser.CAT_ID_CARD = 53;
 Parser.CAT_ID_ITEM_MASTERY = 54;
 Parser.CAT_ID_FACILITY = 55;
+
+Parser.CAT_ID_GROUPS = {
+	"optionalfeature": [
+		Parser.CAT_ID_ELDRITCH_INVOCATION,
+		Parser.CAT_ID_METAMAGIC,
+		Parser.CAT_ID_MANEUVER_BATTLEMASTER,
+		Parser.CAT_ID_MANEUVER_CAVALIER,
+		Parser.CAT_ID_ARCANE_SHOT,
+		Parser.CAT_ID_OPTIONAL_FEATURE_OTHER,
+		Parser.CAT_ID_FIGHTING_STYLE,
+		Parser.CAT_ID_PACT_BOON,
+		Parser.CAT_ID_ELEMENTAL_DISCIPLINE,
+		Parser.CAT_ID_ARTIFICER_INFUSION,
+		Parser.CAT_ID_ONOMANCY_RESONANT,
+		Parser.CAT_ID_RUNE_KNIGHT_RUNE,
+		Parser.CAT_ID_ALCHEMICAL_FORMULA,
+		Parser.CAT_ID_MANEUVER,
+	],
+	"vehicleUpgrade": [
+		Parser.CAT_ID_SHIP_UPGRADE,
+		Parser.CAT_ID_INFERNAL_WAR_MACHINE_UPGRADE,
+	],
+};
 
 Parser.CAT_ID_TO_FULL = {};
 Parser.CAT_ID_TO_FULL[Parser.CAT_ID_CREATURE] = "Bestiary";
@@ -30562,17 +30805,18 @@ Parser.trapHazTypeToFull = function (type) {
 };
 
 Parser.TRAP_HAZARD_TYPE_TO_FULL = {
-	MECH: "Mechanical Trap",
-	MAG: "Magical Trap",
-	SMPL: "Simple Trap",
-	CMPX: "Complex Trap",
-	HAZ: "Hazard",
-	WTH: "Weather",
-	ENV: "Environmental Hazard",
-	WLD: "Wilderness Hazard",
-	GEN: "Generic",
-	EST: "Eldritch Storm",
-	TRP: "Trap",
+	"MECH": "Mechanical Trap",
+	"MAG": "Magical Trap",
+	"SMPL": "Simple Trap",
+	"CMPX": "Complex Trap",
+	"HAZ": "Hazard",
+	"WTH": "Weather",
+	"ENV": "Environmental Hazard",
+	"WLD": "Wilderness Hazard",
+	"GEN": "Generic",
+	"EST": "Eldritch Storm",
+	"TRP": "Trap",
+	"HAUNT": "Haunted Trap",
 };
 
 Parser._TIER_TO_LEVEL_RANGE = {
@@ -30604,14 +30848,25 @@ Parser.ATK_TYPE_TO_FULL = {};
 Parser.ATK_TYPE_TO_FULL["MW"] = "Melee Weapon Attack";
 Parser.ATK_TYPE_TO_FULL["RW"] = "Ranged Weapon Attack";
 
-Parser.bookOrdinalToAbv = (ordinal, preNoSuff) => {
+Parser.bookOrdinalToAbv = (ordinal, {isPreNoSuff = false, isPlainText = false} = {}) => {
 	if (ordinal === undefined) return "";
 	switch (ordinal.type) {
-		case "part": return `${preNoSuff ? " " : ""}Part ${ordinal.identifier}${preNoSuff ? "" : " \u2014 "}`;
-		case "chapter": return `${preNoSuff ? " " : ""}Ch. ${ordinal.identifier}${preNoSuff ? "" : ": "}`;
-		case "episode": return `${preNoSuff ? " " : ""}Ep. ${ordinal.identifier}${preNoSuff ? "" : ": "}`;
-		case "appendix": return `${preNoSuff ? " " : ""}App.${ordinal.identifier != null ? ` ${ordinal.identifier}` : ""}${preNoSuff ? "" : ": "}`;
-		case "level": return `${preNoSuff ? " " : ""}Level ${ordinal.identifier}${preNoSuff ? "" : ": "}`;
+		case "part": return `${isPreNoSuff ? " " : ""}${Parser._bookOrdinalToAbv_getPt({ordinal, isPlainText})} ${ordinal.identifier}${isPreNoSuff ? "" : " \u2014 "}`;
+		case "chapter": return `${isPreNoSuff ? " " : ""}${Parser._bookOrdinalToAbv_getPt({ordinal, isPlainText})} ${ordinal.identifier}${isPreNoSuff ? "" : ": "}`;
+		case "episode": return `${isPreNoSuff ? " " : ""}${Parser._bookOrdinalToAbv_getPt({ordinal, isPlainText})} ${ordinal.identifier}${isPreNoSuff ? "" : ": "}`;
+		case "appendix": return `${isPreNoSuff ? " " : ""}${Parser._bookOrdinalToAbv_getPt({ordinal, isPlainText})}${ordinal.identifier != null ? ` ${ordinal.identifier}` : ""}${isPreNoSuff ? "" : ": "}`;
+		case "level": return `${isPreNoSuff ? " " : ""}${Parser._bookOrdinalToAbv_getPt({ordinal, isPlainText})} ${ordinal.identifier}${isPreNoSuff ? "" : ": "}`;
+		default: throw new Error(`Unhandled ordinal type "${ordinal.type}"`);
+	}
+};
+
+Parser._bookOrdinalToAbv_getPt = ({ordinal, isPlainText = false}) => {
+	switch (ordinal.type) {
+		case "part": return `Part`;
+		case "chapter": return isPlainText ? `Ch.` : `<span title="Chapter">Ch.</span>`;
+		case "episode": return isPlainText ? `Ep.` : `<span title="Episode">Ep.</span>`;
+		case "appendix": return isPlainText ? `App.` : `<span title="Appendix">App.</span>`;
+		case "level": return `Level`;
 		default: throw new Error(`Unhandled ordinal type "${ordinal.type}"`);
 	}
 };
@@ -30967,8 +31222,6 @@ Parser.SRC_QftIS = "QftIS";
 Parser.SRC_VEoR = "VEoR";
 Parser.SRC_GHLoE = "GHLoE";
 Parser.SRC_DoDk = "DoDk";
-Parser.SRC_HWCS = "HWCS";
-Parser.SRC_HWAitW = "HWAitW";
 Parser.SRC_ToB1_2023 = "ToB1-2023";
 Parser.SRC_XPHB = "XPHB";
 Parser.SRC_XDMG = "XDMG";
@@ -31007,6 +31260,7 @@ Parser.SRC_VNotEE = "VNotEE";
 Parser.SRC_LRDT = "LRDT";
 Parser.SRC_UtHftLH = "UtHftLH";
 Parser.SRC_ScoEE = "ScoEE";
+Parser.SRC_HBTD = "HBTD";
 
 Parser.SRC_AL_PREFIX = "AL";
 
@@ -31157,8 +31411,6 @@ Parser.SOURCE_JSON_TO_FULL[Parser.SRC_QftIS] = "Quests from the Infinite Stairca
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_VEoR] = "Vecna: Eve of Ruin";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_GHLoE] = "Grim Hollow: Lairs of Etharis";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_DoDk] = "Dungeons of Drakkenheim";
-Parser.SOURCE_JSON_TO_FULL[Parser.SRC_HWCS] = "Humblewood Campaign Setting";
-Parser.SOURCE_JSON_TO_FULL[Parser.SRC_HWAitW] = "Humblewood: Adventure in the Wood";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ToB1_2023] = "Tome of Beasts 1 (2023 Edition)";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_XPHB] = "Player's Handbook (2024)";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_XDMG] = "Dungeon Master's Guide (2024)";
@@ -31197,6 +31449,7 @@ Parser.SOURCE_JSON_TO_FULL[Parser.SRC_VNotEE] = "Vecna: Nest of the Eldritch Eye
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_LRDT] = "Red Dragon's Tale: A LEGO Adventure";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_UtHftLH] = "Uni and the Hunt for the Lost Horn";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ScoEE] = "Scions of Elemental Evil";
+Parser.SOURCE_JSON_TO_FULL[Parser.SRC_HBTD] = "Hold Back The Dead";
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ALCoS] = `${Parser.AL_PREFIX}Curse of Strahd`;
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ALEE] = `${Parser.AL_PREFIX}Elemental Evil`;
 Parser.SOURCE_JSON_TO_FULL[Parser.SRC_ALRoD] = `${Parser.AL_PREFIX}Rage of Demons`;
@@ -31322,8 +31575,6 @@ Parser.SOURCE_JSON_TO_ABV[Parser.SRC_QftIS] = "QftIS";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_VEoR] = "VEoR";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_GHLoE] = "GHLoE";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_DoDk] = "DoDk";
-Parser.SOURCE_JSON_TO_ABV[Parser.SRC_HWCS] = "HWCS";
-Parser.SOURCE_JSON_TO_ABV[Parser.SRC_HWAitW] = "HWAitW";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ToB1_2023] = "ToB1'23";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_XPHB] = "PHB'24";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_XDMG] = "DMG'24";
@@ -31362,6 +31613,7 @@ Parser.SOURCE_JSON_TO_ABV[Parser.SRC_VNotEE] = "VNotEE";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_LRDT] = "LRDT";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_UtHftLH] = "UHftLH";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ScoEE] = "ScoEE";
+Parser.SOURCE_JSON_TO_ABV[Parser.SRC_HBTD] = "HBTD";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ALCoS] = "ALCoS";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ALEE] = "ALEE";
 Parser.SOURCE_JSON_TO_ABV[Parser.SRC_ALRoD] = "ALRoD";
@@ -31486,8 +31738,6 @@ Parser.SOURCE_JSON_TO_DATE[Parser.SRC_QftIS] = "2024-07-16";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_VEoR] = "2024-05-21";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_GHLoE] = "2023-11-30";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_DoDk] = "2023-12-21";
-Parser.SOURCE_JSON_TO_DATE[Parser.SRC_HWCS] = "2019-06-17";
-Parser.SOURCE_JSON_TO_DATE[Parser.SRC_HWAitW] = "2019-06-17";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ToB1_2023] = "2023-05-31";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_XPHB] = "2024-09-17";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_XDMG] = "2024-11-12";
@@ -31526,6 +31776,7 @@ Parser.SOURCE_JSON_TO_DATE[Parser.SRC_VNotEE] = "2024-04-16";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_LRDT] = "2024-04-01";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_UtHftLH] = "2024-09-24";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ScoEE] = "2024-10-24";
+Parser.SOURCE_JSON_TO_DATE[Parser.SRC_HBTD] = "2025-02-07";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ALCoS] = "2016-03-15";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ALEE] = "2015-04-07";
 Parser.SOURCE_JSON_TO_DATE[Parser.SRC_ALRoD] = "2015-09-15";
@@ -31631,7 +31882,7 @@ Parser.SOURCES_ADVENTURES = new Set([
 	Parser.SRC_HFStCM,
 	Parser.SRC_GHLoE,
 	Parser.SRC_DoDk,
-	Parser.SRC_HWAitW,
+	Parser.SRC_HBTD,
 
 	Parser.SRC_AWM,
 ]);
@@ -31681,6 +31932,7 @@ Parser.SOURCES_NON_STANDARD_WOTC = new Set([
 	Parser.SRC_HFStCM,
 	Parser.SRC_UtHftLH,
 	Parser.SRC_ScoEE,
+	Parser.SRC_HBTD,
 ]);
 Parser.SOURCES_PARTNERED_WOTC = new Set([
 	Parser.SRC_RMBRE,
@@ -31695,8 +31947,6 @@ Parser.SOURCES_PARTNERED_WOTC = new Set([
 	Parser.SRC_HftT,
 	Parser.SRC_GHLoE,
 	Parser.SRC_DoDk,
-	Parser.SRC_HWCS,
-	Parser.SRC_HWAitW,
 	Parser.SRC_ToB1_2023,
 	Parser.SRC_TD,
 	Parser.SRC_LRDT,
@@ -31704,7 +31954,7 @@ Parser.SOURCES_PARTNERED_WOTC = new Set([
 Parser.SOURCES_LEGACY_WOTC = new Set([
 	Parser.SRC_PHB,
 	Parser.SRC_DMG,
-	// Parser.SRC_MM, // TODO(XMM)
+	Parser.SRC_MM,
 	Parser.SRC_SCREEN,
 	Parser.SRC_EEPC,
 	Parser.SRC_VGM,
@@ -31761,6 +32011,7 @@ Parser.SOURCES_COMEDY = new Set([
 	Parser.SRC_LRDT,
 	Parser.SRC_UtHftLH,
 	Parser.SRC_ScoEE,
+	Parser.SRC_HBTD,
 ]);
 
 // Any opinionated set of sources that are "other settings"
@@ -31798,12 +32049,11 @@ Parser.SOURCES_NON_FR = new Set([
 	Parser.SRC_LK,
 	Parser.SRC_GHLoE,
 	Parser.SRC_DoDk,
-	Parser.SRC_HWCS,
-	Parser.SRC_HWAitW,
 	Parser.SRC_ToB1_2023,
 	Parser.SRC_LRDT,
 	Parser.SRC_UtHftLH,
 	Parser.SRC_ScoEE,
+	Parser.SRC_HBTD,
 ]);
 
 // endregion
@@ -31846,7 +32096,6 @@ Parser.SOURCES_AVAILABLE_DOCS_BOOK = {};
 	Parser.SRC_PaF,
 	Parser.SRC_BMT,
 	Parser.SRC_DMTCRG,
-	Parser.SRC_HWCS,
 	Parser.SRC_ToB1_2023,
 	Parser.SRC_XPHB,
 	Parser.SRC_XMM,
@@ -31947,13 +32196,13 @@ Parser.SOURCES_AVAILABLE_DOCS_ADVENTURE = {};
 	Parser.SRC_HFStCM,
 	Parser.SRC_GHLoE,
 	Parser.SRC_DoDk,
-	Parser.SRC_HWAitW,
 	Parser.SRC_QftIS,
 	Parser.SRC_LRDT,
 	Parser.SRC_VEoR,
 	Parser.SRC_VNotEE,
 	Parser.SRC_UtHftLH,
 	Parser.SRC_ScoEE,
+	Parser.SRC_HBTD,
 ].forEach(src => {
 	Parser.SOURCES_AVAILABLE_DOCS_ADVENTURE[src] = src;
 	Parser.SOURCES_AVAILABLE_DOCS_ADVENTURE[src.toLowerCase()] = src;
@@ -31981,6 +32230,7 @@ Parser.PROP_TO_TAG = {
 };
 Parser.getPropTag = function (prop) {
 	if (Parser.PROP_TO_TAG[prop]) return Parser.PROP_TO_TAG[prop];
+	if (prop?.endsWith("Fluff")) return null;
 	return prop;
 };
 
@@ -32047,12 +32297,22 @@ Parser.DMGTYPE_JSON_TO_FULL = {
 Parser.DMG_TYPES = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder"];
 Parser.CONDITIONS = ["blinded", "charmed", "deafened", "exhaustion", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "poisoned", "prone", "restrained", "stunned", "unconscious"];
 
-Parser.SENSES = [
+Parser._SENSES_LEGACY = [
 	{"name": "blindsight", "source": Parser.SRC_PHB},
 	{"name": "darkvision", "source": Parser.SRC_PHB},
 	{"name": "tremorsense", "source": Parser.SRC_MM},
 	{"name": "truesight", "source": Parser.SRC_PHB},
 ];
+Parser._SENSES_MODERN = [
+	{"name": "blindsight", "source": Parser.SRC_XPHB},
+	{"name": "darkvision", "source": Parser.SRC_XPHB},
+	{"name": "tremorsense", "source": Parser.SRC_XPHB},
+	{"name": "truesight", "source": Parser.SRC_XPHB},
+];
+Parser.getSenses = function ({styleHint = null} = {}) {
+	styleHint ||= VetoolsConfig.get("styleSwitcher", "style");
+	return styleHint === "classic" ? Parser._SENSES_LEGACY : Parser._SENSES_MODERN;
+};
 
 Parser.NUMBERS_ONES = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
 Parser.NUMBERS_TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
@@ -32067,7 +32327,13 @@ Parser.metric = {
 	POUNDS_TO_KILOGRAMS: 0.5, // 2 lb = 1 kg
 	// Other additions
 	INCHES_TO_CENTIMETERS: 2.5, // 1 in = 2.5 cm
+	CUBIC_FEET_TO_LITRES: 28, // 1 ft³ = 28 L
 
+	/**
+	 * @param {number} originalValue
+	 * @param {string} originalUnit
+	 * @param {?boolean} toFixed
+	 */
 	getMetricNumber ({originalValue, originalUnit, toFixed = null}) {
 		if (originalValue == null || isNaN(originalValue)) return originalValue;
 
@@ -32075,25 +32341,32 @@ Parser.metric = {
 		if (!originalValue) return originalValue;
 
 		let out = null;
-		switch (originalUnit) {
-			case "in.": case "in": case Parser.UNT_INCHES: out = originalValue * Parser.metric.INCHES_TO_CENTIMETERS; break;
-			case "ft.": case "ft": case Parser.UNT_FEET: out = originalValue * Parser.metric.FEET_TO_METRES; break;
-			case "yd.": case "yd": case Parser.UNT_YARDS: out = originalValue * Parser.metric.YARDS_TO_METRES; break;
-			case "mi.": case "mi": case Parser.UNT_MILES: out = originalValue * Parser.metric.MILES_TO_KILOMETRES; break;
-			case "lb.": case "lb": case Parser.UNT_LBS: out = originalValue * Parser.metric.POUNDS_TO_KILOGRAMS; break;
+		switch (Parser.getNormalizedUnit(originalUnit)) {
+			case Parser.UNT_INCHES: out = originalValue * Parser.metric.INCHES_TO_CENTIMETERS; break;
+			case Parser.UNT_FEET: out = originalValue * Parser.metric.FEET_TO_METRES; break;
+			case Parser.UNT_YARDS: out = originalValue * Parser.metric.YARDS_TO_METRES; break;
+			case Parser.UNT_MILES: out = originalValue * Parser.metric.MILES_TO_KILOMETRES; break;
+			case Parser.UNT_LBS: out = originalValue * Parser.metric.POUNDS_TO_KILOGRAMS; break;
+			case Parser.UNT_CUBIC_FEET: out = originalValue * Parser.metric.CUBIC_FEET_TO_LITRES; break;
 			default: return originalValue;
 		}
 		if (toFixed != null) return NumberUtil.toFixedNumber(out, toFixed);
 		return out;
 	},
 
+	/**
+	 * @param {number} originalValue
+	 * @param {boolean} isShortForm
+	 * @param {isPlural} isShortForm
+	 */
 	getMetricUnit ({originalUnit, isShortForm = false, isPlural = true}) {
-		switch (originalUnit) {
-			case "in.": case "in": case Parser.UNT_INCHES: return isShortForm ? "cm" : `centimeter`[isPlural ? "toPlural" : "toString"]();
-			case "ft.": case "ft": case Parser.UNT_FEET: return isShortForm ? "m" : `meter`[isPlural ? "toPlural" : "toString"]();
-			case "yd.": case "yd": case Parser.UNT_YARDS: return isShortForm ? "m" : `meter`[isPlural ? "toPlural" : "toString"]();
-			case "mi.": case "mi": case Parser.UNT_MILES: return isShortForm ? "km" : `kilometre`[isPlural ? "toPlural" : "toString"]();
-			case "lb.": case "lb": case Parser.UNT_LBS: return isShortForm ? "kg" : `kilogram`[isPlural ? "toPlural" : "toString"]();
+		switch (Parser.getNormalizedUnit(originalUnit)) {
+			case Parser.UNT_INCHES: return isShortForm ? "cm" : `centimeter`[isPlural ? "toPlural" : "toString"]();
+			case Parser.UNT_FEET: return isShortForm ? "m" : `meter`[isPlural ? "toPlural" : "toString"]();
+			case Parser.UNT_YARDS: return isShortForm ? "m" : `meter`[isPlural ? "toPlural" : "toString"]();
+			case Parser.UNT_MILES: return isShortForm ? "km" : `kilometer`[isPlural ? "toPlural" : "toString"]();
+			case Parser.UNT_LBS: return isShortForm ? "kg" : `kilogram`[isPlural ? "toPlural" : "toString"]();
+			case Parser.UNT_CUBIC_FEET: return isShortForm ? "L" : `liter`[isPlural ? "toPlural" : "toString"]();
 			default: return originalUnit;
 		}
 	},
@@ -32121,7 +32394,7 @@ Parser.mapGridTypeToFull = function (gridType) {
 EXT_LIB_SCRIPTS.push((function lib_script_4 () {
 // in deployment, `IS_DEPLOYED = "<version number>";` should be set below.
 globalThis.IS_DEPLOYED = undefined;
-globalThis.VERSION_NUMBER = /* 5ETOOLS_VERSION__OPEN */"2.5.4"/* 5ETOOLS_VERSION__CLOSE */;
+globalThis.VERSION_NUMBER = /* 5ETOOLS_VERSION__OPEN */"2.8.1"/* 5ETOOLS_VERSION__CLOSE */;
 globalThis.DEPLOYED_IMG_ROOT = undefined;
 // for the roll20 script to set
 globalThis.IS_VTT = false;
@@ -32145,6 +32418,7 @@ globalThis.VeCt = {
 	HASH_SCALED_CLASS_SUMMON: "scaledclasssummon",
 
 	FILTER_BOX_SUB_HASH_SEARCH_PREFIX: "fbsr",
+	FILTER_BOX_SUB_HASH_FLAG_IS_PRESERVE_EXISTING: "fbpe",
 
 	JSON_PRERELEASE_INDEX: `prerelease/index.json`,
 	JSON_BREW_INDEX: `homebrew/index.json`,
@@ -32170,7 +32444,7 @@ globalThis.VeCt = {
 
 	SYM_UTIL_TIMEOUT: Symbol("timeout"),
 
-	LOC_ORIGIN_CANCER: "https://5e.tools",
+	LOC_HOSTNAME_CANCER: "5e.tools",
 
 	URL_BREW: `https://github.com/TheGiddyLimit/homebrew`,
 	URL_ROOT_BREW: `https://raw.githubusercontent.com/TheGiddyLimit/homebrew/master/`, // N.b. must end with a slash
@@ -32186,7 +32460,6 @@ globalThis.VeCt = {
 	SPELL_LEVEL_MAX: 9,
 	LEVEL_MAX: 20,
 
-	ENTDATA_TABLE_INCLUDE: "tableInclude",
 	ENTDATA_ITEM_MERGED_ENTRY_TAG: "item__mergedEntryTag",
 
 	DRAG_TYPE_IMPORT: "ve-Import",
@@ -32211,25 +32484,7 @@ String.prototype.lowercaseFirst = String.prototype.lowercaseFirst || function ()
 };
 
 String.prototype.toTitleCase = String.prototype.toTitleCase || function () {
-	// region Initialize regexed
-	StrUtil._TITLE_RE_INITIAL ??= /(\w+[^-\u2014\s/]*) */g;
-	StrUtil._TITLE_RE_SPLIT_PUNCT ??= /([;:?!.])/g;
-	StrUtil._TITLE_RE_POST_PUNCT ??= /^(\s*)(\S)/;
-
-	// Require space surrounded, as title-case requires a full word on either side
-	StrUtil._TITLE_LOWER_WORDS_RE ??= RegExp(`\\s(${StrUtil.TITLE_LOWER_WORDS.join("|")})(?=\\s)`, "gi");
-	StrUtil._TITLE_UPPER_WORDS_RE ??= RegExp(`\\b(${StrUtil.TITLE_UPPER_WORDS.join("|")})\\b`, "g");
-	StrUtil._TITLE_UPPER_WORDS_PLURAL_RE ??= RegExp(`\\b(${StrUtil.TITLE_UPPER_WORDS_PLURAL.join("|")})\\b`, "g");
-	// endregion
-
-	return this
-		.replace(StrUtil._TITLE_RE_INITIAL, m0 => m0.charAt(0).toUpperCase() + m0.substring(1).toLowerCase())
-		.replace(StrUtil._TITLE_LOWER_WORDS_RE, (...m) => m[0].toLowerCase())
-		.replace(StrUtil._TITLE_UPPER_WORDS_RE, (...m) => m[0].toUpperCase())
-		.replace(StrUtil._TITLE_UPPER_WORDS_PLURAL_RE, (...m) => `${m[0].slice(0, -1).toUpperCase()}${m[0].slice(-1).toLowerCase()}`)
-		.split(StrUtil._TITLE_RE_SPLIT_PUNCT)
-		.map(pt => pt.replace(StrUtil._TITLE_RE_POST_PUNCT, (...m) => `${m[1]}${m[2].toUpperCase()}`))
-		.join("");
+	return StrUtil.toTitleCase(this);
 };
 
 String.prototype.toSentenceCase = String.prototype.toSentenceCase || function () {
@@ -32257,20 +32512,11 @@ String.prototype.toCamelCase = String.prototype.toCamelCase || function () {
 };
 
 String.prototype.toSingle = String.prototype.toSingle || function () {
-	return this.replace(/i?e?s$/i, "");
+	return StrUtil.toSingle(this);
 };
 
 String.prototype.toPlural = String.prototype.toPlural || function () {
-	let plural;
-	if (StrUtil.IRREGULAR_PLURAL_WORDS[this.toLowerCase()]) plural = StrUtil.IRREGULAR_PLURAL_WORDS[this.toLowerCase()];
-	else if (/(s|x|z|ch|sh)$/i.test(this)) plural = `${this}es`;
-	else if (/[bcdfghjklmnpqrstvwxyz]y$/i.test(this)) plural = this.replace(/y$/i, "ies");
-	else plural = `${this}s`;
-
-	if (this.toLowerCase() === this) return plural;
-	if (this.toUpperCase() === this) return plural.toUpperCase();
-	if (this.toTitleCase() === this) return plural.toTitleCase();
-	return plural;
+	return StrUtil.toPlural(this);
 };
 
 String.prototype.escapeQuotes = String.prototype.escapeQuotes || function () {
@@ -32401,49 +32647,60 @@ Array.prototype.joinConjunct || Object.defineProperty(Array.prototype, "joinConj
 	},
 });
 
-globalThis.StrUtil = {
-	COMMAS_NOT_IN_PARENTHESES_REGEX: /,\s?(?![^(]*\))/g,
-	COMMA_SPACE_NOT_IN_PARENTHESES_REGEX: /, (?![^(]*\))/g,
-	SEMICOLON_SPACE_NOT_IN_PARENTHESES_REGEX: /; (?![^(]*\))/g,
+globalThis.StrUtil = class {
+	static COMMAS_NOT_IN_PARENTHESES_REGEX = /,\s?(?![^(]*\))/g;
+	static COMMA_SPACE_NOT_IN_PARENTHESES_REGEX = /, (?![^(]*\))/g;
+	static SEMICOLON_SPACE_NOT_IN_PARENTHESES_REGEX = /; (?![^(]*\))/g;
 
-	uppercaseFirst: function (string) {
+	static uppercaseFirst (string) {
 		return string.uppercaseFirst();
-	},
+	}
+
+	/* -------------------------------------------- */
+
 	// Certain minor words should be left lowercase unless they are the first or last words in the string
-	TITLE_LOWER_WORDS: ["a", "an", "the", "and", "but", "or", "for", "nor", "as", "at", "by", "for", "from", "in", "into", "near", "of", "on", "onto", "to", "with", "over", "von", "between", "per"],
+	static TITLE_LOWER_WORDS = ["a", "an", "the", "and", "but", "or", "for", "nor", "as", "at", "by", "for", "from", "in", "into", "near", "of", "on", "onto", "to", "with", "over", "von", "between", "per", "beyond", "among"];
 	// Certain words such as initialisms or acronyms should be left uppercase
-	TITLE_UPPER_WORDS: ["Id", "Tv", "Dm", "Ok", "Npc", "Pc", "Tpk", "Wip", "Dc", "D&d"],
-	TITLE_UPPER_WORDS_PLURAL: ["Ids", "Tvs", "Dms", "Oks", "Npcs", "Pcs", "Tpks", "Wips", "Dcs"], // (Manually pluralize, to avoid infinite loop)
+	static TITLE_UPPER_WORDS = ["Id", "Tv", "Dm", "Ok", "Npc", "Pc", "Tpk", "Wip", "Dc", "D&d"];
+	static TITLE_UPPER_WORDS_PLURAL = ["Ids", "Tvs", "Dms", "Oks", "Npcs", "Pcs", "Tpks", "Wips", "Dcs"]; // (Manually pluralize, to avoid infinite loop)
 
-	IRREGULAR_PLURAL_WORDS: {
-		"cactus": "cacti",
-		"child": "children",
-		"die": "dice",
-		"djinni": "djinn",
-		"dwarf": "dwarves",
-		"efreeti": "efreet",
-		"elf": "elves",
-		"erinyes": "erinyes",
-		"fey": "fey",
-		"foot": "feet",
-		"goose": "geese",
-		"ki": "ki",
-		"man": "men",
-		"mouse": "mice",
-		"ox": "oxen",
-		"person": "people",
-		"sheep": "sheep",
-		"slaad": "slaadi",
-		"tooth": "teeth",
-		"undead": "undead",
-		"woman": "women",
-	},
+	static _TITLE_RE_INITIAL = /(\w+[^-\u2014\s/]*) */g;
+	static _TITLE_RE_SPLIT_PUNCT = /([;:?!.])/g;
+	static _TITLE_RE_COMPOUND_LOWER = /([a-z]-(?:Like|Kreen|Toa))/g;
+	static _TITLE_RE_POST_PUNCT = /^(\s*)(\S)/;
 
-	padNumber: (n, len, padder) => {
+	static _TITLE_LOWER_WORDS_RE = null;
+	static _TITLE_UPPER_WORDS_RE = null;
+	static _TITLE_UPPER_WORDS_PLURAL_RE = null;
+
+	static _toTitleCase_init () {
+		// Require space surrounded, as title-case requires a full word on either side
+		this._TITLE_LOWER_WORDS_RE ??= RegExp(`\\s(${this.TITLE_LOWER_WORDS.join("|")})(?=\\s)`, "gi");
+		this._TITLE_UPPER_WORDS_RE ??= RegExp(`\\b(${this.TITLE_UPPER_WORDS.join("|")})\\b`, "g");
+		this._TITLE_UPPER_WORDS_PLURAL_RE ??= RegExp(`\\b(${this.TITLE_UPPER_WORDS_PLURAL.join("|")})\\b`, "g");
+	}
+
+	static toTitleCase (str) {
+		this._toTitleCase_init();
+
+		return str
+			.replace(this._TITLE_RE_INITIAL, m0 => m0.charAt(0).toUpperCase() + m0.substring(1).toLowerCase())
+			.replace(this._TITLE_LOWER_WORDS_RE, (...m) => m[0].toLowerCase())
+			.replace(this._TITLE_UPPER_WORDS_RE, (...m) => m[0].toUpperCase())
+			.replace(this._TITLE_UPPER_WORDS_PLURAL_RE, (...m) => `${m[0].slice(0, -1).toUpperCase()}${m[0].slice(-1).toLowerCase()}`)
+			.replace(this._TITLE_RE_COMPOUND_LOWER, (...m) => m[0].toLowerCase())
+			.split(this._TITLE_RE_SPLIT_PUNCT)
+			.map(pt => pt.replace(this._TITLE_RE_POST_PUNCT, (...m) => `${m[1]}${m[2].toUpperCase()}`))
+			.join("");
+	}
+
+	/* -------------------------------------------- */
+
+	static padNumber (n, len, padder) {
 		return String(n).padStart(len, padder);
-	},
+	}
 
-	elipsisTruncate (str, atLeastPre = 5, atLeastSuff = 0, maxLen = 20) {
+	static elipsisTruncate (str, atLeastPre = 5, atLeastSuff = 0, maxLen = 20) {
 		if (maxLen >= str.length) return str;
 
 		maxLen = Math.max(atLeastPre + atLeastSuff + 3, maxLen);
@@ -32457,19 +32714,110 @@ globalThis.StrUtil = {
 		if (remain < 0) out += "...";
 		out += str.substring(str.length - atLeastSuff, str.length);
 		return out;
-	},
+	}
 
-	toTitleCase (str) { return str.toTitleCase(); },
-	qq (str) { return (str = str || "").qq(); },
+	/* -------------------------------------------- */
 
-	getNextDuplicateName (str) {
+	static qq (str) { return (str = str || "").qq(); }
+
+	static getNextDuplicateName (str) {
 		if (str == null) return null;
 
 		// Get the root name without trailing numbers, e.g. "Goblin (2)" -> "Goblin"
 		const m = /^(?<name>.*?) \((?<ordinal>\d+)\)$/.exec(str.trim());
 		if (!m) return `${str} (1)`;
 		return `${m.groups.name} (${Number(m.groups.ordinal) + 1})`;
-	},
+	}
+
+	/* -------------------------------------------- */
+
+	// See e.g.:
+	//  - https://www.dmsguild.com/product/267467/DMs-Guild-Creator-Resource--Style-Guide-Resources
+	//    (House Style Guide; Forgotten Realms Style Guide)
+	static _IRREGULAR_PLURAL_WORDS = {
+		"aarakocra": "aarakocra",
+		"cactus": "cacti",
+		"child": "children",
+		"dao": "dao",
+		"die": "dice",
+		"djinni": "djinn",
+		"drow": "drow",
+		"duergar": "duergar",
+		"dwarf": "dwarves",
+		"efreeti": "efreet",
+		"el'tael": "el'tael",
+		"eladrin": "eladrin",
+		"elf": "elves",
+		"erinyes": "erinyes",
+		"fey": "fey",
+		"foot": "feet",
+		"foulspawn": "foulspawn",
+		"genasi": "genasi",
+		"goose": "geese",
+		"incubus": "incubi",
+		"ki": "ki",
+		"kenku": "kenku",
+		"larva": "larvae",
+		"lizardfolk": "lizardfolk",
+		"man": "men",
+		"merfolk": "merfolk",
+		"merrow": "merrow",
+		"mouse": "mice",
+		"oni": "oni",
+		"ox": "oxen",
+		"person": "people",
+		"sahuagin": "sahuagin",
+		"sheep": "sheep",
+		"slaad": "slaadi",
+		"succubus": "succubi",
+		"svirfneblin": "svirfneblin",
+		"tael": "tael",
+		"thri-kreen": "thri-kreen",
+		"tooth": "teeth",
+		"undead": "undead",
+		"wolf": "wolves",
+		"woman": "women",
+		"xorn": "xorn",
+		"yuan-ti": "yuan-ti",
+	};
+
+	static _IRREGULAR_SINGLE_WORDS = {
+		...Object.fromEntries(Object.entries(this._IRREGULAR_PLURAL_WORDS).map(([k, v]) => [v, k])),
+	};
+
+	static _IRREGULAR_SINGLE_PATTERNS = [
+		[/(axe)s$/i, "$1"],
+	];
+
+	static toSingle (str) {
+		if (this._IRREGULAR_SINGLE_WORDS[str.toLowerCase()]) return this._getMatchedCase(str, this._IRREGULAR_SINGLE_WORDS[str.toLowerCase()]);
+		const single = this._IRREGULAR_SINGLE_PATTERNS
+			.first(([re, repl]) => {
+				if (re.test(str)) return str.replace(re, repl);
+			});
+		if (single) return single;
+
+		if (/(s|x|z|ch|sh)es$/i.test(str)) return str.slice(0, -2);
+		if (/[bcdfghjklmnpqrstvwxyz]ies$/i.test(str)) return `${str.slice(0, -3)}y`;
+		return str.replace(/s$/i, "");
+	}
+
+	static toPlural (str) {
+		let plural;
+		if (this._IRREGULAR_PLURAL_WORDS[str.toLowerCase()]) plural = this._IRREGULAR_PLURAL_WORDS[str.toLowerCase()];
+		else if (/(s|x|z|ch|sh)$/i.test(str)) plural = `${str}es`;
+		else if (/[bcdfghjklmnpqrstvwxyz]y$/i.test(str)) plural = str.replace(/y$/i, "ies");
+		else plural = `${str}s`;
+
+		return this._getMatchedCase(str, plural);
+	}
+
+	static _getMatchedCase (strOriginal, strOther) {
+		if (strOriginal.toLowerCase() === strOriginal) return strOther;
+		if (strOriginal.toUpperCase() === strOriginal) return strOther.toUpperCase();
+		if (strOriginal.toTitleCase() === strOriginal) return strOther.toTitleCase();
+		return strOther;
+	}
 };
 
 globalThis.NumberUtil = class {
@@ -32916,7 +33264,7 @@ class TemplateUtil {
 		 * Template strings which can contain DOM elements.
 		 * Usage: ee`<div>Press this button: ${ve-btn}</div>`
 		 * or:    ee(ele)`<div>Press this button: ${ve-btn}</div>`
-		 * @return {HTMLElementModified}
+		 * @return {HTMLElementExtended}
 		 */
 		globalThis.ee = (parts, ...args) => {
 			if (parts instanceof Node) {
@@ -32952,6 +33300,8 @@ class TemplateUtil {
 			const eleTmpTemplate = document.createElement("template");
 			eleTmpTemplate.innerHTML = raw.trim();
 			const {content: eleTmp} = eleTmpTemplate;
+
+			if (!eleTmp.children.length) throw new Error(`Failed to create HTML element(s) from "${raw}"!`);
 
 			Array.from(eleTmp.querySelectorAll(`[data-r="true"]`))
 				.forEach((node, i) => node.replaceWith(eles[i]));
@@ -33011,12 +33361,6 @@ globalThis.JqueryUtil = {
 				}
 				tgt.innerHTML = html;
 				return this;
-			},
-
-			blurOnEsc: function () {
-				return this.keydown(evt => {
-					if (evt.which === 27) this.blur(); // escape
-				});
 			},
 
 			hideVe: function () { return this.addClass("ve-hidden"); },
@@ -33216,84 +33560,102 @@ globalThis.JqueryUtil = {
 
 if (typeof window !== "undefined") window.addEventListener("load", JqueryUtil.initEnhancements);
 
-globalThis.ElementUtil = {
-	_ATTRS_NO_FALSY: new Set([
+class ElementUtil {
+	static _ATTRS_NO_FALSY = new Set([
 		"checked",
 		"disabled",
-	]),
+	]);
 
 	/**
-	 * @typedef {HTMLElement} HTMLElementModified
+	 * @typedef {HTMLElement} HTMLElementExtended
 	 * @extends {HTMLElement}
 	 *
-	 * @property {function(HTMLElement): HTMLElementModified} appends
-	 * @property {function(HTMLElement): HTMLElementModified} appendTo
-	 * @property {function(HTMLElement): HTMLElementModified} prependTo
-	 * @property {function(HTMLElement): HTMLElementModified} insertAfter
+	 * @property {function(string): ?HTMLElementExtended} find
+	 * @property {function(string): Array<HTMLElementExtended>} findAll
 	 *
-	 * @property {function(string): HTMLElementModified} addClass
-	 * @property {function(string): HTMLElementModified} removeClass
-	 * @property {function(string, ?boolean): HTMLElementModified} toggleClass
+	 * @property {function(HTMLElement|string): HTMLElementExtended} appends
+	 * @property {function(HTMLElement): HTMLElementExtended} appendTo
+	 * @property {function(HTMLElement): HTMLElementExtended} prependTo
+	 * @property {function(HTMLElement|string): HTMLElementExtended} aftere
+	 * @property {function(HTMLElement): HTMLElementExtended} insertAfter
 	 *
-	 * @property {function(): HTMLElementModified} showVe
-	 * @property {function(): HTMLElementModified} hideVe
-	 * @property {function(?boolean): HTMLElementModified} toggleVe
+	 * @property {function(string): HTMLElementExtended} addClass
+	 * @property {function(string): HTMLElementExtended} removeClass
+	 * @property {function(string, ?boolean): HTMLElementExtended} toggleClass
 	 *
-	 * @property {function(): HTMLElementModified} empty
-	 * @property {function(): HTMLElementModified} detach
+	 * @property {function(): HTMLElementExtended} showVe
+	 * @property {function(): HTMLElementExtended} hideVe
+	 * @property {function(?boolean): HTMLElementExtended} toggleVe
 	 *
-	 * @property {function(string, string): HTMLElementModified} attr
-	 * @property {function(*=, ?object): *} val
+	 * @property {function(): HTMLElementExtended} empty
+	 * @property {function(): HTMLElementExtended} detach
 	 *
-	 * @property {function(?string): (HTMLElementModified|string)} html
-	 * @property {function(?string): (HTMLElementModified|string)} txt
+	 * @property {function(string, string=): HTMLElementExtended} attr
+	 * @property {function(string, *=): HTMLElementExtended} prop
+	 * @property {function(*=): *} val
 	 *
-	 * @property {function(string): HTMLElementModified} tooltip
-	 * @property {function(): HTMLElementModified} disableSpellcheck
+	 * @property {function(string=): (HTMLElementExtended|string)} html
+	 * @property {function(string=): (HTMLElementExtended|string)} txt
 	 *
-	 * @property {function(string, function): HTMLElementModified} onn
-	 * @property {function(function): HTMLElementModified} onClick
-	 * @property {function(function): HTMLElementModified} onContextmenu
-	 * @property {function(function): HTMLElementModified} onChange
-	 * @property {function(function): HTMLElementModified} onKeydown
-	 * @property {function(function): HTMLElementModified} onKeyup
+	 * @property {function(string): HTMLElementExtended} tooltip
+	 * @property {function(): HTMLElementExtended} disableSpellcheck
 	 *
-	 * @property {function(string): HTMLElementModified} first
+	 * @property {function(object): HTMLElementExtended} css
 	 *
-	 * @return {HTMLElementModified}
+	 * @property {function(string, function, object=): HTMLElementExtended} onn
+	 * @property {function(function): HTMLElementExtended} onClick
+	 * @property {function(function): HTMLElementExtended} onContextmenu
+	 * @property {function(function): HTMLElementExtended} onChange
+	 * @property {function(function): HTMLElementExtended} onKeydown
+	 * @property {function(function): HTMLElementExtended} onKeyup
+	 *
+	 * @property {function(string): HTMLElementExtended} trigger
+	 *
+	 * @property {function(string): HTMLElementExtended} first
+	 * @property {function(string): HTMLElementExtended} closeste
+	 * @property {function(string): Array<HTMLElementExtended>} childrene
+	 * @property {function(string): Array<HTMLElementExtended>} siblings
+	 *
+	 * @return {HTMLElementExtended}
 	 */
-	getOrModify ({
-		tag,
-		clazz,
-		style,
-		click,
-		contextmenu,
-		change,
-		mousedown,
-		mouseup,
-		mousemove,
-		pointerdown,
-		pointerup,
-		keydown,
-		html,
-		text,
-		txt,
-		ele,
-		children,
-		outer,
+	static getOrModify (opts) {
+		if (opts instanceof Element) opts = {ele: opts};
 
-		id,
-		name,
-		title,
-		val,
-		href,
-		type,
-		tabindex,
-		value,
-		placeholder,
-		attrs,
-		data,
-	}) {
+		const {
+			tag,
+			clazz,
+			style,
+			click,
+			contextmenu,
+			change,
+			mousedown,
+			mouseup,
+			mousemove,
+			pointerdown,
+			pointerup,
+			keydown,
+			html,
+			text,
+			txt,
+			children,
+			outer,
+
+			id,
+			name,
+			title,
+			val,
+			href,
+			type,
+			tabindex,
+			value,
+			placeholder,
+			attrs,
+			data,
+		} = opts;
+		let {
+			ele,
+		} = opts;
+
 		const metaEle = ElementUtil._getOrModify_getEle({
 			ele,
 			outer,
@@ -33337,9 +33699,12 @@ globalThis.ElementUtil = {
 
 		if (children) for (let i = 0, len = children.length; i < len; ++i) if (children[i] != null) ele.append(children[i]);
 
+		ele.find = ele.find || ElementUtil._find.bind(ele);
+		ele.findAll = ele.findAll || ElementUtil._findAll.bind(ele);
 		ele.appends = ele.appends || ElementUtil._appends.bind(ele);
 		ele.appendTo = ele.appendTo || ElementUtil._appendTo.bind(ele);
 		ele.prependTo = ele.prependTo || ElementUtil._prependTo.bind(ele);
+		ele.aftere = ele.aftere || ElementUtil._aftere.bind(ele);
 		ele.insertAfter = ele.insertAfter || ElementUtil._insertAfter.bind(ele);
 		ele.addClass = ele.addClass || ElementUtil._addClass.bind(ele);
 		ele.removeClass = ele.removeClass || ElementUtil._removeClass.bind(ele);
@@ -33350,23 +33715,32 @@ globalThis.ElementUtil = {
 		ele.empty = ele.empty || ElementUtil._empty.bind(ele);
 		ele.detach = ele.detach || ElementUtil._detach.bind(ele);
 		ele.attr = ele.attr || ElementUtil._attr.bind(ele);
+		ele.prop = ele.prop || ElementUtil._prop.bind(ele);
 		ele.val = ele.val || ElementUtil._val.bind(ele);
 		ele.html = ele.html || ElementUtil._html.bind(ele);
 		ele.txt = ele.txt || ElementUtil._txt.bind(ele);
 		ele.tooltip = ele.tooltip || ElementUtil._tooltip.bind(ele);
 		ele.disableSpellcheck = ele.disableSpellcheck || ElementUtil._disableSpellcheck.bind(ele);
+		ele.css = ele.css || ElementUtil._css.bind(ele);
 		ele.onn = ele.onn || ElementUtil._onX.bind(ele);
+		ele.off = ele.off || ElementUtil._offX.bind(ele);
 		ele.onClick = ele.onClick || ElementUtil._onX.bind(ele, "click");
 		ele.onContextmenu = ele.onContextmenu || ElementUtil._onX.bind(ele, "contextmenu");
 		ele.onChange = ele.onChange || ElementUtil._onX.bind(ele, "change");
 		ele.onKeydown = ele.onKeydown || ElementUtil._onX.bind(ele, "keydown");
 		ele.onKeyup = ele.onKeyup || ElementUtil._onX.bind(ele, "keyup");
+		ele.trigger = ele.trigger || ElementUtil._trigger.bind(ele);
 		ele.first = ele.first || ElementUtil._first.bind(ele);
+		ele.closeste = ele.closeste || ElementUtil._closeste.bind(ele);
+		ele.childrene = ele.childrene || ElementUtil._childrene.bind(ele);
+		ele.siblings = ele.siblings || ElementUtil._siblings.bind(ele);
+		ele.outerWidthe = ele.outerWidthe || ElementUtil._outerWidthe.bind(ele);
+		ele.outerHeighte = ele.outerHeighte || ElementUtil._outerHeighte.bind(ele);
 
 		return ele;
-	},
+	}
 
-	_getOrModify_getEle (
+	static _getOrModify_getEle (
 		{
 			ele,
 			outer,
@@ -33383,142 +33757,268 @@ globalThis.ElementUtil = {
 			return {ele: eleId, isSetId: false};
 		}
 		throw new Error(`Could not find or create element!`);
-	},
+	}
 
-	_appends (child) {
+	/** @this {HTMLElementExtended} */
+	static _find (selector) {
+		const eles = ElementUtil.getBySelectorMulti(selector, this);
+		if (!eles.length) return null;
+		if (eles.length > 1) throw new Error(`Single-select "find" found multiple elements! Consider using "findAll" instead`);
+		return eles[0];
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _findAll (selector) {
+		return ElementUtil.getBySelectorMulti(selector, this);
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _appends (child) {
+		if (typeof child === "string") child = ee`${child}`;
 		this.appendChild(child);
 		return this;
-	},
+	}
 
-	_appendTo (parent) {
+	/** @this {HTMLElementExtended} */
+	static _appendTo (parent) {
 		parent.appendChild(this);
 		return this;
-	},
+	}
 
-	_prependTo (parent) {
+	/** @this {HTMLElementExtended} */
+	static _prependTo (parent) {
 		parent.prepend(this);
 		return this;
-	},
+	}
 
-	_insertAfter (parent) {
+	/** @this {HTMLElementExtended} */
+	static _aftere (other) {
+		if (typeof other === "string") other = ee`${other}`;
+		this.after(other);
+		return this;
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _insertAfter (parent) {
 		parent.after(this);
 		return this;
-	},
+	}
 
-	_addClass (clazz) {
+	/** @this {HTMLElementExtended} */
+	static _addClass (clazz) {
 		this.classList.add(clazz);
 		return this;
-	},
+	}
 
-	_removeClass (clazz) {
+	/** @this {HTMLElementExtended} */
+	static _removeClass (clazz) {
 		this.classList.remove(clazz);
 		return this;
-	},
+	}
 
-	_toggleClass (clazz, isActive) {
+	/** @this {HTMLElementExtended} */
+	static _toggleClass (clazz, isActive) {
 		if (isActive == null) this.classList.toggle(clazz);
 		else if (isActive) this.classList.add(clazz);
 		else this.classList.remove(clazz);
 		return this;
-	},
+	}
 
-	_showVe () {
+	/** @this {HTMLElementExtended} */
+	static _showVe () {
 		this.classList.remove("ve-hidden");
 		return this;
-	},
+	}
 
-	_hideVe () {
+	/** @this {HTMLElementExtended} */
+	static _hideVe () {
 		this.classList.add("ve-hidden");
 		return this;
-	},
+	}
 
-	_toggleVe (isActive) {
+	/** @this {HTMLElementExtended} */
+	static _toggleVe (isActive) {
 		this.toggleClass("ve-hidden", isActive == null ? isActive : !isActive);
 		return this;
-	},
+	}
 
-	_empty () {
+	/** @this {HTMLElementExtended} */
+	static _empty () {
 		this.innerHTML = "";
 		return this;
-	},
+	}
 
-	_detach () {
+	/** @this {HTMLElementExtended} */
+	static _detach () {
 		if (this.parentElement) this.parentElement.removeChild(this);
 		return this;
-	},
+	}
 
-	_attr (name, value) {
-		this.setAttribute(name, value);
+	/** @this {HTMLElementExtended} */
+	static _attr (name, value) {
+		if (value === undefined) return this.getAttribute(name);
+		if (!value && ElementUtil._ATTRS_NO_FALSY.has(name)) this.removeAttribute(name);
+		else this.setAttribute(name, value);
 		return this;
-	},
+	}
 
-	_html (html) {
+	/** @this {HTMLElementExtended} */
+	static _prop (name, value) {
+		if (value === undefined) return this[name];
+		this[name] = value;
+		return this;
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _html (html) {
 		if (html === undefined) return this.innerHTML;
 		this.innerHTML = html;
 		return this;
-	},
+	}
 
-	_txt (txt) {
+	/** @this {HTMLElementExtended} */
+	static _txt (txt) {
 		if (txt === undefined) return this.innerText;
 		this.innerText = txt;
 		return this;
-	},
+	}
 
-	_tooltip (title) {
+	/** @this {HTMLElementExtended} */
+	static _tooltip (title) {
 		return this.attr("title", title);
-	},
+	}
 
-	_disableSpellcheck () {
+	/** @this {HTMLElementExtended} */
+	static _disableSpellcheck () {
 		// avoid setting input type to "search" as it visually offsets the contents of the input
 		return this
 			.attr("autocomplete", "new-password")
 			.attr("autocapitalize", "off")
 			.attr("spellcheck", "false");
-	},
+	}
 
-	_onX (evtName, fn) {
-		this.addEventListener(evtName, fn);
+	/** @this {HTMLElementExtended} */
+	static _css (obj) {
+		Object.entries(obj)
+			.forEach(([k, v]) => this.style[k] = v);
 		return this;
-	},
+	}
 
-	_val (val, {isSetAttribute = false} = {}) {
-		if (val !== undefined) {
+	/** @this {HTMLElementExtended} */
+	static _onX (evtName, fn, opts) {
+		if (opts) this.addEventListener(evtName, fn, opts);
+		else this.addEventListener(evtName, fn);
+		return this;
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _offX (evtName, fn) {
+		this.removeEventListener(evtName, fn);
+		return this;
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _trigger (evtOrEvtName) {
+		const evt = evtOrEvtName instanceof Event ? evtOrEvtName : new Event(evtOrEvtName);
+		this.dispatchEvent(evt);
+		return this;
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _val (...args) {
+		if (!args.length) {
 			switch (this.tagName) {
-				case "SELECT": {
-					let selectedIndexNxt = -1;
-					for (let i = 0, len = this.options.length; i < len; ++i) {
-						if (this.options[i]?.value === val) {
-							selectedIndexNxt = i;
-							if (isSetAttribute) this.options[i].setAttribute("selected", "selected");
-							break;
-						}
-					}
-					this.selectedIndex = selectedIndexNxt;
-					return this;
-				}
+				case "SELECT": return this.options[this.selectedIndex]?.value;
 
-				default: {
-					this.value = val;
-					return this;
-				}
+				default: return this.value;
 			}
 		}
 
+		const [val, {isSetAttribute = false} = {}] = args;
+
 		switch (this.tagName) {
-			case "SELECT": return this.options[this.selectedIndex]?.value;
+			case "SELECT": {
+				let selectedIndexNxt = -1;
+				for (let i = 0, len = this.options.length; i < len; ++i) {
+					if (this.options[i]?.value === val) {
+						selectedIndexNxt = i;
+						if (isSetAttribute) this.options[i].setAttribute("selected", "selected");
+						break;
+					}
+				}
+				this.selectedIndex = selectedIndexNxt;
+				return this;
+			}
 
-			default: return this.value;
+			default: {
+				this.value = val;
+				return this;
+			}
 		}
-	},
+	}
 
-	_first (selector) {
+	/** @this {HTMLElementExtended} */
+	static _first (selector) {
 		const child = this.querySelector(selector);
 		if (!child) return child;
 		return e_({ele: child});
-	},
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _closeste (selector) {
+		const sibling = this.closest(selector);
+		if (!sibling) return sibling;
+		return e_({ele: sibling});
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _childrene (selector) {
+		if (!selector) return [...this.children].map(child => e_({ele: child}));
+		return em(selector, this);
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _siblings (selector) {
+		if (!selector) {
+			return [...this.parentNode.children]
+				.filter(ele => ele !== this)
+				.map(ele => e_({ele: ele}));
+		}
+
+		return [...this.parentNode.querySelectorAll(`:scope > ${selector}`)]
+			.filter(ele => ele !== this)
+			.map(ele => e_({ele: ele}));
+	}
+
+	/** @this {HTMLElementExtended} */
+	static _outerWidthe () { return this.getBoundingClientRect().width; }
+
+	/** @this {HTMLElementExtended} */
+	static _outerHeighte () { return this.getBoundingClientRect().height; }
+
+	/* -------------------------------------------- */
+
+	/**
+	 * @return {?HTMLElementExtended}
+	 */
+	static getBySelector (selector, parent) {
+		const ele = (parent || document).querySelector(selector);
+		if (!ele) return null;
+		return e_({ele});
+	}
+
+	/**
+	 * @return {Array<HTMLElementExtended>}
+	 */
+	static getBySelectorMulti (selector, parent) {
+		return [...(parent || document).querySelectorAll(selector)]
+			.map(ele => e_({ele}));
+	}
+
+	/* -------------------------------------------- */
 
 	// region "Static"
-	getIndexPathToParent (parent, child) {
+	static getIndexPathToParent (parent, child) {
 		if (!parent.contains(child)) return null; // Should never occur
 
 		const path = [];
@@ -33535,20 +34035,76 @@ globalThis.ElementUtil = {
 		}
 
 		return path.reverse();
-	},
+	}
 
-	getChildByIndexPath (parent, indexPath) {
+	static getChildByIndexPath (parent, indexPath) {
 		for (let i = 0; i < indexPath.length; ++i) {
 			const ix = indexPath[i];
 			parent = parent.children[ix];
 			if (!parent) return null;
 		}
 		return parent;
-	},
-	// endregion
-};
+	}
 
-if (typeof window !== "undefined") window.e_ = ElementUtil.getOrModify;
+	static _IFRAME_SANDBOX_ATTRIBUTES = [
+		"allow-forms",
+		"allow-modals",
+		"allow-orientation-lock",
+		"allow-pointer-lock",
+		"allow-popups",
+		"allow-popups-to-escape-sandbox",
+		"allow-presentation",
+		"allow-same-origin",
+		"allow-scripts",
+		"allow-top-navigation-by-user-activation",
+
+		// Prevent top-level navigation
+		// "allow-top-navigation",
+	];
+
+	static getIframeSandboxAttribute ({url, isAllowPdf = false} = {}) {
+		if (!url || !isAllowPdf) return this._getIframeSandboxAttribute();
+
+		// Allow "PDFs" (approximately detected by ".pdf" in the filename; this is not intended
+		//   as a security feature) if explicitly requested. Sandbox attributes otherwise block
+		//   these in e.g. Chrome.
+		// See: https://github.com/whatwg/html/issues/3958
+
+		let parsedUrl;
+		try {
+			parsedUrl = new URL(url);
+		} catch (e) {
+			return this._getIframeSandboxAttribute();
+		}
+
+		if (/\.pdf$/i.test(parsedUrl.pathName)) return this._getIframeSandboxAttribute();
+		return "";
+	}
+
+	static _getIframeSandboxAttribute () {
+		return `sandbox="${this._IFRAME_SANDBOX_ATTRIBUTES.join(" ")}"`;
+	}
+	// endregion
+}
+
+globalThis.ElementUtil = ElementUtil;
+
+if (typeof window !== "undefined") {
+	/**
+	 * @return {HTMLElementExtended}
+	 */
+	window.e_ = ElementUtil.getOrModify.bind(ElementUtil);
+
+	/**
+	 * @return {HTMLElementExtended}
+	 */
+	window.es = ElementUtil.getBySelector.bind(ElementUtil);
+
+	/**
+	 * @return {Array<HTMLElementExtended>}
+	 */
+	window.em = ElementUtil.getBySelectorMulti.bind(ElementUtil);
+}
 
 globalThis.ObjUtil = {
 	async pForEachDeep (source, pCallback, options = {depth: Infinity, callEachLevel: false}) {
@@ -34065,6 +34621,311 @@ globalThis.MiscUtil = class {
 	static GENERIC_WALKER_ENTRIES_KEY_BLOCKLIST = new Set(["caption", "type", "colLabels", "colLabelRows", "name", "colStyles", "style", "shortName", "subclassShortName", "id", "path", "source"]);
 
 	/**
+	 * @abstract
+	 */
+	static _WalkerBase = class {
+		/**
+		 * @param [opts]
+		 * @param [opts.keyBlocklist]
+		 * @param [opts.isAllowDeleteObjects] If returning `undefined` from an object handler should be treated as a delete.
+		 * @param [opts.isAllowDeleteArrays] If returning `undefined` from an array handler should be treated as a delete.
+		 * @param [opts.isAllowDeleteBooleans] (Unimplemented) // TODO
+		 * @param [opts.isAllowDeleteNumbers] (Unimplemented) // TODO
+		 * @param [opts.isAllowDeleteStrings] (Unimplemented) // TODO
+		 * @param [opts.isDepthFirst] If array/object recursion should occur before array/object primitive handling.
+		 * @param [opts.isNoModification] If the walker should not attempt to modify the data.
+		 * @param [opts.isBreakOnReturn] If the walker should fast-exist on any handler returning a value.
+		 */
+		constructor (
+			{
+				keyBlocklist,
+				isAllowDeleteObjects,
+				isAllowDeleteArrays,
+				isAllowDeleteBooleans,
+				isAllowDeleteNumbers,
+				isAllowDeleteStrings,
+				isDepthFirst,
+				isNoModification,
+				isBreakOnReturn,
+			} = {},
+		) {
+			this._keyBlocklist = keyBlocklist || new Set();
+			this._isAllowDeleteObjects = isAllowDeleteObjects;
+			this._isAllowDeleteArrays = isAllowDeleteArrays;
+			this._isAllowDeleteBooleans = isAllowDeleteBooleans;
+			this._isAllowDeleteNumbers = isAllowDeleteNumbers;
+			this._isAllowDeleteStrings = isAllowDeleteStrings;
+			this._isDepthFirst = isDepthFirst;
+			this._isNoModification = isNoModification;
+			this._isBreakOnReturn = isBreakOnReturn;
+
+			if (isBreakOnReturn && !isNoModification) throw new Error(`"isBreakOnReturn" may only be used in "isNoModification" mode!`);
+		}
+	};
+
+	static _WalkerSync = class extends this._WalkerBase {
+		_applyHandlers ({handlers, obj, lastKey, stack}) {
+			handlers = handlers instanceof Array ? handlers : [handlers];
+			const didBreak = handlers.some(h => {
+				const out = h(obj, lastKey, stack);
+				if (this._isBreakOnReturn && out) return true;
+				if (!this._isNoModification) obj = out;
+			});
+			if (didBreak) return VeCt.SYM_WALKER_BREAK;
+			return obj;
+		}
+
+		_runHandlers ({handlers, obj, lastKey, stack}) {
+			handlers = handlers instanceof Array ? handlers : [handlers];
+			handlers.forEach(h => h(obj, lastKey, stack));
+		}
+
+		_doObjectRecurse (obj, primitiveHandlers, stack) {
+			for (const k of Object.keys(obj)) {
+				if (this._keyBlocklist.has(k)) continue;
+
+				const out = this.walk(obj[k], primitiveHandlers, k, stack);
+				if (out === VeCt.SYM_WALKER_BREAK) return VeCt.SYM_WALKER_BREAK;
+				if (!this._isNoModification) obj[k] = out;
+			}
+		}
+
+		_getMappedPrimitive (obj, primitiveHandlers, lastKey, stack, prop, propPre, propPost) {
+			if (primitiveHandlers[propPre]) this._runHandlers({handlers: primitiveHandlers[propPre], obj, lastKey, stack});
+			if (primitiveHandlers[prop]) {
+				const out = this._applyHandlers({handlers: primitiveHandlers[prop], obj, lastKey, stack});
+				if (out === VeCt.SYM_WALKER_BREAK) return out;
+				if (!this._isNoModification) obj = out;
+			}
+			if (primitiveHandlers[propPost]) this._runHandlers({handlers: primitiveHandlers[propPost], obj, lastKey, stack});
+			return obj;
+		}
+
+		_getMappedArray (obj, primitiveHandlers, lastKey, stack) {
+			if (primitiveHandlers.preArray) this._runHandlers({handlers: primitiveHandlers.preArray, obj, lastKey, stack});
+			if (this._isDepthFirst) {
+				if (stack) stack.push(obj);
+				const out = new Array(obj.length);
+				for (let i = 0, len = out.length; i < len; ++i) {
+					out[i] = this.walk(obj[i], primitiveHandlers, lastKey, stack);
+					if (out[i] === VeCt.SYM_WALKER_BREAK) return out[i];
+				}
+				if (!this._isNoModification) obj = out;
+				if (stack) stack.pop();
+
+				if (primitiveHandlers.array) {
+					const out = this._applyHandlers({handlers: primitiveHandlers.array, obj, lastKey, stack});
+					if (out === VeCt.SYM_WALKER_BREAK) return out;
+					if (!this._isNoModification) obj = out;
+				}
+				if (obj == null) {
+					if (!this._isAllowDeleteArrays) throw new Error(`Array handler(s) returned null!`);
+				}
+			} else {
+				if (primitiveHandlers.array) {
+					const out = this._applyHandlers({handlers: primitiveHandlers.array, obj, lastKey, stack});
+					if (out === VeCt.SYM_WALKER_BREAK) return out;
+					if (!this._isNoModification) obj = out;
+				}
+				if (obj != null) {
+					const out = new Array(obj.length);
+					for (let i = 0, len = out.length; i < len; ++i) {
+						if (stack) stack.push(obj);
+						out[i] = this.walk(obj[i], primitiveHandlers, lastKey, stack);
+						if (stack) stack.pop();
+						if (out[i] === VeCt.SYM_WALKER_BREAK) return out[i];
+					}
+					if (!this._isNoModification) obj = out;
+				} else {
+					if (!this._isAllowDeleteArrays) throw new Error(`Array handler(s) returned null!`);
+				}
+			}
+			if (primitiveHandlers.postArray) this._runHandlers({handlers: primitiveHandlers.postArray, obj, lastKey, stack});
+			return obj;
+		}
+
+		_getMappedObject (obj, primitiveHandlers, lastKey, stack) {
+			if (primitiveHandlers.preObject) this._runHandlers({handlers: primitiveHandlers.preObject, obj, lastKey, stack});
+			if (this._isDepthFirst) {
+				if (stack) stack.push(obj);
+				const flag = this._doObjectRecurse(obj, primitiveHandlers, stack);
+				if (stack) stack.pop();
+				if (flag === VeCt.SYM_WALKER_BREAK) return flag;
+
+				if (primitiveHandlers.object) {
+					const out = this._applyHandlers({handlers: primitiveHandlers.object, obj, lastKey, stack});
+					if (out === VeCt.SYM_WALKER_BREAK) return out;
+					if (!this._isNoModification) obj = out;
+				}
+				if (obj == null) {
+					if (!this._isAllowDeleteObjects) throw new Error(`Object handler(s) returned null!`);
+				}
+			} else {
+				if (primitiveHandlers.object) {
+					const out = this._applyHandlers({handlers: primitiveHandlers.object, obj, lastKey, stack});
+					if (out === VeCt.SYM_WALKER_BREAK) return out;
+					if (!this._isNoModification) obj = out;
+				}
+				if (obj == null) {
+					if (!this._isAllowDeleteObjects) throw new Error(`Object handler(s) returned null!`);
+				} else {
+					if (stack) stack.push(obj);
+					const flag = this._doObjectRecurse(obj, primitiveHandlers, stack);
+					if (stack) stack.pop();
+					if (flag === VeCt.SYM_WALKER_BREAK) return flag;
+				}
+			}
+			if (primitiveHandlers.postObject) this._runHandlers({handlers: primitiveHandlers.postObject, obj, lastKey, stack});
+			return obj;
+		}
+
+		walk (obj, primitiveHandlers, lastKey, stack) {
+			if (obj === null) return this._getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "null", "preNull", "postNull");
+
+			switch (typeof obj) {
+				case "undefined": return this._getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "undefined", "preUndefined", "postUndefined");
+				case "boolean": return this._getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "boolean", "preBoolean", "postBoolean");
+				case "number": return this._getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "number", "preNumber", "postNumber");
+				case "string": return this._getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "string", "preString", "postString");
+				case "object": {
+					if (obj instanceof Array) return this._getMappedArray(obj, primitiveHandlers, lastKey, stack);
+					return this._getMappedObject(obj, primitiveHandlers, lastKey, stack);
+				}
+				default: throw new Error(`Unhandled type "${typeof obj}"`);
+			}
+		}
+	};
+
+	// TODO refresh to match sync version
+	static _WalkerAsync = class extends this._WalkerBase {
+		async _pApplyHandlers ({handlers, obj, lastKey, stack}) {
+			handlers = handlers instanceof Array ? handlers : [handlers];
+			await handlers.pSerialAwaitMap(async pH => {
+				const out = await pH(obj, lastKey, stack);
+				if (!this._isNoModification) obj = out;
+			});
+			return obj;
+		}
+
+		async _pRunHandlers ({handlers, obj, lastKey, stack}) {
+			handlers = handlers instanceof Array ? handlers : [handlers];
+			await handlers.pSerialAwaitMap(pH => pH(obj, lastKey, stack));
+		}
+
+		async pWalk (obj, primitiveHandlers, lastKey, stack) {
+			if (obj == null) {
+				if (primitiveHandlers.null) return this._pApplyHandlers({handlers: primitiveHandlers.null, obj, lastKey, stack});
+				return obj;
+			}
+
+			const pDoObjectRecurse = async () => {
+				await Object.keys(obj).pSerialAwaitMap(async k => {
+					const v = obj[k];
+					if (this._keyBlocklist.has(k)) return;
+					const out = await this.pWalk(v, primitiveHandlers, k, stack);
+					if (!this._isNoModification) obj[k] = out;
+				});
+			};
+
+			const to = typeof obj;
+			switch (to) {
+				case undefined:
+					if (primitiveHandlers.preUndefined) await this._pRunHandlers({handlers: primitiveHandlers.preUndefined, obj, lastKey, stack});
+					if (primitiveHandlers.undefined) {
+						const out = await this._pApplyHandlers({handlers: primitiveHandlers.undefined, obj, lastKey, stack});
+						if (!this._isNoModification) obj = out;
+					}
+					if (primitiveHandlers.postUndefined) await this._pRunHandlers({handlers: primitiveHandlers.postUndefined, obj, lastKey, stack});
+					return obj;
+				case "boolean":
+					if (primitiveHandlers.preBoolean) await this._pRunHandlers({handlers: primitiveHandlers.preBoolean, obj, lastKey, stack});
+					if (primitiveHandlers.boolean) {
+						const out = await this._pApplyHandlers({handlers: primitiveHandlers.boolean, obj, lastKey, stack});
+						if (!this._isNoModification) obj = out;
+					}
+					if (primitiveHandlers.postBoolean) await this._pRunHandlers({handlers: primitiveHandlers.postBoolean, obj, lastKey, stack});
+					return obj;
+				case "number":
+					if (primitiveHandlers.preNumber) await this._pRunHandlers({handlers: primitiveHandlers.preNumber, obj, lastKey, stack});
+					if (primitiveHandlers.number) {
+						const out = await this._pApplyHandlers({handlers: primitiveHandlers.number, obj, lastKey, stack});
+						if (!this._isNoModification) obj = out;
+					}
+					if (primitiveHandlers.postNumber) await this._pRunHandlers({handlers: primitiveHandlers.postNumber, obj, lastKey, stack});
+					return obj;
+				case "string":
+					if (primitiveHandlers.preString) await this._pRunHandlers({handlers: primitiveHandlers.preString, obj, lastKey, stack});
+					if (primitiveHandlers.string) {
+						const out = await this._pApplyHandlers({handlers: primitiveHandlers.string, obj, lastKey, stack});
+						if (!this._isNoModification) obj = out;
+					}
+					if (primitiveHandlers.postString) await this._pRunHandlers({handlers: primitiveHandlers.postString, obj, lastKey, stack});
+					return obj;
+				case "object": {
+					if (obj instanceof Array) {
+						if (primitiveHandlers.preArray) await this._pRunHandlers({handlers: primitiveHandlers.preArray, obj, lastKey, stack});
+						if (this._isDepthFirst) {
+							if (stack) stack.push(obj);
+							const out = await obj.pSerialAwaitMap(it => this.pWalk(it, primitiveHandlers, lastKey, stack));
+							if (!this._isNoModification) obj = out;
+							if (stack) stack.pop();
+
+							if (primitiveHandlers.array) {
+								const out = await this._pApplyHandlers({handlers: primitiveHandlers.array, obj, lastKey, stack});
+								if (!this._isNoModification) obj = out;
+							}
+							if (obj == null) {
+								if (!this._isAllowDeleteArrays) throw new Error(`Array handler(s) returned null!`);
+							}
+						} else {
+							if (primitiveHandlers.array) {
+								const out = await this._pApplyHandlers({handlers: primitiveHandlers.array, obj, lastKey, stack});
+								if (!this._isNoModification) obj = out;
+							}
+							if (obj != null) {
+								const out = await obj.pSerialAwaitMap(it => this.pWalk(it, primitiveHandlers, lastKey, stack));
+								if (!this._isNoModification) obj = out;
+							} else {
+								if (!this._isAllowDeleteArrays) throw new Error(`Array handler(s) returned null!`);
+							}
+						}
+						if (primitiveHandlers.postArray) await this._pRunHandlers({handlers: primitiveHandlers.postArray, obj, lastKey, stack});
+						return obj;
+					} else {
+						if (primitiveHandlers.preObject) await this._pRunHandlers({handlers: primitiveHandlers.preObject, obj, lastKey, stack});
+						if (this._isDepthFirst) {
+							if (stack) stack.push(obj);
+							await pDoObjectRecurse();
+							if (stack) stack.pop();
+
+							if (primitiveHandlers.object) {
+								const out = await this._pApplyHandlers({handlers: primitiveHandlers.object, obj, lastKey, stack});
+								if (!this._isNoModification) obj = out;
+							}
+							if (obj == null) {
+								if (!this._isAllowDeleteObjects) throw new Error(`Object handler(s) returned null!`);
+							}
+						} else {
+							if (primitiveHandlers.object) {
+								const out = await this._pApplyHandlers({handlers: primitiveHandlers.object, obj, lastKey, stack});
+								if (!this._isNoModification) obj = out;
+							}
+							if (obj == null) {
+								if (!this._isAllowDeleteObjects) throw new Error(`Object handler(s) returned null!`);
+							} else {
+								await pDoObjectRecurse();
+							}
+						}
+						if (primitiveHandlers.postObject) await this._pRunHandlers({handlers: primitiveHandlers.postObject, obj, lastKey, stack});
+						return obj;
+					}
+				}
+				default: throw new Error(`Unhandled type "${to}"`);
+			}
+		}
+	};
+
+	/**
 	 * @param [opts]
 	 * @param [opts.keyBlocklist]
 	 * @param [opts.isAllowDeleteObjects] If returning `undefined` from an object handler should be treated as a delete.
@@ -34077,143 +34938,8 @@ globalThis.MiscUtil = class {
 	 * @param [opts.isBreakOnReturn] If the walker should fast-exist on any handler returning a value.
 	 */
 	static getWalker (opts) {
-		opts = opts || {};
-
-		if (opts.isBreakOnReturn && !opts.isNoModification) throw new Error(`"isBreakOnReturn" may only be used in "isNoModification" mode!`);
-
-		const keyBlocklist = opts.keyBlocklist || new Set();
-
-		const getMappedPrimitive = (obj, primitiveHandlers, lastKey, stack, prop, propPre, propPost) => {
-			if (primitiveHandlers[propPre]) MiscUtil._getWalker_runHandlers({handlers: primitiveHandlers[propPre], obj, lastKey, stack});
-			if (primitiveHandlers[prop]) {
-				const out = MiscUtil._getWalker_applyHandlers({opts, handlers: primitiveHandlers[prop], obj, lastKey, stack});
-				if (out === VeCt.SYM_WALKER_BREAK) return out;
-				if (!opts.isNoModification) obj = out;
-			}
-			if (primitiveHandlers[propPost]) MiscUtil._getWalker_runHandlers({handlers: primitiveHandlers[propPost], obj, lastKey, stack});
-			return obj;
-		};
-
-		const doObjectRecurse = (obj, primitiveHandlers, stack) => {
-			for (const k of Object.keys(obj)) {
-				if (keyBlocklist.has(k)) continue;
-
-				const out = fn(obj[k], primitiveHandlers, k, stack);
-				if (out === VeCt.SYM_WALKER_BREAK) return VeCt.SYM_WALKER_BREAK;
-				if (!opts.isNoModification) obj[k] = out;
-			}
-		};
-
-		const fn = (obj, primitiveHandlers, lastKey, stack) => {
-			if (obj === null) return getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "null", "preNull", "postNull");
-
-			switch (typeof obj) {
-				case "undefined": return getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "undefined", "preUndefined", "postUndefined");
-				case "boolean": return getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "boolean", "preBoolean", "postBoolean");
-				case "number": return getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "number", "preNumber", "postNumber");
-				case "string": return getMappedPrimitive(obj, primitiveHandlers, lastKey, stack, "string", "preString", "postString");
-				case "object": {
-					// region Array
-					if (obj instanceof Array) {
-						if (primitiveHandlers.preArray) MiscUtil._getWalker_runHandlers({handlers: primitiveHandlers.preArray, obj, lastKey, stack});
-						if (opts.isDepthFirst) {
-							if (stack) stack.push(obj);
-							const out = new Array(obj.length);
-							for (let i = 0, len = out.length; i < len; ++i) {
-								out[i] = fn(obj[i], primitiveHandlers, lastKey, stack);
-								if (out[i] === VeCt.SYM_WALKER_BREAK) return out[i];
-							}
-							if (!opts.isNoModification) obj = out;
-							if (stack) stack.pop();
-
-							if (primitiveHandlers.array) {
-								const out = MiscUtil._getWalker_applyHandlers({opts, handlers: primitiveHandlers.array, obj, lastKey, stack});
-								if (out === VeCt.SYM_WALKER_BREAK) return out;
-								if (!opts.isNoModification) obj = out;
-							}
-							if (obj == null) {
-								if (!opts.isAllowDeleteArrays) throw new Error(`Array handler(s) returned null!`);
-							}
-						} else {
-							if (primitiveHandlers.array) {
-								const out = MiscUtil._getWalker_applyHandlers({opts, handlers: primitiveHandlers.array, obj, lastKey, stack});
-								if (out === VeCt.SYM_WALKER_BREAK) return out;
-								if (!opts.isNoModification) obj = out;
-							}
-							if (obj != null) {
-								const out = new Array(obj.length);
-								for (let i = 0, len = out.length; i < len; ++i) {
-									if (stack) stack.push(obj);
-									out[i] = fn(obj[i], primitiveHandlers, lastKey, stack);
-									if (stack) stack.pop();
-									if (out[i] === VeCt.SYM_WALKER_BREAK) return out[i];
-								}
-								if (!opts.isNoModification) obj = out;
-							} else {
-								if (!opts.isAllowDeleteArrays) throw new Error(`Array handler(s) returned null!`);
-							}
-						}
-						if (primitiveHandlers.postArray) MiscUtil._getWalker_runHandlers({handlers: primitiveHandlers.postArray, obj, lastKey, stack});
-						return obj;
-					}
-					// endregion
-
-					// region Object
-					if (primitiveHandlers.preObject) MiscUtil._getWalker_runHandlers({handlers: primitiveHandlers.preObject, obj, lastKey, stack});
-					if (opts.isDepthFirst) {
-						if (stack) stack.push(obj);
-						const flag = doObjectRecurse(obj, primitiveHandlers, stack);
-						if (stack) stack.pop();
-						if (flag === VeCt.SYM_WALKER_BREAK) return flag;
-
-						if (primitiveHandlers.object) {
-							const out = MiscUtil._getWalker_applyHandlers({opts, handlers: primitiveHandlers.object, obj, lastKey, stack});
-							if (out === VeCt.SYM_WALKER_BREAK) return out;
-							if (!opts.isNoModification) obj = out;
-						}
-						if (obj == null) {
-							if (!opts.isAllowDeleteObjects) throw new Error(`Object handler(s) returned null!`);
-						}
-					} else {
-						if (primitiveHandlers.object) {
-							const out = MiscUtil._getWalker_applyHandlers({opts, handlers: primitiveHandlers.object, obj, lastKey, stack});
-							if (out === VeCt.SYM_WALKER_BREAK) return out;
-							if (!opts.isNoModification) obj = out;
-						}
-						if (obj == null) {
-							if (!opts.isAllowDeleteObjects) throw new Error(`Object handler(s) returned null!`);
-						} else {
-							if (stack) stack.push(obj);
-							const flag = doObjectRecurse(obj, primitiveHandlers, stack);
-							if (stack) stack.pop();
-							if (flag === VeCt.SYM_WALKER_BREAK) return flag;
-						}
-					}
-					if (primitiveHandlers.postObject) MiscUtil._getWalker_runHandlers({handlers: primitiveHandlers.postObject, obj, lastKey, stack});
-					return obj;
-					// endregion
-				}
-				default: throw new Error(`Unhandled type "${typeof obj}"`);
-			}
-		};
-
-		return {walk: fn};
-	}
-
-	static _getWalker_applyHandlers ({opts, handlers, obj, lastKey, stack}) {
-		handlers = handlers instanceof Array ? handlers : [handlers];
-		const didBreak = handlers.some(h => {
-			const out = h(obj, lastKey, stack);
-			if (opts.isBreakOnReturn && out) return true;
-			if (!opts.isNoModification) obj = out;
-		});
-		if (didBreak) return VeCt.SYM_WALKER_BREAK;
-		return obj;
-	}
-
-	static _getWalker_runHandlers ({handlers, obj, lastKey, stack}) {
-		handlers = handlers instanceof Array ? handlers : [handlers];
-		handlers.forEach(h => h(obj, lastKey, stack));
+		opts ||= {};
+		return new MiscUtil._WalkerSync(opts);
 	}
 
 	/**
@@ -34229,136 +34955,8 @@ globalThis.MiscUtil = class {
 	 * @param [opts.isNoModification] If the walker should not attempt to modify the data.
 	 */
 	static getAsyncWalker (opts) {
-		opts = opts || {};
-		const keyBlocklist = opts.keyBlocklist || new Set();
-
-		const pFn = async (obj, primitiveHandlers, lastKey, stack) => {
-			if (obj == null) {
-				if (primitiveHandlers.null) return MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.null, obj, lastKey, stack});
-				return obj;
-			}
-
-			const pDoObjectRecurse = async () => {
-				await Object.keys(obj).pSerialAwaitMap(async k => {
-					const v = obj[k];
-					if (keyBlocklist.has(k)) return;
-					const out = await pFn(v, primitiveHandlers, k, stack);
-					if (!opts.isNoModification) obj[k] = out;
-				});
-			};
-
-			const to = typeof obj;
-			switch (to) {
-				case undefined:
-					if (primitiveHandlers.preUndefined) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.preUndefined, obj, lastKey, stack});
-					if (primitiveHandlers.undefined) {
-						const out = await MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.undefined, obj, lastKey, stack});
-						if (!opts.isNoModification) obj = out;
-					}
-					if (primitiveHandlers.postUndefined) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.postUndefined, obj, lastKey, stack});
-					return obj;
-				case "boolean":
-					if (primitiveHandlers.preBoolean) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.preBoolean, obj, lastKey, stack});
-					if (primitiveHandlers.boolean) {
-						const out = await MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.boolean, obj, lastKey, stack});
-						if (!opts.isNoModification) obj = out;
-					}
-					if (primitiveHandlers.postBoolean) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.postBoolean, obj, lastKey, stack});
-					return obj;
-				case "number":
-					if (primitiveHandlers.preNumber) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.preNumber, obj, lastKey, stack});
-					if (primitiveHandlers.number) {
-						const out = await MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.number, obj, lastKey, stack});
-						if (!opts.isNoModification) obj = out;
-					}
-					if (primitiveHandlers.postNumber) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.postNumber, obj, lastKey, stack});
-					return obj;
-				case "string":
-					if (primitiveHandlers.preString) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.preString, obj, lastKey, stack});
-					if (primitiveHandlers.string) {
-						const out = await MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.string, obj, lastKey, stack});
-						if (!opts.isNoModification) obj = out;
-					}
-					if (primitiveHandlers.postString) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.postString, obj, lastKey, stack});
-					return obj;
-				case "object": {
-					if (obj instanceof Array) {
-						if (primitiveHandlers.preArray) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.preArray, obj, lastKey, stack});
-						if (opts.isDepthFirst) {
-							if (stack) stack.push(obj);
-							const out = await obj.pSerialAwaitMap(it => pFn(it, primitiveHandlers, lastKey, stack));
-							if (!opts.isNoModification) obj = out;
-							if (stack) stack.pop();
-
-							if (primitiveHandlers.array) {
-								const out = await MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.array, obj, lastKey, stack});
-								if (!opts.isNoModification) obj = out;
-							}
-							if (obj == null) {
-								if (!opts.isAllowDeleteArrays) throw new Error(`Array handler(s) returned null!`);
-							}
-						} else {
-							if (primitiveHandlers.array) {
-								const out = await MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.array, obj, lastKey, stack});
-								if (!opts.isNoModification) obj = out;
-							}
-							if (obj != null) {
-								const out = await obj.pSerialAwaitMap(it => pFn(it, primitiveHandlers, lastKey, stack));
-								if (!opts.isNoModification) obj = out;
-							} else {
-								if (!opts.isAllowDeleteArrays) throw new Error(`Array handler(s) returned null!`);
-							}
-						}
-						if (primitiveHandlers.postArray) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.postArray, obj, lastKey, stack});
-						return obj;
-					} else {
-						if (primitiveHandlers.preObject) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.preObject, obj, lastKey, stack});
-						if (opts.isDepthFirst) {
-							if (stack) stack.push(obj);
-							await pDoObjectRecurse();
-							if (stack) stack.pop();
-
-							if (primitiveHandlers.object) {
-								const out = await MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.object, obj, lastKey, stack});
-								if (!opts.isNoModification) obj = out;
-							}
-							if (obj == null) {
-								if (!opts.isAllowDeleteObjects) throw new Error(`Object handler(s) returned null!`);
-							}
-						} else {
-							if (primitiveHandlers.object) {
-								const out = await MiscUtil._getAsyncWalker_pApplyHandlers({opts, handlers: primitiveHandlers.object, obj, lastKey, stack});
-								if (!opts.isNoModification) obj = out;
-							}
-							if (obj == null) {
-								if (!opts.isAllowDeleteObjects) throw new Error(`Object handler(s) returned null!`);
-							} else {
-								await pDoObjectRecurse();
-							}
-						}
-						if (primitiveHandlers.postObject) await MiscUtil._getAsyncWalker_pRunHandlers({handlers: primitiveHandlers.postObject, obj, lastKey, stack});
-						return obj;
-					}
-				}
-				default: throw new Error(`Unhandled type "${to}"`);
-			}
-		};
-
-		return {pWalk: pFn};
-	}
-
-	static async _getAsyncWalker_pApplyHandlers ({opts, handlers, obj, lastKey, stack}) {
-		handlers = handlers instanceof Array ? handlers : [handlers];
-		await handlers.pSerialAwaitMap(async pH => {
-			const out = await pH(obj, lastKey, stack);
-			if (!opts.isNoModification) obj = out;
-		});
-		return obj;
-	}
-
-	static async _getAsyncWalker_pRunHandlers ({handlers, obj, lastKey, stack}) {
-		handlers = handlers instanceof Array ? handlers : [handlers];
-		await handlers.pSerialAwaitMap(pH => pH(obj, lastKey, stack));
+		opts ||= {};
+		return new MiscUtil._WalkerAsync(opts);
 	}
 
 	static pDefer (fn) {
@@ -35005,6 +35603,16 @@ globalThis.UrlUtil = {
 			return {name, pantheon, source};
 		}
 
+		if (page?.toLowerCase() === "classfeature") {
+			const [name, className, classSource, levelRaw, source] = parts;
+			return {name, className, classSource, level: Number(levelRaw) || 0, source};
+		}
+
+		if (page?.toLowerCase() === "subclassfeature") {
+			const [name, className, classSource, subclassShortName, subclassSource, levelRaw, source] = parts;
+			return {name, className, classSource, subclassShortName, subclassSource, level: Number(levelRaw) || 0, source};
+		}
+
 		// TODO(Future) this is broken for docs where the id != the source
 		//   consider indexing
 		//   + homebrew
@@ -35231,7 +35839,17 @@ globalThis.UrlUtil = {
 		},
 	},
 
-	getStateKeySubclass (sc) { return Parser.stringToSlug(`sub ${sc.shortName || sc.name} ${sc.source}`); },
+	getStateKeySubclass (sc) {
+		return UrlUtil.encodeArrayForHash(["sub", sc.shortName || sc.name, sc.source]);
+	},
+
+	unpackStateKeySubclass (str) {
+		const [, shortName, source] = UrlUtil.decodeHash(str);
+		return {
+			shortName,
+			source,
+		};
+	},
 
 	/**
 	 * @param opts Options object.
@@ -35255,6 +35873,25 @@ globalThis.UrlUtil = {
 
 	_getClassesPageStatePart_subclass (sc) { return `${UrlUtil.getStateKeySubclass(sc)}=${UrlUtil.mini.compress(true)}`; },
 	_getClassesPageStatePart_feature (feature) { return `feature=${UrlUtil.mini.compress(`${feature.ixLevel}-${feature.ixFeature}`)}`; },
+
+	unpackClassesPageStatePart (href) {
+		const [, ...subs] = Hist.util.getHashParts(href);
+		const unpackeds = subs.map(sub => UrlUtil.unpackSubHash(sub));
+		const unpackedState = unpackeds.find(it => it.state)?.state;
+		if (!unpackedState) return null;
+
+		const out = {};
+		unpackedState
+			.forEach(pt => {
+				const [k, v] = pt.split("=");
+
+				if (k === "feature") return out.feature = UrlUtil.mini.decompress(v);
+
+				(out.stateKeysSubclass ||= []).push(k);
+			});
+
+		return out;
+	},
 };
 
 UrlUtil.PG_BESTIARY = "bestiary.html";
@@ -35314,7 +35951,7 @@ UrlUtil.URL_TO_HASH_BUILDER = {};
 UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_BESTIARY] = UrlUtil.URL_TO_HASH_GENERIC;
 UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_SPELLS] = UrlUtil.URL_TO_HASH_GENERIC;
 UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_BACKGROUNDS] = UrlUtil.URL_TO_HASH_GENERIC;
-UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_ITEMS] = UrlUtil.URL_TO_HASH_GENERIC;
+UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_ITEMS] = it => UrlUtil.encodeArrayForHash(it.name, SourceUtil.getEntitySource(it));
 UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_CLASSES] = UrlUtil.URL_TO_HASH_GENERIC;
 UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_CONDITIONS_DISEASES] = UrlUtil.URL_TO_HASH_GENERIC;
 UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_FEATS] = UrlUtil.URL_TO_HASH_GENERIC;
@@ -35587,13 +36224,26 @@ UrlUtil.PAGE_TO_PROPS = {};
 UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_SPELLS] = ["spell"];
 UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_ITEMS] = ["item", "itemGroup", "itemType", "itemEntry", "itemProperty", "itemTypeAdditionalEntries", "itemMastery", "baseitem", "magicvariant"];
 UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_RACES] = ["race", "subrace"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_ACTIONS] = ["action"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_BACKGROUNDS] = ["background"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_BESTIARY] = ["monster"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_CLASSES] = ["class", "subclass", "classFeature", "subclassFeature"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_CONDITIONS_DISEASES] = ["condition", "disease", "status"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_CULTS_BOONS] = ["cult", "boon"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_FEATS] = ["feat"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_LANGUAGES] = ["language"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_OBJECTS] = ["object"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_OPT_FEATURES] = ["optionalfeature"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_REWARDS] = ["reward"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_TRAPS_HAZARDS] = ["trap", "hazard"];
+UrlUtil.PAGE_TO_PROPS[UrlUtil.PG_VARIANTRULES] = ["variantrule"];
 
 UrlUtil.PROP_TO_PAGE = {};
 UrlUtil.PROP_TO_PAGE["spell"] = UrlUtil.PG_SPELLS;
 UrlUtil.PROP_TO_PAGE["item"] = UrlUtil.PG_ITEMS;
 UrlUtil.PROP_TO_PAGE["baseitem"] = UrlUtil.PG_ITEMS;
 
-if (!IS_DEPLOYED && !IS_VTT && typeof window !== "undefined") {
+if (!IS_DEPLOYED && !globalThis.IS_VTT && typeof window !== "undefined") {
 	// for local testing, hotkey to get a link to the current page on the main site
 	window.addEventListener("keypress", (e) => {
 		if (EventUtil.noModifierKeys(e) && typeof d20 === "undefined") {
@@ -36183,7 +36833,10 @@ globalThis.DataUtil = {
 
 					const isHasInternalCopies = (data._meta.internalCopies || []).includes(dataProp);
 
-					const dependencyData = await Promise.all(sourceIds.map(sourceId => DataUtil.pLoadByMeta(dataProp, sourceId)));
+					const dependencyData = await Promise.all(
+						DataUtil._getLoadGroupedSourceIds({prop: dataProp, sourceIds})
+							.map(sourceId => DataUtil.pLoadByMeta(dataProp, sourceId)),
+					);
 
 					const flatDependencyData = dependencyData.map(dd => dd[dataProp]).flat().filter(Boolean);
 					await Promise.all(data[dataProp].map(entry => DataUtil._pDoMetaMerge_handleCopyProp(dataProp, flatDependencyData, entry, {...options, isErrorOnMissing: !isHasInternalCopies})));
@@ -36376,6 +37029,8 @@ globalThis.DataUtil = {
 		"subclass": "index.json",
 		"classFeature": "index.json",
 		"subclassFeature": "index.json",
+		"classFluff": "fluff-index.json",
+		"subclassFluff": "fluff-index.json",
 	},
 	async pLoadByMeta (prop, source) {
 		// TODO(future) expand support
@@ -36411,16 +37066,17 @@ globalThis.DataUtil = {
 			// region Special
 			case "item":
 			case "itemGroup":
-			case "baseitem": {
+			case "baseitem":
+			case "magicvariant": {
 				const data = await DataUtil.item.loadRawJSON();
-				if (data[prop] && data[prop].some(it => it.source === source)) return data;
+				if (SourceUtil.isSiteSource(source)) return data;
 				return DataUtil._pLoadByMeta_pGetPrereleaseBrew(source);
 			}
 			case "race": {
 				// FIXME(Future) this should really `loadRawJSON`, but this breaks existing brew.
 				//   Consider a large-scale migration in future.
 				const data = await DataUtil.race.loadJSON({isAddBaseRaces: true});
-				if (data[prop] && data[prop].some(it => it.source === source)) return data;
+				if (SourceUtil.isSiteSource(source)) return data;
 				return DataUtil._pLoadByMeta_pGetPrereleaseBrew(source);
 			}
 			// endregion
@@ -36430,7 +37086,7 @@ globalThis.DataUtil = {
 				const impl = DataUtil[prop];
 				if (impl && (impl.getDataUrl || impl.loadJSON)) {
 					const data = await (impl.loadJSON ? impl.loadJSON() : DataUtil.loadJSON(impl.getDataUrl()));
-					if (data[prop] && data[prop].some(it => it.source === source)) return data;
+					if (SourceUtil.isSiteSource(source)) return data;
 
 					return DataUtil._pLoadByMeta_pGetPrereleaseBrew(source);
 				}
@@ -36449,6 +37105,24 @@ globalThis.DataUtil = {
 		if (fromBrew) return fromBrew;
 
 		throw new Error(`Could not find prerelease/brew URL for source "${source}"`);
+	},
+
+	/* -------------------------------------------- */
+
+	_getLoadGroupedSourceIds ({prop, sourceIds}) {
+		if (DataUtil._MULTI_SOURCE_PROP_TO_DIR[prop]) return sourceIds;
+
+		let siteSourceFirst = null;
+
+		const nonSiteSources = sourceIds
+			.filter(sourceId => {
+				const isSiteSource = SourceUtil.isSiteSource(sourceId);
+				if (isSiteSource && siteSourceFirst == null) siteSourceFirst = sourceId;
+				return !isSiteSource;
+			});
+
+		if (!siteSourceFirst) return sourceIds;
+		return [siteSourceFirst, ...nonSiteSources];
 	},
 
 	/* -------------------------------------------- */
@@ -36490,7 +37164,7 @@ globalThis.DataUtil = {
 			srd: true,
 			srd52: true,
 			basicRules: true,
-			freeRules2024: true,
+			basicRules2024: true,
 			reprintedAs: true,
 			hasFluff: true,
 			hasFluffImages: true,
@@ -36554,25 +37228,25 @@ globalThis.DataUtil = {
 
 			if (hashCurrent === hash) throw new Error(`${hashCurrent} _copy self-references! This is a bug!`);
 
-			const it = (impl._mergeCache = impl._mergeCache || {})[hash] || DataUtil.generic._pMergeCopy_search(impl, page, entryList, entry, options);
+			const entParent = (impl._mergeCache = impl._mergeCache || {})[hash] || DataUtil.generic._pMergeCopy_search(impl, page, entryList, entry, options);
 
-			if (!it) {
+			if (!entParent) {
 				if (options.isErrorOnMissing) {
 					throw new Error(`Could not find "${page}" entity "${entry._copy.name}" ("${entry._copy.source}") to copy in copier "${entry.name}" ("${entry.source}")`);
 				}
 				return;
 			}
 
-			if (DataUtil.dbg.isTrackCopied) it.dbg_isCopied = true;
+			if (DataUtil.dbg.isTrackCopied) entParent.dbg_isCopied = true;
 			// Handle recursive copy
-			if (it._copy) await DataUtil.generic._pMergeCopy(impl, page, entryList, it, options);
+			if (entParent._copy) await DataUtil.generic._pMergeCopy(impl, page, entryList, entParent, options);
 
 			// Preload templates, if required
 			// TODO(Template) allow templates for other entity types
 			const templateData = entry._copy?._templates
 				? (await DataUtil.loadJSON(`${Renderer.get().baseUrl}data/bestiary/template.json`))
 				: null;
-			return DataUtil.generic.copyApplier.getCopy(impl, MiscUtil.copyFast(it), entry, templateData, options);
+			return DataUtil.generic.copyApplier.getCopy(impl, MiscUtil.copyFast(entParent), entry, templateData, options);
 		},
 
 		_pMergeCopy_search (impl, page, entryList, entry, options) {
@@ -36620,25 +37294,28 @@ globalThis.DataUtil = {
 				return split.join("");
 			}
 
-			static _doMod_appendStr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (copyTo[prop]) copyTo[prop] = `${copyTo[prop]}${modInfo.joiner || ""}${modInfo.str}`;
-				else copyTo[prop] = modInfo.str;
+			static _doMod_appendStr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (valExisting) MiscUtil.set(copyTo, ...propPath, `${valExisting}${modInfo.joiner || ""}${modInfo.str}`);
+				else MiscUtil.set(copyTo, ...propPath, modInfo.str);
 			}
 
-			static _doMod_replaceName ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (!copyTo[prop]) return;
+			static _doMod_replaceName ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const ents = MiscUtil.get(copyTo, ...propPath);
+				if (!ents) return;
 
 				DataUtil.generic._walker_replaceTxt = DataUtil.generic._walker_replaceTxt || MiscUtil.getWalker();
 				const re = this._getRegexFromReplaceModInfo({replace: modInfo.replace, flags: modInfo.flags});
 				const handlers = {string: this._doReplaceStringHandler.bind(null, {re: re, withStr: modInfo.with})};
 
-				copyTo[prop].forEach(it => {
-					if (it.name) it.name = DataUtil.generic._walker_replaceTxt.walk(it.name, handlers);
+				ents.forEach(ent => {
+					if (ent.name) ent.name = DataUtil.generic._walker_replaceTxt.walk(ent.name, handlers);
 				});
 			}
 
-			static _doMod_replaceTxt ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (!copyTo[prop]) return;
+			static _doMod_replaceTxt ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const ents = MiscUtil.get(copyTo, ...propPath);
+				if (!ents) return;
 
 				DataUtil.generic._walker_replaceTxt = DataUtil.generic._walker_replaceTxt || MiscUtil.getWalker();
 				const re = this._getRegexFromReplaceModInfo({replace: modInfo.replace, flags: modInfo.flags});
@@ -36649,105 +37326,112 @@ globalThis.DataUtil = {
 
 				if (props.includes(null)) {
 					// Handle any pure strings, e.g. `"legendaryHeader"`
-					copyTo[prop] = copyTo[prop].map(it => {
+					MiscUtil.set(copyTo, ...propPath, ents.map(it => {
 						if (typeof it !== "string") return it;
 						return DataUtil.generic._walker_replaceTxt.walk(it, handlers);
-					});
+					}));
 				}
 
-				copyTo[prop].forEach(it => {
+				ents.forEach(ent => {
 					props.forEach(prop => {
 						if (prop == null) return;
-						if (it[prop]) it[prop] = DataUtil.generic._walker_replaceTxt.walk(it[prop], handlers);
+						if (ent[prop]) ent[prop] = DataUtil.generic._walker_replaceTxt.walk(ent[prop], handlers);
 					});
 				});
 			}
 
-			static _doMod_prependArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_prependArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
-				copyTo[prop] = copyTo[prop] ? modInfo.items.concat(copyTo[prop]) : modInfo.items;
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				MiscUtil.set(copyTo, ...propPath, valExisting ? modInfo.items.concat(valExisting) : modInfo.items);
 			}
 
-			static _doMod_appendArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_appendArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
-				copyTo[prop] = copyTo[prop] ? copyTo[prop].concat(modInfo.items) : modInfo.items;
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				MiscUtil.set(copyTo, ...propPath, valExisting ? valExisting.concat(modInfo.items) : modInfo.items);
 			}
 
-			static _doMod_appendIfNotExistsArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_appendIfNotExistsArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
-				if (!copyTo[prop]) return copyTo[prop] = modInfo.items;
-				copyTo[prop] = copyTo[prop].concat(modInfo.items.filter(it => !copyTo[prop].some(x => CollectionUtil.deepEquals(it, x))));
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) return MiscUtil.set(copyTo, ...propPath, modInfo.items);
+				MiscUtil.set(copyTo, ...propPath, valExisting.concat(modInfo.items.filter(it => !valExisting.some(x => CollectionUtil.deepEquals(it, x)))));
 			}
 
-			static _doMod_replaceArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop, isThrow = true}) {
+			static _doMod_replaceArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath, isThrow = true}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
 
-				if (!copyTo[prop]) {
-					if (isThrow) throw new Error(`${msgPtFailed} Could not find "${prop}" array`);
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) {
+					if (isThrow) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" array`);
 					return false;
 				}
 
 				let ixOld;
 				if (modInfo.replace.regex) {
 					const re = new RegExp(modInfo.replace.regex, modInfo.replace.flags || "");
-					ixOld = copyTo[prop].findIndex(it => it.name ? re.test(it.name) : typeof it === "string" ? re.test(it) : false);
+					ixOld = valExisting.findIndex(it => it.name ? re.test(it.name) : typeof it === "string" ? re.test(it) : false);
 				} else if (modInfo.replace.index != null) {
 					ixOld = modInfo.replace.index;
 				} else {
-					ixOld = copyTo[prop].findIndex(it => it.name ? it.name === modInfo.replace : it === modInfo.replace);
+					ixOld = valExisting.findIndex(it => it.name ? it.name === modInfo.replace : it === modInfo.replace);
 				}
 
 				if (~ixOld) {
-					copyTo[prop].splice(ixOld, 1, ...modInfo.items);
+					valExisting.splice(ixOld, 1, ...modInfo.items);
 					return true;
-				} else if (isThrow) throw new Error(`${msgPtFailed} Could not find "${prop}" item with name "${modInfo.replace}" to replace`);
+				} else if (isThrow) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" item with name "${modInfo.replace}" to replace`);
 				return false;
 			}
 
-			static _doMod_replaceOrAppendArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				const didReplace = this._doMod_replaceArr({copyTo, copyFrom, modInfo, msgPtFailed, prop, isThrow: false});
-				if (!didReplace) this._doMod_appendArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
+			static _doMod_replaceOrAppendArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const didReplace = this._doMod_replaceArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath, isThrow: false});
+				if (!didReplace) this._doMod_appendArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
 			}
 
-			static _doMod_insertArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_insertArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
 				this._doEnsureArray({obj: modInfo, prop: "items"});
-				if (!copyTo[prop]) throw new Error(`${msgPtFailed} Could not find "${prop}" array`);
-				copyTo[prop].splice(~modInfo.index ? modInfo.index : copyTo[prop].length, 0, ...modInfo.items);
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) throw new Error(`${msgPtFailed} Could not find "${valExisting.join(".")}" array`);
+				valExisting.splice(~modInfo.index ? modInfo.index : valExisting.length, 0, ...modInfo.items);
 			}
 
-			static _doMod_removeArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_removeArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
 				if (modInfo.names) {
 					this._doEnsureArray({obj: modInfo, prop: "names"});
 					modInfo.names.forEach(nameToRemove => {
-						const ixOld = copyTo[prop].findIndex(it => it.name === nameToRemove);
-						if (~ixOld) copyTo[prop].splice(ixOld, 1);
+						const ixOld = valExisting.findIndex(it => it.name === nameToRemove);
+						if (~ixOld) valExisting.splice(ixOld, 1);
 						else {
-							if (!modInfo.force) throw new Error(`${msgPtFailed} Could not find "${prop}" item with name "${nameToRemove}" to remove`);
+							if (!modInfo.force) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" item with name "${nameToRemove}" to remove`);
 						}
 					});
 				} else if (modInfo.items) {
 					this._doEnsureArray({obj: modInfo, prop: "items"});
 					modInfo.items.forEach(itemToRemove => {
-						const ixOld = copyTo[prop].findIndex(it => it === itemToRemove);
-						if (~ixOld) copyTo[prop].splice(ixOld, 1);
-						else throw new Error(`${msgPtFailed} Could not find "${prop}" item "${itemToRemove}" to remove`);
+						const ixOld = valExisting.findIndex(it => it === itemToRemove);
+						if (~ixOld) valExisting.splice(ixOld, 1);
+						else throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" item "${itemToRemove}" to remove`);
 					});
 				} else throw new Error(`${msgPtFailed} One of "names" or "items" must be provided!`);
 			}
 
-			static _doMod_renameArr ({copyTo, copyFrom, modInfo, msgPtFailed, prop, isThrow = true}) {
+			static _doMod_renameArr ({copyTo, copyFrom, modInfo, msgPtFailed, propPath, isThrow = true}) {
 				this._doEnsureArray({obj: modInfo, prop: "renames"});
 
-				if (!copyTo[prop]) {
-					if (isThrow) throw new Error(`${msgPtFailed} Could not find "${prop}" array`);
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) {
+					if (isThrow) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" array`);
 					return;
 				}
 
 				modInfo.renames
 					.forEach(rename => {
-						const ent = copyTo[prop].find(ent => ent?.name === rename.rename);
+						const ent = valExisting.find(ent => ent?.name === rename.rename);
 						if (!ent) {
-							if (isThrow) throw new Error(`${msgPtFailed} Could not find "${prop}" item with name "${rename.rename}" to rename`);
+							if (isThrow) throw new Error(`${msgPtFailed} Could not find "${propPath.join(".")}" item with name "${rename.rename}" to rename`);
 							return;
 						}
 
@@ -36755,8 +37439,8 @@ globalThis.DataUtil = {
 					});
 			}
 
-			static _doMod_calculateProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				copyTo[prop] = copyTo[prop] || {};
+			static _doMod_calculateProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const tgt = MiscUtil.getOrSet(copyTo, ...propPath, {});
 				const toExec = modInfo.formula.replace(/<\$([^$]+)\$>/g, (...m) => {
 					switch (m[1]) {
 						case "prof_bonus": return Parser.crToPb(copyTo.cr);
@@ -36766,31 +37450,35 @@ globalThis.DataUtil = {
 				});
 				// TODO(Future) add option to format as bonus
 				// eslint-disable-next-line no-eval
-				copyTo[prop][modInfo.prop] = eval(DataUtil.generic.variableResolver.getCleanMathExpression(toExec));
+				tgt[modInfo.prop] = eval(DataUtil.generic.variableResolver.getCleanMathExpression(toExec));
 			}
 
-			static _doMod_scalarAddProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_scalarAddProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const tgt = MiscUtil.get(copyTo, ...propPath);
+				if (!tgt) return;
+
 				const applyTo = (k) => {
-					const out = Number(copyTo[prop][k]) + modInfo.scalar;
-					const isString = typeof copyTo[prop][k] === "string";
-					copyTo[prop][k] = isString ? `${out >= 0 ? "+" : ""}${out}` : out;
+					const out = Number(tgt[k]) + modInfo.scalar;
+					const isString = typeof tgt[k] === "string";
+					tgt[k] = isString ? `${out >= 0 ? "+" : ""}${out}` : out;
 				};
 
-				if (!copyTo[prop]) return;
-				if (modInfo.prop === "*") Object.keys(copyTo[prop]).forEach(k => applyTo(k));
+				if (modInfo.prop === "*") Object.keys(tgt).forEach(k => applyTo(k));
 				else applyTo(modInfo.prop);
 			}
 
-			static _doMod_scalarMultProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
+			static _doMod_scalarMultProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const tgt = MiscUtil.get(copyTo, ...propPath);
+				if (!tgt) return;
+
 				const applyTo = (k) => {
-					let out = Number(copyTo[prop][k]) * modInfo.scalar;
+					let out = Number(tgt[k]) * modInfo.scalar;
 					if (modInfo.floor) out = Math.floor(out);
-					const isString = typeof copyTo[prop][k] === "string";
-					copyTo[prop][k] = isString ? `${out >= 0 ? "+" : ""}${out}` : out;
+					const isString = typeof tgt[k] === "string";
+					tgt[k] = isString ? `${out >= 0 ? "+" : ""}${out}` : out;
 				};
 
-				if (!copyTo[prop]) return;
-				if (modInfo.prop === "*") Object.keys(copyTo[prop]).forEach(k => applyTo(k));
+				if (modInfo.prop === "*") Object.keys(tgt).forEach(k => applyTo(k));
 				else applyTo(modInfo.prop);
 			}
 
@@ -36898,7 +37586,7 @@ globalThis.DataUtil = {
 					modInfo[prop].forEach(sp => (spellcasting[prop] = spellcasting[prop] || []).push(sp));
 				});
 
-				["recharge", "charges", "rest", "daily", "weekly", "monthly", "yearly"].forEach(prop => {
+				["recharge", "legendary", "charges", "rest", "restLong", "daily", "weekly", "monthly", "yearly"].forEach(prop => {
 					if (!modInfo[prop]) return;
 
 					for (let i = 1; i <= 9; ++i) {
@@ -36981,7 +37669,7 @@ globalThis.DataUtil = {
 					spellcasting[prop].filter(it => !modInfo[prop].includes(it));
 				});
 
-				["recharge", "charges", "rest", "daily", "weekly", "monthly", "yearly"].forEach(prop => {
+				["recharge", "legendary", "charges", "rest", "restLong", "daily", "weekly", "monthly", "yearly"].forEach(prop => {
 					if (!modInfo[prop]) return;
 
 					for (let i = 1; i <= 9; ++i) {
@@ -37000,33 +37688,43 @@ globalThis.DataUtil = {
 				});
 			}
 
-			static _doMod_scalarAddHit ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (!copyTo[prop]) return;
+			static _doMod_scalarAddHit ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) return;
 
 				const re = /{@hit ([-+]?\d+)}/g;
-				copyTo[prop] = this._WALKER.walk(
-					copyTo[prop],
-					{
-						string: (str) => {
-							return str
-								.replace(re, (m0, m1) => `{@hit ${Number(m1) + modInfo.scalar}}`);
+				MiscUtil.set(
+					copyTo,
+					...propPath,
+					this._WALKER.walk(
+						valExisting,
+						{
+							string: (str) => {
+								return str
+									.replace(re, (m0, m1) => `{@hit ${Number(m1) + modInfo.scalar}}`);
+							},
 						},
-					},
+					),
 				);
 			}
 
-			static _doMod_scalarAddDc ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				if (!copyTo[prop]) return;
+			static _doMod_scalarAddDc ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const valExisting = MiscUtil.get(copyTo, ...propPath);
+				if (!valExisting) return;
 
 				const re = /{@dc (\d+)(?:\|[^}]+)?}/g;
-				copyTo[prop] = this._WALKER.walk(
-					copyTo[prop],
-					{
-						string: (str) => {
-							return str
-								.replace(re, (m0, m1) => `{@dc ${Number(m1) + modInfo.scalar}}`);
+				MiscUtil.set(
+					copyTo,
+					...propPath,
+					this._WALKER.walk(
+						valExisting,
+						{
+							string: (str) => {
+								return str
+									.replace(re, (m0, m1) => `{@dc ${Number(m1) + modInfo.scalar}}`);
+							},
 						},
-					},
+					),
 				);
 			}
 
@@ -37059,61 +37757,63 @@ globalThis.DataUtil = {
 				}
 			}
 
-			static _doMod_setProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				const propPath = modInfo.prop.split(".");
-				if (prop != null && prop !== "*") propPath.unshift(prop);
-				MiscUtil.set(copyTo, ...propPath, MiscUtil.copyFast(modInfo.value));
+			static _doMod_setProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const propPathCombined = modInfo.prop ? modInfo.prop.split(".") : [];
+				if (propPath != null && !CollectionUtil.deepEquals(propPath, ["*"])) propPathCombined.unshift(...propPath);
+				MiscUtil.set(copyTo, ...propPathCombined, MiscUtil.copyFast(modInfo.value));
 			}
 
-			static _doMod_prefixSuffixStringProp ({copyTo, copyFrom, modInfo, msgPtFailed, prop}) {
-				const propPath = modInfo.prop.split(".");
-				if (prop != null && prop !== "*") propPath.unshift(prop);
-				const str = MiscUtil.get(copyTo, ...propPath);
+			static _doMod_prefixSuffixStringProp ({copyTo, copyFrom, modInfo, msgPtFailed, propPath}) {
+				const propPathCombined = modInfo.prop ? modInfo.prop.split(".") : [];
+				if (propPath != null && !CollectionUtil.deepEquals(propPath, ["*"])) propPathCombined.unshift(...propPath);
+				const str = MiscUtil.get(copyTo, ...propPathCombined);
 				if (str == null || !(typeof str === "string")) return;
-				MiscUtil.set(copyTo, ...propPath, `${modInfo.prefix || ""}${str}${modInfo.suffix || ""}`);
+				MiscUtil.set(copyTo, ...propPathCombined, `${modInfo.prefix || ""}${str}${modInfo.suffix || ""}`);
 			}
 
 			static _doMod_handleProp ({copyTo, copyFrom, modInfos, msgPtFailed, prop = null}) {
+				const propPath = prop ? prop.split(".") : null;
+
 				modInfos.forEach(modInfo => {
 					if (typeof modInfo === "string") {
 						switch (modInfo) {
 							case "remove": return delete copyTo[prop];
 							default: throw new Error(`${msgPtFailed} Unhandled mode: ${modInfo}`);
 						}
-					} else {
-						switch (modInfo.mode) {
-							case "appendStr": return this._doMod_appendStr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "replaceName": return this._doMod_replaceName({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "replaceTxt": return this._doMod_replaceTxt({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "prependArr": return this._doMod_prependArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "appendArr": return this._doMod_appendArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "replaceArr": return this._doMod_replaceArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "replaceOrAppendArr": return this._doMod_replaceOrAppendArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "appendIfNotExistsArr": return this._doMod_appendIfNotExistsArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "insertArr": return this._doMod_insertArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "removeArr": return this._doMod_removeArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "renameArr": return this._doMod_renameArr({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "calculateProp": return this._doMod_calculateProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "scalarAddProp": return this._doMod_scalarAddProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "scalarMultProp": return this._doMod_scalarMultProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "setProp": return this._doMod_setProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "prefixSuffixStringProp": return this._doMod_prefixSuffixStringProp({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							// region Bestiary specific
-							case "addSenses": return this._doMod_addSenses({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addSaves": return this._doMod_addSaves({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addSkills": return this._doMod_addSkills({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addAllSaves": return this._doMod_addAllSaves({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addAllSkills": return this._doMod_addAllSkills({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "addSpells": return this._doMod_addSpells({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "replaceSpells": return this._doMod_replaceSpells({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "removeSpells": return this._doMod_removeSpells({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "maxSize": return this._doMod_maxSize({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "scalarMultXp": return this._doMod_scalarMultXp({copyTo, copyFrom, modInfo, msgPtFailed});
-							case "scalarAddHit": return this._doMod_scalarAddHit({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							case "scalarAddDc": return this._doMod_scalarAddDc({copyTo, copyFrom, modInfo, msgPtFailed, prop});
-							// endregion
-							default: throw new Error(`${msgPtFailed} Unhandled mode: ${modInfo.mode}`);
-						}
+					}
+
+					switch (modInfo.mode) {
+						case "appendStr": return this._doMod_appendStr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "replaceName": return this._doMod_replaceName({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "replaceTxt": return this._doMod_replaceTxt({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "prependArr": return this._doMod_prependArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "appendArr": return this._doMod_appendArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "replaceArr": return this._doMod_replaceArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "replaceOrAppendArr": return this._doMod_replaceOrAppendArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "appendIfNotExistsArr": return this._doMod_appendIfNotExistsArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "insertArr": return this._doMod_insertArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "removeArr": return this._doMod_removeArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "renameArr": return this._doMod_renameArr({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "calculateProp": return this._doMod_calculateProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "scalarAddProp": return this._doMod_scalarAddProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "scalarMultProp": return this._doMod_scalarMultProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "setProp": return this._doMod_setProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "prefixSuffixStringProp": return this._doMod_prefixSuffixStringProp({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						// region Bestiary specific
+						case "addSenses": return this._doMod_addSenses({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addSaves": return this._doMod_addSaves({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addSkills": return this._doMod_addSkills({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addAllSaves": return this._doMod_addAllSaves({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addAllSkills": return this._doMod_addAllSkills({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "addSpells": return this._doMod_addSpells({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "replaceSpells": return this._doMod_replaceSpells({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "removeSpells": return this._doMod_removeSpells({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "maxSize": return this._doMod_maxSize({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "scalarMultXp": return this._doMod_scalarMultXp({copyTo, copyFrom, modInfo, msgPtFailed});
+						case "scalarAddHit": return this._doMod_scalarAddHit({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						case "scalarAddDc": return this._doMod_scalarAddDc({copyTo, copyFrom, modInfo, msgPtFailed, propPath});
+						// endregion
+						default: throw new Error(`${msgPtFailed} Unhandled mode: ${modInfo.mode}`);
 					}
 				});
 			}
@@ -37500,6 +38200,7 @@ globalThis.DataUtil = {
 				_versionBase_isVersion: true,
 				_versionBase_name: parentEntity.name,
 				_versionBase_source: parentEntity.source,
+				_versionBase_hash: UrlUtil.URL_TO_HASH_BUILDER[parentEntity.__prop](parentEntity),
 				_versionBase_hasToken: parentEntity.hasToken,
 				_versionBase_hasFluff: parentEntity.hasFluff,
 				_versionBase_hasFluffImages: parentEntity.hasFluffImages,
@@ -37544,7 +38245,7 @@ globalThis.DataUtil = {
 		 * @param [opts.isLower]
 		 */
 		static unpackUid (prop, uid, tag, opts) {
-			if (DataUtil[prop]?.unpackUid) return DataUtil[prop]?.unpackUid(uid, tag, opts);
+			if (DataUtil[prop]?.unpackUid) return DataUtil[prop]?.unpackUid(uid, opts);
 			return DataUtil.generic.unpackUid(uid, tag, opts);
 		}
 
@@ -37724,7 +38425,7 @@ globalThis.DataUtil = {
 		// endregion
 
 		static async _pInitPreData_ () {
-			this._SPELL_SOURCE_LOOKUP = await DataUtil.loadJSON(`${Renderer.get().baseUrl}data/generated/gendata-spell-source-lookup.json`);
+			this._SPELL_SOURCE_LOOKUP = await DataUtil.loadRawJSON(`${Renderer.get().baseUrl}data/generated/gendata-spell-source-lookup.json`);
 		}
 
 		static _mutEntity (sp, {sourcesLookup = null} = {}) {
@@ -37992,6 +38693,16 @@ globalThis.DataUtil = {
 		static async loadRawJSON (...args) { return DataUtil.item.loadRawJSON(...args); }
 	},
 
+	magicvariant: class extends _DataUtilPropConfig {
+		static _MERGE_REQUIRES_PRESERVE = {
+			lootTables: true,
+			tier: true,
+		};
+		static _PAGE = "magicvariant";
+
+		static async loadRawJSON (...args) { return DataUtil.item.loadRawJSON(...args); }
+	},
+
 	itemFluff: class extends _DataUtilPropConfigSingleSource {
 		static _PAGE = UrlUtil.PG_ITEMS;
 		static _FILENAME = "fluff-items.json";
@@ -38183,10 +38894,15 @@ globalThis.DataUtil = {
 		}
 	},
 
+	subrace: class extends _DataUtilPropConfig {
+		static _PAGE = "subrace";
+	},
+
 	raceFluff: class extends _DataUtilPropConfigSingleSource {
 		static _PAGE = UrlUtil.PG_RACES;
 		static _FILENAME = "fluff-races.json";
 
+		// N.b.: intentionally not applied to homebrew/prerelease content
 		static _getApplyUncommonMonstrous (data) {
 			data = MiscUtil.copyFast(data);
 			data.raceFluff
@@ -38449,6 +39165,9 @@ globalThis.DataUtil = {
 		static _PAGE = "classFeature";
 		static _DIR = "class";
 		static _PROP = "classFeature";
+
+		static unpackUid (uid, opts) { return DataUtil.class.unpackUidClassFeature(uid, opts); }
+		static getUid (ent, opts) { return DataUtil.class.packUidClassFeature(ent, opts); }
 	},
 
 	classFluff: class extends _DataUtilPropConfigMultiSource {
@@ -38480,6 +39199,9 @@ globalThis.DataUtil = {
 		static _PAGE = "subclassFeature";
 		static _DIR = "class";
 		static _PROP = "subclassFeature";
+
+		static unpackUid (uid, opts) { return DataUtil.class.unpackUidSubclassFeature(uid, opts); }
+		static getUid (ent, opts) { return DataUtil.class.packUidSubclassFeature(ent, opts); }
 	},
 
 	subclassFluff: class extends _DataUtilPropConfigMultiSource {
@@ -38806,11 +39528,26 @@ globalThis.RollerUtil = {
 
 		colLabel = mDice ? mDice.groups.exp : Renderer.stripTags(colLabel);
 
-		if (Renderer.dice.lang.getTree3(colLabel)) return RollerUtil.ROLL_COL_STANDARD;
+		const pts = mDice
+			? colLabel
+				.split(";")
+				.map(it => it.trim())
+				.filter(Boolean)
+			: [colLabel];
+
+		if (pts.every(pt => !!Renderer.dice.lang.getTree3(pt))) return RollerUtil.ROLL_COL_STANDARD;
 
 		// Remove trailing variables, if they exist
-		colLabel = colLabel.replace(RollerUtil._REGEX_ROLLABLE_COL_LABEL, "$1");
-		if (Renderer.dice.lang.getTree3(colLabel)) return RollerUtil.ROLL_COL_VARIABLE;
+		if (
+			pts
+				.every(pt => {
+					return !!Renderer.dice.lang.getTree3(
+						pt
+							.replace(RollerUtil._REGEX_ROLLABLE_COL_LABEL, "$1")
+							.replace(RollerUtil._REGEX_ROLLABLE_COL_TRAILING_VARIABLE, "$1"),
+					);
+				})
+		) return RollerUtil.ROLL_COL_VARIABLE;
 
 		return RollerUtil.ROLL_COL_NONE;
 	},
@@ -38829,12 +39566,14 @@ globalThis.RollerUtil = {
 		return `{@dice ${m[1]}${m[2]}#$prompt_number:title=Enter a ${m[3].trim()}$#|${lbl}}`;
 	},
 
-	_DICE_REGEX_STR: "((([1-9]\\d*)?d([1-9]\\d*)(\\s*?[-+×x*÷/]\\s*?(\\d,\\d|\\d)+(\\.\\d+)?)?))+?",
+	_DICE_REGEX_STR: /((?:\s*?(?<opLeading>[-+×x*÷/])\s*?)?((?<diceCount>[1-9]\d*)?d(?<diceFace>[1-9]\d*)(?<bonus>(\s*?[-+×x*÷/]\s*?(\d,\d|\d)+(\.\d+)?(?!d))*)))+?/.source,
 };
 RollerUtil.DICE_REGEX = new RegExp(RollerUtil._DICE_REGEX_STR, "g");
+RollerUtil.DICE_REGEX_FULLMATCH = new RegExp(`^\\s*${RollerUtil._DICE_REGEX_STR}\\s*$`);
 RollerUtil.REGEX_DAMAGE_DICE = /(?<average>\d+)(?<prefix> \((?:{@dice |{@damage ))(?<diceExp>[-+0-9d ]*)(?<suffix>}\)(?:\s*\+\s*the spell's level)? [a-z]+( \([-a-zA-Z0-9 ]+\))?( or [a-z]+( \([-a-zA-Z0-9 ]+\))?)? damage)/gi;
-RollerUtil.REGEX_DAMAGE_FLAT = /(?<prefix>Hit: |{@h})(?<flatVal>[0-9]+)(?<suffix> [a-z]+( \([-a-zA-Z0-9 ]+\))?( or [a-z]+( \([-a-zA-Z0-9 ]+\))?)? damage)/gi;
+RollerUtil.REGEX_DAMAGE_FLAT = /(?<prefix>Hit(?: or Miss)?: |Miss: |{@hom}|{@h}|{@m})(?<flatVal>[0-9]+)(?<suffix> [a-z]+( \([-a-zA-Z0-9 ]+\))?( or [a-z]+( \([-a-zA-Z0-9 ]+\))?)? damage)/gi;
 RollerUtil._REGEX_ROLLABLE_COL_LABEL = /^(.*?\d)(\s*[-+/*^×÷]\s*)([a-zA-Z0-9 ]+)$/;
+RollerUtil._REGEX_ROLLABLE_COL_TRAILING_VARIABLE = /^(.*?\d)(\s*[-+/*^×÷]\s*)(#\$.*?\$#)$/;
 RollerUtil.ROLL_COL_NONE = 0;
 RollerUtil.ROLL_COL_STANDARD = 1;
 RollerUtil.ROLL_COL_VARIABLE = 2;
@@ -39345,10 +40084,6 @@ globalThis.CollectionUtil = {
 		if (a.size !== b.size) return false;
 		for (const it of a) if (!b.has(it)) return false;
 		return true;
-	},
-
-	setDiff (set1, set2) {
-		return new Set([...set1].filter(it => !set2.has(it)));
 	},
 
 	objectDiff (obj1, obj2) {
@@ -40110,7 +40845,7 @@ globalThis.VeLock = function ({name = null, isDbg = false} = {}) {
 		lockMeta.unlock();
 	};
 };
-ExcludeUtil._lock = new VeLock();
+ExcludeUtil._lock = new VeLock({name: "blocklist"});
 
 // DATETIME ============================================================================================================
 globalThis.DatetimeUtil = {
@@ -40217,7 +40952,7 @@ globalThis.BrowserUtil = class {
 };
 
 // MISC WEBPAGE ONLOADS ================================================================================================
-if (!IS_VTT && typeof window !== "undefined") {
+if (!globalThis.IS_VTT && typeof window !== "undefined") {
 	window.addEventListener("load", () => {
 		const docRoot = document.querySelector(":root");
 
@@ -40240,12 +40975,12 @@ if (!IS_VTT && typeof window !== "undefined") {
 		Renderer.events.bindGeneric();
 	});
 
-	if (location.origin === VeCt.LOC_ORIGIN_CANCER) {
+	if (location.hostname.endsWith(VeCt.LOC_HOSTNAME_CANCER)) {
 		const ivsCancer = [];
+		let anyFound = false;
 
 		window.addEventListener("load", () => {
 			let isPadded = false;
-			let anyFound = false;
 			[
 				"div-gpt-ad-5etools35927", // main banner
 				"div-gpt-ad-5etools35930", // side banner
@@ -40280,21 +41015,16 @@ if (!IS_VTT && typeof window !== "undefined") {
 			ivsCancer.push(ivPad);
 		});
 
-		// Hack to lock the ad space at original size--prevents the screen from shifting around once loaded
+		// Hack to lock the ad space at a fixed size--prevents the screen from shifting around once loaded
 		setTimeout(() => {
 			const $wrp = $(`.cancer__wrp-leaderboard-inner`);
-			const h = $wrp.outerHeight();
-			$wrp.css({height: h});
+			if (anyFound) $wrp.css({height: 90});
 			ivsCancer.forEach(iv => clearInterval(iv));
-		}, 5000);
+		}, 6500);
 	} else {
 		window.addEventListener("load", () => $(`.cancer__anchor`).remove());
 	}
-
-	// window.addEventListener("load", () => {
-	// 	$(`.cancer__sidebar-rhs-inner--top`).append(`<div class="TEST_RHS_TOP"></div>`)
-	// 	$(`.cancer__sidebar-rhs-inner--bottom`).append(`<div class="TEST_RHS_BOTTOM"></div>`)
-	// });
+	// endregion
 }
 
 }).toString());
@@ -40744,6 +41474,9 @@ class UiUtil {
 			$modal: $(modal),
 			$modalInner: $(wrpScroller),
 			$modalFooter: $(modalFooter),
+			eleModal: modal,
+			eleModalInner: wrpScroller,
+			eleModalFooter: modalFooter,
 			doClose: pHandleCloseClick,
 			doTeardown,
 			pGetResolved: () => pResolveModal,
@@ -40895,7 +41628,11 @@ class UiUtil {
 		return out;
 	}
 
-	static bindTypingEnd ({$ipt, fnKeyup, fnKeypress, fnKeydown, fnClick, timeout} = {}) {
+	static bindTypingEnd ({ipt, $ipt, fnKeyup, fnKeypress, fnKeydown, fnClick, timeout} = {}) {
+		if (!ipt && !$ipt?.length) throw new Error(`"ipt" or "$ipt" must be provided!`);
+
+		$ipt = $ipt || $(ipt);
+
 		let timerTyping;
 		$ipt
 			.on("keyup search paste", evt => {
@@ -41247,7 +41984,7 @@ class ListUiUtil {
 			return;
 		}
 
-		Renderer.hover.pGetHoverableFluff(page, entity.source, UrlUtil.URL_TO_HASH_BUILDER[page](entity))
+		Renderer.utils.pGetProxyFluff({entity})
 			.then(fluffEntity => {
 				// Avoid clobbering existing elements, as other events might have updated the preview area while we were
 				//  loading the fluff.
@@ -41508,8 +42245,22 @@ class TabUiUtilBase {
 		};
 
 		/** Render a collection of tabs. */
-		obj._renderTabs = function (tabMetas, {$parent, propProxy = TabUiUtilBase._DEFAULT_PROP_PROXY, tabGroup = TabUiUtilBase._DEFAULT_TAB_GROUP, cbTabChange, additionalClassesWrpHeads} = {}) {
+		obj._renderTabs = function (
+			tabMetas,
+			{
+				$parent = null,
+				eleParent = null,
+				propProxy = TabUiUtilBase._DEFAULT_PROP_PROXY,
+				tabGroup = TabUiUtilBase._DEFAULT_TAB_GROUP,
+				cbTabChange,
+				additionalClassesWrpHeads,
+			} = {},
+		) {
 			if (!tabMetas.length) throw new Error(`One or more tab meta must be specified!`);
+			if ($parent && eleParent) throw new Error(`Only one of "$parent" and "eleParent" may be specified!`);
+
+			$parent ||= eleParent ? $(eleParent) : null;
+
 			obj._resetTabs({tabGroup});
 
 			const isSingleTab = tabMetas.length === 1;
@@ -41535,7 +42286,9 @@ class TabUiUtilBase {
 					...it,
 					ix: i,
 					$btnTab,
+					btnTab: $btnTab?.[0], // No button if `isSingleTab`
 					$wrpTab,
+					wrpTab: $wrpTab[0],
 				};
 			};
 
@@ -41903,7 +42656,7 @@ class SearchWidget {
 	}
 
 	/**
-	 * @param $iptSearch input element
+	 * @param iptOr$iptSearch input element
 	 * @param opts Options object.
 	 * @param opts.fnSearch Function which runs the search.
 	 * @param opts.pFnSearch Function which runs the search.
@@ -41914,8 +42667,10 @@ class SearchWidget {
 	 * @param opts.flags.doClickFirst Flag tracking "should first result get clicked"
 	 * @param opts.$ptrRows Pointer to array of rows.
 	 */
-	static bindAutoSearch ($iptSearch, opts) {
+	static bindAutoSearch (iptOr$iptSearch, opts) {
 		if (opts.fnSearch && opts.pFnSearch) throw new Error(`Options "fnSearch" and "pFnSearch" are mutually exclusive!`);
+
+		const $iptSearch = $(iptOr$iptSearch);
 
 		// Chain each search from the previous, to ensure the last search wins
 		let pSearching = null;
@@ -42117,7 +42872,7 @@ class SearchWidget {
 		const searchInput = this._$iptSearch.val().trim();
 
 		const index = this._indexes[this._cat];
-		const results = await Omnisearch.pGetFilteredResults(index.search(searchInput, this.__getSearchOptions()));
+		const results = await globalThis.OmnisearchBacking.pGetFilteredResults(index.search(searchInput, this.__getSearchOptions()));
 
 		const {toProcess, resultCount} = (() => {
 			if (results.length) {
@@ -43821,7 +44576,7 @@ class DragReorderUiUtil {
 			const ixRow = $children.indexOf($fnGetRow());
 
 			$children.forEach(($child, i) => {
-				const dimensions = {w: $child.outerWidth(true), h: $child.outerHeight(true)};
+				const dimensions = {w: $child.outerWidth(), h: $child.outerHeight()};
 				const $dummy = $(`<div class="no-shrink ${i === ixRow ? "ui-drag__wrp-drag-dummy--highlight" : "ui-drag__wrp-drag-dummy--lowlight"}"></div>`)
 					.width(dimensions.w).height(dimensions.h)
 					.mouseup(() => {
@@ -44761,6 +45516,51 @@ class ComponentUiUtil {
 	 * @param prop Component to hook on.
 	 * @param [fallbackEmpty] Fallback number if string is empty.
 	 * @param [opts] Options Object.
+	 * @param [opts.ele] Element to use.
+	 * @param [opts.html] HTML to convert to element to use.
+	 * @param [opts.max] Max allowed return value.
+	 * @param [opts.min] Min allowed return value.
+	 * @param [opts.offset] Offset to add to value displayed.
+	 * @param [opts.padLength] Number of digits to pad the number to.
+	 * @param [opts.fallbackOnNaN] Return value if not a number.
+	 * @param [opts.isAllowNull] If an empty input should be treated as null.
+	 * @param [opts.asMeta] If a meta-object should be returned containing the hook and the checkbox.
+	 * @param [opts.hookTracker] Object in which to track hook.
+	 * @param [opts.decorationLeft] Decoration to be added to the left-hand-side of the input. Can be `"ticker"` or `"clear"`. REQUIRES `asMeta` TO BE SET.
+	 * @param [opts.decorationRight] Decoration to be added to the right-hand-side of the input. Can be `"ticker"` or `"clear"`. REQUIRES `asMeta` TO BE SET.
+	 * @return {HTMLElementExtended}
+	 */
+	static getIptInt (component, prop, fallbackEmpty = 0, opts) {
+		return ComponentUiUtil._getIptNumeric(component, prop, UiUtil.strToInt, fallbackEmpty, opts);
+	}
+
+	/**
+	 * @param component An instance of a class which extends BaseComponent.
+	 * @param prop Component to hook on.
+	 * @param [fallbackEmpty] Fallback number if string is empty.
+	 * @param [opts] Options Object.
+	 * @param [opts.ele] Element to use.
+	 * @param [opts.html] HTML to convert to element to use.
+	 * @param [opts.max] Max allowed return value.
+	 * @param [opts.min] Min allowed return value.
+	 * @param [opts.offset] Offset to add to value displayed.
+	 * @param [opts.padLength] Number of digits to pad the number to.
+	 * @param [opts.fallbackOnNaN] Return value if not a number.
+	 * @param [opts.isAllowNull] If an empty input should be treated as null.
+	 * @param [opts.asMeta] If a meta-object should be returned containing the hook and the checkbox.
+	 * @param [opts.decorationLeft] Decoration to be added to the left-hand-side of the input. Can be `"ticker"` or `"clear"`. REQUIRES `asMeta` TO BE SET.
+	 * @param [opts.decorationRight] Decoration to be added to the right-hand-side of the input. Can be `"ticker"` or `"clear"`. REQUIRES `asMeta` TO BE SET.
+	 * @return {HTMLElementExtended}
+	 */
+	static getIptNumber (component, prop, fallbackEmpty = 0, opts) {
+		return ComponentUiUtil._getIptNumeric(component, prop, UiUtil.strToNumber, fallbackEmpty, opts);
+	}
+
+	/**
+	 * @param component An instance of a class which extends BaseComponent.
+	 * @param prop Component to hook on.
+	 * @param [fallbackEmpty] Fallback number if string is empty.
+	 * @param [opts] Options Object.
 	 * @param [opts.$ele] Element to use.
 	 * @param [opts.html] HTML to convert to element to use.
 	 * @param [opts.max] Max allowed return value.
@@ -44776,7 +45576,15 @@ class ComponentUiUtil {
 	 * @return {jQuery}
 	 */
 	static $getIptInt (component, prop, fallbackEmpty = 0, opts) {
-		return ComponentUiUtil._$getIptNumeric(component, prop, UiUtil.strToInt, fallbackEmpty, opts);
+		if (opts?.$ele) opts.ele = opts.$ele[0];
+
+		const out = ComponentUiUtil._getIptNumeric(component, prop, UiUtil.strToInt, fallbackEmpty, opts);
+		if (!opts?.asMeta) return $(out);
+
+		out.$ipt = $(out.ipt);
+		out.$wrp = $(out.wrp);
+
+		return out;
 	}
 
 	/**
@@ -44798,27 +45606,36 @@ class ComponentUiUtil {
 	 * @return {jQuery}
 	 */
 	static $getIptNumber (component, prop, fallbackEmpty = 0, opts) {
-		return ComponentUiUtil._$getIptNumeric(component, prop, UiUtil.strToNumber, fallbackEmpty, opts);
+		if (opts?.$ele) opts.ele = opts.$ele[0];
+
+		const out = ComponentUiUtil._getIptNumeric(component, prop, UiUtil.strToNumber, fallbackEmpty, opts);
+		if (!opts?.asMeta) return $(out);
+
+		out.$ipt = $(out.ipt);
+		out.$wrp = $(out.wrp);
+
+		return out;
 	}
 
-	static _$getIptNumeric (component, prop, fnConvert, fallbackEmpty = 0, opts) {
+	static _getIptNumeric (component, prop, fnConvert, fallbackEmpty = 0, opts) {
 		opts = opts || {};
 		opts.offset = opts.offset || 0;
 
 		const setIptVal = () => {
 			if (opts.isAllowNull && component._state[prop] == null) {
-				return $ipt.val(null);
+				return ipt.val(null);
 			}
 
 			const num = (component._state[prop] || 0) + opts.offset;
 			const val = opts.padLength ? `${num}`.padStart(opts.padLength, "0") : num;
-			$ipt.val(val);
+			ipt.val(val);
 		};
 
-		const $ipt = (opts.$ele || $(opts.html || `<input class="form-control input-xs form-control--minimal ve-text-right">`)).disableSpellcheck()
-			.keydown(evt => { if (evt.key === "Escape") $ipt.blur(); })
-			.change(() => {
-				const raw = $ipt.val().trim();
+		const ipt = (opts.ele ? e_({ele: opts.ele}) : e_({outer: opts.html || `<input class="form-control input-xs form-control--minimal ve-text-right">`}))
+			.disableSpellcheck()
+			.onn("keydown", evt => { if (evt.key === "Escape") ipt.blur(); })
+			.onn("change", () => {
+				const raw = ipt.val().trim();
 				const cur = component._state[prop];
 
 				if (opts.isAllowNull && !raw) return component._state[prop] = null;
@@ -44855,8 +45672,57 @@ class ComponentUiUtil {
 		component._addHookBase(prop, hook);
 		hook();
 
-		if (opts.asMeta) return this._getIptDecoratedMeta(component, prop, $ipt, hook, opts);
-		else return $ipt;
+		if (opts.asMeta) return this._getIptDecoratedMeta(component, prop, ipt, hook, opts);
+		else return ipt;
+	}
+
+	/**
+	 * @param component An instance of a class which extends BaseComponent.
+	 * @param prop Component to hook on.
+	 * @param [opts] Options Object.
+	 * @param [opts.ele] Element to use.
+	 * @param [opts.html] HTML to convert to element to use.
+	 * @param [opts.isNoTrim] If the text should not be trimmed.
+	 * @param [opts.isAllowNull] If null should be allowed (and preferred) for empty inputs
+	 * @param [opts.asMeta] If a meta-object should be returned containing the hook and the checkbox.
+	 * @param [opts.autocomplete] Array of autocomplete strings. REQUIRES INCLUSION OF THE TYPEAHEAD LIBRARY.
+	 * @param [opts.decorationLeft] Decoration to be added to the left-hand-side of the input. Can be `"search"` or `"clear"`. REQUIRES `asMeta` TO BE SET.
+	 * @param [opts.decorationRight] Decoration to be added to the right-hand-side of the input. Can be `"search"` or `"clear"`. REQUIRES `asMeta` TO BE SET.
+	 * @param [opts.placeholder] Placeholder for the input.
+	 */
+	static getIptStr (component, prop, opts) {
+		opts = opts || {};
+
+		// Validate options
+		if ((opts.decorationLeft || opts.decorationRight) && !opts.asMeta) throw new Error(`Input must be created with "asMeta" option`);
+
+		const ipt = (opts.ele ? e_({ele: opts.ele}) : e_({outer: opts.html || `<input class="form-control input-xs form-control--minimal">`}))
+			.onn("keydown", evt => { if (evt.key === "Escape") ipt.blur(); })
+			.disableSpellcheck();
+		UiUtil.bindTypingEnd({
+			ipt,
+			fnKeyup: () => {
+				const nxtVal = opts.isNoTrim ? ipt.val() : ipt.val().trim();
+				component._state[prop] = opts.isAllowNull && !nxtVal ? null : nxtVal;
+			},
+		});
+
+		if (opts.placeholder) ipt.attr("placeholder", opts.placeholder);
+
+		// TODO(Future) replace with e.g. `datalist`
+		if (opts.autocomplete && opts.autocomplete.length) $(ipt).typeahead({source: opts.autocomplete});
+		const hook = () => {
+			if (component._state[prop] == null) ipt.val(null);
+			else {
+				// If the only difference is start/end whitespace, leave it; otherwise, adding spaces is frustrating
+				if (ipt.val().trim() !== component._state[prop]) ipt.val(component._state[prop]);
+			}
+		};
+		component._addHookBase(prop, hook);
+		hook();
+
+		if (opts.asMeta) return this._getIptDecoratedMeta(component, prop, ipt, hook, opts);
+		else return ipt;
 	}
 
 	/**
@@ -44874,70 +45740,54 @@ class ComponentUiUtil {
 	 * @param [opts.placeholder] Placeholder for the input.
 	 */
 	static $getIptStr (component, prop, opts) {
-		opts = opts || {};
+		if (opts?.$ele) opts.ele = opts.$ele[0];
 
-		// Validate options
-		if ((opts.decorationLeft || opts.decorationRight) && !opts.asMeta) throw new Error(`Input must be created with "asMeta" option`);
+		const out = ComponentUiUtil.getIptStr(component, prop, opts);
+		if (!opts?.asMeta) return $(out);
 
-		const $ipt = (opts.$ele || $(opts.html || `<input class="form-control input-xs form-control--minimal">`))
-			.keydown(evt => { if (evt.key === "Escape") $ipt.blur(); })
-			.disableSpellcheck();
-		UiUtil.bindTypingEnd({
-			$ipt,
-			fnKeyup: () => {
-				const nxtVal = opts.isNoTrim ? $ipt.val() : $ipt.val().trim();
-				component._state[prop] = opts.isAllowNull && !nxtVal ? null : nxtVal;
-			},
-		});
+		out.$ipt = $(out.ipt);
+		out.$wrp = $(out.wrp);
 
-		if (opts.placeholder) $ipt.attr("placeholder", opts.placeholder);
-
-		if (opts.autocomplete && opts.autocomplete.length) $ipt.typeahead({source: opts.autocomplete});
-		const hook = () => {
-			if (component._state[prop] == null) $ipt.val(null);
-			else {
-				// If the only difference is start/end whitespace, leave it; otherwise, adding spaces is frustrating
-				if ($ipt.val().trim() !== component._state[prop]) $ipt.val(component._state[prop]);
-			}
-		};
-		component._addHookBase(prop, hook);
-		hook();
-
-		if (opts.asMeta) return this._getIptDecoratedMeta(component, prop, $ipt, hook, opts);
-		else return $ipt;
+		return out;
 	}
 
-	static _getIptDecoratedMeta (component, prop, $ipt, hook, opts) {
-		const out = {$ipt, unhook: () => component._removeHookBase(prop, hook)};
+	static _getIptDecoratedMeta (component, prop, ipt, hook, opts) {
+		const out = {ipt, unhook: () => component._removeHookBase(prop, hook)};
 
 		if (opts.decorationLeft || opts.decorationRight) {
 			let $decorLeft;
 			let $decorRight;
 
 			if (opts.decorationLeft) {
-				$ipt.addClass(`ui-ideco__ipt ui-ideco__ipt--left`);
-				$decorLeft = ComponentUiUtil._$getDecor(component, prop, $ipt, opts.decorationLeft, "left", opts);
+				ipt.addClass("ui-ideco__ipt").addClass("ui-ideco__ipt--left");
+				$decorLeft = ComponentUiUtil._getEleDecor(component, prop, ipt, opts.decorationLeft, "left", opts);
 			}
 
 			if (opts.decorationRight) {
-				$ipt.addClass(`ui-ideco__ipt ui-ideco__ipt--right`);
-				$decorRight = ComponentUiUtil._$getDecor(component, prop, $ipt, opts.decorationRight, "right", opts);
+				ipt.addClass("ui-ideco__ipt").addClass("ui-ideco__ipt--right");
+				$decorRight = ComponentUiUtil._getEleDecor(component, prop, ipt, opts.decorationRight, "right", opts);
 			}
 
-			out.$wrp = $$`<div class="relative w-100">${$ipt}${$decorLeft}${$decorRight}</div>`;
+			out.wrp = ee`<div class="relative w-100">${ipt}${$decorLeft}${$decorRight}</div>`;
 		}
 
 		return out;
 	}
 
-	static _$getDecor (component, prop, $ipt, decorType, side, opts) {
+	static _getEleDecor (component, prop, ipt, decorType, side, opts) {
 		switch (decorType) {
 			case "search": {
-				return $(`<div class="ui-ideco__wrp ui-ideco__wrp--${side} no-events ve-flex-vh-center"><span class="glyphicon glyphicon-search"></span></div>`);
+				return ee`<div class="ui-ideco__wrp ui-ideco__wrp--${side} no-events ve-flex-vh-center"><span class="glyphicon glyphicon-search"></span></div>`;
 			}
 			case "clear": {
-				return $(`<div class="ui-ideco__wrp ui-ideco__wrp--${side} ve-flex-vh-center clickable" title="Clear"><span class="glyphicon glyphicon-remove"></span></div>`)
-					.click(() => $ipt.val("").change().keydown().keyup());
+				return ee`<div class="ui-ideco__wrp ui-ideco__wrp--${side} ve-flex-vh-center clickable" title="Clear"><span class="glyphicon glyphicon-remove"></span></div>`
+					.onn("click", () => {
+						ipt
+							.val("")
+							.trigger("change")
+							.trigger("keydown")
+							.trigger("keyup");
+					});
 			}
 			case "ticker": {
 				const isValidValue = val => {
@@ -44950,23 +45800,24 @@ class ComponentUiUtil {
 					// TODO(future) this should be run first to evaluate any lingering expressions in the input, but it
 					//  breaks when the number is negative, as we need to add a "=" to the front of the input before
 					//  evaluating
-					// $ipt.change();
+					// ipt.trigger("change");
 					const cur = isNaN(component._state[prop]) ? opts.fallbackOnNaN : component._state[prop];
 					const nxt = cur + delta;
 					if (!isValidValue(nxt)) return;
 					component._state[prop] = nxt;
-					$ipt.focus();
+					ipt.focus();
 				};
 
-				const $btnUp = $(`<button class="ve-btn ve-btn-default ui-ideco__btn-ticker p-0 bold no-select">+</button>`)
-					.click(() => handleClick(1));
+				const btnUp = ee`<button class="ve-btn ve-btn-default ui-ideco__btn-ticker p-0 bold no-select">+</button>`
+					.onn("click", () => handleClick(1));
 
-				const $btnDown = $(`<button class="ve-btn ve-btn-default ui-ideco__btn-ticker p-0 bold no-select">\u2212</button>`)
-					.click(() => handleClick(-1));
+				const btnDown = ee`<button class="ve-btn ve-btn-default ui-ideco__btn-ticker p-0 bold no-select">\u2212</button>`
+					.onn("click", () => handleClick(-1));
 
-				return $$`<div class="ui-ideco__wrp ui-ideco__wrp--${side} ve-flex-vh-center ve-flex-col">
-					${$btnUp}
-					${$btnDown}
+				// Reverse flex column to stack "+" button as higher z-index
+				return ee`<div class="ui-ideco__wrp ui-ideco__wrp--${side} ve-flex-vh-center ve-flex-col-reverse">
+					${btnDown}
+					${btnUp}
 				</div>`;
 			}
 			case "spacer": {
@@ -45100,7 +45951,7 @@ class ComponentUiUtil {
 	 * @param [opts.isTreatIndeterminateNullAsPositive]
 	 * @param [opts.stateName] State name.
 	 * @param [opts.stateProp] State prop.
-	 * @return {(HTMLElementModified | Object)}
+	 * @return {(HTMLElementExtended | Object)}
 	 */
 	static getCbBool (component, prop, opts) {
 		opts = opts || {};

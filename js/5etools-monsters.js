@@ -321,27 +321,108 @@ function d20plusMonsters () {
 				if (saveIdsTo) saveIdsTo[UrlUtil.URL_TO_HASH_BUILDER[UrlUtil.PG_BESTIARY](data)] = {name: data.name, source: data.source, type: "character", roll20Id: character.id};
 				/* OGL Sheet */
 				try {
+					// --- Basic Character Setup ---
 					const type = Parser.monTypeToFullObj(data.type).asText;
-					const tokenUrl = `${IMG_URL}bestiary/tokens/${data.source}/${name}.webp`;
-					const avatar = data.tokenUrl || Parser.nameToTokenName(tokenUrl);
 					character.size = data.size;
 					character.name = data._displayName || data.name;
 					character.senses = data.senses ? data.senses instanceof Array ? data.senses.join(", ") : data.senses : null;
 					character.hp = data.hp.average || data.hp.special || 0;
 
-					const firstFluffImage = d20plus.cfg.getOrDefault("import", "importCharAvatar") === "Portrait (where available)" && fluff && fluff.images ? (() => {
+					// --- Define Constants and Fallback Base URL ---					
+					const BLANK_WEBP_URL = `${IMG_URL_REPO}blank.webp`;// Fallback for blank image, currently set to mirror repo
+
+					// --- Calculate Primary Avatar URL --- //main site ie if 5e.tools starts to work again
+					const tokenUrl  = Renderer.monster.getTokenUrl(data);
+					const primaryAvatarUrl = data.tokenUrl || Parser.nameToTokenName(tokenUrl);
+
+					// --- Calculate Secondary Avatar URL (using IMG_URL_REPO) --- // Back up image repo
+					const tokenUrlFallback = `${IMG_URL_REPO}bestiary/tokens/${data.source}/${name}.webp`;
+					const secondaryAvatarUrl = data.tokenUrlFallback || Parser.nameToTokenName(tokenUrlFallback);
+
+					// --- Calculate Fluff Image URL and Path ---
+					let firstFluffImageUrl = null;
+					let isFirstFluffImageInternal = false;
+					let internalFluffPath = null;
+					if (d20plus.cfg.getOrDefault("import", "importCharAvatar") === "Portrait (where available)" && fluff && fluff.images && fluff.images.length > 0) {
 						const firstImage = fluff.images[0] || {};
-						return (firstImage.href || {}).type === "internal" ? `${IMG_URL}${firstImage.href.path}` : (firstImage.href || {}).url;
-					})() : null;
+						if (firstImage.href) {
+							if (firstImage.href.type === "internal") {
+								internalFluffPath = firstImage.href.path;
+								firstFluffImageUrl = `${IMG_URL}/${internalFluffPath}`;
+								isFirstFluffImageInternal = true;
+							} else {
+								firstFluffImageUrl = firstImage.href.url; // External URL
+								isFirstFluffImageInternal = false;
+							}
+						}
+					}
+					let initialFluffUrlToCheck = firstFluffImageUrl;
+
+					const setFinalImages = (finalAvatar, fluffUrlToCheck, isInternal, fluffPath) => {
+						if (isInternal && fluffUrlToCheck) {
+							$.ajax({
+								url: fluffUrlToCheck,
+								type: 'HEAD',
+								error: function() {
+									const repoFallbackFluffUrl = `${IMG_URL_REPO}${fluffPath}`;
+									console.warn(`Internal fluff image URL "${fluffUrlToCheck}" (using IMG_URL) failed. Attempting fallback using IMG_URL_REPO: ${repoFallbackFluffUrl}`);
+
+									$.ajax({
+										url: repoFallbackFluffUrl,
+										type: 'HEAD',
+										error: function() {
+											console.error(`Fallback fluff image URL "${repoFallbackFluffUrl}" (using IMG_URL_REPO) also failed. Using NO fluff image.`);
+											// If the REPO version ALSO fails, set fluff to null.
+											d20plus.importer.getSetAvatarImage(character, finalAvatar, null);
+										},
+										success: function() {
+											console.log(`Fallback fluff image URL "${repoFallbackFluffUrl}" succeeded.`);
+											// REPO fallback succeeded, use it.
+											d20plus.importer.getSetAvatarImage(character, finalAvatar, repoFallbackFluffUrl);
+										}
+									});
+								},
+								success: function() {
+									//Fluff image URL check succeeded
+									console.log(`Internal fluff image URL "${fluffUrlToCheck}" validated.`);
+									d20plus.importer.getSetAvatarImage(character, finalAvatar, fluffUrlToCheck);
+								}
+							});
+						} else {
+							// Fluff image URL check not needed or not internal
+							d20plus.importer.getSetAvatarImage(character, finalAvatar, fluffUrlToCheck);
+						}
+					};
+
+					// --- Perform Avatar Checks ---
+					// Check 1: Primary Avatar URL
 					$.ajax({
-						url: avatar,
+						url: primaryAvatarUrl,
 						type: "HEAD",
 						error: function () {
-							d20plus.importer.getSetAvatarImage(character, `${IMG_URL}blank.webp`, firstFluffImage);
+							console.warn(`Primary avatar URL "${primaryAvatarUrl}" failed. Attempting secondary URL using IMG_URL_REPO: ${secondaryAvatarUrl}`);
+
+							// Check 2: Secondary Avatar URL (IMG_URL_REPO based)
+							$.ajax({
+								url: secondaryAvatarUrl,
+								type: "HEAD",
+								error: function() {
+									console.warn(`Secondary avatar URL "${secondaryAvatarUrl}" also failed. Using fallback: ${BLANK_WEBP_URL}`);
+									// Both primary and secondary failed, use blank.webp
+									setFinalImages(BLANK_WEBP_URL, initialFluffUrlToCheck, isFirstFluffImageInternal, internalFluffPath);
+								},
+								success: function() {
+									console.log(`Secondary avatar URL "${secondaryAvatarUrl}" succeeded.`);
+									// Secondary succeeded, use it
+									setFinalImages(`${secondaryAvatarUrl}${d20plus.ut.getAntiCacheSuffix()}`, initialFluffUrlToCheck, isFirstFluffImageInternal, internalFluffPath);
+								}
+							});
 						},
 						success: function () {
-							d20plus.importer.getSetAvatarImage(character, `${avatar}${d20plus.ut.getAntiCacheSuffix()}`, firstFluffImage);
-						},
+							console.log(`Primary avatar URL "${primaryAvatarUrl}" succeeded.`);
+							// Primary succeeded, use it
+							setFinalImages(`${primaryAvatarUrl}${d20plus.ut.getAntiCacheSuffix()}`, initialFluffUrlToCheck, isFirstFluffImageInternal, internalFluffPath);
+						}
 					});
 
 					const parsedAc = typeof data.ac === "string" ? data.ac : $(`<div>${Parser.acToFull(data.ac)}</div>`).text();
