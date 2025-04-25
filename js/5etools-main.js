@@ -2,7 +2,7 @@ const betteR205etoolsMain = function () {
 	IMG_URL = `${BASE_SITE_URL}img/`;
 	IMG_URL_REPO = `${DATA_URL_IMG_REPO}`;
 	SPELL_DATA_DIR = `${DATA_URL}spells/`;
-	SPELL_META_URL = `${SPELL_DATA_DIR}roll20.json`;
+	SPELL_META_URL = `https://5e.tools/data/spells/roll20.json`;
 	MONSTER_DATA_DIR = `${DATA_URL}bestiary/`;
 	ADVENTURE_DATA_DIR = `${DATA_URL}adventure/`;
 	CLASS_DATA_DIR = `${DATA_URL}class/`;
@@ -315,7 +315,7 @@ const betteR205etoolsMain = function () {
 		{name: "bestiary metadata", url: `${MONSTER_DATA_DIR}legendarygroups.json`},
 		{name: "adventures index", url: `${DATA_URL}adventures.json`},
 		{name: "base items", url: `${DATA_URL}items-base.json`},
-		{name: "item modifiers", url: `${DATA_URL}roll20-items.json`},
+		{name: "item modifiers", url: `https://5e.tools/data/roll20-items.json`},
 	];
 
 	// add JSON index/metadata
