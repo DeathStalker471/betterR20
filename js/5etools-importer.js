@@ -259,9 +259,7 @@ function d20plusImporter () {
 				attackRange = (actionText.match(/range (.*?),/) || ["", ""])[1];
 				rangeType = "Range";
 			}
-//			const toHit = (actionText.match(/\+(.*?) to hit/) || ["", ""])[1];
-			const toHit = (actionText.match(/\{@hit (\d+)\}/) || ["", ""])[1];
-
+			const toHit = (actionText.match(/\+(.*?) to hit/) || ["", ""])[1];
 			let damage = "";
 			let damageType = "";
 			let damage2 = "";
