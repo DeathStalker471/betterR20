@@ -39,6 +39,9 @@
 				"darkvision 60 ft."
 			],
 			"passive": 10,
+			"immune": [
+				"psychic"
+			],
 			"languages": [
 				"Deep Speech",
 				"understands the languages you know"
@@ -68,19 +71,19 @@
 				{
 					"name": "Claw (Slaad Only)",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d10 + 3 + summonSpellLevel} Slashing damage, and the target can't regain Hit Points until the start of the spirit's next turn."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d10 + 3 + summonSpellLevel} Slashing damage, and the target can't regain Hit Points until the start of the spirit's next turn."
 					]
 				},
 				{
 					"name": "Eye Ray (Beholderkin Only)",
 					"entries": [
-						"{@atk rw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, range 150 ft. {@h}{@damage 1d8 + 3 + summonSpellLevel} Psychic damage."
+						"{@atkr r} {@hitYourSpellAttack Bonus equals your spell attack modifier}, range 150 ft. {@h}{@damage 1d8 + 3 + summonSpellLevel} Psychic damage."
 					]
 				},
 				{
 					"name": "Psychic Slam (Mind Flayer Only)",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 3 + summonSpellLevel} Psychic damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 3 + summonSpellLevel} Psychic damage."
 					]
 				}
 			],
@@ -103,6 +106,9 @@
 			"miscTags": [
 				"MA",
 				"RA"
+			],
+			"savingThrowForced": [
+				"wisdom"
 			],
 			"hasToken": true,
 			"hasFluffImages": true,
@@ -289,7 +295,7 @@
 				{
 					"name": "Slam",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}Force damage equal to {@damage 1d4 + 3} + your spellcasting ability modifier (Medium or smaller), {@damage 2d6 + 3} + your spellcasting ability modifier (Large), or {@damage 2d12 + 3} + your spellcasting ability modifier (Huge)."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}Force damage equal to {@damage (summonSpellLevel - 4)d4 + 3|1d4 + 3}, {@damage (summonSpellLevel - 3)d6 + 3|2d6 + 3} + your spellcasting ability modifier (Large), or {@damage (summonSpellLevel - 3)d12 + 3|2d12 + 3} + your spellcasting ability modifier (Huge)."
 					]
 				}
 			],
@@ -312,7 +318,7 @@
 						{
 							"name": "Slam",
 							"entries": [
-								"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}Force damage equal to {@damage 2d12 + 3} + your spellcasting ability modifier."
+								"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}Force damage equal to {@damage (summonSpellLevel - 3)d12 + 3|2d12 + 3} + your spellcasting ability modifier."
 							]
 						}
 					]
@@ -327,7 +333,7 @@
 						{
 							"name": "Slam",
 							"entries": [
-								"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}Force damage equal to {@damage 2d6 + 3} + your spellcasting ability modifier."
+								"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}Force damage equal to {@damage (summonSpellLevel - 3)d6 + 3|2d6 + 3} + your spellcasting ability modifier."
 							]
 						}
 					]
@@ -342,7 +348,7 @@
 						{
 							"name": "Slam",
 							"entries": [
-								"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}Force damage equal to {@damage 1d4 + 3} + your spellcasting ability modifier."
+								"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}Force damage equal to {@damage (summonSpellLevel - 4)d4 + 3|1d4 + 3} + your spellcasting ability modifier."
 							]
 						}
 					]
@@ -399,7 +405,7 @@
 				{
 					"name": "Beast's Strike",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@dice 1d8 + 2} plus your Wisdom modifier Bludgeoning, Piercing, or Slashing damage (your choice when you summon the beast). If the beast moved at least 20 feet straight toward the target before the hit, the target takes an extra {@damage 1d6} damage of the same type, and the target has the {@condition Prone|XPHB} condition if it is a Large or smaller creature."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 2} plus your Wisdom modifier Bludgeoning, Piercing, or Slashing damage (your choice when you summon the beast). If the beast moved at least 20 feet straight toward the target before the hit, the target takes an extra {@damage 1d6} damage of the same type, and the target has the {@condition Prone|XPHB} condition if it is a Large or smaller creature."
 					]
 				}
 			],
@@ -468,7 +474,7 @@
 				{
 					"name": "Beast's Strike",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@dice 1d6 + 2} plus your Wisdom modifier Bludgeoning or Piercing damage (your choice when you summon the beast), and the target has the {@condition Grappled|XPHB} condition (escape DC equals your spell save DC)."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d6 + 2} plus your Wisdom modifier Bludgeoning or Piercing damage (your choice when you summon the beast), and the target has the {@condition Grappled|XPHB} condition (escape DC equals your spell save DC)."
 					]
 				}
 			],
@@ -526,7 +532,7 @@
 				{
 					"name": "Flyby",
 					"entries": [
-						"The beast doesn't provoke Opportunity Attacks when it flies out of an enemy's reach."
+						"The beast doesn't provoke {@action Opportunity Attack|XPHB|Opportunity Attacks} when it flies out of an enemy's reach."
 					]
 				},
 				{
@@ -540,7 +546,7 @@
 				{
 					"name": "Beast's Strike",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@dice 1d4 + 3} plus your Wisdom modifier Slashing damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d4 + 3} plus your Wisdom modifier Slashing damage."
 					]
 				}
 			],
@@ -607,7 +613,7 @@
 				{
 					"name": "Flyby (Air Only)",
 					"entries": [
-						"The spirit doesn't provoke Opportunity Attacks when it flies out of an enemy's reach."
+						"The spirit doesn't provoke {@action Opportunity Attack|XPHB|Opportunity Attacks} when it flies out of an enemy's reach."
 					]
 				},
 				{
@@ -633,7 +639,7 @@
 				{
 					"name": "Rend",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 4 + summonSpellLevel} Piercing damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 4 + summonSpellLevel} Piercing damage."
 					]
 				}
 			],
@@ -809,13 +815,13 @@
 				{
 					"name": "Radiant Bow (Avenger Only)",
 					"entries": [
-						"{@atk rw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, range 600 ft. {@h}{@damage 2d6 + 2 + summonSpellLevel} Radiant damage."
+						"{@atkr r} {@hitYourSpellAttack Bonus equals your spell attack modifier}, range 600 ft. {@h}{@damage 2d6 + 2 + summonSpellLevel} Radiant damage."
 					]
 				},
 				{
 					"name": "Radiant Mace (Defender Only)",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d10 + 3 + summonSpellLevel} Radiant damage, and the spirit can choose itself or another creature it can see within 10 feet of the target. The chosen creature gains {@dice 1d10} Temporary Hit Points."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d10 + 3 + summonSpellLevel} Radiant damage, and the spirit can choose itself or another creature it can see within 10 feet of the target. The chosen creature gains {@dice 1d10} Temporary Hit Points."
 					]
 				},
 				{
@@ -955,7 +961,7 @@
 				{
 					"name": "Stony Lethargy (Stone Only)",
 					"entries": [
-						"When a creature starts its turn within 10 feet of the spirit, the spirit can target it with magical energy if the spirit can see it. {@actSave wis} DC equals your spell save DC, the target. {@actSaveFail} Until the start of its next turn, the target can't make Opportunity Attacks, and its Speed is halved."
+						"When a creature starts its turn within 10 feet of the spirit, the spirit can target it with magical energy if the spirit can see it. {@actSave wis} DC equals your spell save DC, the target. {@actSaveFail} Until the start of its next turn, the target can't make {@action Opportunity Attack|XPHB|Opportunity Attacks}, and its Speed is halved."
 					]
 				}
 			],
@@ -969,7 +975,7 @@
 				{
 					"name": "Slam",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 4 + summonSpellLevel} Bludgeoning damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 4 + summonSpellLevel} Bludgeoning damage."
 					]
 				}
 			],
@@ -977,7 +983,7 @@
 				{
 					"name": "Berserk Lashing (Clay Only)",
 					"entries": [
-						"{@actTrigger} The spirit takes damage from a creature. {@actResponse} The spirit makes a Slam attack against that creature if possible, or the spirit moves up to half its Speed toward that creature without provoking Opportunity Attacks."
+						"{@actTrigger} The spirit takes damage from a creature. {@actResponse} The spirit makes a Slam attack against that creature if possible, or the spirit moves up to half its Speed toward that creature without provoking {@action Opportunity Attack|XPHB|Opportunity Attacks}."
 					]
 				}
 			],
@@ -990,6 +996,9 @@
 			],
 			"miscTags": [
 				"MA"
+			],
+			"savingThrowForced": [
+				"wisdom"
 			],
 			"hasToken": true,
 			"hasFluffImages": true,
@@ -1130,7 +1139,7 @@
 				{
 					"name": "Rend",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 10 feet. {@h}{@damage 1d6 + 4 + summonSpellLevel} Piercing damage."
+						"{@atk m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 10 feet. {@h}{@damage 1d6 + 4 + summonSpellLevel} Piercing damage."
 					]
 				},
 				{
@@ -1149,6 +1158,9 @@
 			],
 			"miscTags": [
 				"MA"
+			],
+			"savingThrowForced": [
+				"dexterity"
 			],
 			"hasToken": true,
 			"hasFluffImages": true
@@ -1264,7 +1276,7 @@
 				{
 					"name": "Slam",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d10 + 4 + summonSpellLevel} Bludgeoning (Earth only), Cold (Water only), Lightning (Air only), or Fire (Fire only) damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d10 + 4 + summonSpellLevel} Bludgeoning (Earth only), Cold (Water only), Lightning (Air only), or Fire (Fire only) damage."
 					]
 				}
 			],
@@ -1299,7 +1311,7 @@
 							"items": {
 								"name": "Slam",
 								"entries": [
-									"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft.. {@h}{@damage 1d10 + 4 + summonSpellLevel} Bludgeoning damage."
+									"{@atk m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft.. {@h}{@damage 1d10 + 4 + summonSpellLevel} Bludgeoning damage."
 								]
 							}
 						}
@@ -1333,7 +1345,7 @@
 							"items": {
 								"name": "Slam",
 								"entries": [
-									"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft.. {@h}{@damage 1d10 + 4 + summonSpellLevel} Bludgeoning damage."
+									"{@atk m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft.. {@h}{@damage 1d10 + 4 + summonSpellLevel} Bludgeoning damage."
 								]
 							}
 						}
@@ -1373,7 +1385,7 @@
 							"items": {
 								"name": "Slam",
 								"entries": [
-									"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft.. {@h}{@damage 1d10 + 4 + summonSpellLevel} Fire damage."
+									"{@atk m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft.. {@h}{@damage 1d10 + 4 + summonSpellLevel} Fire damage."
 								]
 							}
 						}
@@ -1408,7 +1420,7 @@
 							"items": {
 								"name": "Slam",
 								"entries": [
-									"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft.. {@h}{@damage 1d10 + 4 + summonSpellLevel} Bludgeoning damage."
+									"{@atk m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft.. {@h}{@damage 1d10 + 4 + summonSpellLevel} Bludgeoning damage."
 								]
 							}
 						}
@@ -1482,7 +1494,7 @@
 				{
 					"name": "Fey Blade",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 2d6 + 3 + summonSpellLevel} Force damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 2d6 + 3 + summonSpellLevel} Force damage."
 					]
 				}
 			],
@@ -1538,6 +1550,9 @@
 			],
 			"conditionInflict": [
 				"charmed"
+			],
+			"savingThrowForced": [
+				"wisdom"
 			],
 			"hasToken": true,
 			"hasFluffImages": true,
@@ -1653,7 +1668,7 @@
 				{
 					"name": "Magic Resistance",
 					"entries": [
-						"The spirit has Advantage on saving throws against spells and other magical eff ects."
+						"The spirit has Advantage on saving throws against spells and other magical effects."
 					]
 				}
 			],
@@ -1667,19 +1682,19 @@
 				{
 					"name": "Bite (Demon Only)",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d12 + 3 + summonSpellLevel} Necrotic damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d12 + 3 + summonSpellLevel} Necrotic damage."
 					]
 				},
 				{
 					"name": "Claws (Yugoloth Only)",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 3 + summonSpellLevel} Slashing damage. Immediately after the attack hits or misses, the spirit can teleport up to 30 feet to an unoccupied space it can see."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 3 + summonSpellLevel} Slashing damage. Immediately after the attack hits or misses, the spirit can teleport up to 30 feet to an unoccupied space it can see."
 					]
 				},
 				{
 					"name": "Fiery Strike (Devil Only)",
 					"entries": [
-						"{@atk mw,rw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. or range 150 ft. {@h}{@damage 2d6 + 3 + summonSpellLevel} Fire damage."
+						"{@atkr m,r} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. or range 150 ft. {@h}{@damage 2d6 + 3 + summonSpellLevel} Fire damage."
 					]
 				}
 			],
@@ -1699,6 +1714,9 @@
 			"miscTags": [
 				"MA",
 				"RA"
+			],
+			"savingThrowForced": [
+				"dexterity"
 			],
 			"hasToken": true,
 			"hasFluffImages": true,
@@ -1850,6 +1868,7 @@
 			"name": "Giant Insect",
 			"source": "XPHB",
 			"page": 279,
+			"srd52": true,
 			"summonedBySpell": "Giant Insect|XPHB",
 			"summonedBySpellLevel": 4,
 			"size": [
@@ -1907,13 +1926,13 @@
 				{
 					"name": "Poison Jab",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 10 ft. {@h}{@damage 1d6 + 3 + summonSpellLevel} Piercing damage plus {@damage 1d4} Poison damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 10 ft. {@h}{@damage 1d6 + 3 + summonSpellLevel} Piercing damage plus {@damage 1d4} Poison damage."
 					]
 				},
 				{
 					"name": "Web Bolt (Spider Only)",
 					"entries": [
-						"{@atk rw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, range 60 ft. {@h}{@damage 1d10 + 3 + summonSpellLevel} Bludgeoning damage, and the target's Speed is reduced to 0 until the start of the insect's next turn."
+						"{@atkr r} {@hitYourSpellAttack Bonus equals your spell attack modifier}, range 60 ft. {@h}{@damage 1d10 + 3 + summonSpellLevel} Bludgeoning damage, and the target's Speed is reduced to 0 until the start of the insect's next turn."
 					]
 				}
 			],
@@ -1942,6 +1961,9 @@
 			],
 			"conditionInflict": [
 				"poisoned"
+			],
+			"savingThrowForced": [
+				"constitution"
 			],
 			"hasToken": true,
 			"hasFluffImages": true,
@@ -2065,7 +2087,7 @@
 				{
 					"name": "Otherworldly Slam",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + summonSpellLevel} of Radiant (Celestial), Psychic (Fey), or Necrotic (Fiend) damage."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + summonSpellLevel} of Radiant (Celestial), Psychic (Fey), or Necrotic (Fiend) damage."
 					]
 				}
 			],
@@ -2098,8 +2120,119 @@
 			"conditionInflict": [
 				"frightened"
 			],
+			"savingThrowForced": [
+				"wisdom"
+			],
 			"hasToken": true,
-			"hasFluffImages": true
+			"hasFluffImages": true,
+			"_versions": [
+				{
+					"name": "Otherworldly Steed (Celestial)",
+					"source": "XPHB",
+					"_mod": {
+						"bonus": [
+							{
+								"mode": "removeArr",
+								"names": [
+									"Fell Glare (Fiend Only; Recharges after a Long Rest)",
+									"Fey Step (Fey Only; Recharges after a Long Rest)"
+								]
+							},
+							{
+								"mode": "renameArr",
+								"renames": {
+									"rename": "Healing Touch (Celestial Only; Recharges after a Long Rest)",
+									"with": "Healing Touch (Recharges after a Long Rest)"
+								}
+							}
+						]
+					},
+					"type": "celestial",
+					"action": [
+						{
+							"name": "Otherworldly Slam",
+							"entries": [
+								"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + summonSpellLevel} Radiant damage."
+							]
+						}
+					],
+					"damageTags": [
+						"R"
+					],
+					"conditionInflict": null,
+					"savingThrowForced": null
+				},
+				{
+					"name": "Otherworldly Steed (Fey)",
+					"source": "XPHB",
+					"_mod": {
+						"bonus": [
+							{
+								"mode": "removeArr",
+								"names": [
+									"Fell Glare (Fiend Only; Recharges after a Long Rest)",
+									"Healing Touch (Celestial Only; Recharges after a Long Rest)"
+								]
+							},
+							{
+								"mode": "renameArr",
+								"renames": {
+									"rename": "Fey Step (Fey Only; Recharges after a Long Rest)",
+									"with": "Fey Step (Recharges after a Long Rest)"
+								}
+							}
+						]
+					},
+					"type": "fey",
+					"action": [
+						{
+							"name": "Otherworldly Slam",
+							"entries": [
+								"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + summonSpellLevel} Psychic damage."
+							]
+						}
+					],
+					"damageTags": [
+						"Y"
+					],
+					"conditionInflict": null,
+					"savingThrowForced": null
+				},
+				{
+					"name": "Otherworldly Steed (Fiend)",
+					"source": "XPHB",
+					"_mod": {
+						"bonus": [
+							{
+								"mode": "removeArr",
+								"names": [
+									"Fey Step (Fey Only; Recharges after a Long Rest)",
+									"Healing Touch (Celestial Only; Recharges after a Long Rest)"
+								]
+							},
+							{
+								"mode": "renameArr",
+								"renames": {
+									"rename": "Fell Glare (Fiend Only; Recharges after a Long Rest)",
+									"with": "Fell Glare (Recharges after a Long Rest)"
+								}
+							}
+						]
+					},
+					"type": "fiend",
+					"action": [
+						{
+							"name": "Otherworldly Slam",
+							"entries": [
+								"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + summonSpellLevel} Necrotic damage."
+							]
+						}
+					],
+					"damageTags": [
+						"N"
+					]
+				}
+			]
 		},
 		{
 			"name": "Undead Spirit",
@@ -2178,19 +2311,19 @@
 				{
 					"name": "Deathly Touch (Ghostly Only)",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 3 + summonSpellLevel} Necrotic damage, and the target has the {@condition Frightened|XPHB} condition until the end of its next turn."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d8 + 3 + summonSpellLevel} Necrotic damage, and the target has the {@condition Frightened|XPHB} condition until the end of its next turn."
 					]
 				},
 				{
 					"name": "Grave Bolt (Skeletal Only)",
 					"entries": [
-						"{@atk rw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, range 150 ft. {@h}{@damage 2d4 + 3 + summonSpellLevel} Necrotic damage."
+						"{@atkr r} {@hitYourSpellAttack Bonus equals your spell attack modifier}, range 150 ft. {@h}{@damage 2d4 + 3 + summonSpellLevel} Necrotic damage."
 					]
 				},
 				{
 					"name": "Rotting Claw (Putrid Only)",
 					"entries": [
-						"{@atk mw} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d6 + 3 + summonSpellLevel} Slashing damage. If the target has the {@condition Poisoned|XPHB} condition, it has the {@condition Paralyzed|XPHB} condition until the end of its next turn."
+						"{@atkr m} {@hitYourSpellAttack Bonus equals your spell attack modifier}, reach 5 ft. {@h}{@damage 1d6 + 3 + summonSpellLevel} Slashing damage. If the target has the {@condition Poisoned|XPHB} condition, it has the {@condition Paralyzed|XPHB} condition until the end of its next turn."
 					]
 				}
 			],
@@ -2216,6 +2349,9 @@
 				"frightened",
 				"paralyzed",
 				"poisoned"
+			],
+			"savingThrowForced": [
+				"constitution"
 			],
 			"hasToken": true,
 			"hasFluffImages": true,

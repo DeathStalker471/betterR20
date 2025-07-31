@@ -39,7 +39,9 @@
 			"Save": "Wisdom",
 			"Damage": "4d4",
 			"Damage Type": "Psychic",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d4",
+			"Higher Spell Slot Dice": "1"
 		}
 	},
 	{
@@ -49,7 +51,9 @@
 			"Save": "Dexterity",
 			"Damage": "2d10",
 			"Damage Type": "Force",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d10",
+			"Higher Spell Slot Dice": "1"
 		}
 	},
 	{
@@ -3212,9 +3216,9 @@
 			"Secondary Damage": "4d8",
 			"Secondary Damage Type": "Lightning",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "2",
+			"Higher Spell Slot Dice": "1",
 			"Secondary Higher Spell Slot Die": "d8",
-			"Secondary Higher Spell Slot Dice": "2"
+			"Secondary Higher Spell Slot Dice": "1"
 		}
 	},
 	{
@@ -3225,7 +3229,7 @@
 			"Damage Type": "Psychic",
 			"Add Casting Modifier": "Yes",
 			"Higher Spell Slot Die": "d12",
-			"Higher Spell Slot Dice": "2"
+			"Higher Spell Slot Dice": "1"
 		}
 	},
 	{
@@ -3235,7 +3239,7 @@
 			"Damage": "2d8",
 			"Damage Type": "Acid, cold, fire, lightning",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "2"
+			"Higher Spell Slot Dice": "1"
 		}
 	},
 	{
@@ -4777,6 +4781,15 @@
 			"Damage": "4d8",
 			"Damage Type": "Bludgeoning",
 			"Save Success": "Half damage"
+		}
+	},
+	{
+		"name": "Wish",
+		"source": "XPHB",
+		"data": {
+			"Damage": "1d10",
+			"Damage Type": "Necrotic",
+			"Healing": "2d4"
 		}
 	},
 	{

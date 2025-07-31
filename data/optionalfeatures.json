@@ -1,19 +1,6 @@
 {
 	"optionalfeature": [
 		{
-			"name": "Acrobatics Lessons",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"A slick rogue once gave you some pointers on zigging and zagging. When you or an ally makes a Dexterity saving throw, you may expend one use of your Bardic Inspiration, rolling a Bardic Inspiration die and adding the result to the saving throw. An ally must be within 60 feet of you and able to see and hear you to benefit from this trick.",
-				"At 6th level, if the target succeeds the saving throw against an effect that would deal half damage on a successful save, the target takes no damage instead.",
-				"At 14th level, even if the target fails their saving throw they only take half damage from the effect."
-			]
-		},
-		{
 			"name": "Agonizing Blast",
 			"source": "PHB",
 			"page": 110,
@@ -39,6 +26,7 @@
 			"name": "Agonizing Blast",
 			"source": "XPHB",
 			"page": 155,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -55,14 +43,13 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
 			],
 			"entries": [
-				"Choose one of your known Warlock cantrips that deals damage. You can add your Charisma modifier to that spell's damage rolls.",
+				"Choose one of your known {@filter Warlock cantrips|spells|level=0|class=Warlock} that deals damage. You can add your Charisma modifier to that spell's damage rolls.",
 				{
 					"type": "entries",
 					"entries": [
@@ -169,29 +156,6 @@
 			]
 		},
 		{
-			"name": "Armed Combat Lessons",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"A seasoned fighter taught you how to use a simple combat stance to wield your weapons more effectively. When you select this option, choose from the following {@b Fighting Styles}:",
-				{
-					"type": "list",
-					"items": [
-						"{@optfeature Archery}: You gain a +2 bonus to attack rolls you make with ranged weapons.",
-						"{@optfeature Dueling}: When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.",
-						"{@optfeature Great Weapon Fighting}: When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll, even if the new roll is a 1 or a 2. The weapon must have the two-handed or versatile property for you to gain this benefit.",
-						"{@optfeature Two-Weapon Fighting}: When you engage in two-weapon fighting, you can add your ability modifier."
-					]
-				},
-				"When you make a weapon attack, you can expend one use of your Bardic Inspiration, adding your Bardic Inspiration die to the attack or damage roll. When you do this, you gain the benefits of your chosen Fighting Style for 10 minutes.",
-				"At 6th level, you learn how to use your stance to chain your attacks together in deadly combination. Once, while your Fighting Style is active, you may attack twice, instead of once, when taking the Attack action on your turn.",
-				"At 14th level you have learned to shore up any weaknesses in your stance. You gain +1 to your AC for the effect's duration."
-			]
-		},
-		{
 			"name": "Armor of Magical Strength",
 			"source": "TCE",
 			"page": 20,
@@ -245,6 +209,7 @@
 			"name": "Armor of Shadows",
 			"source": "XPHB",
 			"page": 155,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -299,6 +264,7 @@
 			"name": "Ascendant Step",
 			"source": "XPHB",
 			"page": 155,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -308,8 +274,7 @@
 						"level": 5,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -482,19 +447,6 @@
 			]
 		},
 		{
-			"name": "Bind the Wound",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"An experienced paladin instructed you in the basics of combat triage. When you or an ally within 5 feet of you receives healing of any kind, you may use your reaction to expend one use of your Bardic Inspiration and provide extra healing equal to the number on the Bardic Inspiration die roll + your Wisdom modifier (minimum of 1). You must have at least one hand free in order to quickly staunch the target's wound.",
-				"At 6th level, you have learned to identify a selection of useful herbs that you can carry with you. When providing additional healing with this trick you may also remove the poisoned or paralyzed condition from the target.",
-				"At 14th level, you have developed a true knack for emergency triage. You may additionally remove a single disease affecting the target of this ability."
-			]
-		},
-		{
 			"name": "Blessed Warrior",
 			"source": "TCE",
 			"page": 52,
@@ -638,19 +590,6 @@
 			]
 		},
 		{
-			"name": "Boxing Lessons",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"A wise monk was happy to share the basic form of the jab and weave. When you take the {@action Attack} action, you can expend one use of your Bardic Inspiration to quickly execute two unarmed strikes against one or more creatures you could target. You may use Dexterity instead of Strength for the attack and damage rolls of these unarmed strikes. The damage die used for these unarmed strikes is the same as your Bardic Inspiration die.",
-				"At 6th level, you have finally mastered the \"weave\" portion of your technique. You do not provoke {@action opportunity attack|phb|attacks of opportunity} this turn.",
-				"At 14th level, your practice has paid off, granting you the use of a slightly ki-infused attack. When you hit with one of these attacks you may attempt a stunning strike. The target must succeed on a Constitution saving throw or be stunned until the end of your next turn."
-			]
-		},
-		{
 			"name": "Brace",
 			"source": "TCE",
 			"page": 42,
@@ -741,6 +680,7 @@
 			"name": "Careful Spell",
 			"source": "XPHB",
 			"page": 141,
+			"srd52": true,
 			"featureType": [
 				"MM"
 			],
@@ -925,32 +865,6 @@
 			]
 		},
 		{
-			"name": "Conjure Woodland Spirit",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"{@note This is a magical effect.} A patient druid shared the secrets of forest magic with you. You can expend one use of your Bardic Inspiration as an action to conjure a forest guardian spirit in an unoccupied space you can see within 60 feet of you. The guardian spirit is Large, and takes the appearance of a spectral predatory cat. Any enemy that moves into or leaves a space adjacent to the guardian spirit must make a Wisdom saving throw, taking magical slashing damage equal to your Bardic Inspiration die on a failure. The guardian spirit will remain for as long as you concentrate on it, up to 10 minutes.",
-				"At 6th level, your bond with the guardian spirit grows even deeper. Any creature dealt damage by your guardian spirit has their speed reduced to 0 for the rest of the turn.",
-				"At 14th level, any Large or smaller creature who has their speed reduced to 0 by the guardian spirit is restrained for as long as you maintain your concentration, as your guardian spirit pins them in place. The target can break free by spending an action to make a Strength ({@skill Athletics}) check against your Traveler's Trick save DC."
-			]
-		},
-		{
-			"name": "Dark Bargain",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"{@note This is a magical effect.} You made a shady bargain with a haggard warlock. When you select this option, choose a {@filter Eldritch Invocation|optionalfeatures|type=EI} from the Warlock's list of class features for which you meet the prerequisites. You can expend one use of your Bardic Inspiration to gain the benefits of this Dark Invocation for 10 minutes. Doing this requires you to roll your Bardic Inspiration die and take an amount of necrotic damage equal to the roll.",
-				"At 6th level, you have learned how to deepen your pact with the warlock you once met. You may choose to take double the necrotic damage you rolled on your Bardic Inspiration die to instead have the effect last for 1 hour.",
-				"At 14th level, your pact with the warlock unlocks frightening new power. When you reach 14th level, choose a single spell of 7th level or lower from the {@filter warlock's spell list|spells|level=0;1;2;3;4;5;6;7|class=warlock}. You may cast the spell once during this effect without expending any spell slots, although you must cast it at the level of your highest spell slot. In exchange, the spell deals additional necrotic damage to you equal to twice the level at which it was cast."
-			]
-		},
-		{
 			"name": "Defense",
 			"source": "PHB",
 			"page": 72,
@@ -999,6 +913,7 @@
 			"name": "Devil's Sight",
 			"source": "XPHB",
 			"page": 155,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -1008,8 +923,7 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -1031,8 +945,7 @@
 						"level": 12,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					},
 					"optionalfeature": [
@@ -1098,6 +1011,7 @@
 			"name": "Distant Spell",
 			"source": "XPHB",
 			"page": 141,
+			"srd52": true,
 			"featureType": [
 				"MM"
 			],
@@ -1325,8 +1239,7 @@
 						"level": 5,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					},
 					"optionalfeature": [
@@ -1364,6 +1277,7 @@
 			"name": "Eldritch Spear",
 			"source": "XPHB",
 			"page": 155,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -1380,14 +1294,13 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
 			],
 			"entries": [
-				"Choose one of your known Warlock cantrips that deals damage and has a range of 10+ feet. When you cast that spell, its range increases by a number of feet equal to 30 times your Warlock level.",
+				"Choose one of your known {@filter Warlock cantrips|spells|level=0|class=Warlock} that deals damage and has a range of 10+ feet. When you cast that spell, its range increases by a number of feet equal to 30 times your Warlock level.",
 				{
 					"type": "entries",
 					"entries": [
@@ -1445,6 +1358,7 @@
 			"name": "Empowered Spell",
 			"source": "XPHB",
 			"page": 142,
+			"srd52": true,
 			"featureType": [
 				"MM"
 			],
@@ -1617,19 +1531,6 @@
 			]
 		},
 		{
-			"name": "Evocation Lessons",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"{@note This is a magical effect.} A venerable wizard shared secrets of evocation magic with you. When you select this option, choose a damage-dealing spell you can cast. You can expend one use of your Bardic Inspiration when you cast this spell to change the type of damage it deals to your choice of either acid, cold, fire, lightning, or thunder (chosen when you cast the spell). Add the number you roll on your Bardic Inspiration die + your Wisdom modifier (minimum of 1) to the damage dealt by the spell.",
-				"At 6th level you may choose to change the spell you had previously selected with this feature to another spell that you know.",
-				"At 14th level you may choose to change the spell you had previously selected with this feature to another spell that you know."
-			]
-		},
-		{
 			"name": "Extended Spell",
 			"source": "PHB",
 			"page": 102,
@@ -1652,6 +1553,7 @@
 			"name": "Extended Spell",
 			"source": "XPHB",
 			"page": 142,
+			"srd52": true,
 			"featureType": [
 				"MM"
 			],
@@ -1780,6 +1682,7 @@
 			"name": "Fiendish Vigor",
 			"source": "XPHB",
 			"page": 155,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -1789,8 +1692,7 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -1916,6 +1818,7 @@
 			"name": "Gaze of Two Minds",
 			"source": "XPHB",
 			"page": 156,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -1925,8 +1828,7 @@
 						"level": 5,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -2009,8 +1911,7 @@
 						"level": 5,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -2090,8 +1991,7 @@
 						"level": 9,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					},
 					"optionalfeature": [
@@ -2271,6 +2171,7 @@
 			"name": "Heightened Spell",
 			"source": "XPHB",
 			"page": 142,
+			"srd52": true,
 			"featureType": [
 				"MM"
 			],
@@ -2363,19 +2264,6 @@
 			"hasFluffImages": true
 		},
 		{
-			"name": "Hunting Lessons",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"{@note This is a magical effect.} A skilled ranger taught you how to use your magic to pinpoint your quarry's weak spots. You can expend one use of your Bardic Inspiration to target one creature you can see within 90 feet of you as your quarry. For as long as you concentrate on this ability, up to 1 hour, all weapon attacks you make against the target deal additional damage equal to your Bardic Inspiration die.",
-				"At 6th level, you have honed your skills to the point where you can easily track your quarry. For the duration of the effect, you are aware of your target's approximate distance and direction from you, so long as you are on the same plane.",
-				"At 14th level, you can maintain this effect for up to 24 hours."
-			]
-		},
-		{
 			"name": "Improved Pact Weapon",
 			"source": "XGE",
 			"page": 57,
@@ -2455,8 +2343,7 @@
 						"level": 5,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					},
 					"optionalfeature": [
@@ -2539,8 +2426,7 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -2602,6 +2488,7 @@
 			"name": "Lifedrinker",
 			"source": "XPHB",
 			"page": 156,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -2611,8 +2498,7 @@
 						"level": 9,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					},
 					"optionalfeature": [
@@ -2738,6 +2624,7 @@
 			"name": "Mask of Many Faces",
 			"source": "XPHB",
 			"page": 156,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -2747,8 +2634,7 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -2804,6 +2690,7 @@
 			"name": "Master of Myriad Forms",
 			"source": "XPHB",
 			"page": 156,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -2813,8 +2700,7 @@
 						"level": 5,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -3018,6 +2904,7 @@
 			"name": "Misty Visions",
 			"source": "XPHB",
 			"page": 156,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -3027,8 +2914,7 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -3075,6 +2961,7 @@
 			"name": "One with Shadows",
 			"source": "XPHB",
 			"page": 156,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -3084,8 +2971,7 @@
 						"level": 5,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -3141,6 +3027,7 @@
 			"name": "Otherworldly Leap",
 			"source": "XPHB",
 			"page": 156,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -3150,8 +3037,7 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -3190,6 +3076,7 @@
 			"name": "Pact of the Blade",
 			"source": "XPHB",
 			"page": 156,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -3232,6 +3119,7 @@
 			"name": "Pact of the Chain",
 			"source": "XPHB",
 			"page": 157,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -3249,7 +3137,7 @@
 			],
 			"entries": [
 				"You learn the {@spell Find Familiar|XPHB} spell and can cast it as a {@action Magic|XPHB} action without expending a spell slot.",
-				"When you cast the spell, you choose one of the normal forms for your familiar or one of the following special forms: {@creature Imp|XPHB}, {@creature Pseudodragon|XPHB}, {@creature Quasit|XPHB}, {@creature Skeleton|XPHB}, {@creature Slaad Tadpole|XPHB}, {@creature Sphinx of Wonder|XPHB}, {@creature Sprite|XPHB}, or {@creature Venomous Snake|XPHB} (see appendix B for the familiar's stat block).",
+				"When you cast the spell, you choose one of the normal forms for your familiar or one of the following special forms: {@creature Imp|XMM}, {@creature Pseudodragon|XMM}, {@creature Quasit|XMM}, {@creature Skeleton|XMM}, {@creature Slaad Tadpole|XMM}, {@creature Sphinx of Wonder|XMM}, {@creature Sprite|XMM}, or {@creature Venomous Snake|XMM} (see appendix B for the familiar's stat block).",
 				"Additionally, when you take the {@action Attack|XPHB} action, you can forgo one of your own attacks to allow your familiar to make one attack of its own with its {@variantrule Reaction|XPHB}."
 			]
 		},
@@ -3298,6 +3186,7 @@
 			"name": "Pact of the Tome",
 			"source": "XPHB",
 			"page": 157,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -3331,7 +3220,7 @@
 							"type": "entries",
 							"name": "Cantrips and Rituals",
 							"entries": [
-								"When the book appears, choose three cantrips, and choose two level 1 spells that have the {@variantrule Ritual|XPHB} tag. The spells can be from any class's spell list, and they must be spells you don't already have prepared. While the book is on your person, you have the chosen spells prepared, and they function as Warlock spells for you."
+								"When the book appears, choose three {@filter cantrips|spells|level=0}, and choose two {@filter level 1 spells|spells|level=1|components & miscellaneous=ritual} that have the {@variantrule Ritual|XPHB} tag. The spells can be from any class's spell list, and they must be spells you don't already have prepared. While the book is on your person, you have the chosen spells prepared, and they function as Warlock spells for you."
 							]
 						},
 						{
@@ -3539,6 +3428,7 @@
 			"name": "Quickened Spell",
 			"source": "XPHB",
 			"page": 142,
+			"srd52": true,
 			"featureType": [
 				"MM"
 			],
@@ -3631,19 +3521,6 @@
 			]
 		},
 		{
-			"name": "Reckless Tactics",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"You learned from a hardened barbarian that sometimes you have to charge into combat with no regard for your own safety. When you make an attack with a melee weapon that has either the heavy, two handed, or versatile quality, you can expend one use of your Bardic Inspiration to gain advantage on the attack. Add the number you roll on your Bardic Inspiration die + your Wisdom modifier (minimum of 1) to the attack's damage roll. Attacks made against you this round have advantage.",
-				"At 6th level you have learned, through practice, how to push your offense even further. You may impose a -5 penalty to this attack roll. If the attack hits, you add +10 to the attack's damage.",
-				"At 14th level, your experience has taught you how to really go all in. If you have not moved this turn, you may voluntarily reduce your speed to 0 until your next turn to resolve this attack against any number of creatures within 5 feet of you, making a separate attack roll for each target."
-			]
-		},
-		{
 			"name": "Relentless Hex",
 			"source": "XGE",
 			"page": 57,
@@ -3718,6 +3595,7 @@
 			"name": "Repelling Blast",
 			"source": "XPHB",
 			"page": 157,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -3734,14 +3612,13 @@
 						"level": 2,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
 			],
 			"entries": [
-				"Choose one of your known Warlock cantrips that requires an attack roll. When you hit a Large or smaller creature with that cantrip, you can push the creature up to 10 feet straight away from you.",
+				"Choose one of your known {@filter Warlock cantrips|spells|level=0|class=Warlock} that requires an attack roll. When you hit a Large or smaller creature with that cantrip, you can push the creature up to 10 feet straight away from you.",
 				{
 					"type": "entries",
 					"entries": [
@@ -3881,7 +3758,7 @@
 							"Yes"
 						],
 						[
-							"{@item Boots of the winterlands}",
+							"{@item Boots of the Winterlands}",
 							"Yes"
 						],
 						[
@@ -4523,6 +4400,7 @@
 			"name": "Subtle Spell",
 			"source": "XPHB",
 			"page": 142,
+			"srd52": true,
 			"featureType": [
 				"MM"
 			],
@@ -4701,6 +4579,7 @@
 			"name": "Thirsting Blade",
 			"source": "XPHB",
 			"page": 157,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -4710,8 +4589,7 @@
 						"level": 5,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					},
 					"optionalfeature": [
@@ -4887,6 +4765,7 @@
 			"name": "Twinned Spell",
 			"source": "XPHB",
 			"page": 142,
+			"srd52": true,
 			"featureType": [
 				"MM"
 			],
@@ -5030,6 +4909,7 @@
 			"name": "Visions of Distant Realms",
 			"source": "XPHB",
 			"page": 157,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -5039,8 +4919,7 @@
 						"level": 9,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -5073,19 +4952,6 @@
 			],
 			"entries": [
 				"You can communicate telepathically with your familiar and perceive through your familiar's senses as long as you are on the same plane of existence. Additionally, while perceiving through your familiar's senses, you can also speak through your familiar in your own voice, even if your familiar is normally incapable of speech."
-			]
-		},
-		{
-			"name": "Warding Trick",
-			"source": "HWCS",
-			"page": 36,
-			"featureType": [
-				"TT"
-			],
-			"entries": [
-				"{@note This is a magical effect.} A gentle cleric taught you how to channel your magic into a protective veil. You can expend one use of your Bardic Inspiration as an action to grant an ally you can see within 60 feet of you a number of temporary hit points equal to your roll on the Bardic Inspiration die + your Wisdom modifier (minimum of 1). This ward lasts for as long as you maintain concentration on it, up to 10 minutes.",
-				"At 6th level, your practice allows you to weave wards that retaliate against those who would harm your allies. Any creature who deals damage to an ally with temporary hit points granted by this effect must make a Wisdom saving throw. On a failure, the creature dealing damage takes an amount of radiant damage equal to your Bardic Inspiration die.",
-				"At 14th level, you have learned how to make your ward even more resilient. For the duration of the effect, at the beginning of each round on your turn the target gains a number of temporary hit points equal to your Bardic Inspiration die + your Wisdom modifier (minimum of 1). These replace any previous temporary hit points."
 			]
 		},
 		{
@@ -5176,6 +5042,7 @@
 			"name": "Whispers of the Grave",
 			"source": "XPHB",
 			"page": 157,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -5185,8 +5052,7 @@
 						"level": 7,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}
@@ -5233,6 +5099,7 @@
 			"name": "Witch Sight",
 			"source": "XPHB",
 			"page": 157,
+			"srd52": true,
 			"featureType": [
 				"EI"
 			],
@@ -5242,8 +5109,7 @@
 						"level": 15,
 						"class": {
 							"name": "Warlock",
-							"source": "XPHB",
-							"visible": true
+							"source": "XPHB"
 						}
 					}
 				}

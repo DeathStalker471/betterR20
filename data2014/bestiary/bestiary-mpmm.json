@@ -28436,6 +28436,9 @@
 				"MW",
 				"RCH"
 			],
+			"savingThrowForcedLegendary": [
+				"strength"
+			],
 			"savingThrowForcedSpell": [
 				"constitution"
 			],
@@ -39092,6 +39095,7 @@
 				"lightning"
 			],
 			"immune": [
+				"poison",
 				{
 					"immune": [
 						"bludgeoning",

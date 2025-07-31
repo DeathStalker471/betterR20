@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.35.186.14h";
+const SCRIPT_VERSION = "1.35.186.14i";
 const SCRIPT_REPO = "https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/dev-beta-death/dist/";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
@@ -32,7 +32,7 @@ const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 `;
 
 const AUTHORS_CORE = `TheGiddyLimit/Redweller`;
-const AUTHORS_5ETOOLS = `5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller`;
+const AUTHORS_5ETOOLS = `5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller/DeathStalker`;
 
 const matchString = `
 // @match        https://app.roll20.net/editor

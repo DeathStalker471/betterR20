@@ -311,32 +311,6 @@
 			]
 		},
 		{
-			"name": "Aqua Delerium",
-			"source": "DoDk",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/DoDk/Aqua Delerium.webp"
-					}
-				}
-			]
-		},
-		{
-			"name": "Aqua Expurgo",
-			"source": "DoDk",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/DoDk/Aqua Expurgo.webp"
-					}
-				}
-			]
-		},
-		{
 			"name": "Armblade",
 			"source": "ERLW",
 			"images": [
@@ -949,19 +923,6 @@
 			]
 		},
 		{
-			"name": "Blade of the Wood",
-			"source": "HWCS",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/HWCS/Blade-of-the-Wood.webp"
-					}
-				}
-			]
-		},
-		{
 			"name": "Blood Spear",
 			"source": "CoS",
 			"images": [
@@ -1163,19 +1124,6 @@
 			]
 		},
 		{
-			"name": "Borealus",
-			"source": "HWCS",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/HWCS/Borealus.webp"
-					}
-				}
-			]
-		},
-		{
 			"name": "Boros Guild Signet",
 			"source": "GGR",
 			"images": [
@@ -1200,19 +1148,6 @@
 						"path": "items/GGR/Boros Keyrune.webp"
 					},
 					"credit": "Daniel Ljunggren"
-				}
-			]
-		},
-		{
-			"name": "Bottled Comet",
-			"source": "DoDk",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/DoDk/Bottled Comet.webp"
-					}
 				}
 			]
 		},
@@ -1557,7 +1492,7 @@
 						"type": "internal",
 						"path": "items/TCE/Cauldron of Rebirth.webp"
 					},
-					"credit": "Zuzanna Wuzyk"
+					"credit": "Zuzanna Wužyk"
 				}
 			]
 		},
@@ -2369,7 +2304,7 @@
 						"path": "items/TDCSR/DeathwalkersWard.webp"
 					},
 					"credit": "{@link Jessica Nguyen|https://jessketchin.com/}",
-					"altText": "Black leather armor with intricate emrboidery, the shoulders consisting of black raven feathers."
+					"altText": "Black leather armor with intricate embroidery, the shoulders consisting of black raven feathers."
 				}
 			]
 		},
@@ -2525,19 +2460,6 @@
 						"path": "items/MOT/Dekella, Bident of Thassa.webp"
 					},
 					"credit": "Yeong-Hao Han"
-				}
-			]
-		},
-		{
-			"name": "Delerium-Forged Blade",
-			"source": "DoDk",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/DoDk/Delerium-Forged Blade.webp"
-					}
 				}
 			]
 		},
@@ -3393,19 +3315,6 @@
 						"path": "decks/BMT/Deck of Many Things/08-fates.webp"
 					},
 					"credit": "Tinnel Lovitt"
-				}
-			]
-		},
-		{
-			"name": "Feathered Helm",
-			"source": "HWCS",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/HWCS/Feathered-Helm.webp"
-					}
 				}
 			]
 		},
@@ -4339,19 +4248,6 @@
 			]
 		},
 		{
-			"name": "Hardened Delerium-tipped Arrows",
-			"source": "DoDk",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/DoDk/Hardened Delerium-tipped Arrows.webp"
-					}
-				}
-			]
-		},
-		{
 			"name": "Hat of Disguise",
 			"source": "XDMG",
 			"images": [
@@ -5004,19 +4900,6 @@
 				"name": "Infiltrator's Key",
 				"source": "EGW"
 			}
-		},
-		{
-			"name": "Inscrutable Staff",
-			"source": "DoDk",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/DoDk/Inscrutable Staff.webp"
-					}
-				}
-			]
 		},
 		{
 			"name": "Instrument of Illusions",
@@ -6841,19 +6724,6 @@
 			]
 		},
 		{
-			"name": "Necronomicon Ex Corvis",
-			"source": "HWCS",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/HWCS/Necronomicon-Ex-Corvis.webp"
-					}
-				}
-			]
-		},
-		{
 			"name": "Needler Pistol",
 			"source": "QftIS",
 			"_copy": {
@@ -6870,19 +6740,6 @@
 					"href": {
 						"type": "internal",
 						"path": "items/VRGR/Nepenthe.webp"
-					}
-				}
-			]
-		},
-		{
-			"name": "Nest Charm",
-			"source": "HWCS",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/HWCS/Nest-Charm.webp"
 					}
 				}
 			]
@@ -7941,32 +7798,6 @@
 			]
 		},
 		{
-			"name": "Red-Feather Bow",
-			"source": "HWCS",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/HWCS/Red-Feather-Bow.webp"
-					}
-				}
-			]
-		},
-		{
-			"name": "Refined Delerium Dust",
-			"source": "DoDk",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/DoDk/Refined Delerium Dust.webp"
-					}
-				}
-			]
-		},
-		{
 			"name": "Ring Mail",
 			"source": "XPHB",
 			"images": [
@@ -9010,19 +8841,6 @@
 			]
 		},
 		{
-			"name": "Sceptre of Saint Vitruvio",
-			"source": "DoDk",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/DoDk/Sceptre of Saint Vitruvio.webp"
-					}
-				}
-			]
-		},
-		{
 			"name": "Scimitar",
 			"source": "XPHB",
 			"images": [
@@ -9926,7 +9744,7 @@
 						"path": "items/TDCSR/SpireofConflux.webp"
 					},
 					"credit": "{@link Jessica Nguyen|https://jessketchin.com/}",
-					"altText": "A twisted staff made of wood and vines shaped like a sheperd's crook with a glowing blue crystal in the center of the crook."
+					"altText": "A twisted staff made of wood and vines shaped like a shepherd's crook with a glowing blue crystal in the center of the crook."
 				}
 			]
 		},
@@ -11881,19 +11699,6 @@
 					"href": {
 						"type": "internal",
 						"path": "items/PotA/Windvane.webp"
-					}
-				}
-			]
-		},
-		{
-			"name": "Wing Crest Shield",
-			"source": "HWCS",
-			"images": [
-				{
-					"type": "image",
-					"href": {
-						"type": "internal",
-						"path": "items/HWCS/Wing-Crest-Shield.webp"
 					}
 				}
 			]

@@ -238,114 +238,184 @@ function d20plusImporter () {
 		const newRowId = d20plus.ut.generateRowId();
 		let actionDesc = actionText; // required for later reduction of information dump.
 
-		function handleAttack () {
-			const rollBase = d20plus.importer.rollbase(); // macro
+		function handleAttack() {
+            console.log("[IMPORT] Parsing attack action");
+            const rollBase = d20plus.importer.rollbase();
 
-			let attackType = "";
-			let attackType2 = "";
-			if (actionText.indexOf(" Weapon Attack:") > -1) {
-				attackType = actionText.split(" Weapon Attack:")[0];
-				attackType2 = " Weapon Attack:";
-			} else if (actionText.indexOf(" Spell Attack:") > -1) {
-				attackType = actionText.split(" Spell Attack:")[0];
-				attackType2 = " Spell Attack:";
-			}
-			let attackRange = "";
-			let rangeType = "";
-			if (attackType.indexOf("Melee") > -1) {
-				attackRange = (actionText.match(/reach (.*?),/) || ["", ""])[1];
-				rangeType = "Reach";
-			} else {
-				attackRange = (actionText.match(/range (.*?),/) || ["", ""])[1];
-				rangeType = "Range";
-			}
-			const toHit = (actionText.match(/\+(.*?) to hit/) || ["", ""])[1];
-			let damage = "";
-			let damageType = "";
-			let damage2 = "";
-			let damageType2 = "";
-			let onHit = "";
-			let damageRegex = /\d+ \((\d+d\d+\s?(?:\+|-)?\s?\d*)\) (\S+ )?damage/g;
-			let damageSearches = damageRegex.exec(actionText);
-			if (damageSearches) {
-				onHit = damageSearches[0];
-				damage = damageSearches[1];
-				damageType = (damageSearches[2] != null) ? damageSearches[2].trim() : "";
-				damageSearches = damageRegex.exec(actionText);
-				if (damageSearches) {
-					onHit += ` plus ${damageSearches[0]}`;
-					damage2 = damageSearches[1];
-					damageType2 = (damageSearches[2] != null) ? damageSearches[2].trim() : "";
-				}
-			}
-			onHit = onHit.trim();
-			const attackTarget = ((actionText.match(/\.,(?!.*\.,)(.*)\. Hit:/) || ["", ""])[1] || "").trim();
-			// Cut the information dump in the description
-			const atkDescSimpleRegex = /Hit: \d+ \((\d+d\d+\s?(?:\+|-)?\s?\d*)\) (\S+ )?damage\.([\s\S]*)/gm;
-			const atkDescComplexRegex = /(Hit:[\s\S]*)/g;
-			// is it a simple attack (just 1 damage type)?
-			const match_simple_atk = atkDescSimpleRegex.exec(actionText);
-			if (match_simple_atk != null) {
-				// if yes, then only display special effects, if any
-				actionDesc = match_simple_atk[3].trim();
-			} else {
-				// if not, simply cut everything before "Hit:" so there are no details lost.
-				const matchCompleteAtk = atkDescComplexRegex.exec(actionText);
-				if (matchCompleteAtk != null) actionDesc = matchCompleteAtk[1].trim();
-			}
-			const toHitRange = `+${toHit}, ${rangeType} ${attackRange}, ${attackTarget}.`;
-			const damageFlags = `{{damage=1}} {{dmg1flag=1}}${damage2 ? ` {{dmg2flag=1}}` : ""}`;
-			character.attribs.create({name: `${baseAction}_${newRowId}_name`, current: name}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_flag`, current: "on"}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_npc_options-flag`, current: "0"}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_display_flag`, current: "{{attack=1}}"}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_options`, current: "{{attack=1}}"}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_tohit`, current: toHit}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_damage`, current: damage}).save();
-			// TODO this might not be necessary on Shaped sheets?
-			const critDamage = (damage || "").trim().replace(/[-+]\s*\d+$/, "").trim(); // replace any trailing modifiers e.g. "+5"
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_crit`, current: critDamage}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_damagetype`, current: damageType}).save();
-			if (damage2) {
-				character.attribs.create({name: `${baseAction}_${newRowId}_attack_damage2`, current: damage2}).save();
-				character.attribs.create({name: `${baseAction}_${newRowId}_attack_crit2`, current: damage2}).save();
-				character.attribs.create({name: `${baseAction}_${newRowId}_attack_damagetype2`, current: damageType2}).save();
-			}
-			character.attribs.create({name: `${baseAction}_${newRowId}_name_display`, current: name}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_rollbase`, current: rollBase}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_type`, current: attackType}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_type_display`, current: attackType + attackType2}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_tohitrange`, current: toHitRange}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_range`, current: attackRange}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_target`, current: attackTarget}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_damage_flag`, current: damageFlags}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_attack_onhit`, current: onHit}).save();
+            let attackType = "";
+            let attackType2 = "";
 
-			const descriptionFlag = Math.max(Math.ceil(actionText.length / 57), 1);
-			character.attribs.create({name: `${baseAction}_${newRowId}_description`, current: actionDesc}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_description_flag`, current: descriptionFlag}).save();
+            const atkMatch = actionText.match(/\{@atk (\w+)\}/i);
+            if (atkMatch) {
+                const atkCode = atkMatch[1].toLowerCase();
+                switch (atkCode) {
+                    case "m": attackType = "Melee"; break;
+                    case "r": attackType = "Ranged"; break;
+                    case "mw": attackType = "Melee"; break;
+                    case "rw": attackType = "Ranged"; break;
+                    case "ms": attackType = "Melee Spell"; break;
+                    case "rs": attackType = "Ranged Spell"; break;
+                    default: attackType = "Unknown"; break;
+                }
+                attackType2 = " Attack:";
+            } else if (actionText.includes(" Weapon Attack:")) {
+                const match = actionText.match(/(Melee|Ranged) Weapon Attack:/);
+                if (match) {
+                    attackType = match[1];
+                    attackType2 = " Weapon Attack:";
+                }
+            } else if (actionText.includes(" Spell Attack:")) {
+                attackType = "Spell";
+                attackType2 = " Spell Attack:";
+            }
 
-			// hidden = a single space
-			const descVisFlag = d20plus.cfg.getOrDefault("import", "hideActionDescs") ? " " : "@{description}";
-			character.attribs.create({name: `${baseAction}_${newRowId}_show_desc`, current: descVisFlag}).save();
+            // Range / Reach handling
+            let attackRange = "";
+            let rangeType = "";
+
+            const reachMatch = actionText.match(/reach\s+([\d\/\s]+ft)(?:[,.]|$)/i);
+            const rangeMatch = actionText.match(/range\s+([\d\/\s]+ft)(?:[,.]|$)/i);
+
+            if (attackType.includes("Melee") && reachMatch) {
+                attackRange = reachMatch[1];
+                rangeType = "Reach";
+            } else if (rangeMatch) {
+                attackRange = rangeMatch[1];
+                rangeType = "Range";
+            }
+
+            // --- Parse toHit
+            const toHitMatch = actionText.match(/\{@hit (\d+)\}/) || actionText.match(/\+(\d+)(?:\s*to hit)?/i);
+            const toHit = (toHitMatch || ["", ""])[1];
+
+            // Damage parsing
+            let damage = "";
+            let damageType = "";
+            let damage2 = "";
+            let damageType2 = "";
+            let onHit = "";
+            const damageRegex = /\d+ \((\d+d\d+\s?(?:\+|-)?\s?\d*)\) (\S+ )?damage/g;
+
+            let damageSearches = damageRegex.exec(actionText);
+            if (damageSearches) {
+                onHit = damageSearches[0];
+                damage = damageSearches[1];
+                damageType = (damageSearches[2] || "").trim();
+                damageSearches = damageRegex.exec(actionText);
+                if (damageSearches) {
+                    onHit += ` plus ${damageSearches[0]}`;
+                    damage2 = damageSearches[1];
+                    damageType2 = (damageSearches[2] || "").trim();
+                }
+            }
+            onHit = onHit.trim();
+
+            const attackTarget = ((actionText.match(/\.,(?!.*\.,)(.*)\. Hit:/) || ["", ""])[1] || "").trim();
+
+            // Action Description
+            const atkDescSimpleRegex = /Hit: \d+ \((\d+d\d+\s?(?:\+|-)?\s?\d*)\) (\S+ )?damage\.([\s\S]*)/gm;
+            const atkDescComplexRegex = /(Hit:[\s\S]*)/g;
+            let actionDesc = "";
+
+            const match_simple_atk = atkDescSimpleRegex.exec(actionText);
+            if (match_simple_atk != null) {
+                actionDesc = match_simple_atk[3].trim();
+            } else {
+                const matchCompleteAtk = atkDescComplexRegex.exec(actionText);
+                if (matchCompleteAtk != null) actionDesc = matchCompleteAtk[1].trim();
+            }
+
+            const toHitRange = `+${toHit}, ${rangeType} ${attackRange}, ${attackTarget}.`;
+            const damageFlags = `{{damage=1}} {{dmg1flag=1}}${damage2 ? ` {{dmg2flag=1}}` : ""}`;
+
+            // Debug logs
+            console.log("[DEBUG] attackType:", attackType);
+            console.log("[DEBUG] attackType2:", attackType2);
+            console.log("[DEBUG] toHit:", toHit);
+            console.log("[DEBUG] attackRange:", attackRange);
+            console.log("[DEBUG] rangeType:", rangeType);
+            console.log("[DEBUG] damage:", damage);
+            console.log("[DEBUG] damage2:", damage2);
+            console.log("[DEBUG] attackTarget:", attackTarget);
+            console.log("[DEBUG] toHitRange:", toHitRange);
+            console.log("[DEBUG] onHit:", onHit);
+
+            // Roll20 attribs
+            character.attribs.create({name: `${baseAction}_${newRowId}_name`, current: name}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_flag`, current: "on"}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_npc_options-flag`, current: "0"}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_display_flag`, current: "{{attack=1}}"}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_options`, current: "{{attack=1}}"}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_tohit`, current: toHit}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_damage`, current: damage}).save();
+
+            const critDamage = (damage || "").trim().replace(/[-+]\s*\d+$/, "").trim();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_crit`, current: critDamage}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_damagetype`, current: damageType}).save();
+            if (damage2) {
+                character.attribs.create({name: `${baseAction}_${newRowId}_attack_damage2`, current: damage2}).save();
+                character.attribs.create({name: `${baseAction}_${newRowId}_attack_crit2`, current: damage2}).save();
+                character.attribs.create({name: `${baseAction}_${newRowId}_attack_damagetype2`, current: damageType2}).save();
+            }
+
+            character.attribs.create({name: `${baseAction}_${newRowId}_name_display`, current: name}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_rollbase`, current: rollBase}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_type`, current: attackType}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_type_display`, current: attackType + attackType2}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_tohitrange`, current: toHitRange}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_range`, current: attackRange}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_target`, current: attackTarget}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_damage_flag`, current: damageFlags}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_attack_onhit`, current: onHit}).save();
+
+            const descriptionFlag = Math.max(Math.ceil(actionText.length / 57), 1);
+            character.attribs.create({name: `${baseAction}_${newRowId}_description`, current: actionDesc}).save();
+            character.attribs.create({name: `${baseAction}_${newRowId}_description_flag`, current: descriptionFlag}).save();
+
+            const descVisFlag = d20plus.cfg.getOrDefault("import", "hideActionDescs") ? " " : "@{description}";
+            character.attribs.create({name: `${baseAction}_${newRowId}_show_desc`, current: descVisFlag}).save();
+        }
+
+		function parseInlineDamage(text) {
+			let result = text.replace(/\{@damage ([^}]+)\}/gi, (_, dice) => `[[${dice.trim()}]]`);
+
+			result = result.replace(/(\d+)?\s*\((\d+d\d+(?:\s?[+-]\s?\d+)?)\)/g, (match, fixed, dice) => {
+				return fixed ? `${fixed} ([[${dice}]])` : `([[${dice}]])`;
+			});
+
+			return result;
 		}
+
 
 		function handleOtherAction () {
 			const rollBase = d20plus.importer.rollbase(false); // macro
 			character.attribs.create({name: `${baseAction}_${newRowId}_name`, current: name}).save();
 			character.attribs.create({name: `${baseAction}_${newRowId}_npc_options-flag`, current: "0"}).save();
-			character.attribs.create({name: `${baseAction}_${newRowId}_description`, current: actionDesc}).save();
 			character.attribs.create({name: `${baseAction}_${newRowId}_attack_tohitrange`, current: "+0"}).save();
 			character.attribs.create({name: `${baseAction}_${newRowId}_attack_onhit`, current: ""}).save();
 			character.attribs.create({name: `${baseAction}_${newRowId}_damage_flag`, current: ""}).save();
 			character.attribs.create({name: `${baseAction}_${newRowId}_attack_crit`, current: ""}).save();
 			character.attribs.create({name: `${baseAction}_${newRowId}_attack_crit2`, current: ""}).save();
 			character.attribs.create({name: `${baseAction}_${newRowId}_rollbase`, current: rollBase}).save();
-		}
 
-		// attack parsing
-		if (actionText.includes(" Attack:")) handleAttack();
-		else handleOtherAction();
+			const macroText = parseInlineDamage(actionText);
+
+			character.attribs.create({name: `${baseAction}_${newRowId}_description`, current: macroText}).save();
+
+
+		}
+		if (
+			actionText.includes(" Attack:") ||
+			actionText.includes(" Attack Roll:") ||
+			/\{@atk[r]? [msr]+\}/i.test(actionText) ||
+			actionText.toLowerCase().includes("to hit")
+		) {
+			console.log("[IMPORT] Detected attack format → Calling handleAttack()");
+			handleAttack();
+		} else {
+			console.log("[IMPORT] Not an attack → Calling handleOtherAction()");
+			handleOtherAction();
+		}
 	};
 
 	d20plus.importer.addAction = function (character, name, actionText, index) {

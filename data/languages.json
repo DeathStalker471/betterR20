@@ -48,7 +48,8 @@
 			"name": "Abyssal",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: Demons of the Abyss."
@@ -95,8 +96,8 @@
 			"source": "SKT",
 			"page": 86,
 			"typicalSpeakers": [
-				"{@creature Uthgardt Barbarian Leader|SKT|uthgardt barbarians}",
-				"{@creature Uthgardt Shaman|SKT|uthgardt shamans}"
+				"{@creature Uthgardt Barbarian Leader|SKT|Uthgardt barbarians}",
+				"{@creature Uthgardt Shaman|SKT|Uthgardt shamans}"
 			]
 		},
 		{
@@ -155,7 +156,8 @@
 			"name": "Celestial",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: Celestials."
@@ -291,7 +293,8 @@
 			"name": "Common",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Sigil."
@@ -301,7 +304,8 @@
 			"name": "Common Sign Language",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Sigil."
@@ -404,7 +408,8 @@
 			"name": "Deep Speech",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: Aberrations."
@@ -497,8 +502,10 @@
 			"name": "Draconic",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
+			"script": "Draconic",
 			"entries": [
 				"Origin: Dragons."
 			]
@@ -528,14 +535,15 @@
 				"{@creature treant||treants}"
 			],
 			"entries": [
-				"Druidic is the secret language of druids. It can be spoken or used to leave hidden messages. Creatures who know this language automatically spot such a message. Others spot the message's presence with a successful DC 15 Wisdom ({@skill Perception}) check but can't decipher it without magic."
+				"Druidic is the secret language of druids. It can be spoken or used to leave hidden messages. Creatures who know this language automatically spot such a message. Others spot the message's presence with a successful {@dc 15} Wisdom ({@skill Perception}) check but can't decipher it without magic."
 			]
 		},
 		{
 			"name": "Druidic",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: Druidic circles."
@@ -593,7 +601,8 @@
 			"name": "Dwarvish",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Dwarves."
@@ -661,7 +670,8 @@
 			"name": "Elvish",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Elves."
@@ -728,7 +738,8 @@
 			"name": "Giant",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Giants."
@@ -797,7 +808,7 @@
 			"typicalSpeakers": [
 				"{@creature Gnoll||gnolls}",
 				"{@creature Gnoll Pack Lord||gnoll pack lords}",
-				"{@creature Gnoll Fang of Yeenoghu||gnoll fangs of yeenoghu}"
+				"{@creature Gnoll Fang of Yeenoghu||gnoll fangs of Yeenoghu}"
 			]
 		},
 		{
@@ -849,7 +860,8 @@
 			"name": "Gnomish",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Gnomes."
@@ -917,7 +929,8 @@
 			"name": "Goblin",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Goblinoids."
@@ -999,7 +1012,8 @@
 			"name": "Halfling",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Halflings."
@@ -1102,7 +1116,8 @@
 			"name": "Infernal",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: Devils of the Nine Hells."
@@ -1433,7 +1448,7 @@
 			],
 			"script": "Dwarvish",
 			"entries": [
-				" Orc is a harsh, grating language with hard consonants. It has no script of its own but is written in the Dwarvish script."
+				"Orc is a harsh, grating language with hard consonants. It has no script of its own but is written in the Dwarvish script."
 			],
 			"hasFluffImages": true
 		},
@@ -1441,7 +1456,8 @@
 			"name": "Orc",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "standard",
 			"entries": [
 				"Origin: Orcs."
@@ -1533,7 +1549,8 @@
 			],
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: Elementals."
@@ -1677,11 +1694,11 @@
 			"page": 276,
 			"typicalSpeakers": [
 				"{@creature Slaad Tadpole||slaad tadpoles}",
-				"{@creature Red Slaad||red slaads}",
-				"{@creature Blue Slaad||blue slaads}",
-				"{@creature Green Slaad||green slaads}",
-				"{@creature Gray Slaad||gray slaads}",
-				"{@creature Death Slaad||death slaads}"
+				"{@creature Red Slaad||red slaadi}",
+				"{@creature Blue Slaad||blue slaadi}",
+				"{@creature Green Slaad||green slaadi}",
+				"{@creature Gray Slaad||gray slaadi}",
+				"{@creature Death Slaad||death slaadi}"
 			]
 		},
 		{
@@ -1791,7 +1808,8 @@
 			"name": "Sylvan",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: The Feywild."
@@ -1850,7 +1868,8 @@
 			"name": "Thieves' Cant",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: Various criminal guilds."
@@ -1968,7 +1987,8 @@
 			"name": "Undercommon",
 			"source": "XPHB",
 			"page": 37,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"type": "rare",
 			"entries": [
 				"Origin: The Underdark."
@@ -2102,6 +2122,13 @@
 				"fonts/languages/PHB/Draconic/Iokharic Bold.otf",
 				"fonts/languages/PHB/Draconic/Iokharic Italic.otf",
 				"fonts/languages/PHB/Draconic/Iokharic Bold Italic.otf"
+			]
+		},
+		{
+			"name": "Draconic",
+			"source": "XPHB",
+			"fonts": [
+				"fonts/languages/XPHB/Draconic/Iokharik-v2.woff2"
 			]
 		},
 		{

@@ -117,7 +117,8 @@
 			"name": "Ability Score Improvement",
 			"source": "XPHB",
 			"page": 202,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "G",
 			"prerequisite": [
 				{
@@ -125,6 +126,7 @@
 				}
 			],
 			"repeatable": true,
+			"repeatableHidden": true,
 			"ability": [
 				{
 					"choose": {
@@ -222,7 +224,7 @@
 					"type": "entries",
 					"name": "Mimicry",
 					"entries": [
-						"You can mimic the sounds of other creatures, including speech. A creature that hears the mimicry must succeed on a Wisdom ({@skill Insight|XPHB}) check to determine the effect is faked (DC 8 plus your Charisma modifier and Proficiency Bonus)."
+						"You can mimic the sounds of other creatures, including speech. A creature that hears the mimicry must succeed on a Wisdom ({@skill Insight|XPHB}) check to determine the effect is faked ({@dc 8} plus your Charisma modifier and Proficiency Bonus)."
 					]
 				}
 			]
@@ -405,49 +407,6 @@
 			"hasFluffImages": true
 		},
 		{
-			"name": "Adroit Crafter",
-			"source": "GHLoE",
-			"prerequisite": [
-				{
-					"otherSummary": {
-						"entry": "Proficiency in a skill or tool",
-						"entrySummary": "Prof skill/tool"
-					}
-				}
-			],
-			"entries": [
-				"You've trained in crafting items using a skill or tool that you're proficient with, and the steps in crafting have become second nature to you. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"The time it takes to create an item using your proficient skills or tools is halved.",
-						"If you fail to successfully craft the item and would lose the components, you retain the components instead."
-					]
-				}
-			]
-		},
-		{
-			"name": "Aerial Expert",
-			"source": "HWCS",
-			"page": 47,
-			"prerequisite": [
-				{
-					"other": "Glide trait"
-				}
-			],
-			"entries": [
-				"Years of practice or an innate talent have made you adept at gliding. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"You no longer need to move at least 10 feet to perform long and high jumps. You may choose whether the jump uses your Strength or Dexterity score for determining height or distance, and you double the distance you would normally leap in either case.",
-						"You may take the {@action Dash} action while gliding to fly an additional distance up to your movement speed.",
-						"You may change direction freely while gliding, and may gain up to 10 feet of altitude once before you finish your descent."
-					]
-				}
-			]
-		},
-		{
 			"name": "Agent of Order",
 			"source": "SatO",
 			"page": 10,
@@ -514,7 +473,8 @@
 			"name": "Alert",
 			"source": "XPHB",
 			"page": 200,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "O",
 			"entries": [
 				"You gain the following benefits.",
@@ -538,7 +498,8 @@
 			"name": "Archery",
 			"source": "XPHB",
 			"page": 209,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "FS",
 			"prerequisite": [
 				{
@@ -720,32 +681,7 @@
 							"type": "item",
 							"name": "Grasp of Avarice",
 							"entries": [
-								"Once per turn, when you damage a creature you can see within 60 feet of yourself, you can also deal necrotic damage to it. The necrotic damage equals {@dice 1d6} + your proficiency bonus, and you regain a number of hit points equal to this necrotic damage dealt. You can use this benefit a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest."
-							]
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Bandit Cunning",
-			"source": "HWCS",
-			"page": 47,
-			"entries": [
-				"Your time as a bandit has granted you a sense for danger, and made you skilled at sizing up opponents. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"When you are asked to make a saving throw, you may spend your reaction to add your Intelligence modifier as an additional bonus to the saving throw. You cannot use this ability again until you have completed a long rest.",
-						"During combat, you can use your action to make an Intelligence ({@skill Investigation}) check against any creature you have seen fight. As long as you succeed against a DC of 10 + their challenge rating, you can learn one useful fact of your choice about the target's combat abilities. Choose from:",
-						{
-							"type": "list",
-							"items": [
-								"one damage resistance or immunity",
-								"one condition immunity",
-								"one special ability possessed by the creature that either does damage, or prevents damage",
-								"one option under their attack, legendary, or reaction actions",
-								"one special sense they possess"
+								"Once per turn, when you damage a creature you can see within 60 feet of yourself, you can also deal necrotic damage to it. The necrotic damage equals {@damage 1d6} + your proficiency bonus, and you regain a number of hit points equal to this necrotic damage dealt. You can use this benefit a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest."
 							]
 						}
 					]
@@ -807,7 +743,8 @@
 			"name": "Boon of Combat Prowess",
 			"source": "XPHB",
 			"page": 210,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "EB",
 			"prerequisite": [
 				{
@@ -844,6 +781,8 @@
 			"name": "Boon of Dimensional Travel",
 			"source": "XPHB",
 			"page": 210,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "EB",
 			"prerequisite": [
 				{
@@ -932,7 +871,7 @@
 					"type": "entries",
 					"name": "Energy Redirection",
 					"entries": [
-						"When you take damage of one of the types chosen for the Energy Resistances benefit, you can take a Reaction to direct damage of the same type toward another creature you can see within 60 feet of yourself that isn't behind Total Cover. If you do so, that creature must succeed on a Dexterity saving throw (DC 8 plus your Constitution modifier and Proficiency Bonus) or take damage equal to {@dice 2d12} plus your Constitution modifier."
+						"When you take damage of one of the types chosen for the Energy Resistances benefit, you can take a Reaction to direct damage of the same type toward another creature you can see within 60 feet of yourself that isn't behind Total Cover. If you do so, that creature must succeed on a Dexterity saving throw ({@dc 8} plus your Constitution modifier and Proficiency Bonus) or take damage equal to {@dice 2d12} plus your Constitution modifier."
 					]
 				}
 			]
@@ -941,7 +880,8 @@
 			"name": "Boon of Fate",
 			"source": "XPHB",
 			"page": 210,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "EB",
 			"prerequisite": [
 				{
@@ -1015,6 +955,8 @@
 			"name": "Boon of Irresistible Offense",
 			"source": "XPHB",
 			"page": 211,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "EB",
 			"prerequisite": [
 				{
@@ -1211,6 +1153,8 @@
 			"name": "Boon of Spell Recall",
 			"source": "XPHB",
 			"page": 211,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "EB",
 			"prerequisite": [
 				{
@@ -1245,7 +1189,8 @@
 			"name": "Boon of the Night Spirit",
 			"source": "XPHB",
 			"page": 211,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "EB",
 			"prerequisite": [
 				{
@@ -1289,6 +1234,8 @@
 			"name": "Boon of Truesight",
 			"source": "XPHB",
 			"page": 211,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "EB",
 			"prerequisite": [
 				{
@@ -1346,29 +1293,6 @@
 			]
 		},
 		{
-			"name": "Careful Crafter",
-			"source": "GHLoE",
-			"prerequisite": [
-				{
-					"otherSummary": {
-						"entry": "Proficiency in a skill or tool",
-						"entrySummary": "Prof skill/tool"
-					}
-				}
-			],
-			"entries": [
-				"You've trained in crafting items using a skill or tool that you're proficient with, and your creations are known for being well made and reliable. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"You make all ability checks for crafting with advantage.",
-						"Anyone assisting you in crafting an item gains advantage on their ability checks for crafting.",
-						"If you fail to successfully craft the item, the amount of time it took to complete the process is halved."
-					]
-				}
-			]
-		},
-		{
 			"name": "Cartomancer",
 			"source": "BMT",
 			"page": 49,
@@ -1380,12 +1304,10 @@
 			],
 			"additionalSpells": [
 				{
-					"innate": {
-						"known": {
-							"_": [
-								"prestidigitation#c"
-							]
-						}
+					"known": {
+						"_": [
+							"prestidigitation#c"
+						]
 					}
 				}
 			],
@@ -1881,7 +1803,8 @@
 			"name": "Defense",
 			"source": "XPHB",
 			"page": 209,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "FS",
 			"prerequisite": [
 				{
@@ -2113,7 +2036,7 @@
 				{
 					"type": "list",
 					"items": [
-						"Instead of exhaling destructive energy, you can expend a use of your Breath Weapon trait to roar, forcing each creature of your choice within 30 feet of you to make a Wisdom saving throw (DC 8 + your proficiency bonus + your Charisma modifier). A target automatically succeeds on the save if it can't hear or see you. On a failed save, a target becomes {@condition frightened} of you for 1 minute. If the {@condition frightened} target takes any damage, it can repeat the saving throw, ending the effect on itself on a success."
+						"Instead of exhaling destructive energy, you can expend a use of your Breath Weapon trait to roar, forcing each creature of your choice within 30 feet of you to make a Wisdom saving throw ({@dc 8} + your proficiency bonus + your Charisma modifier). A target automatically succeeds on the save if it can't hear or see you. On a failed save, a target becomes {@condition frightened} of you for 1 minute. If the {@condition frightened} target takes any damage, it can repeat the saving throw, ending the effect on itself on a success."
 					]
 				}
 			]
@@ -2149,7 +2072,7 @@
 					"type": "list",
 					"items": [
 						"Your scales harden. While you aren't wearing armor, you can calculate your AC as 13 + your Dexterity modifier. You can use a shield and still gain this benefit.",
-						"You grow retractable claws from the tips of your fingers. Extending or retracting the claws requires no action. The claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to {@dice 1d4} + your Strength modifier, instead of the normal bludgeoning damage for an unarmed strike."
+						"You grow retractable claws from the tips of your fingers. Extending or retracting the claws requires no action. The claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to {@damage 1d4} + your Strength modifier, instead of the normal bludgeoning damage for an unarmed strike."
 					]
 				}
 			]
@@ -2294,6 +2217,7 @@
 			"name": "Dueling",
 			"source": "XPHB",
 			"page": 209,
+			"srd52": true,
 			"category": "FS",
 			"prerequisite": [
 				{
@@ -2462,6 +2386,7 @@
 				}
 			],
 			"repeatable": true,
+			"repeatableHidden": true,
 			"ability": [
 				{
 					"choose": {
@@ -2574,7 +2499,7 @@
 							"type": "item",
 							"name": "Searing Ignition",
 							"entries": [
-								"When you take the {@action Attack} action on your turn, you can replace a single attack with a magical burst of flame. Each creature of your choice in a 15-foot-radius sphere centered on you must make a Dexterity saving throw (DC equals 8 + your proficiency bonus + the modifier of the ability increased by this feat). On a failed save, a creature takes fire damage equal to {@dice 1d8} + your proficiency bonus, and it has the blinded condition until the start of your next turn. On a successful save, the creature takes half as much damage only. You can use your Searing Ignition a number of times equal to your proficiency bonus (but no more than once per turn), and you regain all expended uses when you finish a long rest."
+								"When you take the {@action Attack} action on your turn, you can replace a single attack with a magical burst of flame. Each creature of your choice in a 15-foot-radius sphere centered on you must make a Dexterity saving throw (DC equals 8 + your proficiency bonus + the modifier of the ability increased by this feat). On a failed save, a creature takes fire damage equal to {@damage 1d8} + your proficiency bonus, and it has the blinded condition until the start of your next turn. On a successful save, the creature takes half as much damage only. You can use your Searing Ignition a number of times equal to your proficiency bonus (but no more than once per turn), and you regain all expended uses when you finish a long rest."
 							]
 						}
 					]
@@ -2897,7 +2822,7 @@
 							"type": "item",
 							"name": "Frigid Retaliation",
 							"entries": [
-								"Immediately after a creature you can see within 30 feet of you hits you with an attack roll and deals damage, you can use your reaction to retaliate with a conjured blast of ice. The creature must make a Constitution saving throw (DC equals 8 + your proficiency bonus + the modifier of the ability increased by this feat). On a failed save, the creature takes cold damage equal to {@dice 1d8} + your proficiency bonus, and its speed is reduced to 0 until the end of its next turn. You can use this reaction a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest."
+								"Immediately after a creature you can see within 30 feet of you hits you with an attack roll and deals damage, you can use your reaction to retaliate with a conjured blast of ice. The creature must make a Constitution saving throw (DC equals 8 + your proficiency bonus + the modifier of the ability increased by this feat). On a failed save, the creature takes cold damage equal to {@damage 1d8} + your proficiency bonus, and its speed is reduced to 0 until the end of its next turn. You can use this reaction a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest."
 							]
 						}
 					]
@@ -3046,6 +2971,8 @@
 			"name": "Grappler",
 			"source": "XPHB",
 			"page": 204,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "G",
 			"prerequisite": [
 				{
@@ -3104,7 +3031,8 @@
 			"name": "Great Weapon Fighting",
 			"source": "XPHB",
 			"page": 209,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "FS",
 			"prerequisite": [
 				{
@@ -3422,26 +3350,6 @@
 					"name": "Damage Reduction",
 					"entries": [
 						"When you're hit by an attack while you're wearing Heavy armor, any Bludgeoning, Piercing, and Slashing damage dealt to you by that attack is reduced by an amount equal to your Proficiency Bonus."
-					]
-				}
-			]
-		},
-		{
-			"name": "Heavy Glider",
-			"source": "HWCS",
-			"page": 47,
-			"prerequisite": [
-				{
-					"other": "Glide trait"
-				}
-			],
-			"entries": [
-				"You were either born with great strength, or trained hard to allow yourself to glide under circumstances most would find impossible. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"You may glide while holding a heavy weapon and wearing heavy armor as long as you aren't encumbered.",
-						"You may choose to land your glide in a space occupied by a hostile creature that is Large or smaller. If you do so, you may roll an opposed Strength check against the creature. On a success, you push them 10 feet away and knock them {@condition prone} with the force of your impact. On a failure you land in the nearest un-occupied space."
 					]
 				}
 			]
@@ -4370,9 +4278,11 @@
 			"name": "Magic Initiate",
 			"source": "XPHB",
 			"page": 201,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "O",
 			"repeatable": true,
+			"repeatableHidden": true,
 			"additionalSpells": [
 				{
 					"name": "Cleric Spells",
@@ -4937,7 +4847,7 @@
 				"Mounted Combatant|XPHB"
 			],
 			"entries": [
-				"You are a dangerous foe to face while mounted. While you are mounted and aren't {@condition incapacitated}, you gain the following benefits:",
+				"You are a dangerous foe to face while {@book mounted|PHB|9|Mounted Combat}. While you are mounted and aren't {@condition incapacitated}, you gain the following benefits:",
 				{
 					"type": "list",
 					"items": [
@@ -4975,7 +4885,7 @@
 					"type": "entries",
 					"name": "Mounted Strike",
 					"entries": [
-						"While mounted, you have Advantage on attack rolls against any unmounted creature within 5 feet of your mount that is at least one size smaller than the mount."
+						"While {@book mounted|XPHB|1|Mounted Combat}, you have Advantage on attack rolls against any unmounted creature within 5 feet of your mount that is at least one size smaller than the mount."
 					]
 				},
 				{
@@ -4989,7 +4899,7 @@
 					"type": "entries",
 					"name": "Veer",
 					"entries": [
-						"While mounted, you can force an attack that hits your mount to hit you instead if you don't have the {@condition Incapacitated|XPHB} condition."
+						"While {@book mounted|XPHB|1|Mounted Combat}, you can force an attack that hits your mount to hit you instead if you don't have the {@condition Incapacitated|XPHB} condition."
 					]
 				}
 			]
@@ -5017,7 +4927,7 @@
 					"type": "entries",
 					"name": "Encouraging Song",
 					"entries": [
-						"As you finish a Short or Long Rest, you can play a song on a Musical Instrument with which you have proficiency and give Heroic Inspiration to allies who hear the song. The number of allies you can affect in this way equals your Proficiency Bonus."
+						"As you finish a Short or Long Rest, you can play a song on a Musical Instrument with which you have proficiency and give {@variantrule Heroic Inspiration|XPHB} to allies who hear the song. The number of allies you can affect in this way equals your Proficiency Bonus."
 					]
 				}
 			]
@@ -5142,26 +5052,6 @@
 			]
 		},
 		{
-			"name": "Opportunistic Thief",
-			"source": "HWCS",
-			"page": 47,
-			"ability": [
-				{
-					"dex": 1
-				}
-			],
-			"entries": [
-				"You have learned the tricks of the trade of thievery, allowing you to exploit opportunities for pick-pocketing both in and out of combat. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"When a creature fails a melee attack roll against you in combat, you can make a Dexterity ({@skill Sleight of Hand}) check against a DC equal to 10 + the target's Dexterity modifier. On a success, you may steal any one item that is not being held or worn by the target.",
-						"Whenever you successfully use your {@skill Sleight of Hand} skill outside of combat to steal an object, you may immediately conceal it flawlessly on your person, or put another object you possess in its place."
-					]
-				}
-			]
-		},
-		{
 			"name": "Orcish Fury",
 			"source": "XGE",
 			"page": 75,
@@ -5223,6 +5113,20 @@
 					}
 				}
 			],
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"misty step",
+									"tongues"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You have spent significant time in Sigil or the Outlands, the crossroads of the multiverse. Being steeped in converging planar energies grants you these benefits:",
 				{
@@ -5236,27 +5140,6 @@
 								"You learn the {@spell misty step} and {@spell tongues} spells. You can cast each spell once using this feat without a spell slot, and you must finish a long rest before you can cast that spell in this way again. When you cast {@spell tongues} using this feat, you require no material components. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the one chosen when you gained the Scion of the Outer Planes feat."
 							]
 						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Perfect Landing",
-			"source": "HWCS",
-			"page": 47,
-			"ability": [
-				{
-					"dex": 1
-				}
-			],
-			"entries": [
-				"Years of living at great heights have taught you how to fall more gracefully. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"Reduce the damage die for fall damage from a d6 to a d4.",
-						"You do not fall prone after taking falling damage.",
-						"You do not take damage for the first 30 feet of your fall."
 					]
 				}
 			]
@@ -5360,7 +5243,7 @@
 							"type": "item",
 							"name": "Portal Cracker",
 							"entries": [
-								"Your experience with portals allows you to open them without a portal key. As an action, you can concentrate on a portal you're aware of that is within 5 feet of yourself and make a DC 20 Intelligence ({@skill Arcana}) check. On a failed check, you take {@damage 3d8} psychic damage and can't use this benefit on that portal again until you finish a long rest. On a successful check, you can force the portal open or closed for 1 hour. For that duration, the portal doesn't respond to its portal key unless a creature employing the key succeeds on a DC 20 Intelligence ({@skill Arcana}) check as an action."
+								"Your experience with portals allows you to open them without a portal key. As an action, you can concentrate on a portal you're aware of that is within 5 feet of yourself and make a {@dc 20} Intelligence ({@skill Arcana}) check. On a failed check, you take {@damage 3d8} psychic damage and can't use this benefit on that portal again until you finish a long rest. On a successful check, you can force the portal open or closed for 1 hour. For that duration, the portal doesn't respond to its portal key unless a creature employing the key succeeds on a {@dc 20} Intelligence ({@skill Arcana}) check as an action."
 							]
 						},
 						{
@@ -5394,7 +5277,7 @@
 					"items": [
 						"When you make a damage roll that deals poison damage, it ignores resistance to poison damage.",
 						"You can apply poison to a weapon or piece of ammunition as a bonus action, instead of an action.",
-						"You gain proficiency with the {@item poisoner's kit|phb} if you don't already have it. With one hour of work using a {@item poisoner's kit|phb} and expending 50 gp worth of materials, you can create a number of doses of potent poison equal to your proficiency bonus. Once applied to a weapon or piece of ammunition, the poison retains its potency for 1 minute or until you hit with the weapon or ammunition. When a creature takes damage from the coated weapon or ammunition, that creature must succeed on a DC 14 Constitution saving throw or take {@damage 2d8} poison damage and become {@condition poisoned} until the end of your next turn."
+						"You gain proficiency with the {@item poisoner's kit|phb} if you don't already have it. With one hour of work using a {@item poisoner's kit|phb} and expending 50 gp worth of materials, you can create a number of doses of potent poison equal to your proficiency bonus. Once applied to a weapon or piece of ammunition, the poison retains its potency for 1 minute or until you hit with the weapon or ammunition. When a creature takes damage from the coated weapon or ammunition, that creature must succeed on a {@dc 14} Constitution saving throw or take {@damage 2d8} poison damage and become {@condition poisoned} until the end of your next turn."
 					]
 				}
 			]
@@ -5437,7 +5320,7 @@
 					"type": "entries",
 					"name": "Brew Poison",
 					"entries": [
-						"You gain proficiency with the Poisoner's Kit. With 1 hour of work using such a kit and expending 50 GP worth of materials, you can create a number of poison doses equal to your Proficiency Bonus. As a Bonus Action, you can apply a poison dose to a weapon or piece of ammunition. Once applied, the poison retains its potency for 1 minute or until you deal damage with the {@condition poisoned|XPHB} item, whichever is shorter. When a creature takes damage from the {@condition poisoned|XPHB} item, that creature must succeed on a Constitution saving throw (DC 8 plus the modifier of the ability increased by this feat and your Proficiency Bonus) or take {@damage 2d8} Poison damage and have the {@condition Poisoned|XPHB} condition until the end of your next turn."
+						"You gain proficiency with the Poisoner's Kit. With 1 hour of work using such a kit and expending 50 GP worth of materials, you can create a number of poison doses equal to your Proficiency Bonus. As a Bonus Action, you can apply a poison dose to a weapon or piece of ammunition. Once applied, the poison retains its potency for 1 minute or until you deal damage with the poisoned item, whichever is shorter. When a creature takes damage from the poisoned item, that creature must succeed on a Constitution saving throw ({@dc 8} plus the modifier of the ability increased by this feat and your Proficiency Bonus) or take {@damage 2d8} Poison damage and have the {@condition Poisoned|XPHB} condition until the end of your next turn."
 					]
 				}
 			],
@@ -5500,14 +5383,14 @@
 					"type": "entries",
 					"name": "Pole Strike",
 					"entries": [
-						"Immediately after you take the {@action Attack|XPHB} action and attack with a Quarterstaff , a Spear, or a weapon that has the Heavy and Reach properties, you can use a Bonus Action to make a melee attack with the opposite end of the weapon. The weapon deals Bludgeoning damage, and the weapon's damage die for this attack is a {@dice d4}."
+						"Immediately after you take the {@action Attack|XPHB} action and attack with a {@item Quarterstaff|XPHB}, a {@item Spear|XPHB}, or a {@filter weapon that has the Heavy and Reach properties|items|type=melee weapon;ranged weapon|property=heavy;reach}, you can use a Bonus Action to make a melee attack with the opposite end of the weapon. The weapon deals Bludgeoning damage, and the weapon's damage die for this attack is a {@dice d4}."
 					]
 				},
 				{
 					"type": "entries",
 					"name": "Reactive Strike",
 					"entries": [
-						"While you're holding a Quarterstaff, a Spear, or a weapon that has the Heavy and Reach properties, you can take a Reaction to make one melee attack against a creature that enters the reach you have with that weapon."
+						"While you're holding a {@item Quarterstaff|XPHB}, a {@item Spear|XPHB}, or a {@filter weapon that has the Heavy and Reach properties|items|type=melee weapon;ranged weapon|property=heavy;reach}, you can take a Reaction to make one melee attack against a creature that enters the reach you have with that weapon."
 					]
 				}
 			]
@@ -5582,6 +5465,7 @@
 			"name": "Protection",
 			"source": "XPHB",
 			"page": 209,
+			"srd52": true,
 			"category": "FS",
 			"prerequisite": [
 				{
@@ -6098,8 +5982,21 @@
 					"innate": {
 						"_": {
 							"daily": {
-								"1": [
-									"comprehend languages"
+								"1e": [
+									"comprehend languages",
+									"fog cloud",
+									"inflict wounds",
+									"chromatic orb",
+									"disguise self",
+									"burning hands",
+									"speak with animals",
+									"armor of agathys",
+									"goodberry",
+									"longstrider",
+									"command",
+									"entangle",
+									"sanctuary",
+									"thunderwave"
 								]
 							}
 						}
@@ -6212,7 +6109,8 @@
 			"name": "Savage Attacker",
 			"source": "XPHB",
 			"page": 201,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "O",
 			"entries": [
 				"You've trained to deal particularly damaging strikes. Once per turn when you hit a target with a weapon, you can roll the weapon's damage dice twice and use either roll against the target."
@@ -6589,7 +6487,7 @@
 					"type": "entries",
 					"name": "Shadow Magic",
 					"entries": [
-						"Choose one level 1 spell from the Illusion or Necromancy school of magic. You always have that spell and the {@spell Invisibility|XPHB} spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat."
+						"Choose one {@filter level 1 spell|spells|level=1|school=I;N} from the Illusion or Necromancy school of magic. You always have that spell and the {@spell Invisibility|XPHB} spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat."
 					]
 				}
 			]
@@ -6703,7 +6601,7 @@
 					"type": "entries",
 					"name": "Shield Bash",
 					"entries": [
-						"If you attack a creature within 5 feet of you as part of the {@action Attack|XPHB} action and hit with a Melee weapon, you can immediately bash the target with your Shield if it's equipped, forcing the target to make a Strength saving throw (DC 8 plus your Strength modifier and Proficiency Bonus). On a failed save, you either push the target 5 feet from you or cause it to have the {@condition Prone|XPHB} condition (your choice). You can use this benefit only once on each of your turns."
+						"If you attack a creature within 5 feet of you as part of the {@action Attack|XPHB} action and hit with a Melee weapon, you can immediately bash the target with your Shield if it's equipped, forcing the target to make a Strength saving throw ({@dc 8} plus your Strength modifier and Proficiency Bonus). On a failed save, you either push the target 5 feet from you or cause it to have the {@condition Prone|XPHB} condition (your choice). You can use this benefit only once on each of your turns."
 					]
 				},
 				{
@@ -6852,16 +6750,18 @@
 				}
 			],
 			"entries": [
-				"You gain proficiency in any combination of three {@table skills|phb} or {@filter tools|items|type=tools;artisan's tools;instrument;gaming set;vehicle (land);vehicle (water)} of your choice."
+				"You gain proficiency in any combination of three {@table skills|phb} or {@filter tools|items|type=tool;artisan's tools;instrument;gaming set;vehicle (land);vehicle (water)} of your choice."
 			]
 		},
 		{
 			"name": "Skilled",
 			"source": "XPHB",
 			"page": 201,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "O",
 			"repeatable": true,
+			"repeatableHidden": true,
 			"skillToolLanguageProficiencies": [
 				{
 					"choose": [
@@ -6876,7 +6776,7 @@
 				}
 			],
 			"entries": [
-				"You gain proficiency in any combination of three {@table Skill List; Skills|XPHB|skills} or {@filter tools|items|type=tools;artisan's tools;instrument;gaming set;vehicle (land);vehicle (water)} of your choice.",
+				"You gain proficiency in any combination of three {@table Skill List; Skills|XPHB|skills} or {@filter tools|items|type=tool;artisan's tools;instrument;gaming set;vehicle (land);vehicle (water)} of your choice.",
 				{
 					"type": "entries",
 					"name": "Repeatable",
@@ -7068,27 +6968,6 @@
 								"As a bonus action, you surround yourself with an aura of magical wind and lightning that extends 10 feet from you in every direction but not through {@quickref Cover||3||total cover}. The aura lasts until the start of your next turn or until you are incapacitated. While the aura is active, you have resistance to lightning and thunder damage. In addition, attack rolls against you have disadvantage, and whenever another creature starts its turn within the aura, you can force the creature to make a Strength saving throw (DC equals 8 + your proficiency bonus + the modifier of the ability increased by this feat). On a failed save, the creature's speed is halved until the start of its next turn. You can use this bonus action a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest."
 							]
 						}
-					]
-				}
-			]
-		},
-		{
-			"name": "Speech of the Ancient Beasts",
-			"source": "HWCS",
-			"page": 47,
-			"ability": [
-				{
-					"cha": 1
-				}
-			],
-			"entries": [
-				"You have a special connection with the natural world. Great beasts regard you as their kin, and you possess the ability to speak the languages of the most powerful and mystic of their kind. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"Beasts of Large size or larger have a friendly disposition toward you unless you have attacked them.",
-						"You have advantage on Charisma checks made against beasts that are of Large size or larger.",
-						"You can speak and understand Giant Eagle, Giant Elk, and Giant Owl. You can otherwise be understood by any beast of Large size or larger, whether or not they speak a language. Beasts with Intelligence scores of 4 or lower may only be able to understand simple concepts."
 					]
 				}
 			]
@@ -8098,7 +7977,7 @@
 					"type": "entries",
 					"name": "Enhanced Unarmed Strike",
 					"entries": [
-						"When you hit with your Unarmed Strike and deal damage, you can deal Bludgeoning damage equal to {@dice 1d4} plus your Strength modifier instead of the normal damage of an Unarmed Strike."
+						"When you hit with your Unarmed Strike and deal damage, you can deal Bludgeoning damage equal to {@damage 1d4} plus your Strength modifier instead of the normal damage of an Unarmed Strike."
 					]
 				},
 				{
@@ -8159,7 +8038,7 @@
 					"type": "list",
 					"items": [
 						"You learn the {@spell mage hand} cantrip. You can cast it without verbal or somatic components, and you can make the spectral hand {@condition invisible}. If you already know this spell, its range increases by 30 feet when you cast it. Its spellcasting ability is the ability increased by this feat.",
-						"As a bonus action, you can try to telekinetically shove one creature you can see within 30 feet of you. When you do so, the target must succeed on a Strength saving throw (DC 8 + your proficiency bonus + the ability modifier of the score increased by this feat) or be moved 5 feet toward you or away from you. A creature can willingly fail this save."
+						"As a bonus action, you can try to telekinetically shove one creature you can see within 30 feet of you. When you do so, the target must succeed on a Strength saving throw ({@dc 8} + your proficiency bonus + the ability modifier of the score increased by this feat) or be moved 5 feet toward you or away from you. A creature can willingly fail this save."
 					]
 				}
 			]
@@ -8208,7 +8087,7 @@
 					"type": "entries",
 					"name": "Telekinetic Shove",
 					"entries": [
-						"As a Bonus Action, you can telekinetically shove one creature you can see within 30 feet of yourself. When you do so, the target must succeed on a Strength saving throw (DC 8 plus the ability modifier of the score increased by this feat and your Proficiency Bonus) or be moved 5 feet toward or away from you."
+						"As a Bonus Action, you can telekinetically shove one creature you can see within 30 feet of yourself. When you do so, the target must succeed on a Strength saving throw ({@dc 8} plus the ability modifier of the score increased by this feat and your Proficiency Bonus) or be moved 5 feet toward or away from you."
 					]
 				}
 			]
@@ -8378,7 +8257,8 @@
 			"name": "Two-Weapon Fighting",
 			"source": "XPHB",
 			"page": 210,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"category": "FS",
 			"prerequisite": [
 				{
@@ -8405,7 +8285,7 @@
 				}
 			],
 			"entries": [
-				"When you hit with your Unarmed Strike and deal damage, you can deal Bludgeoning damage equal to {@dice 1d6} plus your Strength modifier instead of the normal damage of an Unarmed Strike. If you aren't holding any weapons or a Shield when you make the attack roll, the {@dice d6} becomes a {@dice d8}.",
+				"When you hit with your Unarmed Strike and deal damage, you can deal Bludgeoning damage equal to {@damage 1d6} plus your Strength modifier instead of the normal damage of an Unarmed Strike. If you aren't holding any weapons or a Shield when you make the attack roll, the {@dice d6} becomes a {@dice d8}.",
 				"At the start of each of your turns, you can deal {@damage 1d4} Bludgeoning damage to one creature {@condition Grappled|XPHB} by you."
 			]
 		},
@@ -8669,28 +8549,6 @@
 			],
 			"entries": [
 				"You learn the magic of the primeval woods, which are revered and protected by your people. You learn one druid cantrip of your choice. You also learn the {@spell longstrider} and {@spell pass without trace} spells, each of which you can cast once without expending a spell slot. You regain the ability to cast these two spells in this way when you finish a long rest. Wisdom is your spellcasting ability for all three spells."
-			]
-		},
-		{
-			"name": "Woodwise",
-			"source": "HWCS",
-			"page": 47,
-			"skillProficiencies": [
-				{
-					"survival": true,
-					"nature": true
-				}
-			],
-			"entries": [
-				"You have lived your entire life in the gnarled, wooded areas of the world. You are adept at finding your way through even the most treacherous terrain. You gain the following benefits:",
-				{
-					"type": "list",
-					"items": [
-						"You gain proficiency in either the {@skill Survival} or {@skill Nature} skill.",
-						"You ignore difficult terrain.",
-						"You cannot become lost in natural surroundings except by magical means."
-					]
-				}
 			]
 		}
 	]

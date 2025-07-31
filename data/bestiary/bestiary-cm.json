@@ -2065,6 +2065,51 @@
 			"hasFluff": true
 		},
 		{
+			"name": "Kharbek",
+			"isNpc": true,
+			"isNamedCreature": true,
+			"source": "CM",
+			"page": 167,
+			"_copy": {
+				"name": "Scout",
+				"source": "MM",
+				"_templates": [
+					{
+						"name": "Mountain Dwarf",
+						"source": "PHB"
+					}
+				],
+				"_mod": {
+					"*": {
+						"mode": "replaceTxt",
+						"replace": "the scout",
+						"with": "Kharbek",
+						"flags": "i"
+					},
+					"trait": {
+						"mode": "appendArr",
+						"items": {
+							"name": "Exhaustion",
+							"entries": [
+								"Kharbek has 5 levels of {@condition exhaustion}."
+							]
+						}
+					}
+				}
+			},
+			"hp": {
+				"average": 1,
+				"formula": "3d8 + 3"
+			},
+			"languages": [
+				"Common",
+				"Dwarvish"
+			],
+			"tokenCredit": "Obsidian Entertainment",
+			"hasToken": true,
+			"hasFluff": true
+		},
+		{
 			"name": "Kiddywidget",
 			"source": "CM",
 			"page": 136,
@@ -2364,6 +2409,10 @@
 			"savingThrowForced": [
 				"constitution",
 				"dexterity"
+			],
+			"savingThrowForcedLegendary": [
+				"constitution",
+				"strength"
 			],
 			"savingThrowForcedSpell": [
 				"dexterity"
@@ -3180,6 +3229,10 @@
 			"savingThrowForced": [
 				"constitution",
 				"dexterity"
+			],
+			"savingThrowForcedLegendary": [
+				"dexterity",
+				"strength"
 			],
 			"savingThrowForcedSpell": [
 				"dexterity"
@@ -4560,6 +4613,9 @@
 				"constitution",
 				"wisdom"
 			],
+			"savingThrowForcedLegendary": [
+				"constitution"
+			],
 			"savingThrowForcedSpell": [
 				"constitution",
 				"dexterity",
@@ -4946,6 +5002,10 @@
 			"savingThrowForced": [
 				"dexterity",
 				"wisdom"
+			],
+			"savingThrowForcedLegendary": [
+				"constitution",
+				"dexterity"
 			],
 			"hasToken": true,
 			"hasFluff": true,

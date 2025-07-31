@@ -4,7 +4,8 @@
 			"name": "Ability Check",
 			"source": "XPHB",
 			"page": 360,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An ability check is a {@variantrule D20 Test|XPHB} that represents using one of the six abilities\u2014or a specific skill associated with an ability\u2014to overcome a challenge."
@@ -14,7 +15,8 @@
 			"name": "Ability Score and Modifier",
 			"source": "XPHB",
 			"page": 360,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature has six ability scores\u2014Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma\u2014each of which has a corresponding modifier. Add the modifier when you make a {@variantrule D20 Test|XPHB} Test with the corresponding ability or when a rule asks you to do so."
@@ -43,7 +45,8 @@
 			"name": "Action",
 			"source": "XPHB",
 			"page": 360,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"On your turn, you can take one action. Choose which action to take from those below or from the special actions provided by your features. These actions are defined elsewhere in this glossary:",
@@ -139,7 +142,8 @@
 			"name": "Advantage",
 			"source": "XPHB",
 			"page": 360,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you have Advantage on a {@variantrule D20 Test|XPHB}, roll two d20s, and use the higher roll. A roll can't be affected by more than one Advantage, and Advantage and {@variantrule Disadvantage|XPHB} on the same roll cancel each other."
@@ -149,7 +153,8 @@
 			"name": "Adventure",
 			"source": "XPHB",
 			"page": 360,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An adventure is a series of {@variantrule Encounter|XPHB|encounters}. A story emerges through playing them."
@@ -159,6 +164,9 @@
 			"name": "Alien Technology",
 			"source": "DMG",
 			"page": 268,
+			"reprintedAs": [
+				"Alien Technology|XDMG"
+			],
 			"ruleType": "O",
 			"entries": [
 				"When adventurers find a piece of technology that isn't from their world or time period, the players might understand what the object is, but the characters rarely will. To simulate a character's ignorance about the technology, have the character make a series of Intelligence checks to figure it out.",
@@ -200,7 +208,8 @@
 			"name": "Alignment",
 			"source": "XPHB",
 			"page": 360,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature's alignment broadly describes its ethical attitudes and ideals. Alignment is a combination of two factors: one identifies morality (good, evil, or neutral), and the other describes attitudes toward order (lawful, chaotic, or neutral). These factors allow for nine possible combinations, such as Lawful Good and Neutral Evil."
@@ -210,7 +219,8 @@
 			"name": "Ally",
 			"source": "XPHB",
 			"page": 361,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature is your ally if it is a member of your adventuring party, your friend, on your side in combat, or a creature that the rules or the DM designates as your ally."
@@ -384,7 +394,8 @@
 			"name": "Area of Effect",
 			"source": "XPHB",
 			"page": 361,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"The descriptions of many spells and other features specify that they have an area of effect, which typically has one of six shapes. These shapes are defined elsewhere in this glossary:",
@@ -409,7 +420,8 @@
 			"name": "Armor Class",
 			"source": "XPHB",
 			"page": 361,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An Armor Class (AC) is the target number for an attack roll. AC represents how difficult it is to hit a target.",
@@ -420,7 +432,8 @@
 			"name": "Armor Training",
 			"source": "XPHB",
 			"page": 361,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Armor training allows you to use armor of a certain category without the following drawbacks. If you wear {@filter Light|items|type=Light Armor}, {@filter Medium|items|type=Medium Armor}, or {@filter Heavy|items|type=Heavy Armor} armor and lack training with it, you have {@variantrule Disadvantage|XPHB} on any {@variantrule D20 Test|XPHB} that involves Strength or Dexterity, and you can't cast spells. If you use a {@item Shield|XPHB} and lack training with it, you don't gain its AC bonus."
@@ -430,7 +443,8 @@
 			"name": "Attack Roll",
 			"source": "XPHB",
 			"page": 361,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An attack roll is a {@variantrule D20 Test|XPHB} that represents making an attack with a weapon, an {@variantrule Unarmed Strike|XPHB}, or a spell."
@@ -440,7 +454,8 @@
 			"name": "Attitude",
 			"source": "XPHB",
 			"page": 361,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A {@variantrule Monster|XPHB|monster} has a starting attitude toward a {@variantrule Player Character|XPHB|player character}: {@variantrule Friendly [Attitude]|XPHB|Friendly}, {@variantrule Hostile [Attitude]|XPHB|Hostile}, or {@variantrule Indifferent [Attitude]|XPHB|Indifferent}."
@@ -450,7 +465,8 @@
 			"name": "Attunement",
 			"source": "XPHB",
 			"page": 361,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Some magic items require a creature to form a bond\u2014called Attunement\u2014with them before the creature can use an item's magical properties. A creature can have Attunement with no more than three magic items at a time."
@@ -462,9 +478,9 @@
 			"page": 239,
 			"ruleType": "VO",
 			"entries": [
-				"Sometimes the randomness of a {@dice d20} roll leads to ludicrous results. Let's say a door requires a DC 15 Strength check to batter down. A fighter with Strength 20 might helplessly flail against the door due to bad die rolls. Meanwhile, the rogue with a 10 Strength rolls a natural 20 on her first check and knocks the door from its hinges.",
+				"Sometimes the randomness of a {@dice d20} roll leads to ludicrous results. Let's say a door requires a {@dc 15} Strength check to batter down. A fighter with Strength 20 might helplessly flail against the door due to bad die rolls. Meanwhile, the rogue with a 10 Strength rolls a natural 20 on her first check and knocks the door from its hinges.",
 				"If such results bother you, allow automatic success on checks for characters with high ability scores. Under this optional rule, a character automatically succeeds on any ability check with a DC less than or equal to the relevant ability score minus 5. So in the above example, the fighter would automatically kick in the door. This rule doesn't apply to contests, saving throws, or attack rolls.",
-				"The downside of this approach is its predictability. Once a character's ability score reaches 20, checks of DC 15 and lower using that ability become automatic successes. Smart players will then always try to match the character with the highest ability score against any given check. If you want some risk of failure, you need to set higher DCs. Doing this, though, can merely aggravate the problem you're trying to solve: higher DCs require higher die rolls, and thus rely even more on luck.",
+				"The downside of this approach is its predictability. Once a character's ability score reaches 20, checks of {@dc 15} and lower using that ability become automatic successes. Smart players will then always try to match the character with the highest ability score against any given check. If you want some risk of failure, you need to set higher DCs. Doing this, though, can merely aggravate the problem you're trying to solve: higher DCs require higher die rolls, and thus rely even more on luck.",
 				"You can modify this rule to account for proficiencies using an additional option. If a character can apply a proficiency bonus to the check, he or she automatically succeeds if its DC is less than or equal to the relevant ability score. If you don't mind predictability, and you can resist the temptation to increase DCs, you might find that this variant speeds up play and focuses attention on truly difficult, tense situations."
 			]
 		},
@@ -472,7 +488,8 @@
 			"name": "Bloodied",
 			"source": "XPHB",
 			"page": 362,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature is Bloodied while it has half its {@variantrule Hit Points|XPHB} or fewer remaining."
@@ -482,7 +499,8 @@
 			"name": "Bonus Action",
 			"source": "XPHB",
 			"page": 362,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Bonus Action is a special action that you can take on the same turn that you take an action. You can't take more than one Bonus Action on a turn, and you have a Bonus Action to take only if a rule explicitly says so."
@@ -492,7 +510,8 @@
 			"name": "Breaking Objects",
 			"source": "XPHB",
 			"page": 362,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Objects can be harmed by attacks and by some spells, using the rules below. If an object is exceedingly fragile, the DM may allow a creature to break it automatically with the {@action Attack|XPHB} or {@action Utilize|XPHB} action.",
@@ -630,7 +649,8 @@
 			"name": "Bright Light",
 			"source": "XPHB",
 			"page": 362,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Bright Light is normal illumination."
@@ -640,7 +660,8 @@
 			"name": "Burrow Speed",
 			"source": "XPHB",
 			"page": 362,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature that has a Burrow Speed can use that speed to move through sand, earth, mud, or ice. The creature can't burrow through solid rock unless the creature has a trait that allows it to do so."
@@ -650,7 +671,8 @@
 			"name": "Campaign",
 			"source": "XPHB",
 			"page": 362,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A campaign is a series of {@variantrule Adventure|XPHB|adventures}."
@@ -660,7 +682,8 @@
 			"name": "Cantrip",
 			"source": "XPHB",
 			"page": 362,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A cantrip is a level 0 spell, which is cast without a spell slot."
@@ -670,7 +693,8 @@
 			"name": "Carrying Capacity",
 			"source": "XPHB",
 			"page": 362,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Your size and Strength score determines the maximum weight in pounds that you can carry, as shown in the Carrying Capacity table. The table also shows the maximum weight you can drag, lift or push.",
@@ -722,7 +746,8 @@
 			"name": "Challenge Rating",
 			"source": "XPHB",
 			"page": 363,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Challenge Rating (CR) summarizes the threat a {@variantrule Monster|XPHB|monster} poses to a group of four {@variantrule Player Character|XPHB|player characters}. Compare a {@variantrule Monster|XPHB|monster's} CR to the characters' level. If the CR is higher, the {@variantrule Monster|XPHB|monster} is likely a danger. If the CR is lower, the {@variantrule Monster|XPHB|monster} likely poses little threat. But circumstances and the number of {@variantrule Player Character|XPHB|player characters} can significantly alter how threatening a {@variantrule Monster|XPHB|monster} is in actual play. The {@book Dungeon Master's Guide|XDMG} provides guidance to the DM on using CR while planning potential combat {@variantrule Encounter|XPHB|encounters}."
@@ -732,7 +757,8 @@
 			"name": "Character Sheet",
 			"source": "XPHB",
 			"page": 363,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A character sheet is a paper or digital record that you use to track your character's information."
@@ -752,7 +778,8 @@
 			"name": "Climb Speed",
 			"source": "XPHB",
 			"page": 363,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Climb Speed can be used in place of {@variantrule Speed|XPHB} to traverse a vertical surface without expending the extra movement normally associated with climbing."
@@ -762,7 +789,8 @@
 			"name": "Climbing",
 			"source": "XPHB",
 			"page": 363,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"While you're climbing, each foot of movement costs 1 extra foot (2 extra feet in {@variantrule Difficult Terrain|XPHB|difficult terrain}). You ignore this extra cost if you have a {@variantrule Climb Speed|XPHB} and use it to climb. At the DM's option, climbing a slippery surface or one with few handholds might require a successful {@dc 15} Strength ({@skill Athletics|XPHB}) check."
@@ -772,7 +800,8 @@
 			"name": "Condition",
 			"source": "XPHB",
 			"page": 363,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A condition is a temporary game state. The definition of a condition says how it affects its recipient, and various rules define how to end a condition. This glossary defines these conditions:",
@@ -781,19 +810,20 @@
 					"style": "list-hang-notitle",
 					"columns": 3,
 					"items": [
-						"{@condition Grappled|XPHB}",
-						"{@condition Poisoned|XPHB}",
+						"{@condition Blinded|XPHB}",
 						"{@condition Charmed|XPHB}",
-						"{@condition Incapacitated|XPHB}",
-						"{@condition Prone|XPHB}",
 						"{@condition Deafened|XPHB}",
-						"{@condition Invisible|XPHB}",
-						"{@condition Restrained|XPHB}",
 						"{@condition Exhaustion|XPHB}",
-						"{@condition Paralyzed|XPHB}",
-						"{@condition Stunned|XPHB}",
 						"{@condition Frightened|XPHB}",
+						"{@condition Grappled|XPHB}",
+						"{@condition Incapacitated|XPHB}",
+						"{@condition Invisible|XPHB}",
+						"{@condition Paralyzed|XPHB}",
 						"{@condition Petrified|XPHB}",
+						"{@condition Poisoned|XPHB}",
+						"{@condition Prone|XPHB}",
+						"{@condition Restrained|XPHB}",
+						"{@condition Stunned|XPHB}",
 						"{@condition Unconscious|XPHB}"
 					]
 				},
@@ -804,7 +834,8 @@
 			"name": "Cone [Area of Effect]",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Cone is an area of effect that extends in straight lines from a point of origin in a direction its creator chooses. A Cone's width at any point along its length is equal to that point's distance from the point of origin. For example, a Cone is 15 feet wide at a point along its length that is 15 feet from the point of origin. The effect that creates a Cone specifies its maximum length.",
@@ -815,7 +846,8 @@
 			"name": "Cover",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Cover provides a degree of protection to a target behind it. There are three degrees of cover, each of which provides a different benefit to a target: Half Cover (+2 bonus to AC and Dexterity saving throws), Three-Quarters Cover (+5 bonus to AC and Dexterity {@variantrule Saving Throw|XPHB|saving throws}), and Total Cover (can't be targeted directly). If behind more than one degree of cover, a target benefits only from the most protective degree."
@@ -844,15 +876,15 @@
 					"rows": [
 						[
 							"Large",
-							"{@dice 4d10}"
+							"{@damage 4d10}"
 						],
 						[
 							"Huge",
-							"{@dice 8d10}"
+							"{@damage 8d10}"
 						],
 						[
 							"Gargantuan",
-							"{@dice 16d10}"
+							"{@damage 16d10}"
 						]
 					]
 				}
@@ -862,7 +894,8 @@
 			"name": "Crawling",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"While you're crawling, each foot of movement costs 1 extra foot (2 extra feet in {@variantrule Difficult Terrain|XPHB|difficult terrain})."
@@ -872,7 +905,8 @@
 			"name": "Creature",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Any being in the game, including a {@variantrule Player Character|XPHB|a player's character}, is a creature."
@@ -882,7 +916,8 @@
 			"name": "Creature Type",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Every creature, including every {@variantrule Player Character|XPHB|player character}, has a tag in the rules that identifies the type of creature it is. Most {@variantrule Player Character|XPHB|player characters} are of the Humanoid type. These are the game's creature types:",
@@ -891,19 +926,20 @@
 					"style": "list-hang-notitle",
 					"columns": 3,
 					"items": [
-						"Elemental",
-						"Monstrosity",
+						"Aberration",
 						"Beast",
-						"Fey",
-						"Ooze",
 						"Celestial",
-						"Fiend",
-						"Plant",
 						"Construct",
-						"Giant",
-						"Undead",
 						"Dragon",
-						"Humanoid"
+						"Elemental",
+						"Fey",
+						"Fiend",
+						"Giant",
+						"Humanoid",
+						"Monstrosity",
+						"Ooze",
+						"Plant",
+						"Undead"
 					]
 				},
 				"The types don't have rules themselves, but some rules in the game affect creatures of certain types in different ways."
@@ -923,7 +959,8 @@
 			"name": "Critical Hit",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you roll a 20 on the {@dice d20} for an attack roll, you score a Critical Hit, and the attack hits regardless of any modifiers or the target's AC. A Critical Hit lets you roll extra dice for the attack's damage against the target. Roll all of the attack's damage dice twice and add them together. Then add any relevant modifiers."
@@ -933,7 +970,8 @@
 			"name": "Cube [Area of Effect]",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Cube is an area of effect that extends in straight lines from a point of origin located anywhere on a face of the Cube. The effect that creates a Cube specifies its size, which is the length of each side. A Cube's point of origin isn't included in the area of effect unless its creator decides otherwise."
@@ -943,7 +981,8 @@
 			"name": "Curses",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Some game effects curse a creature or an object. The effect that confers a curse defines what the curse does. Curses can be removed by the {@spell Remove Curse|XPHB} and {@spell Greater Restoration|XPHB} spells or other magic that explicitly ends curses."
@@ -1151,7 +1190,8 @@
 			"name": "Cylinder [Area of Effect]",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Cylinder is an area of effect that extends in straight lines from a point of origin located at the center of the circular top or bottom of the Cylinder. The effect that creates a Cylinder specifies the radius of the Cylinder's base and the Cylinder's height.",
@@ -1162,7 +1202,8 @@
 			"name": "D20 Test",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"D20 Tests encompass the three main d20 rolls of the game: {@variantrule Ability Check|XPHB|ability checks}, {@variantrule Attack Roll|XPHB|attack rolls}, and {@variantrule Saving Throw|XPHB|saving throws}. If something in the game affects D20 Tests, it affects all three of these rolls. The DM determines whether a D20 Test is warranted in a given circumstance."
@@ -1172,7 +1213,8 @@
 			"name": "Damage",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Damage represents harm that causes a creature or an object to lose {@variantrule Hit Points|XPHB}."
@@ -1182,7 +1224,8 @@
 			"name": "Damage Roll",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A damage roll is a die roll, adjusted by any applicable modifiers, that deals damage to a target."
@@ -1192,7 +1235,8 @@
 			"name": "Damage Threshold",
 			"source": "XPHB",
 			"page": 364,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature or an object that has a damage threshold has {@variantrule Immunity|XPHB} to all damage unless it takes an amount of damage from a single attack or effect equal to or greater than its damage threshold, in which case it takes that entire instance of damage. Any damage that fails to meet or exceed the damage threshold is superficial and doesn't reduce {@variantrule Hit Points|XPHB}. For example, if an object has a damage threshold of 10, the object takes no damage if 9 damage is dealt to it, since that damage fails to exceed the threshold. If the same object is dealt 11 damage, it takes all of that damage."
@@ -1202,7 +1246,8 @@
 			"name": "Damage Types",
 			"source": "XPHB",
 			"page": 365,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Attacks and other harmful effects deal different types of damage. Damage types have no rules of their own, but other rules, such as Resistance, rely on the types. The Damage Types table offers examples to help a DM assign a type to a new effect.",
@@ -1278,7 +1323,8 @@
 			"name": "Darkness",
 			"source": "XPHB",
 			"page": 365,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An area of Darkness is {@variantrule Heavily Obscured|XPHB}."
@@ -1288,7 +1334,8 @@
 			"name": "Dead",
 			"source": "XPHB",
 			"page": 365,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A dead creature has no {@variantrule Hit Points|XPHB} and can't regain them unless it is first revived by magic such as the {@spell Raise Dead|XPHB} or {@spell Revivify|XPHB} spell. When such a spell is cast, the spirit knows who is casting it and can refuse. The spirit of a dead creature has left the body and departed for the Outer Planes, and reviving the creature requires calling the spirit back.",
@@ -1299,7 +1346,8 @@
 			"name": "Death Saving Throw",
 			"source": "XPHB",
 			"page": 365,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A {@variantrule Player Character|XPHB|player character} must make a Death Saving Throw (also called a Death Save) if they start their turn with 0 {@variantrule Hit Points|XPHB}."
@@ -1309,6 +1357,9 @@
 			"name": "Diagonals",
 			"source": "DMG",
 			"page": 252,
+			"reprintedAs": [
+				"Diagonal Movement|XDMG"
+			],
 			"ruleType": "O",
 			"entries": [
 				"The {@book Player's Handbook|PHB} presents a simple method for counting movement and measuring range on a grid: count every square as 5 feet, even if you're moving diagonally. Though this is fast in play, it breaks the laws of geometry and is inaccurate over long distances. This optional rule provides more realism, but it requires more effort during combat.",
@@ -1320,7 +1371,8 @@
 			"name": "Difficult Terrain",
 			"source": "XPHB",
 			"page": 366,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If a space is Difficult Terrain, every foot of movement in that space costs 1 extra foot. For example, moving 5 feet through Difficult Terrain costs 10 feet of movement. Difficult Terrain isn't cumulative; either a space is Difficult Terrain or it isn't.",
@@ -1342,7 +1394,8 @@
 			"name": "Difficulty Class",
 			"source": "XPHB",
 			"page": 366,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Difficulty Class (DC) is the target number for an ability check or a {@variantrule Saving Throw|XPHB|saving throw}."
@@ -1352,7 +1405,8 @@
 			"name": "Dim Light",
 			"source": "XPHB",
 			"page": 366,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An area with Dim Light is {@variantrule Lightly Obscured|XPHB}."
@@ -1362,7 +1416,8 @@
 			"name": "Disadvantage",
 			"source": "XPHB",
 			"page": 366,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you have Disadvantage on a {@variantrule D20 Test|XPHB}, roll two d20s and use the lower roll. A roll can't be affected by more than one Disadvantage, and {@variantrule Advantage|XPHB} and Disadvantage on the same roll cancel each other."
@@ -2578,7 +2633,7 @@
 			"page": 187,
 			"entries": [
 				"You can use downtime between adventures to recover from a debilitating injury, disease, or poison.",
-				"After three days of downtime spent recuperating, you can make a DC 15 Constitution saving throw. On a successful save, you can choose one of the following results:",
+				"After three days of downtime spent recuperating, you can make a {@dc 15} Constitution saving throw. On a successful save, you can choose one of the following results:",
 				{
 					"type": "list",
 					"items": [
@@ -3162,7 +3217,7 @@
 			"entries": [
 				"Few people can afford to buy a magic item, and fewer still know how to find one. Adventurers are exceptional in this regard due to the nature of their profession.",
 				"A character who comes into possession of a common, uncommon, rare, or very rare magic item that he or she wants to sell can spend downtime searching for a buyer. This downtime activity can be performed only in a city or another location where one can find wealthy individuals interested in buying magic items. Legendary magic items and priceless artifacts can't be sold during downtime. Finding someone to buy such an item can be the substance of an adventure or quest.",
-				"For each salable item, the character makes a DC 20 Intelligence ({@skill Investigation}) check to find buyers. Another character can use his or her downtime to assist with the search, granting advantage on the checks. On a failed check, no buyer for the item is found after a search that lasts 10 days. On a successful check, a buyer for the item is found after a number of days based on the item's rarity, as shown in the Salable Magic Item table.",
+				"For each salable item, the character makes a {@dc 20} Intelligence ({@skill Investigation}) check to find buyers. Another character can use his or her downtime to assist with the search, granting advantage on the checks. On a failed check, no buyer for the item is found after a search that lasts 10 days. On a successful check, a buyer for the item is found after a number of days based on the item's rarity, as shown in the Salable Magic Item table.",
 				"A character can attempt to find buyers for multiple magic items at once. Although this requires multiple Intelligence ({@skill Investigation}) checks, the searches are occurring simultaneously, and the results of multiple failures or successes aren't added together. For example, if the character finds a buyer for a common magic item in 2 days and a buyer for an uncommon item in 5 days, but fails to find a buyer for a rare item up for grabs, the entire search takes 10 days.",
 				"For each item a character wishes to sell, the player rolls percentile dice and consults the Selling a Magic Item table, applying a modifier based on the item's rarity, as shown in the Salable Magic Items table. The character also makes a Charisma ({@skill Persuasion}) check and adds that check's total to the roll. The subsequent total determines what a buyer offers to pay for the item.",
 				"You determine a buyer's identity. Buyers sometimes procure rare and very rare items through proxies to ensure that their identities remain unknown. If the buyer is shady, it's up to you whether the sale creates legal complications for the party later.",
@@ -3281,7 +3336,7 @@
 						]
 					]
 				},
-				"The character must spend 1 gp per day to cover the cost of drinks, social appearances, and the like. At the end of the time spent sowing the rumor, the character must make a DC 15 Charisma ({@skill Deception} or {@skill Persuasion}) check. If the check succeeds, the community's prevailing attitude toward the subject shifts one step toward friendly or hostile, as the character wishes. If the check fails, the rumor gains no traction, and further attempts to propagate it fail.",
+				"The character must spend 1 gp per day to cover the cost of drinks, social appearances, and the like. At the end of the time spent sowing the rumor, the character must make a {@dc 15} Charisma ({@skill Deception} or {@skill Persuasion}) check. If the check succeeds, the community's prevailing attitude toward the subject shifts one step toward friendly or hostile, as the character wishes. If the check fails, the rumor gains no traction, and further attempts to propagate it fail.",
 				"Shifting a community's general attitude toward a person or organization doesn't affect everyone in the community. Individuals might hold to their own opinions, particularly if they have personal experience in dealing with the subject of the rumors."
 			]
 		},
@@ -3364,6 +3419,9 @@
 			"name": "Downtime Activity: Training to Gain Levels",
 			"source": "DMG",
 			"page": 131,
+			"reprintedAs": [
+				"Training to Gain Levels|XDMG"
+			],
 			"ruleType": "V",
 			"entries": [
 				"As a variant rule, you can require characters to spend downtime training or studying before they gain the benefits of a new level. If you choose this option, once a character has earned enough experience points to attain a new level, he or she must train for a number of days before gaining any class features associated with the new level.",
@@ -4982,7 +5040,8 @@
 			"name": "Emanation [Area of Effect]",
 			"source": "XPHB",
 			"page": 366,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An Emanation is an area of effect that extends in straight lines from a creature or an object in all directions. The effect that creates an Emanation specifies the distance it extends.",
@@ -5016,7 +5075,7 @@
 					"type": "entries",
 					"name": "Disfigured (Sanity 4\u20135)",
 					"entries": [
-						"In the third stage, the lips shrink away from the teeth, which can rot and fall out. Fingers and toes sometimes fuse together or start transforming into tentacles. Bleeding sores erupt on the skin, or bulbous growths can appear under the skin. Cultists in Nephalia often grow finlike protrusions or pincerlike hands. At this stage, creatures might manifest improved natural armor or weapons, or simple benefits such as the Amphibious trait of a {@creature bullywug}, the Blind Senses of a {@creature grimlock}, Chameleon Skin like a {@creature troglodyte}, the Slippery trait of a {@creature kuo-toa}, or the Spider Climb trait of an {@creature ettercap}."
+						"In the third stage, the lips shrink away from the teeth, which can rot and fall out. Fingers and toes sometimes fuse together or start transforming into tentacles. Bleeding sores erupt on the skin, or bulbous growths can appear under the skin. Cultists in Nephalia often grow fin-like protrusions or pincer-like hands. At this stage, creatures might manifest improved natural armor or weapons, or simple benefits such as the Amphibious trait of a {@creature bullywug}, the Blind Senses of a {@creature grimlock}, Chameleon Skin like a {@creature troglodyte}, the Slippery trait of a {@creature kuo-toa}, or the Spider Climb trait of an {@creature ettercap}."
 					]
 				},
 				{
@@ -5030,7 +5089,7 @@
 					"type": "entries",
 					"name": "Monstrous (Sanity 1)",
 					"entries": [
-						"The most warped creatures are barely even recognizable. Some become little more than a mass of writhing tentacles, or lose their physical coherence entirely. Two or more creatures can fuse together, joined by fleshy lattice. The \"lucky\" ones retain a basically humanoid shape, but otherwise appear completely monstrous, with twisted faces, extra limbs, horny growths, jointed tentacle extrusions, and so on. Such a creature might effectively become an Eldrazilike monster such as an {@creature aboleth}, a {@creature chuul}, a {@creature cloaker}, a {@creature gibbering mouther}, or a {@creature mind flayer}."
+						"The most warped creatures are barely even recognizable. Some become little more than a mass of writhing tentacles, or lose their physical coherence entirely. Two or more creatures can fuse together, joined by fleshy lattice. The \"lucky\" ones retain a basically humanoid shape, but otherwise appear completely monstrous, with twisted faces, extra limbs, horny growths, jointed tentacle extrusions, and so on. Such a creature might effectively become an Eldrazi-like monster such as an {@creature aboleth}, a {@creature chuul}, a {@creature cloaker}, a {@creature gibbering mouther}, or a {@creature mind flayer}."
 					]
 				}
 			]
@@ -5039,7 +5098,8 @@
 			"name": "Encounter",
 			"source": "XPHB",
 			"page": 366,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An encounter is a scene in an adventure that is part of at least one of the game's three pillars: social interaction, exploration, or combat."
@@ -5399,7 +5459,8 @@
 			"name": "Enemy",
 			"source": "XPHB",
 			"page": 366,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature is your enemy if it fights against you in combat, actively works to harm you, or is designated as your enemy by the rules or DM."
@@ -5420,7 +5481,8 @@
 			"name": "Experience Points",
 			"source": "XPHB",
 			"page": 366,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"As they overcome challenges and complete adventures, characters earn Experience Points (XP) which are awarded by the Dungeon Master. When a character's XP total crosses certain thresholds, the character's level increases. The {@book Dungeon Master's Guide|XDMG} provides guidance on awarding XP."
@@ -5430,7 +5492,8 @@
 			"name": "Expertise",
 			"source": "XPHB",
 			"page": 367,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Expertise is a feature that enhances your use of a skill proficiency. When you make an ability check with a skill proficiency in which you have Expertise, your {@variantrule Proficiency|XPHB|Proficiency Bonus} is doubled for that check unless the bonus is doubled by another feature.",
@@ -5441,6 +5504,9 @@
 			"name": "Explosives",
 			"source": "DMG",
 			"page": 267,
+			"reprintedAs": [
+				"Explosives|XDMG"
+			],
 			"ruleType": "O",
 			"entries": [
 				"A campaign might include explosives from the Renaissance or the modern world (the latter are priceless), as presented in the Explosives table.",
@@ -5448,7 +5514,7 @@
 					"type": "entries",
 					"name": "Bomb",
 					"entries": [
-						"As an action, a character can light this bomb and throw it at a point up to 60 feet away. Each creature within 5 feet of that point must succeed on a DC 12 Dexterity saving throw or take {@dice 3d6} fire damage."
+						"As an action, a character can light this bomb and throw it at a point up to 60 feet away. Each creature within 5 feet of that point must succeed on a {@dc 12} Dexterity saving throw or take {@damage 3d6} fire damage."
 					]
 				},
 				{
@@ -5456,15 +5522,15 @@
 					"name": "Gunpowder",
 					"entries": [
 						"Gunpowder is chiefly used to propel a bullet out of the barrel of a pistol or rifle, or it is formed into a bomb. Gunpowder is sold in small wooden kegs and in water-resistant powder horns.",
-						"Setting fire to a container full of gunpowder can cause it to explode, dealing fire damage to creatures within 10 feet of it ({@dice 3d6} for a powder horn, {@dice 7d6} for a keg). A successful DC 12 Dexterity saving throw halves the damage. Setting fire to an ounce of gunpowder causes it to flare for 1 round, shedding bright light in a 30-foot radius and dim light for an additional 30 feet."
+						"Setting fire to a container full of gunpowder can cause it to explode, dealing fire damage to creatures within 10 feet of it ({@dice 3d6} for a powder horn, {@dice 7d6} for a keg). A successful {@dc 12} Dexterity saving throw halves the damage. Setting fire to an ounce of gunpowder causes it to flare for 1 round, shedding bright light in a 30-foot radius and dim light for an additional 30 feet."
 					]
 				},
 				{
 					"type": "entries",
 					"name": "Dynamite",
 					"entries": [
-						"As an action, a creature can light a stick of dynamite and throw it at a point up to 60 feet away. Each creature within 5 feet of that point must make a DC 12 Dexterity saving throw, taking {@dice 3d6} bludgeoning damage on a failed save, or half as much damage on a successful one.",
-						"A character can bind sticks of dynamite together so they explode at the same time. Each additional stick increases the damage by {@dice 1d6} (to a maximum of {@dice 10d6}) and the burst radius by 5 feet (to a maximum of 20 feet).",
+						"As an action, a creature can light a stick of dynamite and throw it at a point up to 60 feet away. Each creature within 5 feet of that point must make a {@dc 12} Dexterity saving throw, taking {@damage 3d6} bludgeoning damage on a failed save, or half as much damage on a successful one.",
+						"A character can bind sticks of dynamite together so they explode at the same time. Each additional stick increases the damage by {@damage 1d6} (to a maximum of {@damage 10d6}) and the burst radius by 5 feet (to a maximum of 20 feet).",
 						"Dynamite can be rigged with a longer fuse to explode after a set amount of time, usually 1 to 6 rounds. Roll initiative for the dynamite. After the set number of rounds goes by, the dynamite explodes on that initiative."
 					]
 				},
@@ -5473,7 +5539,7 @@
 					"name": "Grenades",
 					"entries": [
 						"As an action, a character can throw a grenade at a point up to 60 feet away. With a grenade launcher, the character can propel the grenade up to 120 feet away.",
-						"Each creature within 20 feet of an exploding fragmentation grenade must make a DC 15 Dexterity saving throw, taking {@dice 5d6} piercing damage on a failed save, or half as much damage on a successful one.",
+						"Each creature within 20 feet of an exploding fragmentation grenade must make a {@dc 15} Dexterity saving throw, taking {@damage 5d6} piercing damage on a failed save, or half as much damage on a successful one.",
 						"One round after a smoke grenade lands, it emits a cloud of smoke that creates a heavily obscured area in a 20-foot radius. A moderate wind (at least 10 miles per hour) disperses the smoke in 4 rounds; a strong wind (20 or more miles per hour) disperses it in 1 round."
 					]
 				}
@@ -5506,7 +5572,7 @@
 			"ruleType": "O",
 			"type": "section",
 			"entries": [
-				"Falling from a great height is a significant risk for adventurers and their foes. The rule given in the {@book Player's Handbook|PHB|8|Falling} is simple: at the end of a fall, you take {@dice 1d6} bludgeoning damage for every 10 feet you fell, to a maximum of {@dice 20d6}. You also land {@condition prone}, unless you somehow avoid taking damage from the fall. Here are two optional rules that expand on that simple rule.",
+				"Falling from a great height is a significant risk for adventurers and their foes. The rule given in the {@book Player's Handbook|PHB|8|Falling} is simple: at the end of a fall, you take {@damage 1d6} bludgeoning damage for every 10 feet you fell, to a maximum of {@damage 20d6}. You also land {@condition prone}, unless you somehow avoid taking damage from the fall. Here are two optional rules that expand on that simple rule.",
 				{
 					"type": "entries",
 					"name": "Rate of Falling",
@@ -5659,7 +5725,7 @@
 					"type": "entries",
 					"name": "Fear",
 					"entries": [
-						"An overwhelming foe or horrid monster doesn't need magic or some supernatural ability to strike fear into the most stalwart adventurers. During any frightful encounter, you can call on a character to make a saving throw to resist being scared. The character must succeed on a DC 15 Wisdom saving throw or become {@condition frightened} until the end of their next turn.",
+						"An overwhelming foe or horrid monster doesn't need magic or some supernatural ability to strike fear into the most stalwart adventurers. During any frightful encounter, you can call on a character to make a saving throw to resist being scared. The character must succeed on a {@dc 15} Wisdom saving throw or become {@condition frightened} until the end of their next turn.",
 						"Any of the following circumstances might be reasons to have one or more characters make saving throws to resist being {@condition frightened}:",
 						{
 							"type": "list",
@@ -5720,6 +5786,9 @@
 			"name": "Firearms",
 			"source": "DMG",
 			"page": 267,
+			"reprintedAs": [
+				"Firearms|XDMG"
+			],
 			"ruleType": "O",
 			"entries": [
 				"If you want to model the swashbuckling style of The Three Musketeers and similar tales, you can introduce gunpowder weapon to your campaign that are associated with the Renaissance. Similarly, in a campaign where a spaceship has crashed or elements of modern-day Earth are present, futuristic or modern firearms might appear. The Firearms table provides examples of firearms from all three of those periods. The modern and futuristic items are priceless.",
@@ -5746,7 +5815,7 @@
 							"type": "entries",
 							"name": "Burst Fire",
 							"entries": [
-								"A weapon that has the burst fire property can make a normal single-target attack, or it can spray a 10-foot-cube area within normal range with shots. Each creature in the area must succeed on a DC 15 Dexterity saving throw or take the weapon's normal damage. This action uses ten pieces of ammunition."
+								"A weapon that has the burst fire property can make a normal single-target attack, or it can spray a 10-foot-cube area within normal range with shots. Each creature in the area must succeed on a {@dc 15} Dexterity saving throw or take the weapon's normal damage. This action uses ten pieces of ammunition."
 							]
 						},
 						{
@@ -5794,7 +5863,8 @@
 			"name": "Fly Speed",
 			"source": "XPHB",
 			"page": 367,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Fly Speed can be used to travel through the air. While you have a Fly Speed, you can stay aloft until you land, fall, or die."
@@ -5804,7 +5874,8 @@
 			"name": "Flying",
 			"source": "XPHB",
 			"page": 367,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A variety of effects allow a creature to fly. While flying, you fall if you have the {@condition Incapacitated|XPHB} or {@condition Prone|XPHB} condition or your {@variantrule Fly Speed|XPHB} is reduced to 0. You can stay aloft in those circumstances if you can hover."
@@ -5814,7 +5885,8 @@
 			"name": "Friendly [Attitude]",
 			"source": "XPHB",
 			"page": 367,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Friendly creature views you favorably. You have {@variantrule Advantage|XPHB|advantage} on an ability check to influence a Friendly creature."
@@ -5824,7 +5896,8 @@
 			"name": "Grappling",
 			"source": "XPHB",
 			"page": 367,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature can grapple another creature. Characters typically grapple by using an {@variantrule Unarmed Strike|XPHB}. Many {@variantrule Monster|XPHB|monsters} have special attacks that allow them to quickly grapple prey. However a grapple is initiated, it follows these rules.",
@@ -5847,9 +5920,9 @@
 						},
 						{
 							"type": "entries",
-							"name": "Escaping a Grapple",
+							"name": "Ending a Grapple",
 							"entries": [
-								"A Grappled creature can use its action to make a Strength ({@skill Athletics|XPHB}) or Dexterity ({@skill Acrobatics|XPHB}) check against the grapple's escape DC, ending the {@variantrule Condition|XPHB|condition} on itself on a success. The {@variantrule Condition|XPHB|condition} also ends if the grappler has the {@condition Incapacitated|XPHB} condition or if the distance between the Grappled target and the grappler exceeds the grapple's range."
+								"A Grappled creature can use its action to make a Strength ({@skill Athletics|XPHB}) or Dexterity ({@skill Acrobatics|XPHB}) check against the grapple's escape DC, ending the {@variantrule Condition|XPHB|condition} on itself on a success. The {@variantrule Condition|XPHB|condition} also ends if the grappler has the {@condition Incapacitated|XPHB} condition or if the distance between the Grappled target and the grappler exceeds the grapple's range. In addition, the grappler can release the target at any time (no action required)."
 							]
 						}
 					]
@@ -5886,48 +5959,13 @@
 					"entries": [
 						"Several haunted traps are presented here in alphabetical order. Customize them to create terrifying traps appropriate for your adventures.",
 						{
-							"type": "entries",
-							"name": "Danse Macabre",
-							"entries": [
-								"{@i Haunt Bonus +4}",
-								"This haunted trap affects a 20-foot-radius sphere centered on an ancient but pristine instrument. When a creature enters the area, the trap's emanation manifests as the sound of distant, mournful music. A round later, a phantom performer appears and begins playing the instrument for the next minute. While the performer plays, any creature that enters or starts its turn in the haunted trap's area must succeed on a DC 14 Wisdom saving throw or float 20 feet into the air and be affected by the spell {@spell Otto's irresistible dance}. There they are joined by illusory dancers as they dance for the remainder of the performer's song. As an action, a dancing creature can repeat the saving throw to end the effect on itself, whereupon it falls 20 feet and takes {@dice 2d6} bludgeoning damage. If a creature's saving throw to resist the trap or to stop dancing is successful, the creature is immune to the haunted trap for the next 24 hours.",
-								"While the phantom performer plays, any creature within the haunted trap's area can use an action to try to convince the performer to stop playing, doing so with a successful DC 14 Charisma ({@skill Persuasion}) check. When the performer stops playing, all creatures affected by the haunted trap are freed from its effects and float to the ground safely."
-							]
-						},
-						{
-							"type": "entries",
-							"name": "Faceless Malice",
-							"entries": [
-								"{@i Haunt Bonus +2}",
-								"This haunted trap affects a 15-foot-cube in front of an ornate mirror hanging on a wall. When a visible creature enters the area, the trap's emanation manifests as the creature's distorted reflection in the mirror. If that creature is still in the area at the start of its next turn, it must succeed on a DC 12 Wisdom saving throw or be {@condition blinded}, {@condition deafened}, and rendered unable to speak for 1 minute. Additionally, an illusion makes it appear that the creature has had its face erased. The {@spell remove curse} spell ends this effect, as does destroying the mirror. The mirror has AC 12, 10 hit points, vulnerability to bludgeoning damage, and immunity to poison and psychic damage. After a creature fails its saving throw against the trap, the trap won't activate again for 24 hours.",
-								{
-									"type": "image",
-									"href": {
-										"type": "internal",
-										"path": "variantrules/VRGR/110-04-006.faceless-malice.webp"
-									},
-									"title": "The faceless malice haunted trap claims a victim",
-									"width": 850,
-									"height": 1253,
-									"credit": "Irina Nordsol"
-								}
-							]
-						},
-						{
-							"type": "entries",
-							"name": "Icon of the Lower Aerial Kingdoms",
-							"entries": [
-								"{@i Haunt Bonus +6}",
-								"This haunted trap is tied to the 10-foot-radius sphere surrounding an ominous, 1-foot-tall statue of a menacing, four-winged, birdlike figure. Once per day, when a creature enters the area, the trap's emanation manifests as the sound of distant flapping wings and a rush of warm air. If that creature is still in the area at the start of its next turn, it must succeed on a DC 16 Wisdom saving throw or be {@condition charmed} and {@condition incapacitated} for 1 minute. These conditions last until the creature is damaged or someone else uses an action to shake the creature. If the affected creature remains {@condition charmed} for the full minute, they are then affected as per the spell {@spell magic jar}, their soul entering the statue and being replaced by the spirit of a disembodied fiend. This effect ends when {@spell dispel evil and good} or a similar spell is cast on the affected creature, or when the statue is destroyed. The statue has AC 17, 15 hit points, and immunity to poison and psychic damage.",
-								"This haunted trap manifests as the result of a fiendish influence. Casting {@spell dispel evil and good} on the statue permanently disarms the haunted trap."
-							]
-						},
-						{
-							"type": "entries",
-							"name": "Morbid Memory",
-							"entries": [
-								"{@i Haunt Bonus +0}",
-								"A morbid memory trap presents little danger, but it proves useful in revealing important and unsettling glimpses into an area's past. This haunted trap affects a single room or 30-foot-square area. When a creature enters the area, the trap's emanation manifests as faint, disembodied whispers. If that creature is still in the area at the start of its next turn, an illusory scene plays out, repeating some terrible event that happened in the area. This vision typically lasts 1 minute. When the vision ends, all creatures in the area that saw the illusion must succeed on a DC 10 Wisdom saving throw or become {@condition frightened} of the area for the next {@dice 1d4} rounds. {@condition Frightened} creatures must take the {@action Dash} action and move away from the haunted area by the safest available route on each of their turns, unless there is nowhere else to move. After the haunted trap is activated, it won't activate again for 24 hours."
+							"type": "list",
+							"columns": 3,
+							"items": [
+								"{@trap Danse Macabre|VRGR}",
+								"{@trap Faceless Malice|VRGR}",
+								"{@trap Icon of the Lower Aerial Kingdoms|VRGR}",
+								"{@trap Morbid Memory|VRGR}"
 							]
 						}
 					]
@@ -5938,7 +5976,8 @@
 			"name": "Hazard",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A {@5etools hazard|trapshazards.html} is an environmental danger."
@@ -5965,7 +6004,7 @@
 						"This optional rule allows characters to heal up in the thick of combat and works well for parties that feature few or no characters with healing magic, or for campaigns in which magical healing is rare.",
 						"As an action, a character can use a healing surge and spend up to half his or her Hit Dice. For each Hit Die spent in this way, the player rolls the die and adds the character's Constitution modifier. The character regains hit points equal to the total. The player can decide to spend an additional Hit Die after each roll.",
 						"A character who uses a healing surge can't do so again until he or she finishes a short or long rest. Under this optional rule, a character regains all spent Hit Dice at the end of a long rest. With a short rest, a character regains Hit Dice equal to his or her level divided by four (minimum of one dice).",
-						"For a more superheroic feel, you can let a character use a healing surge as a bonus action, rather than as an action."
+						"For a more super-heroic feel, you can let a character use a healing surge as a bonus action, rather than as an action."
 					]
 				},
 				{
@@ -5982,7 +6021,8 @@
 			"name": "Healing",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Healing is how you regain {@variantrule Hit Points|XPHB}."
@@ -5992,10 +6032,11 @@
 			"name": "Heavily Obscured",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
-				"You have the {@condition Blinded|XPHB} condition while trying to see something in a {@variantrule Heavily Obscured|XPHB} space."
+				"You have the {@condition Blinded|XPHB} condition while trying to see something in a Heavily Obscured space."
 			]
 		},
 		{
@@ -6056,7 +6097,8 @@
 			"name": "Heroic Inspiration",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you ({@variantrule Player Character|XPHB|a player character}) have Heroic Inspiration, you can expend it to reroll any die immediately after rolling it, and you must use the new roll.",
@@ -6067,7 +6109,8 @@
 			"name": "High Jump",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"When you make a High Jump, you leap into the air a number of feet equal to 3 plus your Strength modifier (minimum of 0 feet) if you move at least 10 feet on foot immediately before the jump. When you make a standing High Jump, you can jump only half that distance. Either way, each foot of the jump costs a foot of movement.",
@@ -6078,7 +6121,8 @@
 			"name": "Hit Point Dice",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Hit Point Dice, or Hit Dice for short, help determine a {@variantrule Player Character|XPHB|player character's} Hit Point maximum, as explained in {@book chapter 2|XPHB|2}. Most {@variantrule Monster|XPHB|monsters} also have Hit Dice. A creature can spend Hit Dice during a {@variantrule Short Rest|XPHB} to regain {@variantrule Hit Points|XPHB}."
@@ -6088,7 +6132,8 @@
 			"name": "Hit Points",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Hit Points (HP) are a measure of how difficult it is to kill or destroy a creature or an object. Damage reduces Hit Points, and healing restores them. You can't have more Hit Points than your Hit Point maximum, and you can't have less than 0."
@@ -6108,7 +6153,8 @@
 			"name": "Hostile [Attitude]",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Hostile creature views you unfavorably. You have {@variantrule Disadvantage|XPHB} on an ability check to influence a Hostile creature."
@@ -6118,7 +6164,8 @@
 			"name": "Hover",
 			"source": "XPHB",
 			"page": 368,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Some creatures can hover, as noted in their stat blocks, and some spells and other effects grant the ability to hover. Hovering while {@variantrule Flying|XPHB|flying} prevents you from falling in certain circumstances."
@@ -6278,7 +6325,8 @@
 			"name": "Illusions",
 			"source": "XPHB",
 			"page": 369,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Spells and other effects sometimes create magical illusions. Such an effect defines what the illusion does and which senses or mental faculties it deceives.",
@@ -6289,7 +6337,8 @@
 			"name": "Immunity",
 			"source": "XPHB",
 			"page": 369,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you have Immunity to a {@variantrule Damage Types|XPHB|damage type} or a {@variantrule Condition|XPHB|condition}, it doesn't affect you in any way."
@@ -6299,7 +6348,8 @@
 			"name": "Improvised Weapons",
 			"source": "XPHB",
 			"page": 369,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An improvised weapon is an object wielded as a makeshift weapon, such as broken glass, a table leg, or a frying pan. A Simple or Martial weapon also counts as an improvised weapon if it's wielded in a way contrary to its design; if you use a Ranged weapon to make a melee attack or throw a Melee weapon that lacks the Thrown property, the weapon counts as an improvised weapon. An improvised weapon follows the rules below.",
@@ -6317,7 +6367,7 @@
 							"type": "entries",
 							"name": "Damage",
 							"entries": [
-								"On a hit, the weapon deals {@dice 1d4} damage of a type the DM thinks is appropriate for the object."
+								"On a hit, the weapon deals {@damage 1d4} damage of a type the DM thinks is appropriate for the object."
 							]
 						},
 						{
@@ -6342,7 +6392,8 @@
 			"name": "Indifferent [Attitude]",
 			"source": "XPHB",
 			"page": 369,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An Indifferent creature has no desire to help or hinder you. Indifferent is the default attitude of a {@variantrule Monster|XPHB|monster}."
@@ -6352,7 +6403,8 @@
 			"name": "Initiative",
 			"source": "XPHB",
 			"page": 369,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Initiative determines the order of turns during combat. The combat rules in {@book chapter 1|XPHB|1} explain how to roll Initiative.",
@@ -6535,11 +6587,11 @@
 						],
 						[
 							"4",
-							"{@bold Limp.} Your speed on foot is reduced by 5 feet. You must make a DC 10 Dexterity saving throw after using the {@action Dash} action. If you fail the save, you fall {@condition prone}. Magical healing removes the limp."
+							"{@bold Limp.} Your speed on foot is reduced by 5 feet. You must make a {@dc 10} Dexterity saving throw after using the {@action Dash} action. If you fail the save, you fall {@condition prone}. Magical healing removes the limp."
 						],
 						[
 							"5-7",
-							"{@bold Internal Injury.} Whenever you attempt an action in combat, you must make a DC 15 Constitution saving throw. On a failed save, you lose your action and can't use reactions until the start of your next turn. The injury heals if you receive magical healing or if you spend ten days doing nothing but resting."
+							"{@bold Internal Injury.} Whenever you attempt an action in combat, you must make a {@dc 15} Constitution saving throw. On a failed save, you lose your action and can't use reactions until the start of your next turn. The injury heals if you receive magical healing or if you spend ten days doing nothing but resting."
 						],
 						[
 							"8-10",
@@ -6551,7 +6603,7 @@
 						],
 						[
 							"14-16",
-							"{@bold Festering Wound.} Your hit point maximum is reduced by 1 every 24 hours the wound persists. If your hit point maximum drops to 0, you die. The wound heals if you receive magical healing. Alternatively, someone can tend to the wound and make a DC 15 Wisdom ({@skill Medicine}) check once every 24 hours. After ten successes, the wound heals."
+							"{@bold Festering Wound.} Your hit point maximum is reduced by 1 every 24 hours the wound persists. If your hit point maximum drops to 0, you die. The wound heals if you receive magical healing. Alternatively, someone can tend to the wound and make a {@dc 15} Wisdom ({@skill Medicine}) check once every 24 hours. After ten successes, the wound heals."
 						],
 						[
 							"17-20",
@@ -6683,7 +6735,8 @@
 			"name": "Jumping",
 			"source": "XPHB",
 			"page": 370,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"When you jump, you make either a {@variantrule Long Jump|XPHB} (horizontal) or a {@variantrule High Jump|XPHB} (vertical)."
@@ -6693,7 +6746,8 @@
 			"name": "Knocking Out a Creature",
 			"source": "XPHB",
 			"page": 370,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"When you would reduce a creature to 0 {@variantrule Hit Points|XPHB} with a melee attack, you can instead reduce the creature to 1 Hit Point. The creature then has the {@condition Unconscious|XPHB} condition and starts a {@variantrule Short Rest|XPHB}.",
@@ -6704,6 +6758,9 @@
 			"name": "Level Advancement without XP",
 			"source": "DMG",
 			"page": 261,
+			"reprintedAs": [
+				"Milestones|XDMG"
+			],
 			"entries": [
 				"You can do away with experience points entirely and control the rate of character advancement. Advance characters based on how many sessions they play, or when they accomplish significant story goals in the campaign. In either case, you tell the players when their characters gain a level.",
 				"This method of level advancement can be particularly helpful if your campaign doesn't include much combat, or includes so much combat that tracking XP becomes tiresome.",
@@ -6727,7 +6784,8 @@
 			"name": "Lightly Obscured",
 			"source": "XPHB",
 			"page": 370,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"You have {@variantrule Disadvantage|XPHB} on Wisdom ({@skill Perception|XPHB}) checks to see something in a Lightly Obscured space."
@@ -6737,7 +6795,8 @@
 			"name": "Line [Area of Effect]",
 			"source": "XPHB",
 			"page": 370,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Line is an area of effect that extends from a point of origin in a straight path along its length and covers an area defined by its width. The effect that creates a Line specifies its length and width.",
@@ -6748,7 +6807,8 @@
 			"name": "Long Jump",
 			"source": "XPHB",
 			"page": 370,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"When you make a Long Jump, you leap horizontally a number of feet up to your Strength score if you move at least 10 feet immediately before the jump. When you make a standing Long Jump, you can leap only half that distance. Either way, each foot you jump costs a foot of movement.",
@@ -6760,7 +6820,8 @@
 			"name": "Long Rest",
 			"source": "XPHB",
 			"page": 370,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Long Rest is a period of extended downtime\u2014at least 8 hours\u2014available to any creature. During a Long Rest, you sleep for at least 6 hours and perform no more than 2 hours of light activity, such as reading, talking, eating, or standing watch.",
@@ -6840,6 +6901,9 @@
 			"name": "Loyalty",
 			"source": "DMG",
 			"page": 93,
+			"reprintedAs": [
+				"Loyalty|XDMG"
+			],
 			"ruleType": "O",
 			"entries": [
 				"Loyalty is an optional rule you can use to determine how far an NPC party member will go to protect or assist the other members of the party (even those she doesn't particularly like). An NPC party member who is abused or ignored is likely to abandon the party, whereas an NPC who owes a life characters or shares their goals might fight to the death for them. Loyalty can be roleplayed or represented by this rule.",
@@ -6991,7 +7055,7 @@
 								],
 								[
 									"86-90",
-									"Whenever the character takes damage, he or she must succeed on a DC 15 Wisdom saving throw or be affected as though he or she failed a saving throw against the {@spell confusion} spell. The confusion effect lasts for 1 minute."
+									"Whenever the character takes damage, he or she must succeed on a {@dc 15} Wisdom saving throw or be affected as though he or she failed a saving throw against the {@spell confusion} spell. The confusion effect lasts for 1 minute."
 								],
 								[
 									"91-95",
@@ -7080,7 +7144,8 @@
 			"name": "Magical Effect",
 			"source": "XPHB",
 			"page": 371,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An effect is magical if it is created by a spell, a magic item, or a phenomenon that a rule labels as magical."
@@ -7093,7 +7158,7 @@
 			"ruleType": "O",
 			"entries": [
 				"This optional rule makes it easier for a creature to be felled by massive damage.",
-				"When a creature takes damage from a single source equal to or greater than half its hit point maximum, it must succeed on a DC 15 Constitution saving throw or suffer a random effect determined by a roll on the System Shock table. For example, a creature that has a hit point maximum of 30 must make that Constitution save if it takes 15 damage or more from a single source.",
+				"When a creature takes damage from a single source equal to or greater than half its hit point maximum, it must succeed on a {@dc 15} Constitution saving throw or suffer a random effect determined by a roll on the System Shock table. For example, a creature that has a hit point maximum of 30 must make that Constitution save if it takes 15 damage or more from a single source.",
 				{
 					"type": "table",
 					"caption": "System Shock",
@@ -7169,6 +7234,9 @@
 			"name": "Mixing Potions",
 			"source": "DMG",
 			"page": 140,
+			"reprintedAs": [
+				"Mixing Potions|XDMG"
+			],
 			"ruleType": "V",
 			"entries": [
 				"A character might drink one potion while still under the effects of another, or pour several potions into a single container. The strange ingredients used in creating potions can result in unpredictable interactions.",
@@ -7187,7 +7255,7 @@
 					"rows": [
 						[
 							"01",
-							"The mixture creates a magical explosion, dealing {@dice 6d10} force damage to the mixer and {@dice 1d10} force damage to each creature within 5 feet of the mixer."
+							"The mixture creates a magical explosion, dealing {@damage 6d10} force damage to the mixer and {@damage 1d10} force damage to each creature within 5 feet of the mixer."
 						],
 						[
 							"02-08",
@@ -7225,7 +7293,8 @@
 			"name": "Monster",
 			"source": "XPHB",
 			"page": 371,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A monster is a creature controlled by the DM, even if the creature is benevolent."
@@ -7256,7 +7325,7 @@
 						"The group is reduced to half its original size with no losses on the opposing side."
 					]
 				},
-				"To determine whether a creature or group of creatures flees, make a DC 10 Wisdom saving throw for the creature or the group's leader. If the opposition is overwhelming, the saving throw is made with disadvantage, or you can decide that the save fails automatically. If a group's leader can't make the saving throw for whatever reason, have the creature in the group with the next highest Charisma score make the saving throw instead.",
+				"To determine whether a creature or group of creatures flees, make a {@dc 10} Wisdom saving throw for the creature or the group's leader. If the opposition is overwhelming, the saving throw is made with disadvantage, or you can decide that the save fails automatically. If a group's leader can't make the saving throw for whatever reason, have the creature in the group with the next highest Charisma score make the saving throw instead.",
 				"On a failed save, the affected creature or group flees by the most expeditious route. If escape is impossible, the creature or group surrenders. If a creature or group that surrenders is attacked by its conquerors, the battle might resume, and it's unlikely that further attempts to flee or surrender will be made.",
 				"A failed saving throw isn't always to the adventurers' benefit. For example, an ogre that flees from combat might put the rest of the dungeon on alert or run off with treasure that the characters had hoped to plunder."
 			]
@@ -8005,15 +8074,15 @@
 										],
 										[
 											"4",
-											"When a creature that isn't an inhabitant of the island completes a long rest there, it must succeed on a DC 15 Wisdom saving throw or be {@condition blinded} for 8 hours."
+											"When a creature that isn't an inhabitant of the island completes a long rest there, it must succeed on a {@dc 15} Wisdom saving throw or be {@condition blinded} for 8 hours."
 										],
 										[
 											"5",
-											"Creatures must succeed on a DC 10 Constitution saving throw at the end of each hour they spend on the island. If they fail, they gain a 1-inch scar in a random place on their body. Only a {@spell remove curse} spell or similar magic removes the scar."
+											"Creatures must succeed on a {@dc 10} Constitution saving throw at the end of each hour they spend on the island. If they fail, they gain a 1-inch scar in a random place on their body. Only a {@spell remove curse} spell or similar magic removes the scar."
 										],
 										[
 											"6",
-											"When a creature that isn't an inhabitant of the island completes a long rest there, it must succeed on a DC 15 Wisdom saving throw or gain a random form of long-term madness (see \"{@book Madness|DMG|8|Madness}\" in chapter 8, \"{@book Running the Game|DMG|8|Running the Game},\" of the {@book Dungeon Master's Guide|DMG})."
+											"When a creature that isn't an inhabitant of the island completes a long rest there, it must succeed on a {@dc 15} Wisdom saving throw or gain a random form of long-term madness (see \"{@book Madness|DMG|8|Madness}\" in chapter 8, \"{@book Running the Game|DMG|8|Running the Game},\" of the {@book Dungeon Master's Guide|DMG})."
 										]
 									]
 								},
@@ -8773,7 +8842,8 @@
 			"name": "Nonplayer Character",
 			"source": "XPHB",
 			"page": 371,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A nonplayer character (NPC) is a {@variantrule Monster|XPHB|monster} that has a personal name and a distinct personality."
@@ -8783,7 +8853,8 @@
 			"name": "Object",
 			"source": "XPHB",
 			"page": 371,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"An object is a nonliving, distinct thing. Composite things, like buildings, comprise more than one object."
@@ -8793,7 +8864,8 @@
 			"name": "Occupied Space",
 			"source": "XPHB",
 			"page": 371,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A space is occupied if a creature is in it or if it is completely filled by objects."
@@ -8862,7 +8934,7 @@
 								],
 								[
 									"10",
-									"Treasure rolled on the {@table Individual Treasure: Challenge 0\u20144|DMG|Treasure Hoard: Challenge 0\u20134 table} in chapter 7, \"{@book Treasure|DMG|7|Treasure},\" of the {@book Dungeon Master's Guide|DMG}"
+									"Treasure rolled on the {@table Treasure Hoard: Challenge 0\u20144|DMG} table in chapter 7, \"{@book Treasure|DMG|7|Treasure},\" of the {@book Dungeon Master's Guide|DMG}"
 								]
 							]
 						}
@@ -8873,7 +8945,7 @@
 					"name": "Coral Reefs",
 					"entries": [
 						"Coral reefs grow all over the ocean floor, though most are found within depths of less than 150 feet near the shoreline. Reefs range from a few feet to over 1,000 miles in length and width. These colorful ecosystems house small fish, crustaceans, and mollusks. As a result, predators come to reefs looking for prey.",
-						"Uneven and sharp, coral reefs can harm those forced into them. A creature forcibly moved on the reef\u2014without using the creature's action, bonus action, or reaction\u2014takes 3 ({@dice 1d6}) slashing damage per 5 feet of reef that it is pushed over."
+						"Uneven and sharp, coral reefs can harm those forced into them. A creature forcibly moved on the reef\u2014without using the creature's action, bonus action, or reaction\u2014takes 3 ({@damage 1d6}) slashing damage per 5 feet of reef that it is pushed over."
 					]
 				},
 				{
@@ -9080,7 +9152,7 @@
 							"type": "entries",
 							"name": "Ghost Fog",
 							"entries": [
-								"Ghost fog contains the souls of murder victims whose bodies were thrown into the sea. A DC 15 Intelligence ({@skill Arcana}) check reveals that this mist is ghost fog.",
+								"Ghost fog contains the souls of murder victims whose bodies were thrown into the sea. A {@dc 15} Intelligence ({@skill Arcana}) check reveals that this mist is ghost fog.",
 								"The souls of the dead want the living to join them. Every hour a ship is immersed in ghost fog, roll any die. On an even number, {@dice 2d4} hostile {@creature Specter||specters} appear and attack those on the ship. If a humanoid creature dies in ghost fog, its spirit rises as a specter that is hostile toward all creatures that aren't undead.",
 								"All non-undead creatures immersed in ghost fog are vulnerable to necrotic damage."
 							]
@@ -9089,7 +9161,7 @@
 							"type": "entries",
 							"name": "Shadowfell Fog",
 							"entries": [
-								"Shadowfell fog seeps into the Material Plane at thin points in the boundary between the two planes. A DC 15 Intelligence ({@skill Arcana}) check reveals that this mist is Shadowfell fog.",
+								"Shadowfell fog seeps into the Material Plane at thin points in the boundary between the two planes. A {@dc 15} Intelligence ({@skill Arcana}) check reveals that this mist is Shadowfell fog.",
 								"When a vessel travels through this oppressive, shadow-haunted miasma, its crew and passengers feel despair. Each hour a vessel is immersed in the fog, the crew must make a quality score check by rolling a {@dice d20} and adding their quality score to the number. The DC for this check is 10 + the number of hours the ship has been immersed in the Shadowfell fog. If the crew fails this check, their quality score decreases by 1 while within the Shadowfell fog and for 1 day afterward."
 							]
 						},
@@ -9097,7 +9169,7 @@
 							"type": "entries",
 							"name": "Wild Magic Fog",
 							"entries": [
-								"Few know the origins of wild magic fog, with some claiming it is the creation of capricious gods while others believe it is the result of magical experimentation gone wrong. A DC 15 Intelligence ({@skill Arcana}) check reveals that this mist is wild magic fog.",
+								"Few know the origins of wild magic fog, with some claiming it is the creation of capricious gods while others believe it is the result of magical experimentation gone wrong. A {@dc 15} Intelligence ({@skill Arcana}) check reveals that this mist is wild magic fog.",
 								"Whenever a creature in wild magic fog casts a spell of 1st level or higher, roll on the {@table Wild Magic Surge|PHB} table in chapter 3, \"{@book Classes|PHB|3},\" of the {@book Player's Handbook|PHB} to create a magical effect."
 							]
 						}
@@ -9116,7 +9188,7 @@
 					"name": "Kraken's Grave",
 					"entries": [
 						"When krakens die, their bodies often rot on the seafloor. In such cases, the ground absorbs the decaying kraken's supernatural energy, marking the area with a dark stain in the shape of the kraken's body. This stain is called a kraken's grave.",
-						"When a creature moves within 30 feet of a kraken's grave or starts its turn there, that creature must succeed on a DC 14 Dexterity ({@skill Stealth}) check or it disturbs the grave. If a creature disturbs the grave, a tendril made of lightning stretches from the ground and attacks the creature with a +7 bonus to hit. On a hit, the target takes 10 ({@dice 3d6}) lightning damage, and it must succeed on a DC 14 Constitution saving throw or become {@condition blinded} for the next {@dice 2d4} hours."
+						"When a creature moves within 30 feet of a kraken's grave or starts its turn there, that creature must succeed on a {@dc 14} Dexterity ({@skill Stealth}) check or it disturbs the grave. If a creature disturbs the grave, a tendril made of lightning stretches from the ground and attacks the creature with a +7 bonus to hit. On a hit, the target takes 10 ({@damage 3d6}) lightning damage, and it must succeed on a {@dc 14} Constitution saving throw or become {@condition blinded} for the next {@dice 2d4} hours."
 					]
 				},
 				{
@@ -9124,7 +9196,7 @@
 					"name": "Lure Lights",
 					"entries": [
 						"When aboleths die, their souls sometimes gather in clusters called lure lights. These 100-foot-diameter collections of pale, yellow lights are found in the deep ocean below depths of 1,000 feet. They glow with bright light in a 100-foot radius and dim light for another 100 feet.",
-						"Any creature that can see the lure lights must succeed on a DC 14 Wisdom saving throw or be {@condition charmed} by the lights for 24 hours or until the lights are destroyed. A creature that succeeds on the saving throw is immune to the effect of the lure lights for 24 hours.",
+						"Any creature that can see the lure lights must succeed on a {@dc 14} Wisdom saving throw or be {@condition charmed} by the lights for 24 hours or until the lights are destroyed. A creature that succeeds on the saving throw is immune to the effect of the lure lights for 24 hours.",
 						"While {@condition charmed} by the lights, a creature can't willingly move out of line of sight of them and defends them to the death. If forcibly moved away from the lights, the creature tries to find its way back to them. The creature can't take a short or long rest while under this effect. After 24 hours, the {@condition charmed} creature gains one level of {@condition exhaustion} and must repeat the saving throw if it is within line of sight of the lights, ending the effect on itself on a success. If the lights aren't within line of sight at this time, the creature succeeds automatically.",
 						"Each cluster of lure lights has AC 17, 100 hit points, and immunity to necrotic and poison damage."
 					]
@@ -9212,7 +9284,7 @@
 							"type": "entries",
 							"name": "Evocation",
 							"entries": [
-								"These ferocious storms are wracked with thunderbolts, driving sheets of acid rain, exploding meteors, and other dangers. After each day of the storm, every component aboard the ship takes {@dice 1d10} fire, {@dice 1d10} acid, and {@dice 1d10} lightning damage. In addition, roll a {@dice d20} and add the crew's quality. On a 10 or less, the crew's quality decreases by 1, and {@dice 1d6} members of the crew are killed."
+								"These ferocious storms are wracked with thunderbolts, driving sheets of acid rain, exploding meteors, and other dangers. After each day of the storm, every component aboard the ship takes {@damage 1d10} fire, {@damage 1d10} acid, and {@damage 1d10} lightning damage. In addition, roll a {@damage d20} and add the crew's quality. On a 10 or less, the crew's quality decreases by 1, and {@dice 1d6} members of the crew are killed."
 							]
 						},
 						{
@@ -9233,7 +9305,7 @@
 							"type": "entries",
 							"name": "Transmutation",
 							"entries": [
-								"These violently unpredictable storms cause the waves to warp and twist. The storm transforms the water around the ship into an amalgamation of ice, stone, and stranger materials, making travel difficult and damaging the ship. The ship's hull takes {@dice 4d10} bludgeoning damage, and the ship's speed decreases by half during the storm."
+								"These violently unpredictable storms cause the waves to warp and twist. The storm transforms the water around the ship into an amalgamation of ice, stone, and stranger materials, making travel difficult and damaging the ship. The ship's hull takes {@damage 4d10} bludgeoning damage, and the ship's speed decreases by half during the storm."
 							]
 						}
 					]
@@ -9283,7 +9355,7 @@
 					"name": "Sapping Snow",
 					"entries": [
 						"Sapping snow\u2014that's what aquatic explorers call the powdery remains of dead organisms that cover the ocean floor. When this substance is imbued with necromantic magic, it becomes a life-leeching detritus.",
-						"Whenever a creature starts its turn touching sapping snow, that creature must succeed on a DC 15 Constitution saving throw or take 10 ({@dice 3d6}) necrotic damage. The creature's hit point maximum decreases by an amount equal to the necrotic damage taken. This reduction lasts until the creature finishes a long rest. If this effect reduces the creature's hit point maximum to 0, the creature dies, and its body immediately crumbles into sapping snow."
+						"Whenever a creature starts its turn touching sapping snow, that creature must succeed on a {@dc 15} Constitution saving throw or take 10 ({@damage 3d6}) necrotic damage. The creature's hit point maximum decreases by an amount equal to the necrotic damage taken. This reduction lasts until the creature finishes a long rest. If this effect reduces the creature's hit point maximum to 0, the creature dies, and its body immediately crumbles into sapping snow."
 					]
 				},
 				{
@@ -9341,7 +9413,7 @@
 								],
 								[
 									"10",
-									"Treasure rolled on the {@table Individual Treasure: Challenge 5\u201410|DMG|Treasure Hoard: Challenge 5\u201310 table} in chapter 7, \"{@book Treasure|DMG|7|Treasure},\" of the {@book Dungeon Master's Guide|DMG}"
+									"Treasure rolled on the {@table Treasure Hoard: Challenge 5\u201410|DMG} table in chapter 7, \"{@book Treasure|DMG|7|Treasure},\" of the {@book Dungeon Master's Guide|DMG}"
 								]
 							]
 						}
@@ -9608,7 +9680,8 @@
 			"name": "Passive Perception",
 			"source": "XPHB",
 			"page": 372,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Passive Perception is a score that reflects a creature's general awareness of its surroundings. The DM uses this score when determining whether a creature notices something without consciously making a Wisdom ({@skill Perception|XPHB}) check.",
@@ -9619,7 +9692,8 @@
 			"name": "Per Day",
 			"source": "XPHB",
 			"page": 372,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If a rule says you can use something a certain number of times per day, that means you must finish a {@variantrule Long Rest|XPHB} to use it again after you run out of uses."
@@ -9648,7 +9722,7 @@
 							"type": "entries",
 							"name": "Memory Loss",
 							"entries": [
-								"A creature that leaves the Feywild must make a DC 10 Wisdom saving throw. Fey creatures automatically succeed on the saving throw, as do any creatures, like elves, that have the Fey Ancestry trait. A creature that fails the saving throw remembers nothing from its time spent in the Feywild. On a successful save, the creature's memories remain intact but are a little hazy. Any spell that can end a curse can restore the creature's lost memories."
+								"A creature that leaves the Feywild must make a {@dc 10} Wisdom saving throw. Fey creatures automatically succeed on the saving throw, as do any creatures, like elves, that have the Fey Ancestry trait. A creature that fails the saving throw remembers nothing from its time spent in the Feywild. On a successful save, the creature's memories remain intact but are a little hazy. Any spell that can end a curse can restore the creature's lost memories."
 							]
 						},
 						{
@@ -9704,7 +9778,7 @@
 					"name": "Shadowfell: Shadowfell Despair",
 					"entries": [
 						"A melancholic atmosphere pervades the Shadowfell. Extended forays to this plane can afflict characters with despair, as reflected in this optional rule.",
-						"When you deem it appropriate, though usually not more than once per day, you can require a character not native to the Shadowfell to make a DC 10 Wisdom saving throw. On a failure, the character is affected by despair. Roll a {@dice d6} to determine the effects, using the Shadowfell Despair table. You can substitute different despair effects of your own creation.",
+						"When you deem it appropriate, though usually not more than once per day, you can require a character not native to the Shadowfell to make a {@dc 10} Wisdom saving throw. On a failure, the character is affected by despair. Roll a {@dice d6} to determine the effects, using the Shadowfell Despair table. You can substitute different despair effects of your own creation.",
 						{
 							"type": "table",
 							"caption": "Shadowfell Despair",
@@ -9731,7 +9805,7 @@
 								]
 							]
 						},
-						"If a character is already suffering a despair effect and fails the saving throw, the new despair effect replaces the old one. After finishing a long rest, a character can attempt to overcome the despair with a DC 15 Wisdom saving throw. (The DC is higher because it's harder to shake off despair once it has taken hold.) On a successful save, the despair effect ends for that character.",
+						"If a character is already suffering a despair effect and fails the saving throw, the new despair effect replaces the old one. After finishing a long rest, a character can attempt to overcome the despair with a {@dc 15} Wisdom saving throw. (The DC is higher because it's harder to shake off despair once it has taken hold.) On a successful save, the despair effect ends for that character.",
 						"A {@spell calm emotions} spell removes despair, as does any spell or other magical effect that removes a curse."
 					]
 				},
@@ -9739,7 +9813,7 @@
 					"type": "entries",
 					"name": "Outer Planes: Psychic Dissonance",
 					"entries": [
-						"Each of the Outer Planes emanates a psychic dissonance that affects visitors of an incompatible alignment\u2014good creatures on the Lower Planes, evil ones on the Upper Planes\u2014if they spend too much time on the plane. You can reflect this dissonance with this optional rule. At the end of a long rest spent on an incompatible plane, a visitor must make a DC 10 Constitution saving throw. On a failed save, the creature gains one level of {@condition exhaustion}. Incompatibility between lawful and chaotic alignments doesn't have the same effect, so Mechanus and Limbo lack this quality."
+						"Each of the Outer Planes emanates a psychic dissonance that affects visitors of an incompatible alignment\u2014good creatures on the Lower Planes, evil ones on the Upper Planes\u2014if they spend too much time on the plane. You can reflect this dissonance with this optional rule. At the end of a long rest spent on an incompatible plane, a visitor must make a {@dc 10} Constitution saving throw. On a failed save, the creature gains one level of {@condition exhaustion}. Incompatibility between lawful and chaotic alignments doesn't have the same effect, so Mechanus and Limbo lack this quality."
 					]
 				},
 				{
@@ -9753,14 +9827,14 @@
 					"type": "entries",
 					"name": "Bytopia: Pervasive Goodwill",
 					"entries": [
-						"At the end of each long rest taken on this plane, a visitor that is neither lawful good nor neutral good must make a DC 10 Wisdom saving throw. On a failed save, the creature's alignment changes to lawful good or neutral good (whichever is closer to the creature's current alignment). The change becomes permanent if the creature doesn't leave the plane within {@dice 1d4} days. Otherwise, the creature's alignment reverts to normal after one day spent on a plane other than Bytopia. Casting the {@spell dispel evil and good} spell on the creature also restores its original alignment."
+						"At the end of each long rest taken on this plane, a visitor that is neither lawful good nor neutral good must make a {@dc 10} Wisdom saving throw. On a failed save, the creature's alignment changes to lawful good or neutral good (whichever is closer to the creature's current alignment). The change becomes permanent if the creature doesn't leave the plane within {@dice 1d4} days. Otherwise, the creature's alignment reverts to normal after one day spent on a plane other than Bytopia. Casting the {@spell dispel evil and good} spell on the creature also restores its original alignment."
 					]
 				},
 				{
 					"type": "entries",
 					"name": "Elysium: Overwhelming Joy",
 					"entries": [
-						"Visitors spending any time on this plane risk becoming trapped by overwhelming sensations of contentment and happiness. At the end of each long rest taken on this plane, a visitor must make a DC 10 Wisdom saving throw. On a failed save, the creature is unwilling to leave the plane before taking another long rest. After three failed saving throws, the creature never willingly leaves the plane and, if forcibly removed, does everything in its power to return to the plane. A {@spell dispel evil and good} spell removes this effect from the creature."
+						"Visitors spending any time on this plane risk becoming trapped by overwhelming sensations of contentment and happiness. At the end of each long rest taken on this plane, a visitor must make a {@dc 10} Wisdom saving throw. On a failed save, the creature is unwilling to leave the plane before taking another long rest. After three failed saving throws, the creature never willingly leaves the plane and, if forcibly removed, does everything in its power to return to the plane. A {@spell dispel evil and good} spell removes this effect from the creature."
 					]
 				},
 				{
@@ -9774,7 +9848,7 @@
 					"type": "entries",
 					"name": "The Beastlands: Beast Transformation",
 					"entries": [
-						"Whenever a visitor slays a beast native to the plane, the slayer must succeed on a DC 10 Charisma saving throw or become transformed (as the {@spell polymorph} spell) into the type of beast that was slain. In this form, the creature retains its intelligence and ability to speak. At the end of each long rest, the polymorphed creature can repeat the saving throw. On a successful saving throw, the creature returns to its true form. After three failed saving throws. the transformation can be undone only by a {@spell remove curse} spell or similar magic. "
+						"Whenever a visitor slays a beast native to the plane, the slayer must succeed on a {@dc 10} Charisma saving throw or become transformed (as the {@spell polymorph} spell) into the type of beast that was slain. In this form, the creature retains its intelligence and ability to speak. At the end of each long rest, the polymorphed creature can repeat the saving throw. On a successful saving throw, the creature returns to its true form. After three failed saving throws. the transformation can be undone only by a {@spell remove curse} spell or similar magic. "
 					]
 				},
 				{
@@ -9795,8 +9869,8 @@
 					"type": "entries",
 					"name": "Limbo: Power of the Mind",
 					"entries": [
-						"As an action, a creature on Limbo can make an Intelligence check to mentally move an object on the plane that it can see within 30 feet of it. The DC depends on the object's size: DC 5 for Tiny, DC 10 for Small, DC 15 for Medium, DC 20 for Large, and DC 25 for Huge or larger. On a successful check, the creature moves the object 5 feet plus 1 foot for every point by which it beat the DC.",
-						"A creature can also use an action to make an Intelligence check to alter a nonmagical object that isn't being worn or carried. The same rules for distance apply, and the DC is based on the object's size: DC 10 for Tiny, DC 15 for Small, DC 20 for Medium, and DC 25 for Large or larger. On a success, the creature changes the object into another nonliving form of the same size, such as turning a boulder into a ball of fire.",
+						"As an action, a creature on Limbo can make an Intelligence check to mentally move an object on the plane that it can see within 30 feet of it. The DC depends on the object's size: {@dc 5} for Tiny, {@dc 10} for Small, {@dc 15} for Medium, {@dc 20} for Large, and {@dc 25} for Huge or larger. On a successful check, the creature moves the object 5 feet plus 1 foot for every point by which it beat the DC.",
+						"A creature can also use an action to make an Intelligence check to alter a nonmagical object that isn't being worn or carried. The same rules for distance apply, and the DC is based on the object's size: {@dc 10} for Tiny, {@dc 15} for Small, {@dc 20} for Medium, and {@dc 25} for Large or larger. On a success, the creature changes the object into another nonliving form of the same size, such as turning a boulder into a ball of fire.",
 						"Finally, a creature can use an action to make an Intelligence check to stabilize a spherical area centered on the creature. The DC depends on the radius of the sphere. The base DC is 5 for a 10-foot-radius sphere; each additional 10 feet added to the radius increases the DC by 5. On a successful check, the creature prevents the area from being altered by the plane for 24 hours, or until the creature uses this ability again."
 					]
 				},
@@ -9804,15 +9878,15 @@
 					"type": "entries",
 					"name": "Pandemonium: Mad Winds",
 					"entries": [
-						"A visitor must make a DC 10 Wisdom saving throw after each hour spent among the howling winds. On a failed save, the creature gains one level of {@condition exhaustion}. A creature that reaches six levels of {@condition exhaustion} while on this plane doesn't die. Instead, the creature gains a random form of indefinite madness, as described in chapter 8, \"Running the Game.\" Finishing a long rest doesn't reduce a creature's {@condition exhaustion} level unless the creature can somehow escape the maddening winds."
+						"A visitor must make a {@dc 10} Wisdom saving throw after each hour spent among the howling winds. On a failed save, the creature gains one level of {@condition exhaustion}. A creature that reaches six levels of {@condition exhaustion} while on this plane doesn't die. Instead, the creature gains a random form of indefinite madness, as described in chapter 8, \"Running the Game.\" Finishing a long rest doesn't reduce a creature's {@condition exhaustion} level unless the creature can somehow escape the maddening winds."
 					]
 				},
 				{
 					"type": "entries",
 					"name": "The Abyss: Abyssal Corruption",
 					"entries": [
-						"A non-evil visitor that finishes a long rest in the Abyss must make a DC 10 Charisma saving throw. On a failure, the creature becomes corrupted. Refer to the Abyssal Corruption table to determine the effects of this corruption. You can substitute different corruption effects of your own creation.",
-						"After finishing a long rest, a corrupted creature can make a DC 15 Charisma saving throw. On a successful save, the corruption effect ends. A {@spell dispel evil and good} spell or any magic that removes a curse also ends the effect.",
+						"A non-evil visitor that finishes a long rest in the Abyss must make a {@dc 10} Charisma saving throw. On a failure, the creature becomes corrupted. Refer to the Abyssal Corruption table to determine the effects of this corruption. You can substitute different corruption effects of your own creation.",
+						"After finishing a long rest, a corrupted creature can make a {@dc 15} Charisma saving throw. On a successful save, the corruption effect ends. A {@spell dispel evil and good} spell or any magic that removes a curse also ends the effect.",
 						"If a corrupted creature doesn't leave the plane within {@dice 1d4 + 2} days, its alignment changes to chaotic evil. Casting the {@spell dispel evil and good} spell on the creature restores its original alignment.",
 						{
 							"type": "table",
@@ -9840,7 +9914,7 @@
 								],
 								[
 									"10",
-									"{@bold Demonic Possession.} The character is possessed by a demonic entity until freed by {@spell dispel evil and good} or similar magic. Whenever the possessed character rolls a 1 on an attack roll, ability check, or saving throw, the demon takes control of the character and determines the character's behavior. At the end of each of the possessed character's turns, he or she can make a DC 15 Charisma saving throw. On a success, the character regains control until he or she rolls another 1."
+									"{@bold Demonic Possession.} The character is possessed by a demonic entity until freed by {@spell dispel evil and good} or similar magic. Whenever the possessed character rolls a 1 on an attack roll, ability check, or saving throw, the demon takes control of the character and determines the character's behavior. At the end of each of the possessed character's turns, he or she can make a {@dc 15} Charisma saving throw. On a success, the character regains control until he or she rolls another 1."
 								]
 							]
 						}
@@ -9858,7 +9932,7 @@
 					"type": "entries",
 					"name": "Hades: Vile Transformation",
 					"entries": [
-						"At the end of each long rest taken on the plane, a visitor must make a DC 10 Wisdom saving throw. On a failed save, the creature gains one level of {@condition exhaustion}, which can't be removed while the creature remains in Hades. If the creature reaches six levels of {@condition exhaustion}, it doesn't die. Instead, the creature permanently transforms into a larva, whereupon all levels of {@condition exhaustion} afflicting the creature are removed.",
+						"At the end of each long rest taken on the plane, a visitor must make a {@dc 10} Wisdom saving throw. On a failed save, the creature gains one level of {@condition exhaustion}, which can't be removed while the creature remains in Hades. If the creature reaches six levels of {@condition exhaustion}, it doesn't die. Instead, the creature permanently transforms into a larva, whereupon all levels of {@condition exhaustion} afflicting the creature are removed.",
 						"A larva is a miserable fiend that retains the facial features of its previous form but has the body of a fat worm. A larva has only a few faint memories of its previous life and the statistics in the {@creature larva|dmg} stat block. Hades is crawling with larvae. Night hags, liches, and rakshasas harvest them for use in vile rituals. Other fiends like to feed on them."
 					]
 				},
@@ -9866,14 +9940,14 @@
 					"type": "entries",
 					"name": "Gehenna: Cruel Hindrance",
 					"entries": [
-						"The plane's cruel nature makes it difficult for visitors to help one another. Whenever a visitor casts a spell with a beneficial effect, including a spell that restores hit points or removes a condition, the caster must first make a DC 10 Charisma saving throw. On a failed save, the spell fails, the spell slot is expended, and the action is wasted."
+						"The plane's cruel nature makes it difficult for visitors to help one another. Whenever a visitor casts a spell with a beneficial effect, including a spell that restores hit points or removes a condition, the caster must first make a {@dc 10} Charisma saving throw. On a failed save, the spell fails, the spell slot is expended, and the action is wasted."
 					]
 				},
 				{
 					"type": "entries",
 					"name": "The Nine Hells: Pervasive Evil",
 					"entries": [
-						"Evil pervades the Nine Hells, and visitors to this plane feel its influence. At the end of each long rest taken on this plane, a visitor that isn't evil must make a DC 10 Wisdom saving throw. On a failed save, the creature's alignment changes to lawful evil. The change becomes permanent if the creature doesn't leave the plane within {@dice 1d4} days. Otherwise, the creature's alignment reverts to normal after one day spent on a plane other than the Nine Hells. Casting the {@spell dispel evil and good} spell on the creature also restores its original alignment."
+						"Evil pervades the Nine Hells, and visitors to this plane feel its influence. At the end of each long rest taken on this plane, a visitor that isn't evil must make a {@dc 10} Wisdom saving throw. On a failed save, the creature's alignment changes to lawful evil. The change becomes permanent if the creature doesn't leave the plane within {@dice 1d4} days. Otherwise, the creature's alignment reverts to normal after one day spent on a plane other than the Nine Hells. Casting the {@spell dispel evil and good} spell on the creature also restores its original alignment."
 					]
 				},
 				{
@@ -9887,14 +9961,14 @@
 					"type": "entries",
 					"name": "Mechanus: Law of Averages",
 					"entries": [
-						"While on Mechanus, creatures always use the average damage result for attacks and spells. For example, an attack that normally deals {@dice 1d10 + 5} damage always deals 10 damage on Mechanus."
+						"While on Mechanus, creatures always use the average damage result for attacks and spells. For example, an attack that normally deals {@damage 1d10 + 5} damage always deals 10 damage on Mechanus."
 					]
 				},
 				{
 					"type": "entries",
 					"name": "Mechanus: Imposing Order",
 					"entries": [
-						"At the end of each long rest taken on this plane, a visitor that isn't lawful neutral must make a DC 10 Wisdom saving throw. On a failed save, the creature's alignment changes to lawful neutral. The creature's alignment reverts to normal after one day spent on a plane other than Mechanus. Casting the {@spell dispel evil and good} spell on the creature also restores its original alignment."
+						"At the end of each long rest taken on this plane, a visitor that isn't lawful neutral must make a {@dc 10} Wisdom saving throw. On a failed save, the creature's alignment changes to lawful neutral. The creature's alignment reverts to normal after one day spent on a plane other than Mechanus. Casting the {@spell dispel evil and good} spell on the creature also restores its original alignment."
 					]
 				},
 				{
@@ -9910,7 +9984,8 @@
 			"name": "Player Character",
 			"source": "XPHB",
 			"page": 372,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A player character is a character controlled by a {@link player|https://coveryourtracks.eff.org}."
@@ -9936,7 +10011,7 @@
 			],
 			"entries": [
 				"A character who becomes a lycanthrope retains his or her statistics except as specified by lycanthrope type. The character gains the lycanthrope's speeds in non-humanoid form, damage immunities, traits, and actions that don't involve equipment. The character is proficient with the lycanthrope's natural attacks, such as its bite or claws, which deal damage as shown in the lycanthrope's statistics. The character can't speak while in animal form.",
-				"A non-lycanthrope humanoid hit by an attack that carries the curse of lycanthropy must succeed on a Constitution saving throw (DC 8 + the lycanthrope's proficiency bonus + the lycanthrope's Constitution modifier) or be cursed. If the character embraces the curse, his or her alignment becomes the one defined for the lycanthrope. The DM is free to decide that a change in alignment places the character under DM control until the curse of lycanthropy is removed.",
+				"A non-lycanthrope humanoid hit by an attack that carries the curse of lycanthropy must succeed on a Constitution saving throw ({@dc 8} + the lycanthrope's proficiency bonus + the lycanthrope's Constitution modifier) or be cursed. If the character embraces the curse, his or her alignment becomes the one defined for the lycanthrope. The DM is free to decide that a change in alignment places the character under DM control until the curse of lycanthropy is removed.",
 				"The following information applies to specific lycanthropes.",
 				{
 					"type": "entries",
@@ -10001,7 +10076,7 @@
 							"page": 237,
 							"entries": [
 								"A Humanoid who succumbs to a loup garou's lycanthropy becomes a {@creature werewolf} (see above). This form of lycanthropy can't be removed while the loup garou that inflicted the curse lives.",
-								"Once a loup garou is slain, a {@spell remove curse} spell cast during the night of a full moon on any afflicted werewolf it created forces the target to make a DC 17 Constitution saving throw. On a success, the curse is broken, and the target returns to its normal form and gains 3 levels of {@condition exhaustion}. On a failure, the curse remains, and the target automatically fails any saving throw made to break this curse for 1 month."
+								"Once a loup garou is slain, a {@spell remove curse} spell cast during the night of a full moon on any afflicted werewolf it created forces the target to make a {@dc 17} Constitution saving throw. On a success, the curse is broken, and the target returns to its normal form and gains 3 levels of {@condition exhaustion}. On a failure, the curse remains, and the target automatically fails any saving throw made to break this curse for 1 month."
 							]
 						}
 					]
@@ -10129,7 +10204,8 @@
 			"name": "Possession",
 			"source": "XPHB",
 			"page": 372,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Some effects cause a creature to be possessed by another creature or entity. A possessing effect defines how the possession operates. Possession can be prevented by the {@spell Protection from Evil and Good|XPHB} spell and ended by the {@spell Dispel Evil and Good|XPHB} spell."
@@ -10139,7 +10215,8 @@
 			"name": "Proficiency",
 			"source": "XPHB",
 			"page": 372,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you have proficiency with something, you can add your Proficiency Bonus to any {@variantrule D20 Test|XPHB} you make using that thing. A creature might have proficiency in a skill or {@variantrule Saving Throw|XPHB|saving throw} or with a weapon or tool."
@@ -10193,6 +10270,214 @@
 							"+6",
 							"{@dice 1d12}"
 						]
+					]
+				}
+			]
+		},
+		{
+			"name": "Prophet's Gambit",
+			"source": "CoS",
+			"ruleType": "O",
+			"entries": [
+				"{@note Game Designed by Sean Goodison, for 3\u20135 players, using the {@deck Tarokka Deck|CoS}.}",
+				{
+					"type": "entries",
+					"name": "How To Play",
+					"entries": [
+						{
+							"type": "list",
+							"name": "Set Up:",
+							"items": [
+								"Separate out the High Deck cards, marked with the Crown symbol. Shuffle them, and place this deck to one side.",
+								"Choose a Dealer to shuffle the remaining cards, called the Common Deck. The person to the Dealer's left then draws a card from this deck and places it face-up in the centre of the table. This is the Focus card.",
+								"The Dealer then places one card per player face-down around the Focus. These are the player's Fate cards. Players may look at their own Fate card at any time.",
+								"Each player is then dealt 6 cards and the Common Deck is placed within easy reach of all players. Discarded cards should be placed face-up, next to the Common Deck.",
+								"The goal of the game is to refine your hand down to 3 cards, which will be combined with the hidden Fate cards and shared Focus card to make the best hand possible."
+							]
+						},
+						{
+							"type": "list",
+							"name": "The Bid:",
+							"items": [
+								"Each player selects one card from their hand, these are all played face-up simultaneously."
+							]
+						},
+						{
+							"type": "list",
+							"name": "Round 1:",
+							"items": [
+								"The player with the highest numbered card in front of them may discard their Fate card and replace it with a new card from the deck. They then take the first turn this round.",
+								"Each player takes a turn (moving clockwise) to {@b Play} one card from their hand, covering their previously played card, or discard a card to {@b Risk} activating the top card of the High Deck.",
+								{
+									"type": "item",
+									"name": "Play:",
+									"entries": [
+										"If the card is a Master (an unnumbered Common Deck card) or has a number lower than that of the player to their right then the current player may draw a new card from the Common Deck before discarding one from their hand."
+									]
+								},
+								{
+									"type": "item",
+									"name": "Risk:",
+									"entries": [
+										"Each card in the High Deck triggers a different special ability which is resolved immediately before being discarded. These abilities are detailed in the section titled 'High Deck Rules'."
+									]
+								},
+								"Once each player has had one turn a new round begins."
+							]
+						},
+						"Round 2 is the same as the first.",
+						{
+							"type": "list",
+							"name": "The Execution:",
+							"items": [
+								"After the second round the player who has the highest numbered card showing decides whether to 'kill' (discard) or 'save' (keep) the Focus card. If it is killed then the Focus card is out of play and players' final hands will now only be four-cards strong."
+							]
+						},
+						{
+							"type": "list",
+							"name": "The Reveal:",
+							"items": [
+								"Finally, players reveal their hand of cards and Fate cards. The player with the best combination of cards using their hand, Fate, and possibly Focus cards is the winner."
+							]
+						}
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Ties",
+					"entries": [
+						"In the case of two players being tied for anything the player closest to the dealer clockwise wins."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Order of Winning Hands (Strongest to Weakest)",
+					"entries": [
+						{
+							"type": "list",
+							"items": [
+								"Family (Five cards of the same suit, in numerical order)",
+								"Circle (four of a kind)",
+								"Fortune (a triple and a pair)",
+								"Village (five cards in numerical order)",
+								"Guild (five cards of one suit)",
+								"A triple",
+								"Two pairs",
+								"A pair",
+								"High card"
+							]
+						}
+					]
+				},
+				{
+					"type": "entries",
+					"name": "High Deck Rules",
+					"entries": [
+						"Revealing cards from the High Deck is risky as there's no telling what chaos you might unleash.",
+						{
+							"type": "list",
+							"style": "list-no-bullets",
+							"items": [
+								{
+									"type": "item",
+									"name": "{@card Artifact|Tarokka Deck|CoS}",
+									"entries": [
+										"Swap your Fate card with the Focus card."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Beast|Tarokka Deck|CoS}",
+									"entries": [
+										"Each player discards a card, then draws a card from the Common Deck."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Broken One|Tarokka Deck|CoS}",
+									"entries": [
+										"Discard all the remaining cards in your hand. Then draw a new card from the Common Deck for each one discarded."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Darklord|Tarokka Deck|CoS}",
+									"entries": [
+										"Choose another player. Look at their hand of cards and choose one for them to discard. Then they draw a card from the Common Deck."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Donjon|Tarokka Deck|CoS}",
+									"entries": [
+										"Each player must discard cards until they have three left in their hand. The game immediately advances to the Reveal."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Executioner|Tarokka Deck|CoS}",
+									"entries": [
+										"Keep this card on the table in front of you. Regardless of who wins the execution you decide whether to kill or save the Focus card."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Mists|Tarokka Deck|CoS}",
+									"entries": [
+										"Rotate the Fate cards one player clockwise."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Ghost|Tarokka Deck|CoS}",
+									"entries": [
+										"Take a card from the discard pile, then discard a card."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Horseman|Tarokka Deck|CoS}",
+									"entries": [
+										"Draw two cards from the Common Deck and then discard two cards."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Innocent|Tarokka Deck|CoS}",
+									"entries": [
+										"Keep this card on the table in front of you. You and your cards can't be affected by any future High Deck cards."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Marionette|Tarokka Deck|CoS}",
+									"entries": [
+										"Choose another player who hasn't had a turn this round. That player must either play their highest or lowest numbered card, as directed by you."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Raven|Tarokka Deck|CoS}",
+									"entries": [
+										"Each player chooses a card from their hand and passes it to the player on their left."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Seer|Tarokka Deck|CoS}",
+									"entries": [
+										"Look at all player's Fate cards once."
+									]
+								},
+								{
+									"type": "item",
+									"name": "{@card Tempter|Tarokka Deck|CoS}",
+									"entries": [
+										"Choose a card from your hand and a random card from another player's hand to swap."
+									]
+								}
+							]
+						}
 					]
 				}
 			]
@@ -10620,7 +10905,7 @@
 									"items": [
 										"The ship has resistance to the following damage types: acid, fire, lightning, and thunder, as well as bludgeoning, piercing, and slashing from nonmagical attacks.",
 										"The ship is immune to cold, necrotic, poison, and psychic damage.",
-										"The ship can move through other creatures and objects as if they were {@quickref difficult terrain||3}. It takes 5 ({@dice 1d10}) force damage if it ends its turn inside an object."
+										"The ship can move through other creatures and objects as if they were {@quickref difficult terrain||3}. It takes 5 ({@damage 1d10}) force damage if it ends its turn inside an object."
 									]
 								},
 								"Crew members and officers on good and neutral ghost ships are {@creature Ghost||ghosts}. On evil ghost ships, the crew members are 90 percent {@creature Skeleton||skeletons} and {@creature Zombie||zombies} (even mix of each), 10 percent are {@creature Specter||specters}, and the officers are {@creature Wraith||wraiths}."
@@ -10915,7 +11200,8 @@
 			"name": "Reaction",
 			"source": "XPHB",
 			"page": 372,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Reaction is a special action taken in response to a trigger defined in the Reaction's description. You can take a Reaction on another creature's turn, and if you take it on your turn, you can do so even if you also take an action, a {@variantrule Bonus Action|XPHB}, or both. Once you take a Reaction, you can't take another one until the start of your next turn. The {@action Opportunity Attack|XPHB} is a Reaction available to all creatures."
@@ -10925,6 +11211,9 @@
 			"name": "Renown",
 			"source": "DMG",
 			"page": 22,
+			"reprintedAs": [
+				"Renown|XDMG"
+			],
 			"ruleType": "O",
 			"entries": [
 				"Renown is an optional rule you can use to track an adventurer's standing within a particular faction or organization. Renown is a numerical value that starts at 0, then increases as a character earns favor and reputation within a particular organization. You can tie benefits to a character's renown, including ranks and titles within the organization and access to resources.",
@@ -11061,7 +11350,8 @@
 			"name": "Resistance",
 			"source": "XPHB",
 			"page": 373,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you have Resistance to a {@variantrule Damage Types|XPHB|damage type}, damage of that type is halved against you (round down). Resistance is applied only once to an instance of damage."
@@ -11096,7 +11386,8 @@
 			"name": "Ritual",
 			"source": "XPHB",
 			"page": 373,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you have a spell prepared that has the Ritual tag, you can cast that spell as a Ritual. The Ritual version of a spell takes 10 minutes longer to cast than normal. It also doesn't expend a spell slot, which means the ritual version of a spell can't be cast at a higher level."
@@ -11106,7 +11397,8 @@
 			"name": "Round Down",
 			"source": "XPHB",
 			"page": 373,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Whenever you divide or multiply a number in the game, round down if you end up with a fraction, even if the fraction is one-half or greater. Some rules make an exception and tell you to round up."
@@ -11116,7 +11408,8 @@
 			"name": "Save",
 			"source": "XPHB",
 			"page": 373,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Save is another name for a {@variantrule Saving Throw|XPHB|saving throw}."
@@ -11126,7 +11419,8 @@
 			"name": "Saving Throw",
 			"source": "XPHB",
 			"page": 373,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A saving throw\u2014also called a save\u2014represents an attempt to avoid or resist a threat. You normally make a saving throw only when a rule requires you to do so, but you can decide to fail the save without rolling. The result of a save is detailed in the effect that allowed it. If a target is forced to make a save and lacks the ability score used by it, the target automatically fails."
@@ -11138,7 +11432,7 @@
 			"page": 140,
 			"ruleType": "V",
 			"entries": [
-				"A creature who tries and fails to cast a spell from a {@item spell scroll} must make a DC 10 Intelligence saving throw. If the saving throw fails, roll on the Scroll Mishap table.",
+				"A creature who tries and fails to cast a spell from a {@item spell scroll} must make a {@dc 10} Intelligence saving throw. If the saving throw fails, roll on the Scroll Mishap table.",
 				{
 					"type": "table",
 					"caption": "Scroll Mishap",
@@ -11153,7 +11447,7 @@
 					"rows": [
 						[
 							"1",
-							"A surge of magical energy deals the caster {@dice 1d6} force damage per level of the spell."
+							"A surge of magical energy deals the caster {@damage 1d6} force damage per level of the spell."
 						],
 						[
 							"2",
@@ -11183,7 +11477,8 @@
 			"name": "Shape-Shifting",
 			"source": "XPHB",
 			"page": 373,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If an effect, such as Wild Shape or the {@spell Polymorph|XPHB} spell, lets you shape-shift, its description specifies what happens to you. Unless that description says otherwise, any ongoing effects on you\u2014{@variantrule Condition|XPHB|conditions}, spells, curses, and the like\u2014carry over from one form to the other. You revert to your true form if you die."
@@ -11421,7 +11716,9 @@
 								]
 							],
 							"data": {
-								"tableInclude": true
+								"genTables": {
+									"tableInclude": true
+								}
 							}
 						},
 						{
@@ -11463,7 +11760,9 @@
 								]
 							],
 							"data": {
-								"tableInclude": true
+								"genTables": {
+									"tableInclude": true
+								}
 							}
 						},
 						{
@@ -11745,7 +12044,7 @@
 					"name": "Crashing a Ship",
 					"entries": [
 						"If a ship moves into the space occupied by a creature or an object, the ship might crash. A ship avoids crashing if the creature or object is at least two sizes smaller than it.",
-						"When a ship crashes, it must immediately make a DC 10 Constitution saving throw. On a failed save, it takes damage to its hull based on the size of the creature or object it crashed into, as shown on the Crash Damage table. It also stops moving if the object or creature is one size smaller than it or larger. Otherwise the ship continues moving and the creature or object collided with moves to the nearest unoccupied space that isn't in the ship's path. At the DM's discretion, an object that is forced to move but is fixed in place is instead destroyed.",
+						"When a ship crashes, it must immediately make a {@dc 10} Constitution saving throw. On a failed save, it takes damage to its hull based on the size of the creature or object it crashed into, as shown on the Crash Damage table. It also stops moving if the object or creature is one size smaller than it or larger. Otherwise the ship continues moving and the creature or object collided with moves to the nearest unoccupied space that isn't in the ship's path. At the DM's discretion, an object that is forced to move but is fixed in place is instead destroyed.",
 						"A creature struck by a ship must make a Dexterity saving throw with a DC equal to 10 + the ship's Strength modifier, taking damage based on the ship's size (as shown on the Crash Damage table) on a failed save, or half as much damage on a successful one.",
 						{
 							"type": "table",
@@ -11761,23 +12060,23 @@
 							"rows": [
 								[
 									"Small",
-									"{@dice 1d6}"
+									"{@damage 1d6}"
 								],
 								[
 									"Medium",
-									"{@dice 1d10}"
+									"{@damage 1d10}"
 								],
 								[
 									"Large",
-									"{@dice 4d10}"
+									"{@damage 4d10}"
 								],
 								[
 									"Huge",
-									"{@dice 8d10}"
+									"{@damage 8d10}"
 								],
 								[
 									"Gargantuan",
-									"{@dice 16d10}"
+									"{@damage 16d10}"
 								]
 							]
 						}
@@ -11789,7 +12088,8 @@
 			"name": "Short Rest",
 			"source": "XPHB",
 			"page": 373,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Short Rest is a 1-hour period of downtime, during which a creature does nothing more strenuous than reading, talking, eating, or standing watch. To start a Short Rest, you must have at least 1 {@variantrule Hit Points|XPHB|Hit Point}.",
@@ -12216,7 +12516,8 @@
 			"name": "Simultaneous Effects",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If two or more things happen at the same time on a turn, the person at the game table\u2014player or DM whose turn it is decides the order in which those things happen. For example, if two effects occur at the start of a {@variantrule Player Character|XPHB|player character's} turn, the player decides which of the effects happens first."
@@ -12226,7 +12527,8 @@
 			"name": "Size",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature or an object belongs to a size category: Tiny, Small, Medium, Large, Huge, or Gargantuan. A creature's size determines how much space the creature occupies in combat. An object's size affects its {@variantrule Hit Points|XPHB}."
@@ -12236,7 +12538,8 @@
 			"name": "Skill",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A skill is an {@book area of specialization|XPHB|1|Skill List} associated with an ability check. If you have proficiency in a skill, you can add your {@variantrule Proficiency|XPHB|Proficiency Bonus} when you make an ability check associated with that skill."
@@ -12402,7 +12705,7 @@
 					"name": "Going without a Long Rest",
 					"entries": [
 						"A long rest is never mandatory, but going without sleep does have its consequences. If you want to account for the effects of sleep deprivation on characters and creatures, use these rules.",
-						"Whenever you end a 24-hour period without finishing a long rest, you must succeed on a DC 10 Constitution saving throw or suffer one level of {@condition exhaustion}.",
+						"Whenever you end a 24-hour period without finishing a long rest, you must succeed on a {@dc 10} Constitution saving throw or suffer one level of {@condition exhaustion}.",
 						"It becomes harder to fight off {@condition exhaustion} if you stay awake for multiple days. After the first 24 hours, the DC increases by 5 for each consecutive 24-hour period without a long rest. The DC resets to 10 when you finish a long rest."
 					]
 				}
@@ -12412,7 +12715,8 @@
 			"name": "Speed",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature has a Speed, which is the distance in feet the creature can cover when it moves on its turn.",
@@ -12441,7 +12745,8 @@
 			"name": "Spell",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A spell is a {@variantrule Magical Effect|XPHB|magical effect} that has the characteristics described in {@book chapter 7|XPHB|7}."
@@ -12451,7 +12756,8 @@
 			"name": "Spell Attack",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A spell attack is an attack roll made as part of a spell or another {@variantrule Magical Effect|XPHB|magical effect}."
@@ -12770,7 +13076,8 @@
 			"name": "Spellcasting Focus",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Spellcasting Focus is an object that certain creatures can use in place of a spell's Material components if those materials aren't consumed by the spell and don't have a cost specified. Some classes allow its members to use certain types of Spellcasting Focuses."
@@ -12780,7 +13087,8 @@
 			"name": "Sphere [Area of Effect]",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Sphere is an area of effect that extends in straight lines from a point of origin outward in all directions. The effect that creates a Sphere specifies the distance it extends as the radius of the Sphere.",
@@ -12791,7 +13099,8 @@
 			"name": "Stable",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A creature is Stable if it has 0 {@variantrule Hit Points|XPHB} but isn't required to make {@variantrule Death Saving Throw|XPHB|Death Saving Throws}."
@@ -12801,10 +13110,11 @@
 			"name": "Stat Block",
 			"source": "XPHB",
 			"page": 374,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
-				"A stat block contains the game slatistics of a {@variantrule Monster|XPHB|monster}. Each stat block includes the following information presented after the {@variantrule Monster|XPHB|monster's} name.",
+				"A stat block contains the game statistics of a {@variantrule Monster|XPHB|monster}. Each stat block includes the following information presented after the {@variantrule Monster|XPHB|monster's} name.",
 				{
 					"type": "entries",
 					"entries": [
@@ -12945,7 +13255,7 @@
 							"type": "entries",
 							"name": "Damage Notation",
 							"entries": [
-								"A stat block usually provides both a static number and a die expression for each instance of damage. For example, an attack might deal 4 ({@dice 1d4 + 2}) damage on a hit. The DM determines whether you use the static number or the die expression in parentheses; you don't use both."
+								"A stat block usually provides both a static number and a die expression for each instance of damage. For example, an attack might deal 4 ({@damage 1d4 + 2}) damage on a hit. The DM determines whether you use the static number or the die expression in parentheses; you don't use both."
 							]
 						}
 					]
@@ -13268,7 +13578,8 @@
 			"name": "Swim Speed",
 			"source": "XPHB",
 			"page": 376,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A Swim Speed can be used to swim without expending the extra movement normally associated with swimming."
@@ -13278,7 +13589,8 @@
 			"name": "Swimming",
 			"source": "XPHB",
 			"page": 376,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"While you're swimming, each foot of movement costs 1 extra foot (2 extra feet in {@variantrule Difficult Terrain|XPHB|difficult terrain}). You ignore this extra cost if you have a {@variantrule Swim Speed|XPHB} and use it to swim. At the DM's option, moving any distance in rough water might require a successful {@dc 15} Strength ({@skill Athletics|XPHB}) check."
@@ -13288,7 +13600,8 @@
 			"name": "Target",
 			"source": "XPHB",
 			"page": 376,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A target is the creature or object targeted by an attack roll, forced to make a {@variantrule Saving Throw|XPHB|saving throw} by an effect, or selected to receive the effects of a spell or another phenomenon."
@@ -13298,7 +13611,8 @@
 			"name": "Telepathy",
 			"source": "XPHB",
 			"page": 376,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Telepathy is a magical ability that allows a creature to communicate mentally with another creature within a specified range. Unless a rule states otherwise, the contacted creature doesn't need to share a language with the telepath to understand this communication, but the contacted creature must be able to understand at least one language or be telepathic itself to understand.",
@@ -13310,7 +13624,8 @@
 			"name": "Teleportation",
 			"source": "XPHB",
 			"page": 376,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Teleportation is a special kind of magical transportation. If you teleport, you disappear and reappear elsewhere instantly, without moving through the intervening space. This transportation doesn't expend movement unless a rule tells you otherwise, and teleportation never provokes {@action Opportunity Attack|XPHB|Opportunity Attacks}.",
@@ -13323,7 +13638,8 @@
 			"name": "Temporary Hit Points",
 			"source": "XPHB",
 			"page": 376,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Temporary Hit Points are granted by certain effects and act as a buffer against losing real {@variantrule Hit Points|XPHB}."
@@ -15126,7 +15442,7 @@
 							"type": "entries",
 							"name": "Raise Morale (First Mate Only)",
 							"entries": [
-								"The first mate can manage the crew's time to grant extended breaks, provide instruction, and generally improve the quality of life on the ship. Once every 24 hours, if the crew's quality score is 3 or lower, the first mate can make a DC 15 Charisma ({@skill Persuasion}) check. On a successful check, the crew's quality score increases by 1."
+								"The first mate can manage the crew's time to grant extended breaks, provide instruction, and generally improve the quality of life on the ship. Once every 24 hours, if the crew's quality score is 3 or lower, the first mate can make a {@dc 15} Charisma ({@skill Persuasion}) check. On a successful check, the crew's quality score increases by 1."
 							]
 						},
 						{
@@ -15427,15 +15743,15 @@
 										],
 										[
 											"Success",
-											"The fire is extinguished, but the hull and {@dice 1d3} other random components take {@dice 6d6} fire damage."
+											"The fire is extinguished, but the hull and {@dice 1d3} other random components take {@damage 6d6} fire damage."
 										],
 										[
 											"Failure",
-											"The hull and {@dice 1d3} other random components take {@dice 6d6} fire damage, and the fire continues. Make another set of checks."
+											"The hull and {@dice 1d3} other random components take {@damage 6d6} fire damage, and the fire continues. Make another set of checks."
 										],
 										[
 											"Total Failure",
-											"The crew's quality score decreases by 1 due to injuries, while the hull and {@dice 1d3} other random components take {@dice 6d6} fire damage. The fire continues. Make another set of checks."
+											"The crew's quality score decreases by 1 due to injuries, while the hull and {@dice 1d3} other random components take {@damage 6d6} fire damage. The fire continues. Make another set of checks."
 										]
 									]
 								}
@@ -15720,11 +16036,11 @@
 										],
 										[
 											"Failure",
-											"The ship's components each take {@dice 4d10} bludgeoning damage. The crew's quality score decreases by 1. The ship struggles, moving at half speed that day."
+											"The ship's components each take {@damage 4d10} bludgeoning damage. The crew's quality score decreases by 1. The ship struggles, moving at half speed that day."
 										],
 										[
 											"Total Failure",
-											"The ship's components each take {@dice 10d10} bludgeoning damage. The crew's quality score decreases by 2, and 10 percent of the crew is washed overboard and lost. The ship is blown off course and struggles to recover its bearings, moving in a random direction."
+											"The ship's components each take {@damage 10d10} bludgeoning damage. The crew's quality score decreases by 2, and 10 percent of the crew is washed overboard and lost. The ship is blown off course and struggles to recover its bearings, moving in a random direction."
 										]
 									]
 								}
@@ -15750,7 +16066,8 @@
 			"name": "Unarmed Strike",
 			"source": "XPHB",
 			"page": 377,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"Instead of using a weapon to make a melee attack, you can use a punch, kick, head-butt, or similar forceful blow. In game terms, this is an Unarmed Strike\u2014a melee attack that involves you using your body to damage, grapple, or shove a target within 5 feet of you.",
@@ -15787,7 +16104,8 @@
 			"name": "Unoccupied Space",
 			"source": "XPHB",
 			"page": 377,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A space is unoccupied if no creatures are in it and it isn't completely filled by objects."
@@ -15797,7 +16115,8 @@
 			"name": "Vulnerability",
 			"source": "XPHB",
 			"page": 377,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"If you have Vulnerability to a {@variantrule Damage Types|XPHB|damage type}, damage of that type is doubled against you. Vulnerability is applied only once to an instance of damage."
@@ -15816,7 +16135,8 @@
 			"name": "Weapon",
 			"source": "XPHB",
 			"page": 377,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A weapon is an object that is in the {@filter Simple|items|category=basic|type=simple weapon} or {@filter Martial|items|category=basic|type=martial weapon} weapon category."
@@ -15826,7 +16146,8 @@
 			"name": "Weapon Attack",
 			"source": "XPHB",
 			"page": 377,
-			"freeRules2024": true,
+			"srd52": true,
+			"basicRules2024": true,
 			"ruleType": "C",
 			"entries": [
 				"A weapon attack is an attack roll made with a weapon."

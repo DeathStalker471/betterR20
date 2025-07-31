@@ -5,8 +5,21 @@
 			"source": "XDMG",
 			"page": 336,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"identify|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
-				"After spending a Long Rest in your Bastion, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Identify|XPHB} without expending a spell slot or using Material components. You can't gain this Charm again while you still have it."
+				"After spending a {@variantrule Long Rest|XPHB} in your {@book Bastion|XDMG|7}, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Identify|XPHB} without expending a spell slot or using Material components. You can't gain this Charm again while you still have it."
 			]
 		},
 		{
@@ -14,6 +27,20 @@
 			"source": "MOT",
 			"page": 37,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"wis": [
+									"gentle repose"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Athreos trait}",
 				"Your life is intertwined with the fate of the dead. You can cast {@spell gentle repose} with this trait, requiring no material components, a number of times equal to your Wisdom modifier (minimum of once). You regain all expended uses when you finish a long rest. Wisdom is your spellcasting ability for this spell."
@@ -24,6 +51,20 @@
 			"source": "MOT",
 			"page": 37,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"false life"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 25+ Athreos trait}",
 				"You can cast {@spell false life} with this trait, requiring no material components. When you do so, you gain an additional 25 temporary hit points. Once you cast the spell in this way, you can't do so again until you finish a long rest. Wisdom is your spellcasting ability for this spell."
@@ -34,6 +75,20 @@
 			"source": "MOT",
 			"page": 37,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"speak with dead"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Athreos trait}",
 				"You can cast {@spell speak with dead} with this trait, requiring no material components. Once you cast the spell in this way, you can't do so again until you finish a long rest. Wisdom is your spellcasting ability for this spell."
@@ -44,6 +99,21 @@
 			"source": "GGR",
 			"page": 173,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"hold person#3",
+									"command",
+									"counterspell"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell hold person} (3rd-level version), {@spell command}, or {@spell counterspell} spell. The charm vanishes after you activate it."
 			]
@@ -159,8 +229,45 @@
 			"source": "IDRotF",
 			"page": 213,
 			"type": "Blessing",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"cone of cold"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"Your eyes become as cold as ice. You gain immunity to cold damage. In addition, you can cast the {@spell cone of cold} spell (save {@dc 15}) once. You regain the ability to cast this spell when you finish a long rest."
+			]
+		},
+		{
+			"name": "Blessing of the Lone Champion",
+			"source": "DrDe",
+			"type": "Blessing",
+			"entries": [
+				"You gain the following benefits:",
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Heroic Inspiration",
+							"entry": "You gain {@variantrule Heroic Inspiration|XPHB} when you finish a {@variantrule Short Rest|XPHB|Short} or {@variantrule Long Rest|XPHB} and whenever the DM has you roll Initiative."
+						},
+						{
+							"type": "item",
+							"name": "Temporary Hit Points",
+							"entry": "You gain a number of {@variantrule Temporary Hit Points|XPHB} equal to 10 times your level when you gain this blessing and when you gain a level."
+						}
+					]
+				}
 			]
 		},
 		{
@@ -308,6 +415,19 @@
 				}
 			],
 			"type": "Boon",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"rest": {
+								"1e": [
+									"misty step"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"As an action, you can cast the {@spell misty step} spell, without using a spell slot or any components. Once you do so, you can't use this boon again until you finish a short rest."
 			]
@@ -521,8 +641,17 @@
 			"source": "DMG",
 			"page": 232,
 			"type": "Boon",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": [
+							"burning hands"
+						]
+					}
+				}
+			],
 			"entries": [
-				"You have immunity to fire damage. You can also cast {@spell burning hands} (save DC 15) at will, without using a spell slot or any components. "
+				"You have immunity to fire damage. You can also cast {@spell burning hands} (save {@dc 15}) at will, without using a spell slot or any components. "
 			]
 		},
 		{
@@ -545,8 +674,17 @@
 			"source": "DMG",
 			"page": 232,
 			"type": "Boon",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": [
+							"thunderwave"
+						]
+					}
+				}
+			],
 			"entries": [
-				"You have immunity to lightning and thunder damage. You can also cast {@spell thunderwave} (save DC 15) at will, without using a spell slot or any components."
+				"You have immunity to lightning and thunder damage. You can also cast {@spell thunderwave} (save {@dc 15}) at will, without using a spell slot or any components."
 			]
 		},
 		{
@@ -587,6 +725,21 @@
 			"source": "GGR",
 			"page": 173,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"crusader's mantle",
+									"haste",
+									"guiding bolt"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell crusader's mantle} or {@spell haste} spell. Alternatively, you can cast the {@spell guiding bolt} spell, and if it hits, you regain a number of hit points equal to the damage it deals. The charm vanishes after you activate it."
 			]
@@ -755,6 +908,19 @@
 			"source": "BAM",
 			"page": 17,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"air bubble|aag"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"{@note This charm can be bestowed by a {@creature chwinga astronaut|BAM} using their Magical Gift action.}",
 				"This charm allows you to cast the {@spell Air Bubble|AAG} spell (see the Astral Adventurer's Guide) as an action. Once used three times, this charm goes away."
@@ -768,6 +934,19 @@
 				"Charm of Animal Conjuring|XDMG"
 			],
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"conjure animals#3"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"This charm allows you to cast the {@spell conjure animals} spell (3rd-level version) as an action. Once used three times, the charm vanishes from you."
 			]
@@ -777,6 +956,19 @@
 			"source": "XDMG",
 			"page": 99,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"conjure animals|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"This Charm allows you to cast {@spell Conjure Animals|XPHB}. Once used three times, the Charm vanishes from you."
 			]
@@ -821,6 +1013,72 @@
 			]
 		},
 		{
+			"name": "Charm of Cozmioko's Glory",
+			"source": "DrDe",
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"wall of fire|xphb#7"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This charm infuses you with the righteous vengeance of the brass dragon Cozmioko. You can use it as a Magic action and choose one of the following effects:",
+				{
+					"type": "list",
+					"style": "list-hang-notitle",
+					"items": [
+						{
+							"type": "item",
+							"name": "Cozmioko's Fire",
+							"entry": "You cast the {@spell Wall of Fire|XPHB} spell (level 7 version, spell save {@dc 20}), requiring no spell components."
+						},
+						{
+							"type": "item",
+							"name": "Cozmioko's Light",
+							"entry": "You regain 28 ({@dice 8d6}) Hit Points."
+						},
+						{
+							"type": "item",
+							"name": "Cozmioko's Revenge",
+							"entry": "One Melee weapon you are holding is infused with supernatural might for 1 minute or until you aren't holding the weapon. Once per turn, when you hit a Dragon with this weapon, the Dragon takes an extra {@dice 3d6} damage of the weapon's type."
+						}
+					]
+				},
+				"Once you use the charm, it vanishes from you."
+			]
+		},
+		{
+			"name": "Charm of Cure Wounds",
+			"source": "IDRotF",
+			"page": 228,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"cure wounds#3"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
+			"entries": [
+				"This charm allows you to cast the {@spell cure wounds} spell (3rd-level version) as an action, no components required. Your spellcasting ability for this charm is Wisdom. Once used, this charm vanishes from you."
+			]
+		},
+		{
 			"name": "Charm of Darkvision",
 			"source": "DMG",
 			"page": 228,
@@ -828,6 +1086,19 @@
 				"Charm of Darkvision|XDMG"
 			],
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"darkvision"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"This charm allows you to cast the {@spell darkvision} spell as an action, no components required. Once used three times, the charm goes away."
 			]
@@ -837,6 +1108,19 @@
 			"source": "XDMG",
 			"page": 99,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"darkvision|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"This Charm allows you to cast {@spell Darkvision|XPHB}. Once used three times, the Charm vanishes from you."
 			]
@@ -851,12 +1135,34 @@
 			]
 		},
 		{
+			"name": "Charm of Druidcraft",
+			"source": "IDRotF",
+			"page": 228,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"druidcraft"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This charm allows you to cast the {@spell druidcraft} cantrip as an action, no components required. Once used three times, this charm vanishes from you."
+			]
+		},
+		{
 			"name": "Charm of Euryale",
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
 			"entries": [
-				"As an action, you can unleash a petrifying wave of magic from your eyes in a 30-foot cone. Each creature in that area must make a DC 15 Constitution saving throw. On a failed save, a creature has the {@condition petrified} condition for 1 hour. On a successful save, a creature is partially turned to stone and has the {@condition restrained} condition. A {@condition restrained} creature can repeat the save at the end of each of its turns, ending the effect on itself on a success.",
+				"As an action, you can unleash a petrifying wave of magic from your eyes in a 30-foot cone. Each creature in that area must make a {@dc 15} Constitution saving throw. On a failed save, a creature has the {@condition petrified} condition for 1 hour. On a successful save, a creature is partially turned to stone and has the {@condition restrained} condition. A {@condition restrained} creature can repeat the save at the end of each of its turns, ending the effect on itself on a success.",
 				"Once you use this charm, it vanishes from you."
 			]
 		},
@@ -895,6 +1201,19 @@
 			"source": "BGDIA",
 			"page": 215,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"9": [
+									"hellish rebuke#9"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"A fiery halo appears above your head when you receive this charm. This charm allows you to cast the {@spell hellish rebuke} spell (9th-level version) as a reaction. Once used nine times, the charm vanishes from you, as does the fiery halo."
 			]
@@ -931,12 +1250,56 @@
 			]
 		},
 		{
+			"name": "Charm of Invisibility",
+			"source": "IDRotF",
+			"page": 228,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"invisibility"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This charm allows you to cast the {@spell invisibility} spell as an action, no components required. Once used three times, this charm vanishes from you."
+			]
+		},
+		{
 			"name": "Charm of Lesser Conscription",
 			"source": "BGDIA",
 			"page": 215,
 			"type": "Charm",
 			"entries": [
 				"While you have this charm, you attract flies. As an action, you activate this charm to summon a {@creature barbed devil}, two {@creature Bearded Devil||bearded devils}, or three {@creature Spined Devil||spined devils}. All devils appear at once in unoccupied spaces within 30 feet of you. Each devil obeys your commands and serves you eagerly for 9 days or until it dies, whereupon the devil disappears. Once all devils summoned by this charm disappear, the charm vanishes from you."
+			]
+		},
+		{
+			"name": "Charm of Lightning Bolt",
+			"source": "IDRotF",
+			"page": 228,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"lightning bolt"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This charm allows you to cast the {@spell lightning bolt} spell (save {@dc 15}) as an action, no components required. Once used, this charm vanishes from you."
 			]
 		},
 		{
@@ -967,13 +1330,57 @@
 			]
 		},
 		{
+			"name": "Charm of Purplemancy",
+			"source": "IDRotF",
+			"page": 228,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"faerie fire"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This charm allows you to cast the {@spell faerie fire} spell (violet light only; save {@dc 15}) as a bonus action instead of an action, no components required. Once used three times, this charm vanishes from you."
+			]
+		},
+		{
 			"name": "Charm of Restoration",
 			"source": "DMG",
 			"page": 228,
+			"otherSources": [
+				{
+					"source": "IDRotF",
+					"page": 228
+				}
+			],
 			"reprintedAs": [
 				"Charm of Restoration|XDMG"
 			],
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1e": [
+									"greater restoration"
+								],
+								"3e": [
+									"lesser restoration"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"This charm has 6 charges. You can use an action to expend some of its charges to cast one of the following spells: {@spell greater restoration} (4 charges) or {@spell lesser restoration} (2 charges). Once all its charges have been expended, the charm vanishes from you."
 			]
@@ -983,6 +1390,23 @@
 			"source": "XDMG",
 			"page": 99,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1e": [
+									"greater restoration|xphb"
+								],
+								"3e": [
+									"lesser restoration|xphb"
+								]
+							}
+						}
+					},
+					"resourceName": "Charges"
+				}
+			],
 			"entries": [
 				"This Charm has 3 charges. You can expend some of its charges to cast one of the following spells: {@spell Greater Restoration|XPHB} (2 charges) or {@spell Lesser Restoration|XPHB} (1 charge). Once all its charges have been expended, the Charm vanishes from you."
 			]
@@ -994,6 +1418,28 @@
 			"type": "Charm",
 			"entries": [
 				"As an action, you can touch a nonmagical object, or a section of a larger nonmagical object, that fits in a 5-foot cube. The target is reduced to dust. Once used three times, the charm vanishes from you."
+			]
+		},
+		{
+			"name": "Charm of Sending",
+			"source": "IDRotF",
+			"page": 228,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"sending"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This charm allows you to cast the {@spell sending} spell as an action, no components required. Once used, this charm vanishes from you."
 			]
 		},
 		{
@@ -1029,7 +1475,7 @@
 			"source": "VNotEE",
 			"type": "Charm",
 			"entries": [
-				"Once per turn, when you hit a creature with an attack roll using a weapon or an unarmed strike, you can infuse your strike with life-stealing energy. Your attack then deals an extra {@dice 1d10} necrotic damage, and you gain 5 {@book temporary hit points|PHB|9|Temporary Hit Points}. Once used five times, the charm vanishes."
+				"Once per turn, when you hit a creature with an attack roll using a weapon or an unarmed strike, you can infuse your strike with life-stealing energy. Your attack then deals an extra {@damage 1d10} necrotic damage, and you gain 5 {@book temporary hit points|PHB|9|Temporary Hit Points}. Once used five times, the charm vanishes."
 			]
 		},
 		{
@@ -1046,6 +1492,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"otiluke's resilient sphere"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Otiluke's Resilient Sphere}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). Once used three times, the charm vanishes from you."
 			]
@@ -1054,6 +1513,19 @@
 			"name": "Charm of the Eldritch Eye",
 			"source": "VNotEE",
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"clairvoyance"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Clairvoyance} as an action, without using a spell slot and requiring no material components. Once used three times, the charm vanishes."
 			]
@@ -1081,6 +1553,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"major image"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Major Image}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). When you cast the spell in this way, it lasts its full duration with no concentration required. Once used three times, the charm vanishes from you."
 			]
@@ -1091,7 +1576,7 @@
 			"page": 62,
 			"type": "Charm",
 			"entries": [
-				"As an action, you create a spray of {@dice 4d10} gems in a 30-foot cone originating from you. Each creature in that area must make a DC 15 Dexterity saving throw. On a failed save, a creature takes an amount of bludgeoning damage equal to the number of gems created. On a successful save, a creature takes half as much damage. The gems remain after the effect ends, and each one is worth 10 gp. Once used three times, the charm vanishes from you."
+				"As an action, you create a spray of {@dice 4d10} gems in a 30-foot cone originating from you. Each creature in that area must make a {@dc 15} Dexterity saving throw. On a failed save, a creature takes an amount of bludgeoning damage equal to the number of gems created. On a successful save, a creature takes half as much damage. The gems remain after the effect ends, and each one is worth 10 gp. Once used three times, the charm vanishes from you."
 			]
 		},
 		{
@@ -1118,6 +1603,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"tasha's hideous laughter"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Tasha's Hideous Laughter}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). Once used three times, the charm vanishes from you."
 			]
@@ -1128,7 +1626,7 @@
 			"page": 62,
 			"type": "Charm",
 			"entries": [
-				"As a bonus action, you can touch a nonmagical melee weapon and imbue it with magic for 1 hour. For the duration, the weapon deals an extra {@dice 1d8} force damage on a hit and deals double damage to objects and structures. Once used three times, the charm vanishes from you."
+				"As a bonus action, you can touch a nonmagical melee weapon and imbue it with magic for 1 hour. For the duration, the weapon deals an extra {@damage 1d8} force damage on a hit and deals double damage to objects and structures. Once used three times, the charm vanishes from you."
 			]
 		},
 		{
@@ -1154,9 +1652,22 @@
 			"source": "CM",
 			"page": 212,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"hallucinatory terrain"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"{@note This charm can be bestowed by a {@creature chwinga|CM} living a desert by using their Magical Gift action.}",
-				"This charm allows you to cast the {@spell hallucinatory terrain} spell (save DC 15) as an action. Once used, this charm vanishes from you."
+				"This charm allows you to cast the {@spell hallucinatory terrain} spell (save {@dc 15}) as an action. Once used, this charm vanishes from you."
 			]
 		},
 		{
@@ -1173,6 +1684,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"hypnotic pattern"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Hypnotic Pattern}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). Once used three times, the charm vanishes from you."
 			]
@@ -1182,6 +1706,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"mislead"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Mislead}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). When you cast the spell in this way, it lasts its full duration with no concentration required. Once used three times, the charm vanishes from you."
 			]
@@ -1191,6 +1728,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"divination"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Divination}, requiring no material components and using your Intelligence as the spellcasting ability. Once you cast the spell three times, the charm vanishes from you."
 			]
@@ -1249,6 +1799,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"enhance ability"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Enhance Ability}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). When you cast the spell in this way, it lasts its full duration with no concentration required. Once used three times, the charm vanishes from you."
 			]
@@ -1258,6 +1821,19 @@
 			"source": "DIP",
 			"page": 41,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"lightning bolt"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You become charged with the power of the storm, to the extent that tiny sparks crackle in your eyes. You can cast the {@spell lightning bolt} spell (3rd-level version) as an action. Once used three times, the charm vanishes from you."
 			]
@@ -1267,7 +1843,7 @@
 			"source": "HFStCM",
 			"type": "Charm",
 			"entries": [
-				"When a creature you can see within 30 feet of you moves, you can use your reaction to give the creature the {@condition prone} condition. Allies of the target who are within 30 feet of the target must succeed on a DC 16 Wisdom saving throw or have the {@condition stunned} condition until the end of their next turn as they laugh uncontrollably at their friend's misfortune. Once used three times, the charm vanishes from you."
+				"When a creature you can see within 30 feet of you moves, you can use your reaction to give the creature the {@condition prone} condition. Allies of the target who are within 30 feet of the target must succeed on a {@dc 16} Wisdom saving throw or have the {@condition stunned} condition until the end of their next turn as they laugh uncontrollably at their friend's misfortune. Once used three times, the charm vanishes from you."
 			]
 		},
 		{
@@ -1275,6 +1851,24 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"known": {
+						"_": [
+							"light#c"
+						]
+					},
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"sunburst"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You learn the {@spell Light} cantrip if you don't already know it. You can cast {@spell Sunburst}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). Once used, the charm vanishes from you, and you unlearn the {@spell Light} cantrip gained from this charm."
 			]
@@ -1293,6 +1887,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"dispel magic"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"As an action, you can cast {@spell Dispel Magic}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). If you successfully end any spells with it, you gain {@dice 1d6} {@book temporary hit points|PHB|9|Temporary Hit Points} for each spell level of the highest-level spell ended. Once used three times, the charm vanishes from you."
 			]
@@ -1302,6 +1909,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"mordenkainen's magnificent mansion"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Mordenkainen's Magnificent Mansion}, requiring no spell components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). Once used three times, the charm vanishes from you."
 			]
@@ -1311,6 +1931,19 @@
 			"source": "IDRotF",
 			"page": 283,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3e": [
+									"leomund's tiny hut"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"{@note This charm can be bestowed by a {@creature chwinga|ToA} living in Icewind Dale or other cold regions by using their Magical Gift action.}",
 				"This charm has 3 charges. As an action, you can expend 1 of the charm's charges to cast the {@spell Leomund's tiny hut} spell, no components required. Once all its charges have been expended, this charm vanishes from you."
@@ -1321,6 +1954,19 @@
 			"source": "BMT",
 			"page": 62,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"banishment"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can cast {@spell Banishment}, requiring no material components and using your Intelligence, Wisdom, or Charisma as the spellcasting ability (your choice). Once used three times, the charm vanishes from you."
 			]
@@ -1342,6 +1988,28 @@
 			"type": "Charm",
 			"entries": [
 				"While this charm lasts, you can use an action to pinpoint, by scent, the location of precious metals and stones, such as coins and gems, within 30 feet of you. The effect lasts for 3 days, after which the charm vanishes from you."
+			]
+		},
+		{
+			"name": "Charm of Vicious Mockery",
+			"source": "IDRotF",
+			"page": 228,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"vicious mockery"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This charm allows you to cast the {@spell vicious mockery} cantrip (5th-level version; save {@dc 15}) as an action. Once used three times, this charm vanishes from you."
 			]
 		},
 		{
@@ -1519,12 +2187,12 @@
 			"page": 193,
 			"type": "Charm",
 			"entries": [
-				"Norganas's gift is the power to turn life into undeath. This dark gift allows its beneficiary to cast the {@spell finger of death} spell as an action. After it has been used three times, the dark gift vanishes. When it vanishes, the beneficiary must succeed on a DC 15 Constitution saving throw or drop to 0 hit points.",
+				"Norganas's gift is the power to turn life into undeath. This dark gift allows its beneficiary to cast the {@spell finger of death} spell as an action. After it has been used three times, the dark gift vanishes. When it vanishes, the beneficiary must succeed on a {@dc 15} Constitution saving throw or drop to 0 hit points.",
 				"This dark gift turns the beneficiary's blood pitch black and viscid, like tar."
 			]
 		},
 		{
-			"name": "Dark Gift of Savnok the Inscrutible",
+			"name": "Dark Gift of Savnok the Inscrutable",
 			"source": "CoS",
 			"page": 192,
 			"type": "Charm",
@@ -1628,6 +2296,20 @@
 			"source": "GGR",
 			"page": 173,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"blink",
+									"sleep#3"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell blink} or {@spell sleep} (3rd-level version) spell. Alternatively, when you take damage, you can use your reaction to turn {@condition invisible} and teleport up to 30 feet to an unoccupied space you can see. You remain {@condition invisible} until the start of your next turn or until you attack or cast a spell. The charm vanishes after you activate it."
 			]
@@ -1638,6 +2320,17 @@
 			"page": 28,
 			"type": "Draconic Gift",
 			"rarity": "uncommon",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"ritual": [
+								"find familiar"
+							]
+						}
+					}
+				}
+			],
 			"entries": [
 				"You gain the aid of a draconic familiar, which might be a splinter of the consciousness of a dragon that invested you with power.",
 				"You can cast the {@spell find familiar} spell as a ritual without using any material components. When you cast the spell in this way, your familiar always takes the form of a {@creature pseudodragon}.",
@@ -1693,6 +2386,17 @@
 			"page": 28,
 			"type": "Draconic Gift",
 			"rarity": "very rare",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"ritual": [
+								"contact other plane"
+							]
+						}
+					}
+				}
+			],
 			"entries": [
 				"You have begun to extend your awareness beyond the single world of the Material Plane that is your home.",
 				"You can cast {@spell contact other plane} as a ritual. The entity you contact is a dragon on another world in the Material Plane, so its knowledge of your world might be limited. Also, this dragon is an echo of the dragon who is the source of the gift, which might affect its attitude and behavior toward you."
@@ -1703,6 +2407,20 @@
 			"source": "MOT",
 			"page": 40,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"int": [
+									"comprehend languages"
+								]
+							}
+						}
+					},
+					"ability": "int"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Ephara trait}",
 				"Ephara grants you insight into how people communicate. You can cast {@spell comprehend languages} with this trait, requiring no material component, a number of times equal to your Intelligence modifier (minimum of once). You regain all expended uses when you finish a long rest. Intelligence is your spellcasting ability for this spell."
@@ -1713,6 +2431,20 @@
 			"source": "MOT",
 			"page": 40,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"mordenkainen's private sanctum"
+								]
+							}
+						}
+					},
+					"ability": "int"
+				}
+			],
 			"entries": [
 				"{@i Piety 25+ Ephara trait}",
 				"You can cast {@spell Mordenkainen's private sanctum} with this trait, requiring no material components. Once you cast the spell in this way, you can't do so again until you finish a long rest. Intelligence is your spellcasting ability for this spell."
@@ -1754,6 +2486,20 @@
 			"source": "MOT",
 			"page": 43,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"vampiric touch"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Erebos trait}",
 				"You can cast {@spell vampiric touch} with this trait. Once you cast the spell in this way, you can't do so again until you finish a long rest. Wisdom is your spellcasting ability for this spell."
@@ -1764,6 +2510,19 @@
 			"source": "ToFW",
 			"page": 74,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"eyebite"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You are scarred by knowledge you shouldn't possess. Your eyes turn black, except for your pupils, which turn white. This charm grants you advantage on Charisma ({@skill Persuasion}) checks made to interact with evil creatures. Additionally, you can cast the spell {@spell eyebite} as an action. Your spellcasting ability for this spell is Intelligence, Wisdom, or Charisma (your choice when you gain this charm). Once you cast this spell, you can't cast it again until the next dawn. This charm vanishes after 13 days, when your appearance returns to normal."
 			]
@@ -2003,6 +2762,21 @@
 			"source": "GGR",
 			"page": 173,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"dispel magic",
+									"false life#3",
+									"stinking cloud"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell dispel magic}, {@spell false life} (3rd-level version), or {@spell stinking cloud} spell. The charm vanishes after you activate it."
 			]
@@ -2012,6 +2786,20 @@
 			"source": "GGR",
 			"page": 173,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"heroism",
+									"thunderwave#3"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell heroism} or {@spell thunderwave} spell (3rd-level versions). Alternatively, as a reaction when you miss with a weapon attack, you can make another attack against the target you missed. The charm vanishes after you activate it."
 			]
@@ -2052,6 +2840,20 @@
 			"source": "MOT",
 			"page": 46,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"daylight"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Heliod trait}",
 				"You can cast {@spell daylight} with this trait. Once you cast the spell in this way, you can't do so again until you finish a long rest. Wisdom is your spellcasting ability for this spell."
@@ -2106,6 +2908,20 @@
 			"source": "MOT",
 			"page": 49,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"cha": [
+									"compelled duel"
+								]
+							}
+						}
+					},
+					"ability": "cha"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Iroas trait}",
 				"As a devotee of Iroas, you have earned his favor through victories won in his name. You can cast {@spell compelled duel} with this trait a number of times equal to your Charisma modifier (minimum of once). You regain all expended uses when you finish a long rest. Charisma is your spellcasting ability for this spell."
@@ -2126,6 +2942,20 @@
 			"source": "MOT",
 			"page": 49,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"crusader's mantle"
+								]
+							}
+						}
+					},
+					"ability": "cha"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Iroas trait}",
 				"You can cast {@spell crusader's mantle} with this trait. Once you cast the spell in this way, you can't do so again until you finish a long rest. Charisma is your spellcasting ability for this spell.",
@@ -2137,6 +2967,20 @@
 			"source": "GGR",
 			"page": 174,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"dispel magic",
+									"lightning bolt"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell dispel magic} or {@spell lightning bolt} spell. Alternatively, as an action, you can regain one expended spell slot of 3rd level or lower. The charm vanishes after you activate it."
 			]
@@ -2201,6 +3045,20 @@
 			"source": "MOT",
 			"page": 52,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"create food and water"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Karametra trait}",
 				"You can cast {@spell create food and water} with this trait. Once you cast the spell in this way, you can't do so again until you finish a long rest. Wisdom is your spellcasting ability for this spell.",
@@ -2214,7 +3072,7 @@
 			"type": "Piety Trait",
 			"entries": [
 				"{@i Piety 3+ Keranos trait}",
-				"As a devotee of Keranos, you have proven your wisdom and your allegiance to the storm lord. Once on each of your turns when you hit a creature with a weapon attack, you can deal an extra {@dice 1d6} lightning damage to the target. You can use this trait a number of times equal to your Intelligence modifier (minimum of once). You regain all expended uses when you finish a long rest."
+				"As a devotee of Keranos, you have proven your wisdom and your allegiance to the storm lord. Once on each of your turns when you hit a creature with a weapon attack, you can deal an extra {@damage 1d6} lightning damage to the target. You can use this trait a number of times equal to your Intelligence modifier (minimum of once). You regain all expended uses when you finish a long rest."
 			]
 		},
 		{
@@ -2242,6 +3100,20 @@
 			"source": "MOT",
 			"page": 58,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"wis": [
+									"command"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Klothys trait}",
 				"As a devotee of Klothys, you can manipulate the bonds of destiny that invisibly entangle every living thing. You can cast {@spell command} with this trait a number of times equal to your Wisdom modifier (minimum of once). You regain all expended uses when you finish a long rest. Wisdom is your spellcasting ability for this spell."
@@ -2262,6 +3134,20 @@
 			"source": "MOT",
 			"page": 58,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"clairvoyance"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Klothys trait}",
 				"You can cast {@spell clairvoyance} with this trait, requiring no material components. Once you cast the spell in this way, you can't do so again until you finish a long rest. Wisdom is your spellcasting ability for this spell.",
@@ -2273,6 +3159,25 @@
 			"source": "MOT",
 			"page": 61,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"known": {
+						"_": [
+							"mage hand#c"
+						]
+					},
+					"innate": {
+						"_": {
+							"daily": {
+								"int": [
+									"detect magic"
+								]
+							}
+						}
+					},
+					"ability": "int"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Kruphix trait}",
 				"As a devotee of Kruphix, you have proven yourself a devotee of reality's mysteries and laws. You can cast {@spell detect magic} with this trait a number of times equal to your Intelligence modifier (minimum of once). You regain all expended uses when you finish a long rest.",
@@ -2284,6 +3189,15 @@
 			"source": "MOT",
 			"page": 61,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"known": {
+						"_": [
+							"mage hand#c"
+						]
+					}
+				}
+			],
 			"entries": [
 				"{@i Piety 25+ Kruphix trait}",
 				"As a true champion of Kruphix, you can use your {@spell mage hand} cantrip to protect yourself. While your spectral hand is within 5 feet of you, you gain a +2 bonus to your AC against ranged attacks."
@@ -2294,6 +3208,20 @@
 			"source": "MOT",
 			"page": 61,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"detect thoughts"
+								]
+							}
+						}
+					},
+					"ability": "int"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Kruphix trait}",
 				"You can cast {@spell detect thoughts} with this trait, requiring no material components. Once you cast the spell in this way, you can't do so again until you finish a long rest. Intelligence is your spellcasting ability for this spell.",
@@ -2413,6 +3341,20 @@
 			"source": "MOT",
 			"page": 64,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"blinding smite"
+								]
+							}
+						}
+					},
+					"ability": "con"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Mogis trait}",
 				"You can cast {@spell blinding smite} with this trait. Once you cast the spell in this way, you can't do so again until you finish a long rest. Constitution is your spellcasting ability for this spell."
@@ -2467,6 +3409,20 @@
 			"source": "MOT",
 			"page": 67,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"wis": [
+									"hunter's mark"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Nylea trait}",
 				"As a devotee of Nylea, you have proven yourself a guardian of the wilds. You can cast {@spell hunter's mark} with this trait a number of times equal to your Wisdom modifier (minimum of once). You regain all expended uses when you finish a long rest. Wisdom is your spellcasting ability for this spell."
@@ -2479,7 +3435,7 @@
 			"type": "Piety Trait",
 			"entries": [
 				"{@i Piety 25+ Nylea trait}",
-				"When a beast is about to attack you, it must make a DC 15 Wisdom saving throw. On a failed save, the creature must choose a different target, or the attack automatically misses you. On a successful save, the creature is immune to this trait for 24 hours."
+				"When a beast is about to attack you, it must make a {@dc 15} Wisdom saving throw. On a failed save, the creature must choose a different target, or the attack automatically misses you. On a successful save, the creature is immune to this trait for 24 hours."
 			]
 		},
 		{
@@ -2487,6 +3443,20 @@
 			"source": "MOT",
 			"page": 67,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"wis": [
+									"speak with animals"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Nylea trait}",
 				"You can cast {@spell speak with animals} with this trait a number of times equal to your Wisdom modifier (minimum of once). You regain all expended uses when you finish a long rest. Wisdom is your spellcasting ability for this spell.",
@@ -2542,6 +3512,19 @@
 			"source": "XDMG",
 			"page": 343,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"contact other plane|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"You can use your Observatory to peer into the far corners of {@book Wildspace|XDMG|5|Wildspace} and the {@book Astral Plane|XDMG|5|Astral Plane}. After spending a Long Rest in your Observatory, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Contact Other Plane|XPHB} without expending a spell slot. You can't gain this Charm again while you still have it."
 			]
@@ -2551,6 +3534,20 @@
 			"source": "GGR",
 			"page": 174,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"bestow curse",
+									"fear"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell bestow curse} or {@spell fear} spell. Alternatively, when a creature you can see within 30 feet of you is reduced to 0 hit points, you can use your reaction to have it drop to 1 hit point instead. The charm vanishes after you activate it."
 			]
@@ -2604,6 +3601,20 @@
 			"source": "MOT",
 			"page": 70,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"wis": [
+									"ray of sickness"
+								]
+							}
+						}
+					},
+					"ability": "wis"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Pharika trait}",
 				"As a devotee of Pharika, you have power over affliction. You can cast {@spell ray of sickness} with this trait a number of times equal to your Wisdom modifier (minimum of once). You regain all expended uses when you finish a long rest. Wisdom is your spellcasting ability for this spell."
@@ -2621,7 +3632,7 @@
 					"type": "list",
 					"items": [
 						"The target regains hit points equal to {@dice 1d8} + your Wisdom modifier, and you can cure the target of one disease or neutralize one poison affecting it.",
-						"The target must succeed on a DC 15 Constitution saving throw, or for 1 minute, the target deals only half damage with weapon attacks. The target can repeat the saving throw at the end of each of its turns, ending the effect on a success."
+						"The target must succeed on a {@dc 15} Constitution saving throw, or for 1 minute, the target deals only half damage with weapon attacks. The target can repeat the saving throw at the end of each of its turns, ending the effect on a success."
 					]
 				},
 				"You can use this action a number of times equal to your Wisdom modifier (minimum of once). You regain all expended uses when you finish a long rest."
@@ -2683,6 +3694,25 @@
 			"source": "MOT",
 			"page": 76,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"int": [
+									"shield of faith"
+								]
+							}
+						}
+					},
+					"known": {
+						"_": [
+							"mending#c"
+						]
+					},
+					"ability": "int"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Purphoros trait}",
 				"As a devotee of Purphoros, you have drawn the notice of the forge god with your skill. You can cast {@spell shield of faith} with this trait, requiring no material components, a number of times equal to your Intelligence modifier (minimum of once). You regain all expended uses when you finish a long rest.",
@@ -2704,6 +3734,20 @@
 			"source": "MOT",
 			"page": 76,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"heat metal"
+								]
+							}
+						}
+					},
+					"ability": "int"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Purphoros trait}",
 				"You can cast {@spell heat metal} with this trait, requiring no material components. Once you cast the spell in this way, you can't do so again until you finish a long rest. Intelligence is your spellcasting ability for this spell.",
@@ -2715,6 +3759,21 @@
 			"source": "GGR",
 			"page": 174,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"crown of madness",
+									"hellish rebuke",
+									"shatter"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell crown of madness}, {@spell hellish rebuke}, or {@spell shatter} spell. The charm vanishes after you activate it."
 			]
@@ -2724,8 +3783,21 @@
 			"source": "XDMG",
 			"page": 344,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"greater restoration|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
-				"After spending a Long Rest in your Bastion, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Greater Restoration|XPHB} once without expending a spell slot or using Material components. You can't gain this Charm again while you still have it."
+				"After spending a {@variantrule Long Rest|XPHB} in your {@book Bastion|XDMG|7}, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Greater Restoration|XPHB} once without expending a spell slot or using Material components. You can't gain this Charm again while you still have it."
 			]
 		},
 		{
@@ -2733,8 +3805,21 @@
 			"source": "XDMG",
 			"page": 345,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"healing word|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
-				"After spending a Long Rest in your Bastion, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Healing Word|XPHB} once without expending a spell slot. You can't gain this Charm again while you still have it."
+				"After spending a {@variantrule Long Rest|XPHB} in your {@book Bastion|XDMG|7}, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Healing Word|XPHB} once without expending a spell slot. You can't gain this Charm again while you still have it."
 			]
 		},
 		{
@@ -2742,8 +3827,21 @@
 			"source": "XDMG",
 			"page": 346,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"heal|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
-				"After spending a Long Rest in your Bastion, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Heal|XPHB} once without expending a spell slot. You can't gain this Charm again while you still have it."
+				"After spending a {@variantrule Long Rest|XPHB} in your {@book Bastion|XDMG|7}, you gain a magical Charm (see \"{@book Supernatural Gifts|XDMG|2|Supernatural Gifts}\" in {@book chapter 3|XDMG|2}) that lasts for 7 days or until you use it. The Charm allows you to cast {@spell Heal|XPHB} once without expending a spell slot. You can't gain this Charm again while you still have it."
 			]
 		},
 		{
@@ -2761,6 +3859,20 @@
 			"source": "GGR",
 			"page": 174,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"aura of vitality",
+									"conjure animals"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell aura of vitality} or {@spell conjure animals} spell. Alternatively, as an action, you can give up to three creatures of your choice within 30 feet of you resistance to bludgeoning, piercing, and slashing damage until the end of your next turn. The charm vanishes after you activate it."
 			]
@@ -2814,6 +3926,21 @@
 			"source": "GGR",
 			"page": 174,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"enhance ability#3",
+									"enlarge/reduce",
+									"gaseous form"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"When you activate this charm, you can cast the {@spell enhance ability} (3rd-level version), {@spell enlarge/reduce}, or {@spell gaseous form} spell. The charm vanishes after you activate it."
 			]
@@ -2823,6 +3950,19 @@
 			"source": "ToA",
 			"page": 179,
 			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"etherealness"
+								]
+							}
+						}
+					}
+				}
+			],
 			"entries": [
 				"While you have Strawbundle in your possession, this charm allows you to cast the {@spell etherealness} spell as an action, no components required. After it is used three times, the charm vanishes.",
 				"The doll is a Tiny construct. Destroying the doll causes the child's soul within it to become trapped in {@adventure the Soulmonger|ToA|5|The Soulmonger}.",
@@ -2858,6 +3998,20 @@
 			"source": "MOT",
 			"page": 79,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"int": [
+									"fog cloud"
+								]
+							}
+						}
+					},
+					"ability": "int"
+				}
+			],
 			"entries": [
 				"{@i Piety 3+ Thassa trait}",
 				"As a devotee of Thassa, you have proven yourself a worthy representative of the god of the sea. You can cast {@spell fog cloud} with this trait. Fog created in this way smells strongly of the sea. You can cast the spell in this way a number of times equal to your Intelligence modifier (minimum of once). You regain all expended uses when you finish a long rest. Intelligence is your spellcasting ability for this spell."
@@ -2878,6 +4032,20 @@
 			"source": "MOT",
 			"page": 79,
 			"type": "Piety Trait",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"blink"
+								]
+							}
+						}
+					},
+					"ability": "int"
+				}
+			],
 			"entries": [
 				"{@i Piety 10+ Thassa trait}",
 				"You can cast {@spell blink} with this trait. Once you cast the spell in this way, you can't do so again until you finish a long rest. Intelligence is your spellcasting ability for this spell."
@@ -3024,7 +4192,7 @@
 						{
 							"type": "item",
 							"name": "Power:",
-							"entry": "The host can use an action to unleash a psionic assault on a creature it can see within 60 feet of it. The target must succeed on a DC 16 Wisdom saving throw or be {@condition stunned} until the end of the target's next turn."
+							"entry": "The host can use an action to unleash a psionic assault on a creature it can see within 60 feet of it. The target must succeed on a {@dc 16} Wisdom saving throw or be {@condition stunned} until the end of the target's next turn."
 						}
 					]
 				}
@@ -3035,6 +4203,26 @@
 			"source": "ToA",
 			"page": 119,
 			"type": "Other",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"daily": {
+								"1e": [
+									"animal friendship",
+									"suggestion"
+								]
+							}
+						}
+					},
+					"known": {
+						"_": [
+							"poison spray#c"
+						]
+					},
+					"ability": "cha"
+				}
+			],
 			"entries": [
 				"A human can be transformed into a yuan-ti pureblood. The transformation can be undone only by a {@spell wish} spell or divine intervention. A character who survives it gains a random form of {@table indefinite madness} (see \"{@book Madness|DMG|8|Madness}\" in chapter 8 of the {@i Dungeon Master's Guide}). A human that undergoes and survives the ritual retains its traits and gains the following yuan-ti racial traits.",
 				{

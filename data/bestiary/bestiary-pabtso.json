@@ -2633,6 +2633,8 @@
 				"MW"
 			],
 			"conditionInflict": [
+				"grappled",
+				"incapacitated",
 				"stunned"
 			],
 			"savingThrowForced": [
@@ -2969,7 +2971,7 @@
 				{
 					"name": "Special Equipment",
 					"entries": [
-						"Nezznar has a fully charged {@item spider staff|lmop} (see appendix B)."
+						"Nezznar has a fully charged {@item spider staff|LMoP} (see appendix B)."
 					]
 				},
 				{
@@ -3735,6 +3737,9 @@
 			"spellcastingTags": [
 				"P"
 			],
+			"savingThrowForcedSpell": [
+				"wisdom"
+			],
 			"hasToken": true
 		},
 		{
@@ -4227,6 +4232,9 @@
 						"flags": "i"
 					}
 				}
+			},
+			"speed": {
+				"walk": 15
 			},
 			"hasToken": true,
 			"hasFluffImages": true
