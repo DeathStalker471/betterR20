@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.35.186.14js";
+const SCRIPT_VERSION = "1.35.186.14jt";
 const SCRIPT_REPO = "https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
@@ -10,6 +10,9 @@ const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 - Fix Import Error
 1.35.186.14js - Fix data error?
 - Fix Import Error
+1.35.186.14js - HUH?
+- Fix 2024 rolling
+
 `;
 
 const AUTHORS_CORE = `TheGiddyLimit/Redweller`;

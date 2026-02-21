@@ -2,7 +2,7 @@
 // @name         betteR20-beta-core-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.35.186.14js
+// @version      1.35.186.14jt
 // @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/betteR20-core.meta.js
 // @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
@@ -30,7 +30,7 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.35.186.14js`;
+B20_VERSION = `1.35.186.14jt`;
 B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
@@ -284,7 +284,7 @@ function baseUtil () {
 							in<span style="color: orange; font-family: monospace"> 5etools &gt; better20 &gt; #testing </span>thread
 						</p>
 					</h1>
-					<p>This version contains following changes<br>1.35.186.14jq - Map Importer?<br>- Fix Map Importer. Thank you @helenclarko<br>1.35.186.14jr - Fix data error?<br>- Fix Import Error<br>1.35.186.14js - Fix data error?<br>- Fix Import Error<br></p>
+					<p>This version contains following changes<br>1.35.186.14jq - Map Importer?<br>- Fix Map Importer. Thank you @helenclarko<br>1.35.186.14jr - Fix data error?<br>- Fix Import Error<br>1.35.186.14js - Fix data error?<br>- Fix Import Error<br>1.35.186.14js - HUH?<br>- Fix 2024 rolling<br><br></p>
 				</div>
 			`);
 			}, 6000);
@@ -25367,7 +25367,9 @@ function baseChat () {
 		}
 		const macroJS = d20plus.cfg.getOrDefault("chat", "executeJSMacro");
 
-		if (macroJS !== "none") {
+		// Added check: typeof params[0] === "string"
+		// This prevents the script from crashing in Jumpgate when params[0] is an object or null
+		if (macroJS !== "none" && typeof params[0] === "string") {
 			const template = /#(?<macroid>[^ ^#]+)/g;
 			params[0] = params[0].replace(template, (...match) => {
 				const macroId = match.last().macroid;
@@ -25389,7 +25391,7 @@ function baseChat () {
 		}
 
 		return r20outgoing(...params);
-	}
+	};
 
 	d20plus.chat.r20incoming = (r20incoming, params) => {
 		const msg = params[1];
