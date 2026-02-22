@@ -215,7 +215,14 @@ function d20plusMonsters () {
 			.map(src => d20plus.monsters.formMonsterUrl(monsterDataUrls[src]));
 
 		if (toLoad.length) {
-			const dataStack = (await Promise.all(toLoad.map(async url => DataUtil.loadJSON(url)))).flat();
+			const dataStack = (await Promise.all(toLoad.map(async url => {
+				try {
+					return await DataUtil.loadJSON(url);
+				} catch (e) {
+					console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
+					return [];
+				}
+			}))).flat();
 
 			let toShow = [];
 
