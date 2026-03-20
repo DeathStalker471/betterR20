@@ -61,6 +61,7 @@ const betteR205etools = function () {
 				d20plus.remoteLibre.init();
 				d20plus.jukeboxWidget.init();
 			}
+			d20plus.engine.fixHandleHtmlInput();
 			// d20.Campaign.pages.each(d20plus.bindGraphics);
 			// d20.Campaign.activePage().collection.on("add", d20plus.bindGraphics);
 			// d20plus.engine.enhanceStatusEffects();

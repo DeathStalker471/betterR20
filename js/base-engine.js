@@ -1047,6 +1047,23 @@ function d20plusEngine () {
 		$(document).off("click", "a").on("click", "a", d20.utils.handleURL);
 	};
 
+	d20plus.engine.fixHandleHtmlInput = function () {
+		if (d20plus.engine._hasPatchedHandleHtmlInput) return;
+		if (!d20?.utils?.autoLink || !d20?.utils?.handleHTMLInput) return;
+
+		const originalAutoLink = d20.utils.autoLink.bind(d20.utils);
+		d20.utils.autoLink = function (value) {
+			return originalAutoLink(value == null ? "" : `${value}`);
+		};
+
+		const originalHandleHtmlInput = d20.utils.handleHTMLInput.bind(d20.utils);
+		d20.utils.handleHTMLInput = function (value) {
+			return originalHandleHtmlInput(value == null ? "" : `${value}`);
+		};
+
+		d20plus.engine._hasPatchedHandleHtmlInput = true;
+	};
+
 	d20plus.engine.repairPrototypeMethods = function () {
 		d20plus.mod.fixHexMethods();
 		d20plus.mod.fixVideoMethods();

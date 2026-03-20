@@ -199,6 +199,45 @@ function d20plusArt () {
 		});
 	};
 
+	d20plus.art._setCharacterDefaultTokenPreview = ($dropbox, url) => {
+		const $inner = $dropbox.find(".inner");
+		if (!url) {
+			$dropbox.removeClass("filled");
+			$inner.html(`<h4 style="padding-bottom: 0px; marigin-bottom: 0px; color: #777;">Drop a file from your <br>Art Library or computer<small>(JPG, GIF, PNG, WEBM, WP4)</small></h4><br /> or<button class="btn">Click to Upload</button><input class="manual" type="file" />`);
+			return;
+		}
+
+		$dropbox.addClass("filled");
+		$inner.html(/.+\.webm(\?.*)?$/i.test(url)
+			? `<video src="${url}" draggable="false" muted autoplay loop></video><div class='remove'><a href='#'>Remove</a></div>`
+			: `<img src="${url}" draggable="false"><div class='remove'><a href='#'>Remove</a></div>`);
+	};
+
+	// Backward-compatibility shim for older builds/cached scripts which may still call the
+	// previously-added default-token dropbox binding hooks.
+	d20plus.art._bindCharacterDefaultTokenDropboxes = () => {};
+	d20plus.art._initCharacterDefaultTokenDropboxObserver = () => {
+		d20plus.art._bindCharacterDefaultTokenDropboxes();
+	};
+
+	d20plus.art._setCharacterDefaultTokenImage = (char, url) => {
+		if (char?.view?.saveDefaultTokenImage) {
+			if (char.view.updateModel) char.view.updateModel();
+			char.view.saveDefaultTokenImage(url);
+			return;
+		}
+
+		char._getLatestBlob("defaulttoken", (blob) => {
+			blob = blob && blob.trim() ? JSON.parse(blob) : {};
+			blob.imgsrc = url;
+			const serialized = JSON.stringify(blob);
+			char._blobcache = char._blobcache || {};
+			char._blobcache.defaulttoken = serialized;
+			char.updateBlobs({defaulttoken: serialized});
+			char.save({defaulttoken: (new Date()).getTime()});
+		});
+	};
+
 	d20plus.art.pLoadArt = async () => {
 		d20plus.ut.log("Loading custom art");
 		const handout = d20plus.art.getArtHandout();
@@ -296,16 +335,25 @@ function d20plusArt () {
 		});
 
 		$(`.token-image-by-url`).live("click", function () {
-			const cId = $(this).closest(`[data-characterid]`).attr(`data-characterid`);
+			const $dialog = $(this).closest(`[data-characterid]`);
+			const cId = $dialog.attr(`data-characterid`);
 			const url = window.prompt("Enter a URL", d20plus.art.getLastImageUrl());
 			if (url) {
 				d20plus.art.setLastImageUrl(url);
 				const char = d20.Campaign.characters.get(cId);
-				char._getLatestBlob("defaulttoken", (blob) => {
-					blob = blob && blob.trim() ? JSON.parse(blob) : {};
-					blob.imgsrc = url;
-					char.updateBlobs({defaulttoken: JSON.stringify(blob)});
-				});
+				d20plus.art._bindCharacterDefaultTokenDropboxes();
+				setTimeout(() => {
+					const $dropbox = $(this).closest(`.charactereditor`).find(`.defaultToken.dropbox`);
+					if ($dropbox.length) {
+						const $inner = $dropbox.find(`.inner`);
+						$dropbox.addClass(`filled`);
+						$inner.html(/.+\.webm(\?.*)?$/i.test(url)
+							? `<video src="${url}" draggable="false" muted autoplay loop></video><div class='remove'><a href='#'>Remove</a></div>`
+							: `<img src="${url}" draggable="false"><div class='remove'><a href='#'>Remove</a></div>`);
+					}
+				}, 0);
+				d20plus.art._setCharacterDefaultTokenImage(char, url);
+				d20plus.art._setCharacterDefaultTokenPreview($dialog.find(`.defaultToken.dropbox`), url);
 			}
 		});
 
