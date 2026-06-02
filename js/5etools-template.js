@@ -172,15 +172,24 @@ const d20plusTemplate = function () {
 			$wrpSettings.append(d20plus.template5e.settingsHtmlPtImportFooter);
 
 			$("#bind-drop-locations").on(window.mousedowntype, d20plus.bindDropLocations);
-			//$("#initiativewindow .characterlist").before(d20plus.template5e.initiativeHeaders);
 
-			//d20plus.setTurnOrderTemplate();
-			//d20.Campaign.initiativewindow.rebuildInitiativeList();
-		//	d20plus.hpAllowEdit();
-			//d20.Campaign.initiativewindow.model.on("change:turnorder", function () {
-			//	d20plus.updateDifficulty();
-			//});
-			//d20plus.updateDifficulty();
+			// Set up the "Add Additional Info to Tracker" enhancement. This only
+			// decorates Roll20's own initiative list after it renders, so even if
+			// something here fails the vanilla turn order keeps working.
+			try {
+				d20plus.ensureTrackerHeader();
+				d20plus.setTurnOrderTemplate();
+				d20plus.hpAllowEdit();
+				d20.Campaign.initiativewindow.model.on("change:turnorder", function () {
+					d20plus.updateDifficulty();
+				});
+				d20.Campaign.initiativewindow.rebuildInitiativeList();
+				d20plus.updateDifficulty();
+			} catch (e) {
+				d20plus.ut.log("Failed to set up custom initiative tracker");
+				// eslint-disable-next-line no-console
+				console.error(e);
+			}
 
 			d20plus.template5e._populateAdventuresDropdown();
 

@@ -961,152 +961,328 @@ const betteR205etoolsMain = function () {
 		// Note: dnd2024byroll20 uses a different architecture (relay system) - not yet supported
 		d20plus.ut.log(`Switched Character Sheet Template to ${d20plus.sheet}`);
 	};
-	// Return Initiative Tracker template with formulas
-	d20plus.initErrorHandler = null;
-	d20plus.setTurnOrderTemplate = function () {
-		if (!d20plus.turnOrderCachedFunction) {
-			d20plus.turnOrderCachedFunction = d20.Campaign.initiativewindow.rebuildInitiativeList;
-			d20plus.turnOrderCachedTemplate = $("#tmpl_initiativecharacter").clone();
+	// Build the standard initiative tracker, then decorate it with extra columns.
+	//
+	// NOTE: Earlier versions swapped Roll20's compiled `#tmpl_initiativecharacter`
+	// template and installed a global `error` listener that re-ran the (legacy)
+	// rebuild with the wrong `this` binding. On Jumpgate this corrupted the turn
+	// order, so it was disabled ("Temp Fix turn order issue"). We now leave
+	// Roll20's own rendering completely untouched and only add columns to the
+	// already-rendered DOM, in a best-effort/try-catch fashion. This means the
+	// turn order can never be broken by this feature, even if Roll20 changes.
+
+	// Resolve the token model for a rendered `li.token` row.
+	d20plus.getTrackerToken = function ($li, tokenId) {
+		tokenId = tokenId || $li.data("tokenid");
+		if (!tokenId) return null;
+
+		let pageId = d20.Campaign.activePage();
+		try {
+			const order = d20.Campaign.currentOrderArray || [];
+			const idx = $li.data("currentindex");
+			let entry = (idx != null && order[idx] && order[idx].id === tokenId) ? order[idx] : null;
+			if (!entry) entry = order.find(it => it && it.id === tokenId);
+			if (entry && entry._pageid) pageId = entry._pageid;
+		} catch (e) { /* ignore */ }
+
+		const page = d20.Campaign.pages.get(pageId);
+		let token = (page && page.thegraphics) ? page.thegraphics.get(tokenId) : null;
+		if (!token) {
+			// the turn order may reference a token on a non-active page
+			try {
+				d20.Campaign.pages.each(p => {
+					if (!token && p.thegraphics) token = p.thegraphics.get(tokenId);
+				});
+			} catch (e) { /* ignore */ }
+		}
+		return token || null;
+	};
+
+	d20plus.trackerColHeader = function (col) {
+		switch (col) {
+			case "HP": return "HP";
+			case "AC": return "AC";
+			case "Passive Perception": return "PP";
+			case "Spell DC": return "DC";
+			default: return "";
+		}
+	};
+
+	// Build a single column <span> (as an HTML string) for a given row.
+	d20plus.getTrackerColSpan = function (col, token, char, npc, pending) {
+		// `pending` === the character's attributes haven't loaded yet (fresh page
+		// load). Show an empty column rather than a misleading "\u2014", and let the
+		// deferred redraw (fired when the fetch completes) fill in the real value.
+		if (pending) {
+			switch (col) {
+				case "HP": return `<span class='hp editable tracker-col' alt='HP' title='HP'></span>`;
+				case "AC": return `<span class='ac tracker-col' alt='AC' title='AC'></span>`;
+				case "Passive Perception": return `<span class='pp tracker-col' alt='Passive Perception' title='Passive Perception'></span>`;
+				case "Spell DC": return `<span class='dc tracker-col' alt='Spell DC' title='Spell DC'></span>`;
+				default: return `<span class="tracker-col"></span>`;
+			}
 		}
 
-		d20.Campaign.initiativewindow.rebuildInitiativeList = function () {
-			let html = d20plus.template5e.initiativeTemplate;
-			let columnsAdded = [];
-			$(".tracker-header-extra-columns").empty();
+		const EMDASH = "\u2014";
+		const formulas = (d20plus.formulas && d20plus.formulas[d20plus.sheet]) || {};
+		const hasCalc = !!(char && typeof char.autoCalcFormula === "function");
+		const isNpc = !!(npc && `${npc.get("current")}` === "1");
 
-			const cols = [
-				d20plus.cfg.get("interface", "trackerCol1"),
-				d20plus.cfg.get("interface", "trackerCol2"),
-				d20plus.cfg.get("interface", "trackerCol3"),
-			];
+		const calc = (formula) => {
+			if (!hasCalc || !formula) return null;
+			try {
+				const v = char.autoCalcFormula(formula);
+				return (v === undefined || v === null || v === "") ? null : v;
+			} catch (e) { return null; }
+		};
+		const esc = (v) => $("<div>").text(v == null ? "" : v).html();
 
-			const headerStack = [];
-			const replaceStack = [
-				// this is hidden by CSS
-				`<span class='cr' alt='CR' title='CR'>
-					<$ if(npc && npc.get("current") == "1") { $>
-						<$ var crAttr = char.attribs.find(function(e) { return e.get("name").toLowerCase() === "npc_challenge" }); $>
-						<$ if(crAttr) { $>
-							<$!crAttr.get("current")$>
-						<$ } $>
-					<$ } $>
-				</span>`,
-			];
-			cols.forEach((c, i) => {
-				switch (c) {
-					case "HP": {
-						const hpBar = d20plus.cfg5e.getCfgHpBarNumber();
-						replaceStack.push(`
-							<span class='hp editable tracker-col' alt='HP' title='HP'>
-								<$ if(npc && npc.get("current") == "1") { $>
-									${hpBar ? `<$!token.attributes.bar${hpBar}_value$>` : ""}
-								<$ } else if (typeof char !== "undefined" && char && typeof char.autoCalcFormula !== "undefined") { $>
-									<$!char.autoCalcFormula('${d20plus.formulas[d20plus.sheet].hp}')$>
-								<$ } else { $>
-									<$!"\u2014"$>
-								<$ } $>
-							</span>
-						`);
-						headerStack.push(`<span class='tracker-col'>HP</span>`);
-						break;
-					}
-					case "AC": {
-						replaceStack.push(`
-							<span class='ac tracker-col' alt='AC' title='AC'>
-								<$ if(npc && npc.get("current") == "1" && typeof char !== "undefined" && char && typeof char.autoCalcFormula !== "undefined") { $>
-									<$!char.autoCalcFormula('${d20plus.formulas[d20plus.sheet].npcac}')$>
-								<$ } else if (typeof char !== "undefined" && char && typeof char.autoCalcFormula !== "undefined") { $>
-									<$!char.autoCalcFormula('${d20plus.formulas[d20plus.sheet].ac}')$>
-								<$ } else { $>
-									<$!"\u2014"$>
-								<$ } $>
-							</span>
-						`);
-						headerStack.push(`<span class='tracker-col'>AC</span>`);
-						break;
-					}
-					case "Passive Perception": {
-						replaceStack.push(`
-							<$ var passive = (typeof char !== "undefined" && char && typeof char.autoCalcFormula !== "undefined") ? (char.autoCalcFormula('@{passive}') || char.autoCalcFormula('${d20plus.formulas[d20plus.sheet].pp}')) : "\u2014"; $>
-							<span class='pp tracker-col' alt='Passive Perception' title='Passive Perception'><$!passive$></span>
-						`);
-						headerStack.push(`<span class='tracker-col'>PP</span>`);
-						break;
-					}
-					case "Spell DC": {
-						replaceStack.push(`
-							<$ var dc = (typeof char !== "undefined" && char && typeof char.autoCalcFormula !== "undefined") ? (char.autoCalcFormula('${d20plus.formulas[d20plus.sheet].spellDc}')) : "\u2014"; $>
-							<span class='dc tracker-col' alt='Spell DC' title='Spell DC'><$!dc$></span>
-						`);
-						headerStack.push(`<span class='tracker-col'>DC</span>`);
-						break;
-					}
-					default: {
-						replaceStack.push(`<span class="tracker-col"/>`);
-						headerStack.push(`<span class="tracker-col"/>`);
-					}
-				}
-			});
-
-			// eslint-disable-next-line no-console
-			console.log("use custom tracker val was ", d20plus.cfg.get("interface", "customTracker"))
-			if (d20plus.cfg.get("interface", "customTracker")) {
-				$(`.init-header`).show();
-				if (d20plus.cfg.get("interface", "trackerSheetButton")) {
-					$(`.init-sheet-header`).show();
+		switch (col) {
+			case "HP": {
+				let val;
+				const hpBar = d20plus.cfg5e.getCfgHpBarNumber();
+				if (isNpc || !hasCalc) {
+					val = (hpBar && token && token.attributes) ? token.attributes[`bar${hpBar}_value`] : "";
+					if (val === undefined || val === null) val = isNpc ? "" : EMDASH;
 				} else {
-					$(`.init-sheet-header`).hide();
+					val = calc(formulas.hp);
+					if (val == null) val = EMDASH;
 				}
-				$(`.init-init-header`).show();
-				const $header = $(".tracker-header-extra-columns");
-				// prepend/reverse used since tracker gets populated in right-to-left order
-				headerStack.forEach(h => $header.prepend(h))
-				html = html.replace(`<!--5ETOOLS_REPLACE_TARGET-->`, replaceStack.reverse().join(" \n"));
-			} else {
-				$(`.init-header`).hide();
-				$(`.init-sheet-header`).hide();
-				$(`.init-init-header`).hide();
+				return `<span class='hp editable tracker-col' alt='HP' title='HP'>${esc(val)}</span>`;
+			}
+			case "AC": {
+				let val;
+				if (isNpc && hasCalc) val = calc(formulas.npcac);
+				else if (hasCalc) val = calc(formulas.ac);
+				if (val == null) val = EMDASH;
+				return `<span class='ac tracker-col' alt='AC' title='AC'>${esc(val)}</span>`;
+			}
+			case "Passive Perception": {
+				let val = EMDASH;
+				if (hasCalc) {
+					val = calc("@{passive}");
+					if (val == null) val = calc(formulas.pp);
+					if (val == null) val = EMDASH;
+				}
+				return `<span class='pp tracker-col' alt='Passive Perception' title='Passive Perception'>${esc(val)}</span>`;
+			}
+			case "Spell DC": {
+				let val = EMDASH;
+				if (hasCalc) {
+					val = calc(formulas.spellDc);
+					if (val == null) val = EMDASH;
+				}
+				return `<span class='dc tracker-col' alt='Spell DC' title='Spell DC'>${esc(val)}</span>`;
+			}
+			default:
+				return `<span class="tracker-col"></span>`;
+		}
+	};
+
+	// Hidden CR span, kept for parity with the original markup/CSS.
+	d20plus.getTrackerCrSpan = function (char, npc) {
+		let cr = "";
+		try {
+			if (npc && `${npc.get("current")}` === "1" && char && char.attribs) {
+				const crAttr = char.attribs.find(a => a.get("name").toLowerCase() === "npc_challenge");
+				if (crAttr) cr = crAttr.get("current");
+			}
+		} catch (e) { /* ignore */ }
+		return `<span class='cr' alt='CR' title='CR'>${$("<div>").text(cr == null ? "" : cr).html()}</span>`;
+	};
+
+	// Ensure the header row exists above the character list.
+	d20plus.ensureTrackerHeader = function () {
+		const $window = $("#initiativewindow");
+		if (!$window.length) return;
+		if ($window.find(".init-header").length) return;
+		const $list = $window.find(".characterlist");
+		if ($list.length) $list.before(d20plus.template5e.initiativeHeaders);
+		else $window.prepend(d20plus.template5e.initiativeHeaders);
+	};
+
+	// Decorate one rendered token row with the configured columns.
+	d20plus.decorateTrackerRow = function ($li, cols) {
+		// clean up anything we may have added on a previous pass
+		$li.find(".tracker-extra-columns").remove();
+		$li.children(".initmacro.b20-init-macro").remove();
+
+		const tokenId = $li.data("tokenid");
+		const token = d20plus.getTrackerToken($li, tokenId);
+		const char = token ? token.character : null;
+
+		// On a fresh page load Roll20 hasn't loaded a character's attributes until
+		// something (e.g. opening its sheet) forces it, so autoCalcFormula returns
+		// nothing and every column would read "\u2014". Detect that here, kick off a
+		// background fetch, and render the columns blank for now; the fetch's
+		// completion schedules a redraw that fills in the real values. NPC detection
+		// itself needs the attributes, so when they're missing we treat the whole
+		// row as pending.
+		const attribsLoaded = !!(char && char.attribs && char.attribs.length);
+		let pending = false;
+		if (char && char.attribs && !char.attribs.length) {
+			const cid = char.id || (char.attributes && char.attributes.id);
+			if (d20plus._trackerAttribState[cid] !== "failed") {
+				pending = true;
+				d20plus.requestTrackerAttribs(char);
+			}
+		}
+
+		const npc = attribsLoaded
+			? char.attribs.find(a => a.get("name").toLowerCase() === "npc")
+			: null;
+
+		// optional sheet-macro button (prepended so it floats furthest right)
+		if (d20plus.cfg.get("interface", "trackerSheetButton")) {
+			const $macro = $(`<span alt='Sheet Macro' title='Sheet Macro' class='initmacro b20-init-macro'><button type='button' class='initmacrobutton ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only pictos' role='button' aria-disabled='false'><span class='ui-button-text'>N</span></button></span>`);
+			$macro.find(".initmacrobutton").on("click", function () {
+				const $row = $(this).closest("li.token");
+				const tk = d20plus.getTrackerToken($row, $row.data("tokenid"));
+				const ch = tk ? tk.character : null;
+				if (ch && ch.view && ch.view.showDialog) ch.view.showDialog();
+			});
+			$li.prepend($macro);
+		}
+
+		// build column spans; cr first, then the configured columns, then reverse
+		// (float:right means later DOM elements appear further left, so this keeps
+		// the visual order matching the header)
+		const colSpans = [d20plus.getTrackerCrSpan(char, npc)];
+		cols.forEach(c => colSpans.push(d20plus.getTrackerColSpan(c, token, char, npc, pending)));
+		const inner = colSpans.reverse().join("\n");
+
+		const $extra = $(`<div class="tracker-extra-columns">${inner}</div>`);
+		const $init = $li.children(".initiative").first();
+		if ($init.length) $extra.insertAfter($init);
+		else $li.prepend($extra);
+	};
+
+	// Add the extra columns + headers to the (already rendered) initiative window.
+	d20plus.addTrackerInfo = function () {
+		const $window = $("#initiativewindow");
+		if (!$window.length) return;
+
+		d20plus.ensureTrackerHeader();
+
+		const useCustom = d20plus.cfg.get("interface", "customTracker");
+		if (!useCustom) {
+			$(".init-header").hide();
+			$window.find(".tracker-extra-columns").remove();
+			$window.find("li.token > .initmacro.b20-init-macro").remove();
+			return;
+		}
+
+		$(".init-header").show();
+		if (d20plus.cfg.get("interface", "trackerSheetButton")) $(".init-sheet-header").show();
+		else $(".init-sheet-header").hide();
+		$(".init-init-header").show();
+
+		const cols = [
+			d20plus.cfg.get("interface", "trackerCol1"),
+			d20plus.cfg.get("interface", "trackerCol2"),
+			d20plus.cfg.get("interface", "trackerCol3"),
+		];
+
+		// (re)populate header labels
+		const $header = $(".tracker-header-extra-columns");
+		$header.empty();
+		cols.forEach(c => $header.prepend(`<span class='tracker-col'>${d20plus.trackerColHeader(c)}</span>`));
+
+		// decorate every token row
+		$window.find("li.token").each((i, el) => {
+			try { d20plus.decorateTrackerRow($(el), cols); } catch (e) { /* per-row safety */ }
+		});
+	};
+
+	// Tracks per-character attribute loading so we never fetch the same character
+	// twice and never loop: "pending" while fetching, "done" once loaded, "failed"
+	// if the fetch times out (a character genuinely without attributes).
+	d20plus._trackerAttribState = {};
+	d20plus.requestTrackerAttribs = function (char) {
+		const id = char && (char.id || (char.attributes && char.attributes.id));
+		if (!id) return;
+		const st = d20plus._trackerAttribState[id];
+		if (st === "pending" || st === "failed") return;
+		d20plus._trackerAttribState[id] = "pending";
+		Promise.resolve(d20plus.ut.fetchCharAttribs(char))
+			.then((res) => {
+				d20plus._trackerAttribState[id] = res ? "done" : "failed";
+				// redraw so the freshly-loaded values replace the blank placeholders
+				d20plus.scheduleTrackerRedraw();
+			})
+			.catch(() => {
+				d20plus._trackerAttribState[id] = "failed";
+				d20plus.scheduleTrackerRedraw();
+			});
+	};
+
+	// A debounced, deferred re-render. Adding/removing a creature re-renders the
+	// turn order before its data has settled, so the first render shows blank
+	// columns and an initiative of 0; Roll20 only fixes itself on the next
+	// interaction (going to the next/previous turn re-runs rebuildInitiativeList
+	// once the data is ready). We reproduce that automatically here: after the
+	// turn order changes we wait for it to settle, then re-run the (overridden)
+	// rebuild exactly once. rebuildInitiativeList only reads the model and paints
+	// the DOM -- it never writes the turn order -- so this cannot loop.
+	d20plus._trackerRedrawTimer = null;
+	d20plus.scheduleTrackerRedraw = function (delay) {
+		if (d20plus._trackerRedrawTimer) clearTimeout(d20plus._trackerRedrawTimer);
+		d20plus._trackerRedrawTimer = setTimeout(function () {
+			d20plus._trackerRedrawTimer = null;
+			try {
+				if (d20.Campaign && d20.Campaign.initiativewindow) {
+					d20.Campaign.initiativewindow.rebuildInitiativeList();
+				}
+			} catch (e) { /* ignore */ }
+		}, delay == null ? 150 : delay);
+	};
+
+	d20plus.setTurnOrderTemplate = function () {
+		// cache Roll20's own render function once
+		if (!d20plus.turnOrderCachedFunction) {
+			d20plus.turnOrderCachedFunction = d20.Campaign.initiativewindow.rebuildInitiativeList;
+		}
+
+		d20.Campaign.initiativewindow.rebuildInitiativeList = function (...args) {
+			// Always let Roll20 render its list first; never touch its template.
+			const results = d20plus.turnOrderCachedFunction.apply(this, args);
+
+			// Then add our columns. Wrapped so a failure here can't break the tracker.
+			try {
+				d20plus.addTrackerInfo();
+			} catch (e) {
+				// eslint-disable-next-line no-console
+				console.error("betteR20: failed to add tracker info", e);
 			}
 
-			$("#tmpl_initiativecharacter").replaceWith(html);
-
-			// Hack to catch errors, part 1
-			const startTime = (new Date()).getTime();
-
-			let results = d20plus.turnOrderCachedFunction.apply(this, []);
+			// (re)bind token HP fields once the rows exist
 			setTimeout(function () {
-				$(".initmacrobutton").unbind("click");
-				$(".initmacrobutton").bind("click", function () {
-					tokenid = $(this).parent().parent().data("tokenid");
-					let token, char;
-					let page = d20.Campaign.activePage();
-					if (page) token = page.thegraphics.get(tokenid);
-					if (token) char = token.character;
-					if (char) {
-						char.view.showDialog();
-						// d20.textchat.doChatInput(`%{` + char.id + `|` + d20plus.formulas[d20plus.sheet]["macro"] + `}`)
-					}
-				});
-
-				d20plus.bindTokens();
+				try { d20plus.bindTokens(); } catch (e) { /* ignore */ }
 			}, 100);
 
-			// Hack to catch errors, part 2
-			if (d20plus.initErrorHandler) {
-				window.removeEventListener("error", d20plus.initErrorHandler);
-			}
-			d20plus.initErrorHandler = function (event) {
-				// if we see an error within 250 msec of trying to override the initiative window...
-				if (((new Date()).getTime() - startTime) < 250) {
-					d20plus.ut.log("ERROR: failed to populate custom initiative tracker, restoring default...");
-					// restore the default functionality
-					$("#tmpl_initiativecharacter").replaceWith(d20plus.turnOrderCachedTemplate);
-					return d20plus.turnOrderCachedFunction();
-				}
-			};
-			window.addEventListener("error", d20plus.initErrorHandler);
 			return results;
 		};
+
+		// Heal the "added/removed creature blanks the tracker" case: re-render once
+		// the turn order has settled. Guard so we only ever bind this handler once.
+		if (!d20plus._trackerRedrawBound) {
+			d20plus._trackerRedrawBound = true;
+			d20.Campaign.initiativewindow.model.on("change:turnorder", function () {
+				d20plus.scheduleTrackerRedraw();
+			});
+			// A token leaving/joining the active page can change the tracker without
+			// a turnorder edit (e.g. deleting a token that has a turn); cover that too.
+			try {
+				const page = d20.Campaign.pages.get(d20.Campaign.activePage());
+				if (page && page.thegraphics) {
+					page.thegraphics.on("add remove", function () {
+						if (d20.Campaign.initiativewindow.model.attributes.initiativepage) {
+							d20plus.scheduleTrackerRedraw();
+						}
+					});
+				}
+			} catch (e) { /* ignore */ }
+		}
 
 		const getTargetWidth = () => d20plus.cfg.get("interface", "minifyTracker") ? 250 : 350;
 		// wider tracker
