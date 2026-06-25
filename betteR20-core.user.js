@@ -82,21 +82,6 @@ Object.defineProperty = function (obj, prop, vals) {
 	return OBJECT_DEFINE_PROPERTY(obj, prop, vals);
 };
 
-FINAL_CANVAS_MOUSEDOWN_LIST = [];
-FINAL_CANVAS_MOUSEMOVE_LIST = [];
-FINAL_CANVAS_MOUSEDOWN = null;
-FINAL_CANVAS_MOUSEMOVE = null;
-EventTarget.prototype.addEventListenerBase = EventTarget.prototype.addEventListener;
-EventTarget.prototype.addEventListener = function (type, listener, options, ...others) {
-	if (typeof d20 !== "undefined") {
-		if (type === "mousedown" && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEDOWN = listener;
-		if (type === "mousemove" && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEMOVE = listener;
-	} else {
-		if (type === "mousedown") FINAL_CANVAS_MOUSEDOWN_LIST.push({listener, on: this});
-		if (type === "mousemove") FINAL_CANVAS_MOUSEMOVE_LIST.push({listener, on: this});
-	}
-	this.addEventListenerBase(type, listener, options, ...others);
-};
 
 
 function baseUtil () {
@@ -156,17 +141,6 @@ function baseUtil () {
 		return b < a ? 1 : -1;
 	};
 
-	d20plus.ut.fix3dDice = () => {
-		Object.defineProperty(Array.prototype, "filter", {
-			enumerable: false,
-			value: Array.prototype.filter,
-		});
-
-		Object.defineProperty(Array.prototype, "map", {
-			enumerable: false,
-			value: Array.prototype.map,
-		});
-	};
 
 	d20plus.ut.injectCode = (object, method, injectedCode) => {
 		const original = object[method].bind(object);
@@ -276,21 +250,7 @@ function baseUtil () {
 				$bored.remove();
 				clearInterval(d20plus.ut.cursor);
 			}, 2000);
-		
-			d20plus.ut.sendHackerChat(`
-				<div class="userscript-b20intro">
-					<h1 style="display: inline-block;line-height: 25px;margin-top: 5px; font-size: 22px;">
-						Notes on b20 beta
-						<p style="font-size: 11px;line-height: 15px;color: rgb(32, 194, 14);">
-							<span style="color: rgb(194, 32, 14)">You are using preview version of betteR20</span><br>
-							Please read this carefully and give feedback in official betteR20 Discord server,
-							in<span style="color: orange; font-family: monospace"> 5etools &gt; better20 &gt; #testing </span>thread
-						</p>
-					</h1>
-					<p>This version contains following changes<br>1.36.1.1ji - 2024 Sheet Support (First Release)<br>- Added drag & drop import for Spells, Items, Feats, Species/Races, and Classes directly into the new 2024 (Jumpgate) character sheet<br>- Convert existing OGL 2014 character sheets to the 2024 sheet format<br>- 2024-compatible Monster/NPC import, including monster spellcasting<br>- Monster fluff/bio text is now appended instead of overwritten<br>- Reworked token image and portrait handling for character imports<br>- Numerous spell mapping fixes (scaling, repeating attacks, healing, Toll the Dead, etc.)<br>1.36.1.1jh - Page Settings?<br>- Added Map Thumbnail tools (Upload / Reload Default) to Page Settings<br>1.36.1.1jd - Macros?<br>- add bulk macro button.<br>1.36.1.1je - Commits are real<br>- Merge PRs, and imporve Module Importer<br>1.36.1.1jg - Commits are real<br>- Fix drag and Drop.<br>1.36.1.1jga - Macros?<br>- add bulk macro button again.<br></p>
-				</div>
-			`);
-			}, 6000);
+		}, 6000);
 	};
 
 	d20plus.ut.showInitMessage = () => {
@@ -921,19 +881,6 @@ function baseUtil () {
 		return BASE_SITE_URL.includes("://5e.tools")
 			|| BASE_SITE_URL.includes("://5etools.com")
 			|| /:\/\/5etools-mirror-\d+\./.test(BASE_SITE_URL);
-	};
-
-	d20plus.ut.fixSidebarLayout = () => {
-		$(`#textchat-input`).insertAfter(`#textchat`);
-		const cached = d20.textchat.showPopout;
-		d20.textchat.showPopout = function () {
-			cached();
-			const cached2 = d20.textchat.childWindow.onbeforeunload;
-			d20.textchat.childWindow.onbeforeunload = function () {
-				cached2();
-				$(`#textchat-input`).insertAfter(`#textchat`);
-			}
-		}
 	};
 
 	d20plus.ut.dynamicStyles = (slug) => {
@@ -11162,546 +11109,6 @@ function initOverwrites () {
 SCRIPT_EXTENSIONS.push(initOverwrites);
 
 
-function initCanvasHandlerOverwrite () {
-	/**
-	 * Dumb variable names copy-pasted from uglified code
-	 * @param c x co-ord
-	 * @param u y c-ord
-	 * @returns {*[]} 2-len array; [0] = x and [1] = y
-	 */
-	function getClosestHexPoint (c, u) {
-		function getEuclidDist (x1, y1, x2, y2) {
-			return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-		}
-
-		const hx = d20.canvas_overlay.activeHexGrid.GetHexAt({
-			X: c,
-			Y: u,
-		});
-
-		let minDist = 1000000;
-		let minPoint = [c, u];
-
-		function checkDist (x1, y1) {
-			const dist = getEuclidDist(x1, y1, c, u);
-			if (dist < minDist) {
-				minDist = dist;
-				minPoint = [x1, y1];
-			}
-		}
-		hx.Points.forEach(pt => {
-			checkDist(pt.X, pt.Y);
-		});
-		checkDist(hx.MidPoint.X, hx.MidPoint.Y);
-
-		return minPoint;
-	}
-
-	const canvasHandlerDown = function (e) {
-		/* eslint-disable */
-
-		// BEGIN MOD
-		var cnv = d20.engine.canvas;
-		var wrp = $("#editor-wrapper");
-		const $finalCanvas = $(d20.engine.final_canvas);
-		// END MOD
-		var i, n;
-		if (d20.tddice && d20.tddice.handleInteraction && d20.tddice.handleInteraction(),
-			e.touches) {
-			if ("pan" == d20.engine.mode)
-				return;
-			e.touches.length > 1 && (A = d20.engine.mode,
-				d20.engine.mode = "pan",
-				d20.engine.leftMouseIsDown = !0),
-				d20.engine.lastTouchStarted = (new Date).getTime(),
-				i = e.touches[0].pageX,
-				n = e.touches[0].pageY,
-				e.preventDefault()
-		} else
-			i = e.pageX,
-				n = e.pageY;
-		for (var o = d20.engine.showLastPaths.length; o--;)
-			"selected" == d20.engine.showLastPaths[o].type && d20.engine.showLastPaths.splice(o, 1);
-		d20.engine.handleMetaKeys(e),
-		"select" != d20.engine.mode && "path" != d20.engine.mode || cnv.__onMouseDown(e),
-		(0 === e.button || e.touches && 1 == e.touches.length) && (d20.engine.leftMouseIsDown = !0),
-		2 === e.button && (d20.engine.rightMouseIsDown = !0);
-		var r = Math.floor(i / d20.engine.canvasZoom + d20.engine.currentCanvasOffset[0] - d20.engine.paddingOffset[0] / d20.engine.canvasZoom)
-			,
-			a = Math.floor(n / d20.engine.canvasZoom + d20.engine.currentCanvasOffset[1] - d20.engine.paddingOffset[1] / d20.engine.canvasZoom);
-		if (d20.engine.lastMousePos = [r, a],
-			d20.engine.mousePos = [r, a],
-		!d20.engine.leftMouseIsDown || "fog-reveal" != d20.engine.mode && "fog-hide" != d20.engine.mode && "gridalign" != d20.engine.mode) {
-			if (d20.engine.leftMouseIsDown && "fog-polygonreveal" == d20.engine.mode) {
-				// BEGIN MOD
-				var s = r
-					, c = a;
-
-				if (0 != d20.engine.snapTo && (e.shiftKey && !d20.Campaign.activePage().get("adv_fow_enabled") || !e.shiftKey && d20.Campaign.activePage().get("adv_fow_enabled"))) {
-					if ("square" == d20.Campaign.activePage().get("grid_type")) {
-						s = d20.engine.snapToIncrement(s, d20.engine.snapTo)
-						c = d20.engine.snapToIncrement(c, d20.engine.snapTo)
-					} else {
-						const minPoint = getClosestHexPoint(s, c);
-						s = minPoint[0];
-						c = minPoint[1];
-					}
-				}
-
-				d20.engine.fog.points.length > 0 && Math.abs(d20.engine.fog.points[0][0] - s) + Math.abs(d20.engine.fog.points[0][1] - c) < 15 ? (d20.engine.fog.points.push([d20.engine.fog.points[0][0], d20.engine.fog.points[0][1]]),
-					d20.engine.finishPolygonReveal()) : d20.engine.fog.points.push([s, c]),
-					d20.engine.redrawScreenNextTick(!0)
-				// END MOD
-			} else if (d20.engine.leftMouseIsDown && "measure" == d20.engine.mode)
-				if (2 === e.button)
-					d20.engine.addWaypoint(e);
-				else {
-					d20.engine.measure.sticky && d20.engine.endMeasure(),
-						d20.engine.measure.down[0] = r,
-						d20.engine.measure.down[1] = a,
-						d20.engine.measure.sticky = e.shiftKey;
-					const t = d20.Campaign.activePage().get("grid_type");
-					let i = "snap_center" === d20.engine.ruler_snapping && !e.altKey;
-					if (i |= "no_snap" === d20.engine.ruler_snapping && e.altKey,
-						i &= 0 !== d20.engine.snapTo)
-						if ("square" === t)
-							d20.engine.measure.down[1] = d20.engine.snapToIncrement(d20.engine.measure.down[1] + Math.floor(d20.engine.snapTo / 2), d20.engine.snapTo) - Math.floor(d20.engine.snapTo / 2),
-								d20.engine.measure.down[0] = d20.engine.snapToIncrement(d20.engine.measure.down[0] + Math.floor(d20.engine.snapTo / 2), d20.engine.snapTo) - Math.floor(d20.engine.snapTo / 2);
-						else {
-							const e = d20.canvas_overlay.activeHexGrid.GetHexAt({
-								X: d20.engine.measure.down[0],
-								Y: d20.engine.measure.down[1]
-							});
-							e && (d20.engine.measure.down[1] = e.MidPoint.Y,
-								d20.engine.measure.down[0] = e.MidPoint.X)
-						}
-					else if (0 === d20.engine.snapTo || "snap_corner" !== d20.engine.ruler_snapping || e.altKey)
-						d20.engine.measure.flags |= 1;
-					else {
-						if ("square" === t)
-							d20.engine.measure.down[0] = d20.engine.snapToIncrement(d20.engine.measure.down[0], d20.engine.snapTo),
-								d20.engine.measure.down[1] = d20.engine.snapToIncrement(d20.engine.measure.down[1], d20.engine.snapTo);
-						else {
-							const e = d20.engine.snapToHexCorner([d20.engine.measure.down[0], d20.engine.measure.down[1]]);
-							e && (d20.engine.measure.down[0] = e[0],
-								d20.engine.measure.down[1] = e[1])
-						}
-						d20.engine.measure.flags |= 1
-					}
-				}
-			else if (d20.engine.leftMouseIsDown && "fxtools" == d20.engine.mode)
-				d20.engine.fx.current || (d20.engine.fx.current = d20.fx.handleClick(r, a));
-			else if (d20.engine.leftMouseIsDown && "text" == d20.engine.mode) {
-				const e = {
-					fontFamily: $("#font-family").val(),
-					fontSize: $("#font-size").val(),
-					fill: $("#font-color").val(),
-					text: "",
-					left: r,
-					top: a,
-					stroke: $('#font-stroke').val()
-				}
-					, t = d20.Campaign.activePage().addText(e);
-				$("body").on("mouseup.create_text_editor", () => {
-						$("body").off("mouseup.create_text_editor"),
-							d20.engine.editText(t.view.graphic, e.top, e.left),
-							$(".texteditor").focus()
-					}
-				)
-			} else if (d20.engine.leftMouseIsDown && "rect" == d20.engine.mode) {
-				var u = parseInt($("#path_width").val(), 10)
-					, h = d20.engine.drawshape.shape = {
-					strokewidth: u,
-					x: 0,
-					y: 0,
-					width: 10,
-					height: 10,
-					type: e.altKey ? "circle" : "rect"
-				};
-				s = r,
-					c = a;
-				0 != d20.engine.snapTo && e.shiftKey && (s = d20.engine.snapToIncrement(s, d20.engine.snapTo),
-					c = d20.engine.snapToIncrement(c, d20.engine.snapTo)),
-					h.x = s,
-					h.y = c,
-					h.fill = $("#path_fillcolor").val(),
-					h.stroke = $("#path_strokecolor").val(),
-					d20.engine.drawshape.start = [i + d20.engine.currentCanvasOffset[0] - d20.engine.paddingOffset[0], n + d20.engine.currentCanvasOffset[1] - d20.engine.paddingOffset[1]],
-					d20.engine.redrawScreenNextTick()
-			} else if (d20.engine.leftMouseIsDown && "ellipse" == d20.engine.mode) {
-				var u = parseInt($("#path_width").val(), 10)
-					, h = d20.engine.drawshape.shape = {
-					strokewidth: u,
-					x: 0,
-					y: 0,
-					width: 10,
-					height: 10,
-					type: "circle"
-				};
-				s = r,
-					c = a;
-				0 != d20.engine.snapTo && e.shiftKey && (s = d20.engine.snapToIncrement(s, d20.engine.snapTo),
-					c = d20.engine.snapToIncrement(c, d20.engine.snapTo)),
-					h.x = s,
-					h.y = c,
-					h.fill = $("#path_fillcolor").val(),
-					h.stroke = $("#path_strokecolor").val(),
-					d20.engine.drawshape.start = [i + d20.engine.currentCanvasOffset[0] - d20.engine.paddingOffset[0], n + d20.engine.currentCanvasOffset[1] - d20.engine.paddingOffset[1]],
-					d20.engine.redrawScreenNextTick()
-			} else if (d20.engine.leftMouseIsDown && "polygon" == d20.engine.mode) {
-				if (d20.engine.drawshape.shape) h = d20.engine.drawshape.shape;
-				else {
-					u = parseInt($("#path_width").val(), 10);
-					(h = d20.engine.drawshape.shape = {
-						strokewidth: u,
-						points: [],
-						type: "polygon"
-					}).fill = $("#path_fillcolor").val(),
-						h.stroke = $("#path_strokecolor").val()
-				}
-
-				// BEGIN MOD
-				s = r, c = a;
-
-				if (0 != d20.engine.snapTo && e.shiftKey) {
-					if ("square" == d20.Campaign.activePage().get("grid_type")) {
-						s = d20.engine.snapToIncrement(s, d20.engine.snapTo);
-						c = d20.engine.snapToIncrement(c, d20.engine.snapTo);
-					} else {
-						const minPoint = getClosestHexPoint(s, c);
-						s = minPoint[0];
-						c = minPoint[1];
-					}
-				}
-
-				h.points.length > 0 && Math.abs(h.points[0][0] - s) + Math.abs(h.points[0][1] - c) < 15 ? (h.points.push([h.points[0][0], h.points[0][1]]),
-						d20.engine.finishCurrentPolygon()) : h.points.push([s, c]),
-					d20.engine.redrawScreenNextTick()
-				// END MOD
-			} else if (d20.engine.leftMouseIsDown && "targeting" === d20.engine.mode) {
-				var p = d20.engine.canvas.findTarget(e, !0, !0);
-				return void (p !== undefined && "image" === p.type && p.model && d20.engine.nextTargetCallback(p))
-			}
-			// BEGIN MOD
-			else if (d20.engine.leftMouseIsDown && "line_splitter" === d20.engine.mode) {
-				const lastPoint = {
-					x: d20.engine.lastMousePos[0],
-					y: d20.engine.lastMousePos[1]
-				};
-				(d20.engine.canvas._objects || []).forEach(o => {
-					if (o.type === "path" && o.containsPoint(lastPoint)) {
-						const asObj = o.toObject();
-						const anyCurves = asObj.path.filter(it => it instanceof Array && it.length > 0 && it[0] === "C");
-						if (!anyCurves.length) {
-							// PathMath expects these
-							o.model.set("_pageid", d20.Campaign.activePage().get("id"));
-							o.model.set("_path", JSON.stringify(o.path));
-
-							console.log("SPLITTING PATH: ", o.model.toJSON());
-							const mainPath = o.model;
-
-							// BEGIN PathSplitter CODE
-							let mainSegments = PathMath.toSegments(mainPath);
-							// BEGIN MOD
-							const SLICE_LEN = 10;
-							const slicePoint1 = [lastPoint.x + (SLICE_LEN / 2), lastPoint.y + (SLICE_LEN / 2), 1];
-							const slicePoint2 = [lastPoint.x - (SLICE_LEN / 2), lastPoint.y - (SLICE_LEN / 2), 1];
-							setTimeout(() => {
-								d20.engine.redrawScreenNextTick();
-							}, 1);
-
-							let splitSegments = [
-								[slicePoint1, slicePoint2]
-							];
-							// END MOD
-							let segmentPaths = _getSplitSegmentPaths(mainSegments, splitSegments);
-
-							// (function moved into this scope)
-							function _getSplitSegmentPaths(mainSegments, splitSegments) {
-								let resultSegPaths = [];
-								let curPathSegs = [];
-
-								_.each(mainSegments, seg1 => {
-
-									// Find the points of intersection and their parametric coefficients.
-									let intersections = [];
-									_.each(splitSegments, seg2 => {
-										let i = PathMath.segmentIntersection(seg1, seg2);
-										if (i) intersections.push(i);
-									});
-
-									if (intersections.length > 0) {
-										// Sort the intersections in the order that they appear along seg1.
-										intersections.sort((a, b) => {
-											return a[1] - b[1];
-										});
-
-										let lastPt = seg1[0];
-										_.each(intersections, i => {
-											// Complete the current segment path.
-											curPathSegs.push([lastPt, i[0]]);
-											resultSegPaths.push(curPathSegs);
-
-											// Start a new segment path.
-											curPathSegs = [];
-											lastPt = i[0];
-										});
-										curPathSegs.push([lastPt, seg1[1]]);
-									} else {
-										curPathSegs.push(seg1);
-									}
-								});
-								resultSegPaths.push(curPathSegs);
-
-								return resultSegPaths;
-							};
-							// (end function moved into this scope)
-
-							// Convert the list of segment paths into paths.
-							let _pageid = mainPath.get('_pageid');
-							let controlledby = mainPath.get('controlledby');
-							let fill = mainPath.get('fill');
-							let layer = mainPath.get('layer');
-							let stroke = mainPath.get('stroke');
-							let stroke_width = mainPath.get('stroke_width');
-
-							let results = [];
-							_.each(segmentPaths, segments => {
-								// BEGIN MOD
-								if (!segments) {
-									d20plus.chatLog(`A path had no segments! This is probably a bug. Please report it.`);
-									return;
-								}
-								// END MOD
-
-								let pathData = PathMath.segmentsToPath(segments);
-								_.extend(pathData, {
-									_pageid,
-									controlledby,
-									fill,
-									layer,
-									stroke,
-									stroke_width
-								});
-								let path = createObj('path', pathData);
-								results.push(path);
-							});
-
-							// Remove the original path and the splitPath.
-							// BEGIN MOD
-							mainPath.destroy();
-							// END MOD
-							// END PathSplitter CODE
-						}
-					}
-				});
-			}
-			// END MOD
-		} else
-			d20.engine.fog.down[0] = r,
-				d20.engine.fog.down[1] = a,
-			0 != d20.engine.snapTo && "square" == d20.Campaign.activePage().get("grid_type") && ("gridalign" == d20.engine.mode ? e.shiftKey && (d20.engine.fog.down[0] = d20.engine.snapToIncrement(d20.engine.fog.down[0], d20.engine.snapTo),
-				d20.engine.fog.down[1] = d20.engine.snapToIncrement(d20.engine.fog.down[1], d20.engine.snapTo)) : (e.shiftKey && !d20.Campaign.activePage().get("adv_fow_enabled") || !e.shiftKey && d20.Campaign.activePage().get("adv_fow_enabled")) && (d20.engine.fog.down[0] = d20.engine.snapToIncrement(d20.engine.fog.down[0], d20.engine.snapTo),
-				d20.engine.fog.down[1] = d20.engine.snapToIncrement(d20.engine.fog.down[1], d20.engine.snapTo)));
-		if (window.currentPlayer && d20.engine.leftMouseIsDown && "select" == d20.engine.mode) {
-			if (2 === e.button && d20.engine.addWaypoint(e),
-			d20.engine.pings[window.currentPlayer.id] && d20.engine.pings[window.currentPlayer.id].radius > 20)
-				return;
-			var f = {
-				left: r,
-				top: a,
-				radius: -5,
-				player: window.currentPlayer.id,
-				pageid: d20.Campaign.activePage().id,
-				currentLayer: window.currentEditingLayer
-			};
-			window.is_gm && e.shiftKey && (f.scrollto = !0),
-				d20.engine.pings[window.currentPlayer.id] = f,
-				d20.engine.pinging = {
-					downx: i,
-					downy: n
-				},
-				d20.engine.redrawScreenNextTick(!0)
-		}
-
-		const g = ["select", "path", "text", "fxtools", "measure", "rect", "ellipse"];
-		d20.engine.rightMouseIsDown && g.includes(d20.engine.mode) || d20.engine.leftMouseIsDown && "pan" === d20.engine.mode ? (d20.engine.pan.beginPos = [wrp.scrollLeft(), wrp.scrollTop()],
-			d20.engine.pan.panXY = [i, n],
-			d20.engine.pan.panning = !0,
-			// BEGIN MOD
-			$finalCanvas.css("cursor", "grabbing")) : d20.engine.pan.panning = !1,
-			// END MOD
-		2 === e.button && !d20.engine.leftMouseIsDown && d20.engine.measurements[window.currentPlayer.id] && d20.engine.measurements[window.currentPlayer.id].sticky && (d20.engine.endMeasure(),
-			d20.engine.announceEndMeasure({
-				player: window.currentPlayer.id
-			}));
-
-		// BEGIN MOD
-		$finalCanvas.hasClass("hasfocus") || $finalCanvas.focus();
-		// END MOD
-
-		/* eslint-enable */
-	}
-
-	const canvasHandlerMove = function (e) {
-		/* eslint-disable */
-
-		// BEGIN MOD
-		var cnv = d20.engine.canvas;
-		var wrp = $("#editor-wrapper");
-		const $selMeasureMode = $(`#measure_mode`);
-		const $selRadMode = $(`#measure_mode_sel_2`);
-		const $iptConeWidth = $(`#measure_mode_ipt_3`);
-		const $selConeMode = $(`#measure_mode_sel_3`);
-		const $selBoxMode = $(`#measure_mode_sel_4`);
-		const $selLineMode = $(`#measure_mode_sel_5`);
-		const $iptLineWidth = $(`#measure_mode_ipt_5`);
-		// END MOD
-
-		var t, i;
-		if (e.changedTouches ? ((e.changedTouches.length > 1 || "pan" == d20.engine.mode) && (delete d20.engine.pings[window.currentPlayer.id],
-			d20.engine.pinging = !1),
-			e.preventDefault(),
-			t = e.changedTouches[0].pageX,
-			i = e.changedTouches[0].pageY) : (t = e.pageX,
-			i = e.pageY),
-		"select" != d20.engine.mode && "path" != d20.engine.mode && "targeting" != d20.engine.mode || cnv.__onMouseMove(e),
-		d20.engine.leftMouseIsDown || d20.engine.rightMouseIsDown) {
-			var n = Math.floor(t / d20.engine.canvasZoom + d20.engine.currentCanvasOffset[0] - d20.engine.paddingOffset[0] / d20.engine.canvasZoom)
-				, o = Math.floor(i / d20.engine.canvasZoom + d20.engine.currentCanvasOffset[1] - d20.engine.paddingOffset[1] / d20.engine.canvasZoom);
-			if (d20.engine.mousePos = [n, o],
-			!d20.engine.leftMouseIsDown || "fog-reveal" !== d20.engine.mode && "fog-hide" !== d20.engine.mode && "gridalign" !== d20.engine.mode) {
-				if (d20.engine.leftMouseIsDown && "measure" == d20.engine.mode && d20.engine.measure.down[0] !== undefined && d20.engine.measure.down[1] !== undefined) {
-					d20.engine.measure.down[2] = n,
-						d20.engine.measure.down[3] = o,
-						d20.engine.measure.sticky |= e.shiftKey;
-					const t = d20.Campaign.activePage().get("grid_type")
-						, i = "snap_corner" === d20.engine.ruler_snapping && !e.altKey && 0 !== d20.engine.snapTo;
-					let a = "snap_center" === d20.engine.ruler_snapping && !e.altKey;
-					if (a |= "no_snap" === d20.engine.ruler_snapping && e.altKey,
-						a &= 0 !== d20.engine.snapTo) {
-						if ("square" === t)
-							d20.engine.measure.down[2] = d20.engine.snapToIncrement(d20.engine.measure.down[2] + Math.floor(d20.engine.snapTo / 2), d20.engine.snapTo) - Math.floor(d20.engine.snapTo / 2),
-								d20.engine.measure.down[3] = d20.engine.snapToIncrement(d20.engine.measure.down[3] + Math.floor(d20.engine.snapTo / 2), d20.engine.snapTo) - Math.floor(d20.engine.snapTo / 2);
-						else {
-							const e = d20.canvas_overlay.activeHexGrid.GetHexAt({
-								X: d20.engine.measure.down[2],
-								Y: d20.engine.measure.down[3]
-							});
-							e && (d20.engine.measure.down[3] = e.MidPoint.Y,
-								d20.engine.measure.down[2] = e.MidPoint.X)
-						}
-						d20.engine.measure.flags &= -3
-					} else if (i) {
-						if ("square" === t)
-							d20.engine.measure.down[2] = d20.engine.snapToIncrement(d20.engine.measure.down[2], d20.engine.snapTo),
-								d20.engine.measure.down[3] = d20.engine.snapToIncrement(d20.engine.measure.down[3], d20.engine.snapTo);
-						else {
-							const e = d20.engine.snapToHexCorner([d20.engine.measure.down[2], d20.engine.measure.down[3]]);
-							e && (d20.engine.measure.down[2] = e[0],
-								d20.engine.measure.down[3] = e[1])
-						}
-						d20.engine.measure.flags |= 2
-					} else
-						d20.engine.measure.flags |= 2;
-					var r = {
-						x: d20.engine.measure.down[0],
-						y: d20.engine.measure.down[1],
-						to_x: d20.engine.measure.down[2],
-						to_y: d20.engine.measure.down[3],
-						player: window.currentPlayer.id,
-						pageid: d20.Campaign.activePage().id,
-						currentLayer: window.currentEditingLayer,
-						waypoints: d20.engine.measure.waypoints,
-						sticky: d20.engine.measure.sticky,
-						flags: d20.engine.measure.flags,
-						hide: d20.engine.measure.hide
-
-						// BEGIN MOD
-						,
-						Ve: {
-							mode: $selMeasureMode.val(),
-							radius: {
-								mode: $selRadMode.val()
-							},
-							cone: {
-								arc: $iptConeWidth.val(),
-								mode: $selConeMode.val()
-							},
-							box: {
-								mode: $selBoxMode.val(),
-							},
-							line: {
-								mode: $selLineMode.val(),
-								width: $iptLineWidth.val()
-							}
-						}
-						// END MOD
-					};
-					d20.engine.announceMeasure(r)
-				} else if (d20.engine.leftMouseIsDown && "fxtools" == d20.engine.mode) {
-					if (d20.engine.fx.current) {
-						var a = (new Date).getTime();
-						a - d20.engine.fx.lastMoveBroadcast > d20.engine.fx.MOVE_BROADCAST_FREQ ? (d20.fx.moveFx(d20.engine.fx.current, n, o),
-							d20.engine.fx.lastMoveBroadcast = a) : d20.fx.moveFx(d20.engine.fx.current, n, o, !0)
-					}
-				} else if (d20.engine.leftMouseIsDown && "rect" == d20.engine.mode) {
-					var s = (t + d20.engine.currentCanvasOffset[0] - d20.engine.paddingOffset[0] - d20.engine.drawshape.start[0]) / d20.engine.canvasZoom
-						, c = (i + d20.engine.currentCanvasOffset[1] - d20.engine.paddingOffset[1] - d20.engine.drawshape.start[1]) / d20.engine.canvasZoom;
-					0 != d20.engine.snapTo && e.shiftKey && (s = d20.engine.snapToIncrement(s, d20.engine.snapTo),
-						c = d20.engine.snapToIncrement(c, d20.engine.snapTo));
-					var u = d20.engine.drawshape.shape;
-					u.width = s,
-						u.height = c,
-						d20.engine.redrawScreenNextTick()
-				} else if (d20.engine.leftMouseIsDown && "ellipse" == d20.engine.mode) {
-					var s = (t + d20.engine.currentCanvasOffset[0] - d20.engine.paddingOffset[0] - d20.engine.drawshape.start[0]) / d20.engine.canvasZoom
-						, c = (i + d20.engine.currentCanvasOffset[1] - d20.engine.paddingOffset[1] - d20.engine.drawshape.start[1]) / d20.engine.canvasZoom;
-					0 != d20.engine.snapTo && e.shiftKey && (s = d20.engine.snapToIncrement(s, d20.engine.snapTo),
-						c = d20.engine.snapToIncrement(c, d20.engine.snapTo));
-					var u = d20.engine.drawshape.shape;
-					u.width = s,
-						u.height = c,
-						d20.engine.redrawScreenNextTick()
-				}
-			} else
-				d20.engine.fog.down[2] = n,
-					d20.engine.fog.down[3] = o,
-				0 !== d20.engine.snapTo && "square" === d20.Campaign.activePage().get("grid_type") && ("gridalign" === d20.engine.mode ? e.shiftKey && (d20.engine.fog.down[2] = d20.engine.snapToIncrement(d20.engine.fog.down[2], d20.engine.snapTo),
-					d20.engine.fog.down[3] = d20.engine.snapToIncrement(d20.engine.fog.down[3], d20.engine.snapTo)) : (e.shiftKey && !d20.Campaign.activePage().get("adv_fow_enabled") || !e.shiftKey && d20.Campaign.activePage().get("adv_fow_enabled")) && (d20.engine.fog.down[2] = d20.engine.snapToIncrement(d20.engine.fog.down[2], d20.engine.snapTo),
-					d20.engine.fog.down[3] = d20.engine.snapToIncrement(d20.engine.fog.down[3], d20.engine.snapTo))),
-					d20.engine.redrawScreenNextTick(!0);
-			if (d20.engine.pinging)
-				(s = Math.abs(d20.engine.pinging.downx - t)) + (c = Math.abs(d20.engine.pinging.downy - i)) > 10 && (delete d20.engine.pings[window.currentPlayer.id],
-					d20.engine.pinging = !1);
-			if (d20.engine.pan.panning) {
-				s = 2 * (t - d20.engine.pan.panXY[0]),
-					c = 2 * (i - d20.engine.pan.panXY[1]);
-				if (d20.engine.pan.lastPanDist += Math.abs(s) + Math.abs(c),
-				d20.engine.pan.lastPanDist < 10)
-					return;
-				var h = d20.engine.pan.beginPos[0] - s
-					, p = d20.engine.pan.beginPos[1] - c;
-				wrp.stop().animate({
-					scrollLeft: h,
-					scrollTop: p
-				}, {
-					duration: 1,
-					easing: "linear",
-					queue: !1
-				})
-			}
-		}
-
-		/* eslint-enable */
-	}
-
-	d20plus.overwrites.canvasHandlerDown = canvasHandlerDown
-	d20plus.overwrites.canvasHandlerMove = canvasHandlerMove
-}
-SCRIPT_EXTENSIONS.push(initCanvasHandlerOverwrite);
-
-
 function initHTMLTokenEditor () {
 	d20plus.html = d20plus.html || {};
 
@@ -15359,29 +14766,6 @@ function d20plusEngine () {
 		}
 	};
 
-	d20plus.engine._removeStatusEffectEntries = () => {
-		$(`#5etools-status-css`).html("");
-		Object.keys(d20.token_editor.statusmarkers).filter(k => k.startsWith("5etools_")).forEach(k => delete d20.token_editor.statusmarkers[k]);
-	};
-
-	d20plus.engine.enhanceStatusEffects = () => {
-		d20plus.ut.log("Enhance status effects");
-		$(`head`).append(`<style id="5etools-status-css"/>`);
-
-		d20plus.mod.overwriteStatusEffects();
-
-		d20.engine.canvas.off("object:added");
-		d20.engine.canvas.on("object:added", d20plus.mod.overwriteStatusEffects);
-
-		// the holy trinity
-		// d20.engine.canvas.on("object:removed", () => console.log("added"));
-		// d20.engine.canvas.on("object:removed", () => console.log("removed"));
-		// d20.engine.canvas.on("object:modified", () => console.log("modified"));
-
-		$(document).off("mouseenter", ".markermenu");
-		$(document).on("mouseenter", ".markermenu", d20plus.mod.mouseEnterMarkerMenu)
-	};
-
 	d20plus.engine.swapTemplates = () => {
 		const $betaSwitch = $("#new-toolbar-toggle");
 		d20plus.betaFeaturesEnabled = $betaSwitch.prop("checked");
@@ -15408,6 +14792,7 @@ function d20plusEngine () {
 			</ul>
 			<div class='tab-content'>
 				${d20plus.html.pageSettings}
+				${d20plus.html.pageSettingsWeather}
 			</div>
 		</script>`;
 	};
@@ -15911,63 +15296,6 @@ function d20plusEngine () {
 			d20.Campaign.activePage().debounced_recordZIndexes()
 	};
 
-	// previously "enhanceSnap"
-	d20plus.engine.enhanceMouseDown = () => {
-		const R = d20plus.overwrites.canvasHandlerDown
-
-		if (FINAL_CANVAS_MOUSEDOWN_LIST.length) {
-			FINAL_CANVAS_MOUSEDOWN = (FINAL_CANVAS_MOUSEDOWN_LIST.find(it => it.on === d20.engine.final_canvas) || {}).listener;
-		}
-
-		if (FINAL_CANVAS_MOUSEDOWN) {
-			d20plus.ut.log("Enhancing hex snap");
-			d20.engine.final_canvas.removeEventListener("mousedown", FINAL_CANVAS_MOUSEDOWN);
-			d20.engine.final_canvas.addEventListener("mousedown", R);
-		}
-
-		// add sub-grid snap
-		d20.engine.snapToIncrement = function(e, t) {
-			t *= Number(d20plus.cfg.getOrDefault("canvas", "gridSnap"));
-			return t * Math.round(e / t);
-		}
-	};
-
-	d20plus.engine.enhanceMouseUp = () => { // P
-
-	};
-
-	// needs to be called after `enhanceMeasureTool()`
-	d20plus.engine.enhanceMouseMove = () => {
-		// add missing vars
-		var i = d20.engine.canvas;
-
-		// Roll20 bug (present as of 2019-5-25) workaround
-		//   when box-selecting + moving tokens, the "object:moving" event throws an exception
-		//   try-catch-ignore this, because it's extremely annoying
-		const cachedFire = i.fire.bind(i);
-		i.fire = function (namespace, opts) {
-			if (namespace === "object:moving") {
-				try {
-					cachedFire(namespace, opts);
-				} catch (e) {}
-			} else {
-				cachedFire(namespace, opts);
-			}
-		};
-
-		const I = d20plus.overwrites.canvasHandlerMove
-
-		if (FINAL_CANVAS_MOUSEMOVE_LIST.length) {
-			FINAL_CANVAS_MOUSEMOVE = (FINAL_CANVAS_MOUSEMOVE_LIST.find(it => it.on === d20.engine.final_canvas) || {}).listener;
-		}
-
-		if (FINAL_CANVAS_MOUSEMOVE) {
-			d20plus.ut.log("Enhancing mouse move");
-			d20.engine.final_canvas.removeEventListener("mousemove", FINAL_CANVAS_MOUSEMOVE);
-			d20.engine.final_canvas.addEventListener("mousemove", I);
-		}
-	};
-
 	/* eslint-enable */
 
 	d20plus.engine.expendResources = async (expend) => {
@@ -16105,64 +15433,6 @@ function d20plusEngine () {
 		})
 	}
 
-	d20plus.engine.addLineCutterTool = () => {
-		// The code in /overwrites/canvas-handler.js doesn't work
-		const $btnTextTool = $(`.choosetext`);
-
-		const $btnSplitTool = $(`<li class="choosesplitter">✂️ Line Splitter</li>`).click(() => {
-			d20plus.setMode("line_splitter");
-		});
-
-		$btnTextTool.after($btnSplitTool);
-	};
-
-	d20plus.engine._tokenHover = null;
-	d20plus.engine._drawTokenHover = () => {
-		$(`.Vetools-token-hover`).remove();
-		if (!d20plus.engine._tokenHover || !d20plus.engine._tokenHover.text) return;
-
-		const pt = d20plus.engine._tokenHover.pt;
-		const txt = unescape(d20plus.engine._tokenHover.text);
-
-		$(`body`).append(`<div class="Vetools-token-hover" style="top: ${pt.y * d20.engine.canvasZoom}px; left: ${pt.x * d20.engine.canvasZoom}px">${txt}</div>`);
-	};
-	d20plus.engine.addTokenHover = () => {
-		// gm notes on shift-hover
-		const cacheRenderLoop = d20.engine.renderLoop;
-		d20.engine.renderLoop = () => {
-			d20plus.engine._drawTokenHover();
-			cacheRenderLoop();
-		};
-
-		// store data for the rendering function to access
-		d20.engine.canvas.on("mouse:move", (data, ...others) => {
-			// enable hover from GM layer -> token layer
-			let hoverTarget = data.target;
-			if (data.e && window.currentEditingLayer === "gmlayer") {
-				const cache = window.currentEditingLayer;
-				window.currentEditingLayer = "objects";
-				hoverTarget = d20.engine.canvas.findTarget(data.e, null, true);
-				window.currentEditingLayer = cache;
-			}
-
-			if (data.e.shiftKey && hoverTarget && hoverTarget.model) {
-				d20.engine.redrawScreenNextTick();
-				const gmNotes = hoverTarget.model.get("gmnotes");
-				const pt = d20.engine.canvas.getPointer(data.e);
-				pt.x -= d20.engine.currentCanvasOffset[0];
-				pt.y -= d20.engine.currentCanvasOffset[1];
-				d20plus.engine._tokenHover = {
-					pt: pt,
-					text: gmNotes,
-					id: hoverTarget.model.id,
-				};
-			} else {
-				if (d20plus.engine._tokenHover) d20.engine.redrawScreenNextTick();
-				d20plus.engine._tokenHover = null;
-			}
-		})
-	};
-
 	d20plus.engine.enhanceMarkdown = () => {
 		const OUT_STRIKE = "<span style='text-decoration: line-through'>$1</span>";
 
@@ -16259,52 +15529,6 @@ function d20plusEngine () {
 			}, 35);
 		})
 	};
-
-	d20plus.engine.layersIsMarkedAsHidden = (layer) => {
-		const page = d20.Campaign.activePage();
-		return page?.get(`bR20cfg_hidden`)?.search(layer) > -1;
-	}
-
-	d20plus.engine.layersVisibilityCheck = () => {
-		const layers = ["floors", "background", "foreground", "roofs"];
-		layers.forEach((layer) => {
-			const isHidden = d20.engine.canvas._objects.some((o) => {
-				if (o.model) return o.model.get("layer") === `hidden_${layer}`;
-			}) || d20plus.engine.layersIsMarkedAsHidden(layer);
-			d20plus.engine.layerVisibilityOff(layer, isHidden, true);
-		});
-	}
-
-	d20plus.engine.layersToggle = (layer) => {
-		const page = d20.Campaign.activePage();
-		if (!page.get(`bR20cfg_hidden`)) page.set(`bR20cfg_hidden`, "");
-		if (d20plus.engine.layersIsMarkedAsHidden(layer)) {
-			d20plus.engine.layerVisibilityOff(layer, false);
-		} else {
-			d20plus.engine.layerVisibilityOff(layer, true);
-		}
-	};
-
-	d20plus.engine.layerVisibilityOff = (layer, off, force) => {
-		const page = d20.Campaign.activePage();
-		if (off) {
-			if (d20plus.engine.objectsHideUnhide("layer", layer, "layeroff", false) || force) {
-				if (window.currentEditingLayer === layer) d20plus.ui.switchToR20Layer();
-				d20plus.ui.layerVisibilityIcon(layer, false);
-				if (!d20plus.engine.layersIsMarkedAsHidden(layer)) {
-					page.set(`bR20cfg_hidden`, `${page.get(`bR20cfg_hidden`)} ${layer}`);
-					page.save();
-				}
-			}
-		} else {
-			d20plus.engine.objectsHideUnhide("layer", layer, "layeroff", true);
-			d20plus.ui.layerVisibilityIcon(layer, true);
-			if (d20plus.engine.layersIsMarkedAsHidden(layer)) {
-				page.set(`bR20cfg_hidden`, page.get(`bR20cfg_hidden`).replace(` ${layer}`, ""));
-				page.save();
-			}
-		}
-	}
 
 	d20plus.engine._objectsStashProps = (obj, visible) => {
 		[
@@ -16413,29 +15637,6 @@ function d20plusEngine () {
 		}))
 	};
 
-	d20plus.engine.addLayers = () => {
-		d20plus.ut.log("Adding layers");
-
-		d20.engine.canvas._renderAll = _.bind(d20plus.mod.renderAll, d20.engine.canvas);
-		d20.engine.canvas.sortTokens = _.bind(d20plus.mod.sortTokens, d20.engine.canvas);
-		d20.engine.canvas.drawAnyLayer = _.bind(d20plus.mod.drawAnyLayer, d20.engine.canvas);
-		d20.engine.canvas.drawTokensWithoutAuras = _.bind(d20plus.mod.drawTokensWithoutAuras, d20.engine.canvas);
-
-		if (window.is_gm) {
-			$(document).on("d20:new_page_fully_loaded", d20plus.engine.checkPageSettings);
-			d20plus.engine.checkPageSettings();
-		}
-	};
-
-	d20plus.engine.checkPageSettings = () => {
-		if (!d20plus.cfg.getOrDefault("canvas", "extraLayerButtons")) return;
-		if (!d20.Campaign.activePage() || !d20.Campaign.activePage().get) {
-			setTimeout(d20plus.engine.checkPageSettings, 50);
-		} else {
-			d20plus.engine.layersVisibilityCheck();
-		}
-	}
-
 	d20plus.engine.removeLinkConfirmation = function () {
 		d20.utils.handleURL = d20plus.mod.handleURL;
 		$(document).off("click", "a").on("click", "a", d20.utils.handleURL);
@@ -16458,29 +15659,6 @@ function d20plusEngine () {
 		d20plus.engine._hasPatchedHandleHtmlInput = true;
 	};
 
-	d20plus.engine.repairPrototypeMethods = function () {
-		d20plus.mod.fixHexMethods();
-		d20plus.mod.fixVideoMethods();
-	};
-
-	d20plus.engine.disableFrameRecorder = function () {
-		if (d20.engine.frame_recorder) {
-			d20.engine.frame_recorder.active = false;
-			d20.engine.frame_recorder._active = false;
-		}
-	};
-
-	d20plus.engine.fixPolygonTool = () => {
-		if (!d20plus.newUIDisabled) return; // as of January 2024 newUI is always ON, so the below block is not needed
-		$("#editor-wrapper").on("pointerdown", x => { d20plus.engine.leftClicked = x.which === 1 });
-		$("#editor-wrapper").on("pointerup", x => { d20plus.engine.leftClicked = false });
-		d20plus.ut.injectCode(d20.engine, "finishCurrentPolygon", (finishDrawing, params) => {
-			if (!d20plus.engine.leftClicked) finishDrawing(...params);
-		});
-		d20plus.ut.injectCode(d20.engine, "finishPolygonReveal", (finishRevealing, params) => {
-			if (!d20plus.engine.leftClicked) finishRevealing(...params);
-		});
-	};
 }
 
 SCRIPT_EXTENSIONS.push(d20plusEngine);
@@ -16683,6 +15861,9 @@ function baseMenu () {
 		function addBetter20ToolsToMenu() {
 			const contextMenu = document.querySelector('.context-menu');
 			if (!contextMenu) return;
+
+			// Check if already added
+			// if (contextMenu.querySelector('.better20-tools-button')) return;
 
 			if (!window.is_gm) return;
 
@@ -17676,7 +16857,7 @@ function baseMenu () {
 SCRIPT_EXTENSIONS.push(baseMenu);
 
 
-function baseWeather () {
+﻿function baseWeather () {
 	d20plus.weather = {};
 
 	d20plus.weather.props = {
@@ -17695,579 +16876,86 @@ function baseWeather () {
 		"weatherEffect1": "None",
 	};
 
-	d20plus.weather.addWeather = () => {
-		window.force = false; // missing variable in Roll20's code(?); define it here
+	// Roll20's Page Settings dialog is a Vue component (see enhanceVuePageThumbnail above) with
+	// its own internal tab state we can't register a tab into. Instead, clone a native tab button
+	// to look the part, and manually show/hide our content vs. whatever Vue is currently rendering.
+	d20plus.weather.enhanceVuePageWeather = () => {
+		const TAB_TESTID = "pageSettings-tab-weather";
+		const CONTENT_CLASS = "b20-weather-tab-content";
+		let isActive = false;
 
-		d20plus.ut.log("Adding weather");
+		const getTabsRow = () => $(`.section.tabs`).first();
+		const getWrapper = ($tabsRow) => $tabsRow.next(`.wrapper`);
 
-		const MAX_ZOOM = 2.5; // max canvas zoom
-		const tmp = []; // temp vector
-		// cache images
-		const IMAGES = {
-			"Rain": new Image(),
-			"Snow": new Image(),
-			"Fog": new Image(),
-			"Waves": new Image(),
-			"Ripples": new Image(),
-			"Blood Rain": new Image(),
-		};
-		IMAGES.Rain.src = "https://i.imgur.com/lZrqiVk.png";
-		IMAGES.Snow.src = "https://i.imgur.com/uwLQjWY.png";
-		IMAGES.Fog.src = "https://i.imgur.com/SRsUpHW.png";
-		IMAGES.Waves.src = "https://i.imgur.com/iYEzmvB.png";
-		IMAGES.Ripples.src = "https://i.imgur.com/fFCr0yx.png";
-		IMAGES["Blood Rain"].src = "https://i.imgur.com/SP2aoeq.png";
-		const SFX = {
-			lightning: [],
+		const applyVisibility = ($wrapper) => {
+			$wrapper.children().each((i, el) => {
+				el.style.display = el.classList.contains(CONTENT_CLASS) === isActive ? "" : "none";
+			});
 		};
 
-		// FIXME find a better way of handling this; `clip` is super-slow
-		const clipMode = "EXCLUDE";
-
-		function SfxLightning () {
-			this.brightness = 255;
-		}
-
-		const $wrpEditor = $("#editor-wrapper");
-
-		// add custom canvas
-		const $wrpCanvas = $wrpEditor.find(".canvas-container");
-
-		// make buffer canvas
-		const $canBuf = $("<canvas style='position: absolute; z-index: -100; left:0; top: 0; pointer-events: none;' tabindex='-1'/>").appendTo($wrpCanvas);
-		const cvBuf = $canBuf[0];
-		const ctxBuf = cvBuf.getContext("2d");
-
-		// make weather canvas
-		const $canvasWeather = $("<canvas id='Vet-canvas-weather' style='position: absolute; z-index: 2; left:0; top: 0; pointer-events: none;' tabindex='-1'/>").appendTo($wrpCanvas);
-		const cv = $canvasWeather[0];
-		d20.engine.weathercanvas = cv;
-
-		// add our canvas to those adjusted when canvas size changes
-		const cachedSetCanvasSize = d20.engine.setCanvasSize;
-		d20.engine.setCanvasSize = function (e, n) {
-			cv.width = e;
-			cv.height = n;
-
-			cvBuf.width = e;
-			cvBuf.height = n;
-
-			cachedSetCanvasSize(e, n);
+		const deactivate = () => {
+			if (!isActive) return;
+			isActive = false;
+			const $tabsRow = getTabsRow();
+			$tabsRow.find(`[data-testid="${TAB_TESTID}"] .grimoire-tab__button`).removeClass("selected");
+			applyVisibility(getWrapper($tabsRow));
 		};
 
-		cv.width = cvBuf.width = d20.engine.canvas.width;
-		cv.height = cvBuf.height = d20.engine.canvas.height;
-
-		const ctx = cv.getContext("2d");
-
-		const CTX = {
-			_hasWarned: new Set(),
+		const activate = () => {
+			isActive = true;
+			const $tabsRow = getTabsRow();
+			$tabsRow.find(`.grimoire-tab__button`).removeClass("selected");
+			$tabsRow.find(`[data-testid="${TAB_TESTID}"] .grimoire-tab__button`).addClass("selected");
+			applyVisibility(getWrapper($tabsRow));
 		};
 
-		function ofX (x) { // offset X
-			return x - d20.engine.currentCanvasOffset[0];
-		}
+		const inject = () => {
+			const $tabsRow = getTabsRow();
+			if (!$tabsRow.length) return;
 
-		function ofY (y) { // offset Y
-			return y - d20.engine.currentCanvasOffset[1];
-		}
-
-		function lineIntersectsBounds (points, bounds) {
-			return d20plus.math.doPolygonsIntersect([points[0], points[2], points[3], points[1]], bounds);
-		}
-
-		function copyPoints (toCopy) {
-			return [...toCopy.map(pt => [...pt])];
-		}
-
-		function getImage (page) {
-			const imageName = page.get("bR20cfg_weatherType1");
-
-			switch (imageName) {
-				case "Rain":
-				case "Snow":
-				case "Fog":
-				case "Waves":
-				case "Ripples":
-				case "Blood Rain":
-					IMAGES["Custom"] = null;
-					return IMAGES[imageName];
-				case "Custom (see below)":
-					if (!IMAGES["Custom"] || (
-						(IMAGES["Custom"].src !== page.get("bR20cfg_weatherTypeCustom1") && IMAGES["Custom"]._errorSrc == null)
-						|| (IMAGES["Custom"]._errorSrc != null && IMAGES["Custom"]._errorSrc !== page.get("bR20cfg_weatherTypeCustom1")))
-					) {
-						IMAGES["Custom"] = new Image();
-						IMAGES["Custom"]._errorSrc = null;
-						IMAGES["Custom"].onerror = () => {
-							if (IMAGES["Custom"]._errorSrc == null) {
-								IMAGES["Custom"]._errorSrc = page.get("bR20cfg_weatherTypeCustom1");
-								alert(`Custom weather image "${IMAGES["Custom"].src}" failed to load!`);
-							}
-							IMAGES["Custom"].src = IMAGES["Rain"].src;
-						};
-						IMAGES["Custom"].src = page.get("bR20cfg_weatherTypeCustom1");
-					}
-					return IMAGES["Custom"];
-				default:
-					IMAGES["Custom"] = null;
-					return null;
+			if (!$tabsRow.find(`[data-testid="${TAB_TESTID}"]`).length) {
+				const $newTab = $tabsRow.find(`.grimoire-tab`).first().clone();
+				$newTab.attr("data-testid", TAB_TESTID);
+				$newTab.find(`.grimoire-tab__label`).text("Weather");
+				$newTab.find(`.grimoire-tab__button`).removeClass("selected");
+				$newTab.on("click", (evt) => {
+					evt.stopPropagation();
+					activate();
+				});
+				$tabsRow.append($newTab);
 			}
-		}
+			// clicking a native tab hands control back to Vue
+			$tabsRow.find(`.grimoire-tab`).not(`[data-testid="${TAB_TESTID}"]`)
+				.off("click.b20weather").on("click.b20weather", deactivate);
 
-		function getDirectionRotation (page) {
-			const dir = page.get("bR20cfg_weatherDir1") || d20plus.weather.props.weatherDir1;
-			switch (dir) {
-				case "Northerly": return 0.25 * Math.PI;
-				case "North-Easterly": return 0.5 * Math.PI;
-				case "Easterly": return 0.75 * Math.PI;
-				case "South-Easterly": return Math.PI;
-				case "Southerly": return 1.25 * Math.PI;
-				case "South-Westerly": return 1.5 * Math.PI;
-				case "Westerly": return 1.75 * Math.PI;
-				case "North-Westerly": return 0;
-				case "Custom (see below)":
-					return Number(page.get("bR20cfg_weatherDirCustom1") || d20plus.weather.props.weatherDirCustom1) * Math.PI / 180;
-				default: return 0;
+			const $wrapper = getWrapper($tabsRow);
+			if ($wrapper.length && !$wrapper.children(`.${CONTENT_CLASS}`).length) {
+				const page = d20.Campaign.activePage();
+				const $content = $(d20plus.html.pageSettingsWeather).addClass(CONTENT_CLASS).appendTo($wrapper);
+				d20plus.engine._preservePageCustomOptions(page);
+				d20plus.engine._populatePageCustomOptions(page, $content);
+				// _populatePageCustomOptions sets a raw onchange on .weather selects for the old
+				// dialog, calling _updatePageCustomOptions() with no args; clear it so it doesn't
+				// crash trying to resolve a page via the (here, unset) legacy _lastSettingsPageId
+				$content.find("select").prop("onchange", null);
+				// live-update the numeric readout next to each slider while dragging, rather than
+				// only on the old delegated "click" handler (which misses drag-without-click)
+				$content.on("input", "input[type=range]", (evt) => {
+					const {currentTarget: target} = evt;
+					if (target.name) $content.find(`.${target.name}`).val(target.value);
+				});
+				$content.on("change keyup", "input, select", () => {
+					d20plus.engine._updatePageCustomOptions(page, $content);
+					d20plus.engine._savePageCustomOptions(page);
+					page.save();
+				});
 			}
-		}
 
-		function getOpacity (page) {
-			return page.get("bR20cfg_weatherOpacity1") || d20plus.weather.props.weatherOpacity1;
-		}
+			if ($wrapper.length) applyVisibility($wrapper);
+		};
 
-		let oscillateMode = null;
-		function isOscillating (page) {
-			return !!page.get("bR20cfg_weatherOscillate1");
-		}
-
-		function getOscillationThresholdFactor (page) {
-			return page.get("bR20cfg_weatherOscillateThreshold1") || d20plus.weather.props.weatherOscillateThreshold1;
-		}
-
-		function getIntensity (page) {
-			const tint = page.get("bR20cfg_weatherIntensity1");
-			switch (tint) {
-				case "Heavy": return 1;
-				default: return 0;
-			}
-		}
-
-		function getTintColor (page) {
-			const tintEnabled = page.get("bR20cfg_weatherTint1");
-			if (tintEnabled) {
-				const tintOpacity = page.get("bR20cfg_weatherTintOpacity1") || d20plus.weather.props.weatherTintOpacity1;
-				const tintOpacityHex = tintOpacity ? Math.round(255 * tintOpacity).toString(16) : 80;
-				return `${(page.get("bR20cfg_weatherTintColor1") || d20plus.weather.props.weatherTintColor1)}${tintOpacityHex}`;
-			} else return null;
-		}
-
-		function getEffect (page) {
-			const effect = page.get("bR20cfg_weatherEffect1");
-			switch (effect) {
-				case "Lightning": return "lightning";
-				default: return null;
-			}
-		}
-
-		function handleSvgCoord (coords, obj, basesXY, center, angle) {
-			const vec = [
-				ofX(coords[0] * obj.scaleX) + basesXY[0],
-				ofY(coords[1] * obj.scaleY) + basesXY[1],
-			];
-			d20plus.math.vec2.scale(vec, vec, d20.engine.canvasZoom);
-			if (angle) d20plus.math.vec2.rotate(vec, vec, center, angle);
-			return vec;
-		}
-
-		let accum = 0;
-		let then = 0;
-		let image;
-		let currentSfx;
-		let hasWeather = false;
-		function drawFrame (now) {
-			const deltaTime = now - then;
-			then = now;
-
-			const page = d20 && d20.Campaign && d20.Campaign.activePage ? d20.Campaign.activePage() : null;
-			if (page && page.get("bR20cfg_weatherType1") !== "None") {
-				image = getImage(page);
-				currentSfx = getEffect(page);
-
-				// generate SFX
-				if (currentSfx) {
-					if (currentSfx === "lightning" && Math.random() > 0.999) SFX.lightning.push(new SfxLightning());
-				} else {
-					SFX.lightning = [];
-				}
-
-				if (hasWeather) ctx.clearRect(0, 0, cv.width, cv.height);
-				const hasImage = image && image.complete;
-				const tint = getTintColor(page);
-				const scaledW = hasImage ? Math.ceil((image.width * d20.engine.canvasZoom) / MAX_ZOOM) : -1;
-				const scaledH = hasImage ? Math.ceil((image.height * d20.engine.canvasZoom) / MAX_ZOOM) : -1;
-				const hasSfx = SFX.lightning.length;
-				if (hasImage || tint || hasSfx) {
-					hasWeather = true;
-
-					// draw weather
-					if (
-						hasImage
-						&& !(scaledW <= 0 || scaledH <= 0) // sanity check
-					) {
-						// mask weather
-						const doMaskStep = () => {
-							ctxBuf.clearRect(0, 0, cvBuf.width, cvBuf.height);
-
-							ctxBuf.fillStyle = "#ffffffff";
-
-							const objectLen = d20.engine.canvas._objects.length;
-							for (let i = 0; i < objectLen; ++i) {
-								const obj = d20.engine.canvas._objects[i];
-								if (obj.type === "path" && obj.model && obj.model.get("layer") === "weather") {
-									// obj.top is X pos of center of object
-									// obj.left is Y pos of center of object
-									const xBase = (obj.left - (obj.width * obj.scaleX / 2));
-									const yBase = (obj.top - (obj.height * obj.scaleY / 2));
-									const basesXY = [xBase, yBase];
-									const angle = (obj.angle > 360 ? obj.angle - 360 : obj.angle) / 180 * Math.PI;
-									const center = [ofX(obj.left), ofY(obj.top)];
-									d20plus.math.vec2.scale(center, center, d20.engine.canvasZoom);
-
-									ctxBuf.beginPath();
-									obj.path.forEach(opp => {
-										const [op, x, y, ...others] = opp;
-										switch (op) {
-											case "M": {
-												const vec = handleSvgCoord([x, y], obj, basesXY, center, angle);
-												ctxBuf.moveTo(vec[0], vec[1]);
-												break;
-											}
-											case "L": {
-												const vec = handleSvgCoord([x, y], obj, basesXY, center, angle);
-												ctxBuf.lineTo(vec[0], vec[1]);
-												break;
-											}
-											case "C": {
-												const control1 = handleSvgCoord([x, y], obj, basesXY, center, angle);
-												const control2 = handleSvgCoord([others[0], others[1]], obj, basesXY, center, angle);
-												const end = handleSvgCoord([others[2], others[3]], obj, basesXY, center, angle);
-												ctxBuf.bezierCurveTo(...control1, ...control2, ...end);
-												break;
-											}
-											default:
-												if (!CTX._hasWarned.has(op)) {
-													CTX._hasWarned.add(op);
-													// eslint-disable-next-line no-console
-													console.error(`UNHANDLED OP!: ${op}`);
-												}
-										}
-									});
-									ctxBuf.fill();
-									ctxBuf.closePath();
-								}
-							}
-
-							// draw final weather mask
-							/// / change drawing mode
-							ctx.globalCompositeOperation = "destination-out";
-							ctx.drawImage(cvBuf, 0, 0);
-
-							// handle opacity
-							const opacity = Number(getOpacity(page));
-							if (opacity !== 1) {
-								ctxBuf.clearRect(0, 0, cvBuf.width, cvBuf.height);
-								ctxBuf.fillStyle = `#ffffff${Math.round((1 - opacity) * 255).toString(16)}`;
-								ctxBuf.fillRect(0, 0, cvBuf.width, cvBuf.height);
-								ctx.drawImage(cvBuf, 0, 0);
-							}
-
-							/// / reset drawing mode
-							ctx.globalCompositeOperation = "source-over";
-						};
-
-						// if (clipMode === "INCLUDE") doMaskStep(true);
-
-						const speed = page.get("bR20cfg_weatherSpeed1") || d20plus.weather.props.weatherSpeed1;
-						const speedFactor = speed * d20.engine.canvasZoom;
-						const maxAccum = Math.floor(scaledW / speedFactor);
-						const rot = getDirectionRotation(page);
-						const w = scaledW;
-						const h = scaledH;
-						const boundingBox = [
-							[
-								-1.5 * w,
-								-1.5 * h,
-							],
-							[
-								-1.5 * w,
-								cv.height + (1.5 * h) + d20.engine.currentCanvasOffset[1],
-							],
-							[
-								cv.width + (1.5 * w) + d20.engine.currentCanvasOffset[0],
-								cv.height + (1.5 * h) + d20.engine.currentCanvasOffset[1],
-							],
-							[
-								cv.width + (1.5 * w) + d20.engine.currentCanvasOffset[0],
-								-1.5 * h,
-							],
-						];
-						const BASE_OFFSET_X = -w / 2;
-						const BASE_OFFSET_Y = -h / 2;
-
-						// calculate resultant points of a rotated shape
-						const pt00 = [0, 0];
-						const pt01 = [0, 1];
-						const pt10 = [1, 0];
-						const pt11 = [1, 1];
-						const basePts = [
-							pt00,
-							pt01,
-							pt10,
-							pt11,
-						].map(pt => [
-							(pt[0] * w) + BASE_OFFSET_X - d20.engine.currentCanvasOffset[0],
-							(pt[1] * h) + BASE_OFFSET_Y - d20.engine.currentCanvasOffset[1],
-						]);
-						basePts.forEach(pt => d20plus.math.vec2.rotate(pt, pt, [0, 0], rot));
-
-						// calculate animation values
-						(() => {
-							if (isOscillating(page)) {
-								const oscThreshFactor = getOscillationThresholdFactor(page);
-
-								if (oscillateMode == null) {
-									oscillateMode = 1;
-									accum += deltaTime;
-									if (accum >= maxAccum * oscThreshFactor) accum -= maxAccum;
-								} else {
-									if (oscillateMode === 1) {
-										accum += deltaTime;
-										if (accum >= maxAccum * oscThreshFactor) {
-											accum -= 2 * deltaTime;
-											oscillateMode = -1;
-										}
-									} else {
-										accum -= deltaTime;
-										if (accum <= 0) {
-											oscillateMode = 1;
-											accum += 2 * deltaTime;
-										}
-									}
-								}
-							} else {
-								oscillateMode = null;
-								accum += deltaTime;
-								if (accum >= maxAccum) accum -= maxAccum;
-							}
-						})();
-
-						const intensity = getIntensity(page) * speedFactor;
-						const timeOffsetX = Math.ceil(speedFactor * accum);
-						const timeOffsetY = Math.ceil(speedFactor * accum);
-
-						/// / rotate coord space
-						ctx.rotate(rot);
-
-						// draw base image
-						const doDraw = (offsetX, offsetY) => {
-							const xPos = BASE_OFFSET_X + timeOffsetX + offsetX - d20.engine.currentCanvasOffset[0];
-							const yPos = BASE_OFFSET_Y + timeOffsetY + offsetY - d20.engine.currentCanvasOffset[1];
-							ctx.drawImage(
-								image,
-								xPos,
-								yPos,
-								w,
-								h,
-							);
-
-							if (intensity) {
-								const offsetIntensity = -Math.floor(w / 4);
-								ctx.drawImage(
-									image,
-									xPos + offsetIntensity,
-									yPos + offsetIntensity,
-									w,
-									h,
-								);
-							}
-						}
-
-						const inBounds = (nextPts) => {
-							return lineIntersectsBounds(nextPts, boundingBox);
-						}
-
-						const moveXDir = (pt, i, isAdd) => {
-							if (i % 2) d20plus.math.vec2.sub(tmp, basePts[3], basePts[1]);
-							else d20plus.math.vec2.sub(tmp, basePts[2], basePts[0]);
-
-							if (isAdd) d20plus.math.vec2.add(pt, pt, tmp);
-							else d20plus.math.vec2.sub(pt, pt, tmp);
-						}
-
-						const moveYDir = (pt, i, isAdd) => {
-							if (i > 1) d20plus.math.vec2.sub(tmp, basePts[3], basePts[2]);
-							else d20plus.math.vec2.sub(tmp, basePts[1], basePts[0]);
-
-							if (isAdd) d20plus.math.vec2.add(pt, pt, tmp);
-							else d20plus.math.vec2.sub(pt, pt, tmp);
-						}
-
-						const getMaxMoves = () => {
-							const hyp = [];
-							d20plus.math.vec2.sub(hyp, boundingBox[2], boundingBox[0]);
-
-							const dist = d20plus.math.vec2.len(hyp);
-							const maxMoves = dist / Math.min(w, h);
-							return [Math.abs(hyp[0]) > Math.abs(hyp[1]) ? "x" : "y", maxMoves];
-						};
-
-						const handleXAxisYIncrease = (nxtPts, maxMoves, moves, xDir) => {
-							const handleY = (dir) => {
-								let subNxtPts, subMoves;
-								subNxtPts = copyPoints(nxtPts);
-								subMoves = 0;
-								while (subMoves <= maxMoves[1]) {
-									subNxtPts.forEach((pt, i) => moveYDir(pt, i, dir > 0));
-									subMoves++;
-									if (inBounds(subNxtPts)) doDraw(xDir * moves * w, dir * (subMoves * h));
-								}
-							};
-
-							handleY(1); // y axis increasing
-							handleY(-1); // y axis decreasing
-						};
-
-						const handleYAxisXIncrease = (nxtPts, maxMoves, moves, yDir) => {
-							const handleX = (dir) => {
-								let subNxtPts, subMoves;
-								subNxtPts = copyPoints(nxtPts);
-								subMoves = 0;
-								while (subMoves <= maxMoves[1]) {
-									subNxtPts.forEach((pt, i) => moveXDir(pt, i, dir > 0));
-									subMoves++;
-									if (lineIntersectsBounds(subNxtPts, boundingBox)) doDraw(dir * (subMoves * w), yDir * moves * h);
-								}
-							};
-
-							handleX(1); // x axis increasing
-							handleX(-1); // x axis decreasing
-						};
-
-						const handleBasicX = (maxMoves) => {
-							const handleX = (dir) => {
-								let nxtPts, moves;
-								nxtPts = copyPoints(basePts);
-								moves = 0;
-								while (moves < maxMoves) {
-									nxtPts.forEach((pt, i) => moveXDir(pt, i, dir > 0));
-									moves++;
-									if (lineIntersectsBounds(nxtPts, boundingBox)) doDraw(dir * (moves * w), 0);
-								}
-							};
-
-							handleX(1); // x axis increasing
-							handleX(-1); // x axis decreasing
-						};
-
-						const handleBasicY = (maxMoves) => {
-							const handleY = (dir) => {
-								let nxtPts, moves;
-								nxtPts = copyPoints(basePts);
-								moves = 0;
-								while (moves < maxMoves) {
-									nxtPts.forEach((pt, i) => moveYDir(pt, i, dir > 0));
-									moves++;
-									if (lineIntersectsBounds(nxtPts, boundingBox)) doDraw(0, dir * (moves * h));
-								}
-							};
-
-							handleY(1); // y axis increasing
-							handleY(-1); // y axis decreasing
-						};
-
-						doDraw(0, 0);
-
-						(() => {
-							// choose largest axis
-							const maxMoves = getMaxMoves();
-
-							if (maxMoves[0] === "x") {
-								const handleX = (dir) => {
-									let nxtPts, moves;
-									nxtPts = copyPoints(basePts);
-									moves = 0;
-									while (moves < maxMoves[1]) {
-										nxtPts.forEach((pt, i) => moveXDir(pt, i, dir > 0));
-										moves++;
-										if (lineIntersectsBounds(nxtPts, boundingBox)) doDraw(dir * (moves * w), 0);
-										handleXAxisYIncrease(nxtPts, maxMoves, moves, dir);
-									}
-								};
-
-								handleBasicY(maxMoves[1]);
-								handleX(1); // x axis increasing
-								handleX(-1); // x axis decreasing
-							} else {
-								const handleY = (dir) => {
-									let nxtPts, moves;
-									nxtPts = copyPoints(basePts);
-									moves = 0;
-									while (moves < maxMoves[1]) {
-										nxtPts.forEach((pt, i) => moveYDir(pt, i, dir > 0));
-										moves++;
-										if (lineIntersectsBounds(nxtPts, boundingBox)) doDraw(0, dir * (moves * h));
-										handleYAxisXIncrease(nxtPts, maxMoves, moves, dir);
-									}
-								};
-
-								handleBasicX(maxMoves[1]);
-								handleY(1); // y axis increasing
-								handleY(-1); // y axis decreasing
-							}
-						})();
-
-						/// / revert coord space rotation
-						ctx.rotate(-rot);
-
-						if (clipMode === "EXCLUDE") doMaskStep(false);
-					}
-
-					// draw sfx
-					if (hasSfx) {
-						for (let i = SFX.lightning.length - 1; i >= 0; --i) {
-							const l = SFX.lightning[i];
-							if (l.brightness <= 5) {
-								SFX.lightning.splice(i, 1);
-							} else {
-								ctx.fillStyle = `#effbff${l.brightness.toString(16).padStart(2, "0")}`;
-								ctx.fillRect(0, 0, cv.width, cv.height);
-								l.brightness -= Math.floor(deltaTime);
-							}
-						}
-					}
-
-					// draw tint
-					if (tint) {
-						ctx.fillStyle = tint;
-						ctx.fillRect(0, 0, cv.width, cv.height);
-					}
-				}
-
-				requestAnimationFrame(drawFrame);
-			} else {
-				// if weather is disabled, maintain a background tick
-				if (hasWeather) {
-					ctx.clearRect(0, 0, cv.width, cv.height);
-					hasWeather = false;
-				}
-				setTimeout(() => {
-					drawFrame(0);
-				}, 1000);
-			}
-		}
-
-		requestAnimationFrame(drawFrame);
+		new MutationObserver(inject).observe(document.body, {childList: true, subtree: true});
+		inject();
 	};
 }
 
@@ -20756,7 +19444,7 @@ function baseCss () {
 SCRIPT_EXTENSIONS.push(baseCss);
 
 
-function baseUi () {
+﻿function baseUi () {
 	d20plus.ui = {};
 
 	d20plus.ui.addHtmlHeader = () => {
@@ -20827,159 +19515,8 @@ function baseUi () {
 		d20plus.tool.addTools();
 	};
 
-	d20plus.ui.r20Buttons = [
-		{DOMid: "tokens-layer-button", id: "objects", color: "--vtt-toolbar-token-layer-btn-bg"},
-		{DOMid: "gm-layer-button", id: "gmlayer", color: "--vtt-toolbar-gm-layer-btn-bg"},
-		{DOMid: "lighting-layer-button", id: "walls", color: "--vtt-toolbar-lighting-layer-btn-bg"},
-		{DOMid: "map-layer-button", id: "map", color: "--vtt-toolbar-map-layer-btn-bg"},
-	];
-
-	d20plus.ui.b20Buttons = [
-		{name: "FG", tooltip: "Foreground Layer", icon: "B", id: "foreground", cfg: "showForeground"},
-		{name: "ROOF", tooltip: "Roof Layer", icon: "H", id: "roofs", cfg: "showRoofs"},
-		{name: "BG", tooltip: "Background Layer", icon: "a", id: "background", cfg: "showBackground"},
-		{name: "FLOOR", tooltip: "Floor Layer", icon: "I", id: "floors", cfg: "showFloors"},
-		{name: "COVER", tooltip: "Weather Exclusions", icon: "C", id: "weather", cfg: "showWeather"},
-	];
-
-	const switchToB20Layer = (evt) => {
-		const $selected = $(evt.currentTarget);
-		const $icon = $selected.find(".icon-slot");
-		const icon = $icon.find("span").text();
-		const $roll20LayersButton = $("#layers-menu-button").find(".grimoire__roll20-icon");
-
-		currentEditingLayer = $selected.data("layer");
-		d20.Campaign.activePage().onLayerChange();
-		d20plus.ui.b20LayersActive = true;
-
-		d20plus.ui.secondaryPanel.buttons.removeClass("b20-selected");
-		d20plus.ui.secondaryPanel.iconSlots.removeClass("icon-selected");
-
-		$selected.addClass("b20-selected");
-		$icon.addClass("icon-selected icon-circle");
-		d20plus.ui.$r20Buttons.removeClass("icon-selected").attr("style", "");
-		d20plus.ui.extraButton.icon.text(icon);
-		$roll20LayersButton.css({"font-family": "Pictos", "font-size": "1.5em"});
-		$roll20LayersButton.text(icon);
-	};
-
-	const switchLayersToolbar = (evt) => {
-		if (evt.delegateTarget.id === "extra-layer-button") {
-			d20plus.ui.$secondaryPanel
-				.css({left: "60px"})
-				.toggle();
-			if (d20plus.ui.$secondaryPanel.css("display") === "none"
-				&& d20plus.ui.b20LayersActive) {
-				d20plus.ui.extraButton.button.addClass("b20-selected");
-				d20plus.ui.extraButton.iconSlot.addClass("icon-selected");
-			} else {
-				d20plus.ui.extraButton.button.removeClass("b20-selected");
-				// d20plus.ui.extraButton.iconSlot.removeClass("icon-selected");
-			}
-		} else {
-			const roll20ToolbarVisible = $("#tokens-layer-button").parent().is(":visible");
-			d20plus.ui.$secondaryPanel
-				.css({left: "110px"})
-				.toggle(roll20ToolbarVisible);
-		}
-	};
-
-	d20plus.ui.switchToR20Layer = (evt) => {
-		d20plus.ui.secondaryPanel.buttons.removeClass("b20-selected");
-		d20plus.ui.secondaryPanel.iconSlots.removeClass("icon-selected").addClass("icon-circle");
-		d20plus.ui.extraButton.button.removeClass("b20-selected");
-		d20plus.ui.extraButton.icon.text("|");
-		d20plus.ui.b20LayersActive = false;
-
-		// the following check with setTimeout is required to properly process native r20 buttons.
-		// Without it the previously active layer won't be activated again
-		const $triggeredBy = $(evt?.target || "#tokens-layer-button .icon-slot");
-		const $pressed = $triggeredBy.closest(".toolbar-button-outer");
-		const $pressedIcon = $triggeredBy.closest(".icon-slot");
-		const $pressedButton = $triggeredBy.closest(".toolbar-button-inner");
-		const isFirstButton = $pressed.attr("id") === d20plus.ui.r20Buttons[0].id;
-		const $roll20LayersButton = $("#layers-menu-button").find(".grimoire__roll20-icon");
-		const secondaryPanelHidden = d20plus.ui.$secondaryPanel.css("display") === "none";
-
-		if (secondaryPanelHidden) d20plus.ui.extraButton.iconSlot.addClass("icon-circle").removeClass("icon-selected");
-		$roll20LayersButton.css({"font-family": "Roll20Icons", "font-size": "1.3em"});
-
-		// should manually apply layer instead
-		setTimeout(() => {
-			if ($pressedIcon.attr("style")) return;
-			const layer = d20plus.ui.r20Buttons.find(b => b.DOMid === $pressed.attr("id"));
-			if (!layer?.color) return;
-			$pressedIcon
-				.addClass("icon-selected")
-				.attr("style", `background-color: var(${layer.color});`);
-			currentEditingLayer = layer.id;
-			d20.Campaign.activePage().onLayerChange();
-		}, 100);
-	};
-
-	d20plus.ui.addQuickUiGm = () => {
-		if (!d20plus.cfg.getOrDefault("canvas", "extraLayerButtons")) return;
-		const buttonsHmtl = d20plus.ui.b20Buttons.reduce((html, l) => {
-			l.enabled = d20plus.cfg.getOrDefault("canvas", l.cfg);
-			return `${html}${(l.enabled ? d20plus.html.layerSecondaryPanel(l) : "")}`;
-		}, "");
-		if (!d20plus.ui.b20Buttons.some(b => b.enabled)) return;
-
-		d20plus.ui.$extraButton = $(d20plus.html.layerExtrasButton);
-		d20plus.ui.$secondaryPanel = $(`
-			<div class="drawer-outer b20" style="left: 111px;display:none">
-			${buttonsHmtl}</div>
-		`);
-
-		d20plus.ui.extraButton = {
-			icon: d20plus.ui.$extraButton.find(".icon-slot span"),
-			iconSlot: d20plus.ui.$extraButton.find(".icon-slot"),
-			button: d20plus.ui.$extraButton.find(".toolbar-button-inner"),
-		};
-
-		d20plus.ui.secondaryPanel = {
-			iconSlots: d20plus.ui.$secondaryPanel.find(".icon-slot"),
-			buttons: d20plus.ui.$secondaryPanel.find(".toolbar-button-inner"),
-		};
-
-		d20plus.ui.$r20Buttons = $("#tokens-layer-button")
-			.parent()
-			.find(".toolbar-button-outer:not(.b20) .icon-slot");
-
-		$("body").append(d20plus.ui.$secondaryPanel);
-		$("#map-layer-button").after(d20plus.ui.$extraButton);
-
-		d20plus.ui.$extraButton.on("mouseenter", ".toolbar-button-inner", (evt) => {
-			$(evt.currentTarget).find(".icon-slot").addClass("icon-selected").removeClass("icon-circle");
-		}).on("mouseleave", ".toolbar-button-inner", (evt) => {
-			if (d20plus.ui.b20LayersActive || d20plus.ui.$secondaryPanel.css("display") !== "none") return;
-			$(evt.currentTarget).find(".icon-slot").removeClass("icon-selected").addClass("icon-circle");
-		}).on(clicktype, ".toolbar-button-inner", switchLayersToolbar);
-
-		d20plus.ui.$secondaryPanel.on("mouseenter", ".toolbar-button-inner", (evt) => {
-			$(evt.currentTarget).find(".icon-slot").addClass("icon-selected").removeClass("icon-circle");
-		}).on("mouseleave", ".toolbar-button-inner", (evt) => {
-			if ($(evt.currentTarget).hasClass("b20-selected")) return;
-			$(evt.currentTarget).find(".icon-slot").removeClass("icon-selected").addClass("icon-circle");
-		}).on(clicktype, ".layer-toggle", (evt) => {
-			evt.stopPropagation();
-			const $layerIcon = $(evt.currentTarget).prev(".toolbar-button-inner");
-			const state = d20plus.engine.layersToggle($layerIcon.data("layer"));
-		}).on(clicktype, ".toolbar-button-inner", switchToB20Layer);
-
-		$(document.body)
-			.on("mouseup", d20plus.ui.r20Buttons.reduce((css, b) => {
-				return `${css}${css ? ", " : ""}#${b.DOMid}  .icon-slot`;
-			}, ""), d20plus.ui.switchToR20Layer)
-			.on(clicktype, "#layers-menu-button .toolbar-button-inner", switchLayersToolbar);
-
-		$("#playerzone").css({"z-index": 10100}); // otherwise it has the same z-index as native buttons
-	};
-
-	d20plus.ui.layerVisibilityIcon = (layer, state) => {
-		const $layerIcon = d20plus.ui.$secondaryPanel?.find(`[data-layer=${layer}]`);
-		$layerIcon?.toggleClass("layer-off", !state);
-	}
+	// r20Buttons, b20Buttons, switchToR20Layer, switchToB20Layer, switchLayersToolbar,
+	// addQuickUiGm, layerVisibilityIcon moved to js/functions/ui-layers.js
 
 	/**
 	 * Prompt the user to choose from a list of checkboxes. By default, one checkbox can be selected, but a "count"
@@ -21195,7 +19732,7 @@ function baseUi () {
 SCRIPT_EXTENSIONS.push(baseUi);
 
 
-/**
+﻿/**
  * All the modified minified based on parts of Roll20's `app.js`
  */
 function d20plusMod () {
@@ -21238,35 +19775,35 @@ function d20plusMod () {
 		// BEGIN MOD
 		// "text" === e || "rect" === e || "ellipse" === e || "polygon" === e || "path" === e || "pan" === e || "select" === e || "targeting" === e || "measure" === e || window.is_gm || (e = "select"),
 		// END MOD
-		"text" == e ? $("#editor").addClass("texteditmode") : $("#editor").removeClass("texteditmode"),
+		"text" === e ? $("#editor").addClass("texteditmode") : $("#editor").removeClass("texteditmode"),
 			$("#floatingtoolbar li").removeClass("activebutton"),
 			$("#" + e).addClass("activebutton"),
-		"fog" == e.substring(0, 3) && $("#fogcontrols").addClass("activebutton");
+		"fog" === e.substring(0, 3) && $("#fogcontrols").addClass("activebutton");
 
 		const drawingTools = ["rect", "ellipse", "text", "path", "polygon", "line_splitter"];
 		if (drawingTools.includes(e)) {
-			if ("ellipse" == e) $('#drawingtools span.subicon').addClass('fas fa-circle');
+			if ("ellipse" === e) $('#drawingtools span.subicon').addClass('fas fa-circle');
 			else $('#drawingtools span.subicon').removeClass('fas fa-circle');
 			$("#drawingtools").addClass("activebutton").removeClass("text rect ellipse path polygon line_splitter");
-			"rect" == e && $("#drawingtools").addClass("rect");
-			"ellipse" == e && $("#drawingtools").addClass("ellipse");
-			"text" == e && $("#drawingtools").addClass("activebutton").removeClass("rect ellipse path polygon line_splitter").addClass("text");
-			"path" == e && $("#drawingtools").addClass("path");
-			"polygon" == e && $("#drawingtools").addClass("polygon");
+			"rect" === e && $("#drawingtools").addClass("rect");
+			"ellipse" === e && $("#drawingtools").addClass("ellipse");
+			"text" === e && $("#drawingtools").addClass("activebutton").removeClass("rect ellipse path polygon line_splitter").addClass("text");
+			"path" === e && $("#drawingtools").addClass("path");
+			"polygon" === e && $("#drawingtools").addClass("polygon");
 			// BEGIN MOD (also line_splitter added to above removeClass calls
-			"line_splitter" == e && $("#drawingtools").addClass("line_splitter");
+			"line_splitter" === e && $("#drawingtools").addClass("line_splitter");
 			// END MOD
 		}
-		"polygon" != e && d20.engine.finishCurrentPolygon();
+		"polygon" !== e && d20.engine.finishCurrentPolygon();
 
 		"pan" !== e && "select" !== e && d20.engine.unselect(),
-			"pan" == e ? ($("#select").addClass("pan").removeClass("select").addClass("activebutton"),
+			"pan" === e ? ($("#select").addClass("pan").removeClass("select").addClass("activebutton"),
 				d20.token_editor.removeRadialMenu(),
 				$("#editor-wrapper").addClass("panning")) : $("#editor-wrapper").removeClass("panning"),
-		"select" == e && $("#select").addClass("select").removeClass("pan").addClass("activebutton"),
+		"select" === e && $("#select").addClass("select").removeClass("pan").addClass("activebutton"),
 			$("#floatingtoolbar .mode").hide(),
-		("text" == e || "select" == e) && $("#floatingtoolbar ." + e).show(),
-			"gridalign" == e ? $("#gridaligninstructions").show() : "gridalign" === d20.engine.mode && $("#gridaligninstructions").hide(),
+		("text" === e || "select" === e) && $("#floatingtoolbar ." + e).show(),
+			"gridalign" === e ? $("#gridaligninstructions").show() : "gridalign" === d20.engine.mode && $("#gridaligninstructions").hide(),
 			"targeting" === e ? ($("#targetinginstructions").show(),
 				$("#finalcanvas").addClass("targeting"),
 				d20.engine.canvas.hoverCursor = "crosshair") : "targeting" === d20.engine.mode && ($("#targetinginstructions").hide(),
@@ -21281,17 +19818,17 @@ function d20plusMod () {
 			player: window.currentPlayer.id
 		}),
 			d20.engine.endMeasure()),
-			d20.engine.canvas.isDrawingMode = "path" == e ? !0 : !1;
-		if ("text" == e || "path" == e || "rect" == e || "ellipse" == e || "polygon" == e || "fxtools" == e) {
+			d20.engine.canvas.isDrawingMode = "path" === e ? !0 : !1;
+		if ("text" === e || "path" === e || "rect" === e || "ellipse" === e || "polygon" === e || "fxtools" === e) {
 			$("#secondary-toolbar").show();
 			$("#secondary-toolbar .mode").hide();
 			$("#secondary-toolbar ." + e).show();
-			("path" == e || "rect" == e || "ellipse" == e || "polygon" == e) && ("" === $("#path_strokecolor").val() && ($("#path_strokecolor").val("#000000").trigger("change-silent"),
+			("path" === e || "rect" === e || "ellipse" === e || "polygon" === e) && ("" === $("#path_strokecolor").val() && ($("#path_strokecolor").val("#000000").trigger("change-silent"),
 				$("#path_fillcolor").val("transparent").trigger("change-silent")),
 				d20.engine.canvas.freeDrawingBrush.color = $("#path_strokecolor").val(),
 				d20.engine.canvas.freeDrawingBrush.fill = $("#path_fillcolor").val() || "transparent",
 				$("#path_width").trigger("change")),
-			"fxtools" == e && "" === $("#fxtools_color").val() && $("#fxtools_color").val("#a61c00").trigger("change-silent"),
+			"fxtools" === e && "" === $("#fxtools_color").val() && $("#fxtools_color").val("#a61c00").trigger("change-silent"),
 				$("#floatingtoolbar").trigger("blur")
 		} else {
 			$("#secondary-toolbar").hide();
@@ -21305,246 +19842,26 @@ function d20plusMod () {
 	};
 	// END ROLL20 CODE
 
-	d20plus.mod.overwriteStatusEffects = function () {
-		d20.engine.canvasDirty = true;
-		d20.engine.canvasTopDirty = true;
-		d20.engine.canvas._objects.forEach(it => {
-			// avoid adding it to any objects that wouldn't have it to begin with
-			if (!it.model || !it.model.view || !it.model.view.updateBackdrops) return;
-
-			// BEGIN ROLL20 CODE
-			it.model.view.updateBackdrops = function (e) {
-				if (!this.nohud && ("objects" == this.model.get("layer") || "gmlayer" == this.model.get("layer")) && "image" == this.model.get("type") && this.model && this.model.collection && this.graphic) {
-					// BEGIN MOD
-					const scaleFact = (d20plus.cfg.get("canvas", "scaleNamesStatuses") && d20.Campaign.activePage().get("snapping_increment"))
-						? d20.Campaign.activePage().get("snapping_increment")
-						: 1;
-					// END MOD
-					var t = this.model.collection.page
-						, n = e || d20.engine.canvas.getContext();
-					n.save(),
-					(this.graphic.get("flipX") || this.graphic.get("flipY")) && n.scale(this.graphic.get("flipX") ? -1 : 1, this.graphic.get("flipY") ? -1 : 1);
-					var i = this
-						, r = Math.floor(this.graphic.get("width") / 2)
-						, o = Math.floor(this.graphic.get("height") / 2)
-						, a = (parseFloat(t.get("scale_number")),
-						this.model.get("statusmarkers").split(","));
-					-1 !== a.indexOf("dead") && (n.strokeStyle = "rgba(189,13,13,0.60)",
-						n.lineWidth = 10,
-						n.beginPath(),
-						n.moveTo(-r + 7, -o + 15),
-						n.lineTo(r - 7, o - 5),
-						n.moveTo(r - 7, -o + 15),
-						n.lineTo(-r + 7, o - 5),
-						n.closePath(),
-						n.stroke()),
-						n.rotate(-this.graphic.get("angle") * Math.PI / 180),
-						n.strokeStyle = "rgba(0,0,0,0.65)",
-						n.lineWidth = 1;
-					var s = 0
-						, l = i.model.get("bar1_value")
-						, c = i.model.get("bar1_max");
-					if ("" != c && (window.is_gm || this.model.get("showplayers_bar1") || this.model.currentPlayerControls() && this.model.get("playersedit_bar1"))) {
-						var u = parseInt(l, 10) / parseInt(c, 10)
-							, d = -o - 20 + 0;
-						n.fillStyle = "rgba(" + d20.Campaign.tokendisplay.bar1_rgb + ",0.75)",
-							n.beginPath(),
-							n.rect(-r + 3, d, Math.floor((2 * r - 6) * u), 8),
-							n.closePath(),
-							n.fill(),
-							n.beginPath(),
-							n.rect(-r + 3, d, 2 * r - 6, 8),
-							n.closePath(),
-							n.stroke(),
-							s++
-					}
-					var l = i.model.get("bar2_value")
-						, c = i.model.get("bar2_max");
-					if ("" != c && (window.is_gm || this.model.get("showplayers_bar2") || this.model.currentPlayerControls() && this.model.get("playersedit_bar2"))) {
-						var u = parseInt(l, 10) / parseInt(c, 10)
-							, d = -o - 20 + 12;
-						n.fillStyle = "rgba(" + d20.Campaign.tokendisplay.bar2_rgb + ",0.75)",
-							n.beginPath(),
-							n.rect(-r + 3, d, Math.floor((2 * r - 6) * u), 8),
-							n.closePath(),
-							n.fill(),
-							n.beginPath(),
-							n.rect(-r + 3, d, 2 * r - 6, 8),
-							n.closePath(),
-							n.stroke(),
-							s++
-					}
-					var l = i.model.get("bar3_value")
-						, c = i.model.get("bar3_max");
-					if ("" != c && (window.is_gm || this.model.get("showplayers_bar3") || this.model.currentPlayerControls() && this.model.get("playersedit_bar3"))) {
-						var u = parseInt(l, 10) / parseInt(c, 10)
-							, d = -o - 20 + 24;
-						n.fillStyle = "rgba(" + d20.Campaign.tokendisplay.bar3_rgb + ",0.75)",
-							n.beginPath(),
-							n.rect(-r + 3, d, Math.floor((2 * r - 6) * u), 8),
-							n.closePath(),
-							n.fill(),
-							n.beginPath(),
-							n.rect(-r + 3, d, 2 * r - 6, 8),
-							n.closePath(),
-							n.stroke()
-					}
-					var h, p, g = 1, f = !1;
-					switch (d20.Campaign.get("markers_position")) {
-						case "bottom":
-							h = o - 10,
-								p = r;
-							break;
-						case "left":
-							h = -o - 10,
-								p = -r,
-								f = !0;
-							break;
-						case "right":
-							h = -o - 10,
-								p = r - 18,
-								f = !0;
-							break;
-						default:
-							h = -o + 10,
-								p = r
-					}
-					// BEGIN MOD
-					n.strokeStyle = "white";
-					n.lineWidth = 3 * scaleFact;
-					const scaledFont = 14 * scaleFact;
-					n.font = "bold " + scaledFont + "px Arial";
-					// END MOD
-					_.each(a, function (e) {
-						var t = d20.token_editor.statusmarkers[e.split("@")[0]];
-						if (!t)
-							return !0;
-						if ("dead" === e)
-							return !0;
-						var i = 0;
-						if (g--,
-						"#" === t.substring(0, 1))
-							n.fillStyle = t,
-								n.beginPath(),
-								f ? h += 16 : p -= 16,
-								n.arc(p + 8, f ? h + 4 : h, 6, 0, 2 * Math.PI, !0),
-								n.closePath(),
-								n.stroke(),
-								n.fill(),
-								i = f ? 10 : 4;
-						else {
-							// BEGIN MOD
-							if (!d20.token_editor.statussheet_ready) return;
-							const scaledWH = 21 * scaleFact;
-							const scaledOffset = 22 * scaleFact;
-							f ? h += scaledOffset : p -= scaledOffset;
-
-							if (d20.engine.canvasZoom <= 1) {
-								n.drawImage(d20.token_editor.statussheet_small, parseInt(t, 10), 0, 21, 21, p, h - 9, scaledWH, scaledWH);
-							} else {
-								n.drawImage(d20.token_editor.statussheet, parseInt(t, 10), 0, 24, 24, p, h - 9, scaledWH, scaledWH)
-							}
-
-							i = f ? 14 : 12;
-							i *= scaleFact;
-							// END MOD
-						}
-						if (-1 !== e.indexOf("@")) {
-							var r = e.split("@")[1];
-							// BEGIN MOD
-							// bing backtick to "clear counter"
-							if (r === "`") return;
-							n.fillStyle = "rgb(222,31,31)";
-							var o = f ? 9 : 14;
-							o *= scaleFact;
-							o -= (14 - (scaleFact * 14));
-							n.strokeText(r + "", p + i, h + o);
-							n.fillText(r + "", p + i, h + o);
-							// END MOD
-						}
-					});
-					var m = i.model.get("name");
-					if ("" != m && 1 == this.model.get("showname") && (window.is_gm || this.model.get("showplayers_name") || this.model.currentPlayerControls() && this.model.get("playersedit_name"))) {
-						n.textAlign = "center";
-						// BEGIN MOD
-						const fontSize = 14;
-						var scaledFontSize = fontSize * scaleFact;
-						const scaledY = 22 * scaleFact;
-						const scaled6 = 6 * scaleFact;
-						const scaled8 = 8 * scaleFact;
-						n.font = "bold " + scaledFontSize + "px Arial";
-						var v = n.measureText(m).width;
-
-						/*
-							Note(stormy): compatibility with R20ES's ScaleTokenNamesBySize module.
-						 */
-						if(window.r20es && window.r20es.drawNameplate) {
-							window.r20es.drawNameplate(this.model, n, v, o, fontSize, m);
-						} else {
-							n.fillStyle = "rgba(255,255,255,0.50)";
-							n.fillRect(-1 * Math.floor((v + scaled6) / 2), o + scaled8, v + scaled6, scaledFontSize + scaled6);
-							n.fillStyle = "rgb(0,0,0)";
-							n.fillText(m + "", 0, o + scaledY, v);
-						}
-						// END MOD
-					}
-					n.restore()
-				}
-			}
-			// END ROLL20 CODE
-		});
-	};
-
-	d20plus.mod.mouseEnterMarkerMenu = function () {
-		var e = this;
-		$(this).on("mouseover.statusiconhover", ".statusicon", function () {
-			a = $(this).attr("data-action-type").replace("toggle_status_", "")
-		}),
-			$(document).on("keypress.statusnum", function (t) {
-				// BEGIN MOD // TODO see if this clashes with keyboard shortcuts
-				let currentcontexttarget = d20.engine.selected()[0];
-				if ("dead" !== a && currentcontexttarget) {
-					// END MOD
-					var n = String.fromCharCode(t.which)
-						,
-						i = "" == currentcontexttarget.model.get("statusmarkers") ? [] : currentcontexttarget.model.get("statusmarkers").split(",")
-						, r = (_.map(i, function (e) {
-							return e.split("@")[0]
-						}),
-							!1);
-					i = _.map(i, function (e) {
-						return e.split("@")[0] == a ? (r = !0,
-						a + "@" + n) : e
-					}),
-					r || ($(e).find(".statusicon[data-action-type=toggle_status_" + a + "]").addClass("active"),
-						i.push(a + "@" + n)),
-						currentcontexttarget.model.save({
-							statusmarkers: i.join(",")
-						})
-				}
-			})
-	};
-
 	// BEGIN ROLL20 CODE
 	d20plus.mod.handleURL = function(e) {
 		if (!($(this).hasClass("lightly") || $(this).parents(".note-editable").length > 0)) {
-			var t = $(this).attr("href");
-			if (void 0 === t)
+            let t = $(this).attr("href");
+            if (void 0 === t)
 				return !1;
 			if (-1 !== t.indexOf("journal.roll20.net") || -1 !== t.indexOf("wiki.roll20.net")) {
-				var n = t.split("/")[3]
-					, i = t.split("/")[4]
-					, o = d20.Campaign[n + "s"].get(i);
-				if (o) {
-					var r = o.get("inplayerjournals").split(",");
-					(window.is_gm || -1 !== _.indexOf(r, "all") || window.currentPlayer && -1 !== _.indexOf(r, window.currentPlayer.id)) && o.view.showDialog()
+                const n = t.split("/")[3]
+                    , i = t.split("/")[4]
+                    , o = d20.Campaign[n + "s"].get(i);
+                if (o) {
+                    const r = o.get("inplayerjournals").split(",");
+                    (window.is_gm || -1 !== _.indexOf(r, "all") || window.currentPlayer && -1 !== _.indexOf(r, window.currentPlayer.id)) && o.view.showDialog()
 				}
 				return $("#existing" + n + "s").find("tr[data-" + n + "id=" + i + "]").trigger("click"),
 					!1
 			}
-			var a = /(?:(?:http(?:s?):\/\/(?:app\.)?roll20(?:staging)?\.(?:net|local:5000)\/|^\/?)compendium\/)([^\/]+)\/([^\/#?]+)/i
-				, s = t.match(a);
-			if (s)
+            const a = /(?:https?:\/\/(?:app\.)?roll20(?:staging)?\.(?:net|local:5000)\/|^\/?)compendium\/([^\/]+)\/([^\/#?]+)/i
+                , s = t.match(a);
+            if (s)
 				return d20.utils.openCompendiumPage(s[1], s[2]),
 					e.stopPropagation(),
 					void e.preventDefault();
@@ -21559,7 +19876,7 @@ function d20plusMod () {
 			if ("~" === t.substring(0, 1))
 				return d20.textchat.doChatInput("%{" + t.substring(1, t.length) + "}"),
 					!1;
-			if (t !== undefined && ("external" === $(this).attr("rel") || -1 === t.indexOf("javascript:") && -1 !== t.indexOf("://"))) {
+			if (("external" === $(this).attr("rel") || -1 === t.indexOf("javascript:") && -1 !== t.indexOf("://"))) {
 				// BEGIN MOD
 				e.stopPropagation();
 				e.preventDefault();
@@ -21676,53 +19993,8 @@ function d20plusMod () {
 		}
 		),
 		v.restore()
-	},
+	}
 	// END ROLL20 CODE
-
-	// prevent prototype methods from breaking some poorly-written property loops
-	d20plus.mod.fixHexMethods = () => {
-		try {
-			// BEGIN ROLL20 CODE
-			HT.Grid.prototype.GetHexAt = function(e) {
-				// BEGIN MOD
-				for (const t of this.Hexes)
-					if (t.Contains(e))
-						return t;
-				// END MOD
-				return null
-			};
-			// END ROLL20 CODE
-		} catch (ignored) {
-			console.error(ignored)
-		}
-
-		try {
-			// BEGIN ROLL20 CODE
-			HT.Grid.prototype.GetHexById = function(e) {
-				// BEGIN MOD
-				for (const t of this.Hexes)
-					if (t.Id == e)
-						return t;
-				// END MOD
-				return null
-			};
-			// END ROLL20 CODE
-		} catch (ignored) {
-			console.error(ignored)
-		}
-	};
-
-	// prevent prototype methods from breaking some poorly-written property loops
-	d20plus.mod.fixVideoMethods = () => {
-		const arr = [];
-		for (const k in arr) {
-			const v = arr[k];
-			if (typeof v === "function") {
-				v.getReceiver = v.getReceiver || (() => null);
-				v.getSender = v.getSender || (() => null);
-			}
-		}
-	};
 
 	/* eslint-enable */
 }
@@ -26838,6 +25110,1730 @@ function baseChat () {
 SCRIPT_EXTENSIONS.push(baseChat);
 
 
+function baseCharacterIo () {
+	d20plus.characterIo = {};
+
+	const getCharacterFromEvent = (event) => {
+		const $target = $(event.target);
+		const $characterRoot = $target.closest(`[data-characterid]`);
+		const $fallbackRoot = $characterRoot.length ? $characterRoot : $(event.currentTarget).closest(`[data-characterid]`);
+		const cId = $fallbackRoot.attr(`data-characterid`);
+		if (!cId) return null;
+		return d20.Campaign.characters.get(cId);
+	};
+
+	const getBlobData = (character, key) => new Promise((resolve) => {
+		character._getLatestBlob(key, (data) => resolve(data));
+	});
+
+	const sanitizeFilename = (name) => (name || "character").trim().replace(/[^-\w]/g, "_");
+
+	const getImportEntry = (payload) => {
+		if (payload && payload.character) return payload.character;
+		if (payload && Array.isArray(payload.characters) && payload.characters.length) {
+			if (payload.characters.length === 1) return payload.characters[0];
+			const options = payload.characters
+				.map((entry, i) => `${i + 1}: ${(entry.attributes && entry.attributes.name) || "Unnamed character"}`)
+				.join("\n");
+			const selection = window.prompt(`Multiple characters found. Enter a number to import:\n${options}`, "1");
+			const index = Number(selection) - 1;
+			if (!Number.isInteger(index) || index < 0 || index >= payload.characters.length) return null;
+			return payload.characters[index];
+		}
+		return null;
+	};
+
+	const applyCharacterImport = (character, entry) => {
+		const safeAttributes = {...(entry.attributes || {})};
+		delete safeAttributes.id;
+		delete safeAttributes.inplayerjournals;
+		delete safeAttributes.controlledby;
+		character.set(safeAttributes);
+		character.save();
+
+		character.attribs.reset();
+		if (Array.isArray(entry.attribs)) {
+			const toSave = entry.attribs.map(a => character.attribs.push(a));
+			toSave.forEach(s => (s.syncedSave ? s.syncedSave() : s.save()));
+		}
+
+		character.abilities.reset();
+		if (Array.isArray(entry.abilities)) {
+			entry.abilities.map(a => character.abilities.push(a)).forEach(s => s.save());
+		}
+
+		character.updateBlobs({
+			bio: entry.blobBio,
+			gmnotes: entry.blobGmNotes,
+			defaulttoken: entry.blobDefaultToken,
+		});
+
+		if (character.view && character.view.updateSheetValues) character.view.updateSheetValues();
+	};
+
+	const importCharacterFromEntry = (entry) => {
+		const safeAttributes = {...(entry.attributes || {})};
+		delete safeAttributes.id;
+		d20.Campaign.characters.create(safeAttributes, {
+			success: (character) => {
+				applyCharacterImport(character, entry);
+				alert(`Imported character "${character.get("name")}".`);
+			},
+		});
+	};
+
+	d20plus.characterIo.importCharacterFromJson = () => {
+		const $input = $(`<input type="file" accept="application/json">`).appendTo("body");
+		$input.on("change", () => {
+			const fileList = $input[0] && $input[0].files;
+			const file = fileList && fileList[0];
+			if (!file) return $input.remove();
+
+			const reader = new FileReader();
+			reader.onload = () => {
+				let payload = null;
+				try {
+					payload = JSON.parse(reader.result);
+				} catch (err) {
+					alert("Invalid JSON file.");
+					$input.remove();
+					return;
+				}
+
+				const entry = getImportEntry(payload);
+				if (!entry || !entry.attribs) {
+					alert("No character data found in this JSON file.");
+					$input.remove();
+					return;
+				}
+
+				const name = (entry.attributes && entry.attributes.name) || "Unnamed character";
+				if (!confirm(`Import character "${name}" from JSON?`)) {
+					$input.remove();
+					return;
+				}
+
+				importCharacterFromEntry(entry);
+				$input.remove();
+			};
+			reader.readAsText(file);
+		});
+		$input.trigger("click");
+	};
+
+	d20plus.characterIo.initCharacterJsonButtons = () => {
+		$(document)
+			.off("click", ".character-json-export")
+			.on("click", ".character-json-export", async (event) => {
+				const character = getCharacterFromEvent(event);
+				if (!character) return alert("No character found.");
+
+				character.attribs.fetch(character.attribs);
+				const abilities = (character.abilities || {models: []}).models.map(ability => ability.attributes);
+
+				const [bio, gmnotes, defaulttoken] = await Promise.all([
+					getBlobData(character, "bio"),
+					window.is_gm ? getBlobData(character, "gmnotes") : Promise.resolve(null),
+					getBlobData(character, "defaulttoken"),
+				]);
+
+				const entry = {
+					attributes: character.attributes,
+					attribs: character.attribs.toJSON(),
+					abilities,
+					blobBio: bio,
+					blobGmNotes: gmnotes,
+					blobDefaultToken: defaulttoken,
+				};
+
+				const payload = {
+					schema_version: 1,
+					character: entry,
+				};
+
+				const filename = sanitizeFilename(character.get("name"));
+				const data = JSON.stringify(payload, null, "\t");
+				const blob = new Blob([data], {type: "application/json"});
+				d20plus.ut.saveAs(blob, `${filename}.json`);
+			});
+
+		$(document)
+			.off("click", ".character-json-import")
+			.on("click", ".character-json-import", (event) => {
+				const character = getCharacterFromEvent(event);
+				if (!character) return alert("No character found.");
+
+				const $input = $(`<input type="file" accept="application/json">`).appendTo("body");
+				$input.on("change", () => {
+					const fileList = $input[0] && $input[0].files;
+					const file = fileList && fileList[0];
+					if (!file) return $input.remove();
+
+					const reader = new FileReader();
+					reader.onload = () => {
+						let payload = null;
+						try {
+							payload = JSON.parse(reader.result);
+						} catch (err) {
+							alert("Invalid JSON file.");
+							$input.remove();
+							return;
+						}
+
+						const entry = getImportEntry(payload);
+						if (!entry || !entry.attribs) {
+							alert("No character data found in this JSON file.");
+							$input.remove();
+							return;
+						}
+
+						const name = (entry.attributes && entry.attributes.name) || character.get("name");
+						if (!confirm(`Overwrite "${character.get("name")}" with JSON data for "${name}"?`)) {
+							$input.remove();
+							return;
+						}
+
+						applyCharacterImport(character, entry);
+						alert(`Overwrote "${character.get("name")}" with JSON data.`);
+
+						$input.remove();
+					};
+					reader.readAsText(file);
+				});
+				$input.trigger("click");
+			});
+	};
+}
+
+SCRIPT_EXTENSIONS.push(baseCharacterIo);
+
+
+function remoteLibre () {
+	d20plus.remoteLibre = {
+		getRemotePlaylists () {
+			return fetch(DATA_URL_PLAYLIST)
+				.then(response => response.json())
+				.then(data => {
+					if (!data.filter) return;
+					const promises = data.filter(file => file.download_url.toLowerCase().endsWith(".json"))
+						.map(file => d20plus.remoteLibre.downloadPlaylist(file.download_url));
+					return Promise.all(promises).then(res => d20plus.remoteLibre.processRemotePlaylists(res));
+				})
+				// eslint-disable-next-line no-console
+				.catch(error => console.error(error));
+		},
+
+		downloadPlaylist (url) {
+			return fetch(url)
+				.then(response => response.json())
+				// eslint-disable-next-line no-console
+				.catch(error => console.error("Error when fetching", url, error));
+		},
+
+		processRemotePlaylists (imports) {
+			return $.map(imports.filter(p => !!p), entry => {
+				return $.map(entry.playlists, playlist => playlist.songs);
+			}).filter(track => track.source === "My Audio");
+		},
+
+		drawRemoteLibreResults (tracks) {
+			return tracks.map((t, i) => `
+                <p style="margin-top:15px">${t.title}</p>
+                <div class="br20-result" style="display: flex">
+                    <audio class="audio" controls preload="none" style="flex: 35" src="${t.track_id}"></audio>
+
+                    <button class="remote-track btn" data-id=${i} style="margin-top:auto;margin-bottom:auto;flex:1;font-size:15px;margin-left:10px;">
+                        <span class="pictos">&amp;</span>
+                    </button>
+                </div>
+            `);
+		},
+
+		drawJukeBoxTab (tracks) {
+			const trackHtml = d20plus.remoteLibre.drawRemoteLibreResults(tracks);
+			return `
+            <div class="betteR20 tab-pane" style="display: none;">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <h3 style="margin-top: 6px; margin-bottom: 10px; text-align:initial;">Search for:</h3>
+                        <input id="remoteLibreSearch" type="text" placeholder="Begin typing to choose tracks by title..." style="width: 100%;">
+                        <div id="remoteLibreResults">
+                            ${trackHtml.join("")}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+		},
+
+		wireTrackButtons () {
+			$(".remote-track.btn").click((e) => {
+				const id = $(e.currentTarget).data().id;
+				d20plus.jukebox.createTrack(d20plus.remoteLibre.filteredResults[id]);
+			});
+		},
+
+		init () {
+			d20plus.remoteLibre.jukeboxInjected = false;
+			d20plus.remoteLibre.remoteLibreTracks = {};
+			d20plus.remoteLibre.filteredResults = {};
+
+			d20plus.remoteLibre.getRemotePlaylists().then((tracks) => {
+				d20plus.remoteLibre.remoteLibreTracks = tracks;
+				d20plus.remoteLibre.filteredResults = tracks;
+			});
+
+			$("#addjukebox").click(() => {
+				if (!d20plus.remoteLibre.jukeboxInjected) {
+					setTimeout(() => {
+						const html = d20plus.remoteLibre.drawJukeBoxTab(d20plus.remoteLibre.filteredResults);
+						$(".nav.nav-tabs").append(`<li><a data-tab="betteR20" href="javascript:void(0);">BetteR20</a></li>`);
+						$(".tab-content").append(html);
+						d20plus.remoteLibre.wireTrackButtons();
+						$("#remoteLibreSearch").bind("paste keyup", function () {
+							if ($(this).val()) {
+								d20plus.remoteLibre.filteredResults = d20plus.remoteLibre.remoteLibreTracks.filter(t => t.title.toLowerCase().indexOf($(this).val()) >= 0);
+							} else {
+								d20plus.remoteLibre.filteredResults = d20plus.remoteLibre.remoteLibreTracks;
+							}
+							const results = d20plus.remoteLibre.drawRemoteLibreResults(d20plus.remoteLibre.filteredResults);
+							$("#remoteLibreResults").html(results);
+							d20plus.remoteLibre.wireTrackButtons();
+						});
+						// this needs to be moved
+						d20plus.remoteLibre.jukeboxInjected = true;
+					}, 100);
+				}
+			});
+		},
+
+	};
+}
+
+SCRIPT_EXTENSIONS.push(remoteLibre);
+
+
+function jukeboxWidget () {
+	d20plus.jukeboxWidget = {
+		getPlaylistButtonsHtml () {
+			const buttons = d20plus.jukebox.getJukeboxFileStructure()
+				.map((playlist, i) => {
+					const hotkey = i + 1 < 10 ? i + 1 : false;
+					let baseName, id;
+					if (typeof playlist === "object") {
+						baseName = playlist.n;
+						id = playlist.id;
+					} else {
+						baseName = d20plus.jukebox.getTrackById(playlist).attributes.title;
+						id = playlist;
+					}
+					const title = `${hotkey ? `[ALT+${hotkey}] ` : ""}${baseName}`;
+
+					return `
+						<div
+							class="btn btn-xs jukebox-widget-button m-1"
+							title="${title}"
+							data-id=${id}
+						>
+							<span>${hotkey ? `[${i + 1}] ` : ""}${baseName}</span>
+						</div>
+					`;
+				})
+				.filter(p => !!p);
+
+			return buttons.join("");
+		},
+
+		init () {
+			const changeTrackVolume = (trackId, value) => {
+				const track = d20plus.jukebox.getTrackById(trackId);
+				if (track && value) {
+					track.changeVolume(value);
+				}
+			};
+
+			$(`<div id="masterVolume" style="margin:10px;display:inline-block;width:80%;"></div>`)
+				.insertAfter("#jukeboxwhatsplaying").slider({
+					slide: (e, ui) => {
+						if ($("#masterVolumeEnabled").prop("checked")) {
+							window.d20.jukebox.lastFolderStructure.forEach(playlist => {
+							// The track is outside a playlist
+								if (!playlist.i) {
+									changeTrackVolume(playlist, ui.value);
+								} else {
+									playlist.i.forEach(trackId => changeTrackVolume(trackId, ui.value))
+								}
+							});
+						}
+						$("#jbwMasterVolume").slider("value", ui.value);
+					},
+					value: 50,
+				});
+			$("<h4>Master Volume</h4>").insertAfter("#jukeboxwhatsplaying").css("margin-left", "10px");
+			$(`<input type="checkbox" id="masterVolumeEnabled" style="position:relative;top:-11px;" title="Enable this to change the volume of all the tracks at the same time"/>`).insertAfter("#masterVolume").tooltip();
+
+			// TODO: Make the slider a separate component at some point
+			const slider = $(`<div id="jbwMasterVolume" class="jukebox-widget-slider"></div>`)
+				.slider({
+					slide: (e, ui) => {
+						if ($("#masterVolumeEnabled").prop("checked")) {
+							window.d20.jukebox.lastFolderStructure.forEach(playlist => {
+								// The track is outside a playlist
+								if (!playlist.i) {
+									changeTrackVolume(playlist, ui.value);
+								} else {
+									playlist.i.forEach(trackId => changeTrackVolume(trackId, ui.value));
+								}
+							});
+						}
+						$("#masterVolume").slider("value", ui.value);
+					},
+					value: 50,
+				});
+
+			// Stop and skip buttons
+			const controls = $(`
+			<div class="flex mb-2">
+				<div id="jbwStop" title="ALT+S" class="btn btn-inverse flex-1 mr-2"><span class="pictos">6</span></div>
+				<div id="jbwSkip" title="ALT+D" class="btn btn-inverse flex-1 mr-2"><span class="pictos">7</span></div>
+			</div>
+			`).append(slider);
+
+			// Jukebox widget layout
+			const dialog = $(`<div id="jukeboxWidget" title="Jukebox Player" style="margin-top:10px"></div>`)
+				.dialog({
+					autoOpen: false,
+					resizable: true,
+					width: 350,
+				})
+				.append("body")
+				.css("padding-top", "0")
+				.html(`<div id="jbwButtons" style="display:flex;flex-wrap:wrap">${d20plus.jukeboxWidget.getPlaylistButtonsHtml()}</div>`)
+				.prepend(controls)
+				.prepend(`<div id="widgeNowPlaying"></div>`);
+
+			dialog.parent().find(".ui-dialog-title").css("margin", "0").css("padding", "0");
+			$("#jbwStop").click(d20plus.jukebox.stopAll);
+			$("#jbwSkip").click(d20plus.jukebox.skip);
+
+			// Start listening to jukebox state changes
+			d20plus.jukebox.addJukeboxChangeHandler(() => {
+				$("#jbwButtons").html(d20plus.jukeboxWidget.getPlaylistButtonsHtml());
+				$(".jukebox-widget-button")
+					.removeClass("active")
+					.click((e) => {
+						const id = e.currentTarget.dataset.id;
+						if (d20plus.jukebox.getCurrentPlayingPlaylist() === id || d20plus.jukebox.getCurrentPlayingTracks().find(t => t.id === id)) {
+							d20plus.jukebox.stop(e.currentTarget.dataset.id);
+						} else {
+							d20plus.jukebox.play(e.currentTarget.dataset.id);
+						}
+					});
+				$(`.jukebox-widget-button[data-id=${d20plus.jukebox.getCurrentPlayingPlaylist()}]`).addClass("active");
+				d20plus.jukebox.getCurrentPlayingTracks().forEach(t => {
+					$(`.jukebox-widget-button[data-id=${t.id}]`).addClass("active");
+				});
+			});
+
+			// Add widget button in the Jukebox tab
+			$(`<button class="btn" style="margin-right:10px;"><span class="pictos">|</span>Widget</button>`)
+				.click(() => {
+					dialog.dialog("open");
+				})
+				.insertAfter("[href=#superjukeboxadd]");
+
+			// Add keyboard shortcuts
+			$(document).keyup((e) => {
+				if (e.altKey) {
+					if (e.keyCode > 48 && e.keyCode < 58) {
+						const numberKey = e.keyCode - 48;
+						const playElement = d20plus.jukebox.getJukeboxFileStructure()[numberKey - 1];
+						if (typeof playElement === "object") {
+							if (d20plus.jukebox.getCurrentPlayingPlaylist() === playElement.id) {
+								d20plus.jukebox.stopPlaylist(playElement.id);
+							} else {
+								d20plus.jukebox.playPlaylist(playElement.id);
+							}
+						} else {
+							if (d20plus.jukebox.getCurrentPlayingTracks().find(t => t.id === playElement)) {
+								d20plus.jukebox.stopTrack(playElement);
+							} else {
+								d20plus.jukebox.playTrack(playElement);
+							}
+						}
+					} else if (e.keyCode === 83) {
+						d20plus.jukebox.stopAll();
+					} else if (e.keyCode === 68) {
+						d20plus.jukebox.skip();
+					}
+				}
+			});
+		},
+	};
+}
+
+SCRIPT_EXTENSIONS.push(jukeboxWidget);
+
+
+/**
+ * WHAT THIS DOES:
+ * Adds extra named layers
+ *   Foreground (now also in Roll20 natively, will need to be removed),
+ *   Background, Floor, Roof, and Weather exclusion mask.
+ * Replaces Roll20's canvas rendering methods (renderAll, sortTokens, drawAnyLayer,
+ * drawTokensWithoutAuras) with custom versions that know about these extra layers.
+ * Tokens on extra layers can be hidden/shown per-page via layersToggle, and their
+ * visibility state is persisted as a page custom property (bR20cfg_hidden).
+ *
+ * This is probably a hell of a task to re implement.
+ *
+ * TODO: Check whether d20.engine.canvas still exposes _renderAll, sortTokens,
+ * drawAnyLayer, drawTokensWithoutAuras as replaceable properties. If Roll20 moved
+ * these to prototype methods or non-configurable properties the approach needs rethinking.
+ * The extra layer data (bR20cfg_hidden page properties) might still be intact.
+ *
+ * Originally in: js/base/base-engine.js
+ */
+
+function initEngineLayers () {
+
+// Checks page settings and syncs visibility icons for the extra layers.
+d20plus.engine.layersIsMarkedAsHidden = (layer) => {
+	const page = d20.Campaign.activePage();
+	return page?.get(`bR20cfg_hidden`)?.search(layer) > -1;
+}
+
+// Iterates extra layers and hides/shows tokens on each based on stored page state.
+d20plus.engine.layersVisibilityCheck = () => {
+	const layers = ["floors", "background", "foreground", "roofs"];
+	layers.forEach((layer) => {
+		const isHidden = d20.engine.canvas._objects.some((o) => {
+			if (o.model) return o.model.get("layer") === `hidden_${layer}`;
+		}) || d20plus.engine.layersIsMarkedAsHidden(layer);
+		d20plus.engine.layerVisibilityOff(layer, isHidden, true);
+	});
+}
+
+// Toggles an extra layer's visibility and persists the state to the page.
+d20plus.engine.layersToggle = (layer) => {
+	const page = d20.Campaign.activePage();
+	if (!page.get(`bR20cfg_hidden`)) page.set(`bR20cfg_hidden`, "");
+	if (d20plus.engine.layersIsMarkedAsHidden(layer)) {
+		d20plus.engine.layerVisibilityOff(layer, false);
+	} else {
+		d20plus.engine.layerVisibilityOff(layer, true);
+	}
+};
+
+// Hides or shows all tokens on a given extra layer. Persists the state as a page prop.
+// Calls objectsHideUnhide (still in base-engine.js) and layerVisibilityIcon (ui-layers.js).
+d20plus.engine.layerVisibilityOff = (layer, off, force) => {
+	const page = d20.Campaign.activePage();
+	if (off) {
+		if (d20plus.engine.objectsHideUnhide("layer", layer, "layeroff", false) || force) {
+			if (window.currentEditingLayer === layer) d20plus.ui.switchToR20Layer();
+			d20plus.ui.layerVisibilityIcon(layer, false);
+			if (!d20plus.engine.layersIsMarkedAsHidden(layer)) {
+				page.set(`bR20cfg_hidden`, `${page.get(`bR20cfg_hidden`)} ${layer}`);
+				page.save();
+			}
+		}
+	} else {
+		d20plus.engine.objectsHideUnhide("layer", layer, "layeroff", true);
+		d20plus.ui.layerVisibilityIcon(layer, true);
+		if (d20plus.engine.layersIsMarkedAsHidden(layer)) {
+			page.set(`bR20cfg_hidden`, page.get(`bR20cfg_hidden`).replace(` ${layer}`, ""));
+			page.save();
+		}
+	}
+}
+
+// Entry point: replaces Roll20's canvas render methods and wires up page-change listeners.
+d20plus.engine.addLayers = () => {
+	d20plus.ut.log("Adding layers");
+
+	d20.engine.canvas._renderAll = _.bind(d20plus.mod.renderAll, d20.engine.canvas);
+	d20.engine.canvas.sortTokens = _.bind(d20plus.mod.sortTokens, d20.engine.canvas);
+	d20.engine.canvas.drawAnyLayer = _.bind(d20plus.mod.drawAnyLayer, d20.engine.canvas);
+	d20.engine.canvas.drawTokensWithoutAuras = _.bind(d20plus.mod.drawTokensWithoutAuras, d20.engine.canvas);
+
+	if (window.is_gm) {
+		$(document).on("d20:new_page_fully_loaded", d20plus.engine.checkPageSettings);
+		d20plus.engine.checkPageSettings();
+	}
+};
+
+// Waits for the active page to be ready, then syncs layer visibility icons.
+d20plus.engine.checkPageSettings = () => {
+	if (!d20plus.cfg.getOrDefault("canvas", "extraLayerButtons")) return;
+	if (!d20.Campaign.activePage() || !d20.Campaign.activePage().get) {
+		setTimeout(d20plus.engine.checkPageSettings, 50);
+	} else {
+		d20plus.engine.layersVisibilityCheck();
+	}
+}
+
+} // end initEngineLayers
+
+SCRIPT_EXTENSIONS.push(initEngineLayers);
+
+
+/**
+ * WHAT THIS DOES:
+ * Replaces Roll20's token status marker rendering with a custom version that:
+ *   - Scales marker icons and token name plates to match the grid snapping increment
+ *   - Lets you assign a numeric counter to any status marker by pressing a number key
+ *     while hovering over it in the marker menu (backtick clears the counter)
+ *   - Supports custom 5etools status markers injected via CSS
+ *
+ * WHY IT'S BROKEN (probably):
+ * overwriteStatusEffects patches it.model.view.updateBackdrops on every canvas object.
+ * Roll20 likely renamed or restructured this method, so the patch no longer applies.
+ * The bootstrap comment says "It doesn't work with current version of roll20."
+ *
+ * TODO: Log a canvas object after Roll20 loads and check whether updateBackdrops still
+ * exists on token model views. If the method was renamed, update the patch target.
+ * If Roll20 moved to a different rendering pipeline entirely, a broader rewrite is needed.
+ *
+ * Originally in: js/base/base-engine.js (_removeStatusEffectEntries, enhanceStatusEffects)
+ *                js/base/base-mod.js (overwriteStatusEffects, mouseEnterMarkerMenu)
+ */
+
+// --- from js/base/base-engine.js ---
+
+function initEngineStatusEffects () {
+
+// Clears injected 5etools status CSS and removes all 5etools_ prefixed markers
+// from Roll20's token editor marker registry (used when reloading status effects).
+d20plus.engine._removeStatusEffectEntries = () => {
+	$(`#5etools-status-css`).html("");
+	Object.keys(d20.token_editor.statusmarkers).filter(k => k.startsWith("5etools_")).forEach(k => delete d20.token_editor.statusmarkers[k]);
+};
+
+// Entry point: injects the status CSS tag, patches all existing tokens via
+// overwriteStatusEffects, and wires up object:added and markermenu hover listeners
+// so new tokens and the marker UI stay in sync.
+d20plus.engine.enhanceStatusEffects = () => {
+	d20plus.ut.log("Enhance status effects");
+	$(`head`).append(`<style id="5etools-status-css"/>`);
+
+	d20plus.mod.overwriteStatusEffects();
+
+	d20.engine.canvas.off("object:added");
+	d20.engine.canvas.on("object:added", d20plus.mod.overwriteStatusEffects);
+
+	$(document).off("mouseenter", ".markermenu");
+	$(document).on("mouseenter", ".markermenu", d20plus.mod.mouseEnterMarkerMenu)
+};
+
+// --- from js/base/base-mod.js ---
+
+// Iterates every canvas object and monkey-patches updateBackdrops on its model view.
+// The patched version scales status icons and name plates to the grid snapping increment,
+// renders custom 5etools marker images, and supports numeric counters on markers.
+// This is a near-complete copy of Roll20's own rendering code with targeted modifications.
+d20plus.mod.overwriteStatusEffects = function () {
+	d20.engine.canvasDirty = true;
+	d20.engine.canvasTopDirty = true;
+	d20.engine.canvas._objects.forEach(it => {
+		// avoid adding it to any objects that wouldn't have it to begin with
+		if (!it.model || !it.model.view || !it.model.view.updateBackdrops) return;
+
+		// BEGIN ROLL20 CODE
+		it.model.view.updateBackdrops = function (e) {
+			if (!this.nohud && ("objects" == this.model.get("layer") || "gmlayer" == this.model.get("layer")) && "image" == this.model.get("type") && this.model && this.model.collection && this.graphic) {
+				// BEGIN MOD
+				const scaleFact = (d20plus.cfg.get("canvas", "scaleNamesStatuses") && d20.Campaign.activePage().get("snapping_increment"))
+					? d20.Campaign.activePage().get("snapping_increment")
+					: 1;
+				// END MOD
+				var t = this.model.collection.page
+					, n = e || d20.engine.canvas.getContext();
+				n.save(),
+				(this.graphic.get("flipX") || this.graphic.get("flipY")) && n.scale(this.graphic.get("flipX") ? -1 : 1, this.graphic.get("flipY") ? -1 : 1);
+				var i = this
+					, r = Math.floor(this.graphic.get("width") / 2)
+					, o = Math.floor(this.graphic.get("height") / 2)
+					, a = (parseFloat(t.get("scale_number")),
+					this.model.get("statusmarkers").split(","));
+				-1 !== a.indexOf("dead") && (n.strokeStyle = "rgba(189,13,13,0.60)",
+					n.lineWidth = 10,
+					n.beginPath(),
+					n.moveTo(-r + 7, -o + 15),
+					n.lineTo(r - 7, o - 5),
+					n.moveTo(r - 7, -o + 15),
+					n.lineTo(-r + 7, o - 5),
+					n.closePath(),
+					n.stroke()),
+					n.rotate(-this.graphic.get("angle") * Math.PI / 180),
+					n.strokeStyle = "rgba(0,0,0,0.65)",
+					n.lineWidth = 1;
+				var s = 0
+					, l = i.model.get("bar1_value")
+					, c = i.model.get("bar1_max");
+				if ("" != c && (window.is_gm || this.model.get("showplayers_bar1") || this.model.currentPlayerControls() && this.model.get("playersedit_bar1"))) {
+					var u = parseInt(l, 10) / parseInt(c, 10)
+						, d = -o - 20 + 0;
+					n.fillStyle = "rgba(" + d20.Campaign.tokendisplay.bar1_rgb + ",0.75)",
+						n.beginPath(),
+						n.rect(-r + 3, d, Math.floor((2 * r - 6) * u), 8),
+						n.closePath(),
+						n.fill(),
+						n.beginPath(),
+						n.rect(-r + 3, d, 2 * r - 6, 8),
+						n.closePath(),
+						n.stroke(),
+						s++
+				}
+				var l = i.model.get("bar2_value")
+					, c = i.model.get("bar2_max");
+				if ("" != c && (window.is_gm || this.model.get("showplayers_bar2") || this.model.currentPlayerControls() && this.model.get("playersedit_bar2"))) {
+					var u = parseInt(l, 10) / parseInt(c, 10)
+						, d = -o - 20 + 12;
+					n.fillStyle = "rgba(" + d20.Campaign.tokendisplay.bar2_rgb + ",0.75)",
+						n.beginPath(),
+						n.rect(-r + 3, d, Math.floor((2 * r - 6) * u), 8),
+						n.closePath(),
+						n.fill(),
+						n.beginPath(),
+						n.rect(-r + 3, d, 2 * r - 6, 8),
+						n.closePath(),
+						n.stroke(),
+						s++
+				}
+				var l = i.model.get("bar3_value")
+					, c = i.model.get("bar3_max");
+				if ("" != c && (window.is_gm || this.model.get("showplayers_bar3") || this.model.currentPlayerControls() && this.model.get("playersedit_bar3"))) {
+					var u = parseInt(l, 10) / parseInt(c, 10)
+						, d = -o - 20 + 24;
+					n.fillStyle = "rgba(" + d20.Campaign.tokendisplay.bar3_rgb + ",0.75)",
+						n.beginPath(),
+						n.rect(-r + 3, d, Math.floor((2 * r - 6) * u), 8),
+						n.closePath(),
+						n.fill(),
+						n.beginPath(),
+						n.rect(-r + 3, d, 2 * r - 6, 8),
+						n.closePath(),
+						n.stroke()
+				}
+				var h, p, g = 1, f = !1;
+				switch (d20.Campaign.get("markers_position")) {
+					case "bottom":
+						h = o - 10,
+							p = r;
+						break;
+					case "left":
+						h = -o - 10,
+							p = -r,
+							f = !0;
+						break;
+					case "right":
+						h = -o - 10,
+							p = r - 18,
+							f = !0;
+						break;
+					default:
+						h = -o + 10,
+							p = r
+				}
+				// BEGIN MOD
+				n.strokeStyle = "white";
+				n.lineWidth = 3 * scaleFact;
+				const scaledFont = 14 * scaleFact;
+				n.font = "bold " + scaledFont + "px Arial";
+				// END MOD
+				_.each(a, function (e) {
+					var t = d20.token_editor.statusmarkers[e.split("@")[0]];
+					if (!t)
+						return !0;
+					if ("dead" === e)
+						return !0;
+					var i = 0;
+					if (g--,
+					"#" === t.substring(0, 1))
+						n.fillStyle = t,
+							n.beginPath(),
+							f ? h += 16 : p -= 16,
+							n.arc(p + 8, f ? h + 4 : h, 6, 0, 2 * Math.PI, !0),
+							n.closePath(),
+							n.stroke(),
+							n.fill(),
+							i = f ? 10 : 4;
+					else {
+						// BEGIN MOD
+						if (!d20.token_editor.statussheet_ready) return;
+						const scaledWH = 21 * scaleFact;
+						const scaledOffset = 22 * scaleFact;
+						f ? h += scaledOffset : p -= scaledOffset;
+
+						if (d20.engine.canvasZoom <= 1) {
+							n.drawImage(d20.token_editor.statussheet_small, parseInt(t, 10), 0, 21, 21, p, h - 9, scaledWH, scaledWH);
+						} else {
+							n.drawImage(d20.token_editor.statussheet, parseInt(t, 10), 0, 24, 24, p, h - 9, scaledWH, scaledWH)
+						}
+
+						i = f ? 14 : 12;
+						i *= scaleFact;
+						// END MOD
+					}
+					if (-1 !== e.indexOf("@")) {
+						var r = e.split("@")[1];
+						// BEGIN MOD
+						// bing backtick to "clear counter"
+						if (r === "`") return;
+						n.fillStyle = "rgb(222,31,31)";
+						var o = f ? 9 : 14;
+						o *= scaleFact;
+						o -= (14 - (scaleFact * 14));
+						n.strokeText(r + "", p + i, h + o);
+						n.fillText(r + "", p + i, h + o);
+						// END MOD
+					}
+				});
+				var m = i.model.get("name");
+				if ("" != m && 1 == this.model.get("showname") && (window.is_gm || this.model.get("showplayers_name") || this.model.currentPlayerControls() && this.model.get("playersedit_name"))) {
+					n.textAlign = "center";
+					// BEGIN MOD
+					const fontSize = 14;
+					var scaledFontSize = fontSize * scaleFact;
+					const scaledY = 22 * scaleFact;
+					const scaled6 = 6 * scaleFact;
+					const scaled8 = 8 * scaleFact;
+					n.font = "bold " + scaledFontSize + "px Arial";
+					var v = n.measureText(m).width;
+
+					/*
+						Note(stormy): compatibility with R20ES's ScaleTokenNamesBySize module.
+					 */
+					if(window.r20es && window.r20es.drawNameplate) {
+						window.r20es.drawNameplate(this.model, n, v, o, fontSize, m);
+					} else {
+						n.fillStyle = "rgba(255,255,255,0.50)";
+						n.fillRect(-1 * Math.floor((v + scaled6) / 2), o + scaled8, v + scaled6, scaledFontSize + scaled6);
+						n.fillStyle = "rgb(0,0,0)";
+						n.fillText(m + "", 0, o + scaledY, v);
+					}
+					// END MOD
+				}
+				n.restore()
+			}
+		}
+		// END ROLL20 CODE
+	});
+};
+
+// Attached to the markermenu mouseenter event. While a status icon is hovered,
+// any number key press sets that counter on the selected token's marker. Backtick clears it.
+d20plus.mod.mouseEnterMarkerMenu = function () {
+	var e = this;
+	$(this).on("mouseover.statusiconhover", ".statusicon", function () {
+		a = $(this).attr("data-action-type").replace("toggle_status_", "")
+	}),
+		$(document).on("keypress.statusnum", function (t) {
+			// BEGIN MOD // TODO see if this clashes with keyboard shortcuts
+			let currentcontexttarget = d20.engine.selected()[0];
+			if ("dead" !== a && currentcontexttarget) {
+				// END MOD
+				var n = String.fromCharCode(t.which)
+					,
+					i = "" == currentcontexttarget.model.get("statusmarkers") ? [] : currentcontexttarget.model.get("statusmarkers").split(",")
+					, r = (_.map(i, function (e) {
+						return e.split("@")[0]
+					}),
+						!1);
+				i = _.map(i, function (e) {
+					return e.split("@")[0] == a ? (r = !0,
+					a + "@" + n) : e
+				}),
+				r || ($(e).find(".statusicon[data-action-type=toggle_status_" + a + "]").addClass("active"),
+					i.push(a + "@" + n)),
+					currentcontexttarget.model.save({
+						statusmarkers: i.join(",")
+					})
+			}
+		})
+};
+
+} // end initEngineStatusEffects
+
+SCRIPT_EXTENSIONS.push(initEngineStatusEffects);
+
+
+/**
+ * WHAT THIS DOES:
+ * When a GM holds Shift and hovers over a token, displays the token's GM Notes field
+ * as a floating tooltip positioned over the canvas.
+ *
+ * TODO: Check if d20.engine.renderLoop still exists and is a plain replaceable function.
+ * If Roll20 moved to requestAnimationFrame directly, hook _drawTokenHover via
+ * d20.engine.canvas.on("after:render") instead. This feature has no Roll20 API
+ * dependencies beyond renderLoop and canvas mouse events — likely easy to restore.
+ *
+ * Originally in: js/base/base-engine.js
+ */
+
+function initEngineTokenHover () {
+
+// Holds the current hover state: { pt, text, id } or null when not hovering.
+d20plus.engine._tokenHover = null;
+
+// Called each render frame; removes any existing tooltip and redraws it at the
+// current cursor position if _tokenHover is populated.
+d20plus.engine._drawTokenHover = () => {
+	$(`.Vetools-token-hover`).remove();
+	if (!d20plus.engine._tokenHover || !d20plus.engine._tokenHover.text) return;
+
+	const pt = d20plus.engine._tokenHover.pt;
+	const txt = unescape(d20plus.engine._tokenHover.text);
+
+	$(`body`).append(`<div class="Vetools-token-hover" style="top: ${pt.y * d20.engine.canvasZoom}px; left: ${pt.x * d20.engine.canvasZoom}px">${txt}</div>`);
+};
+
+// Wraps d20.engine.renderLoop to call _drawTokenHover every frame, and hooks
+// canvas mouse:move to populate _tokenHover when Shift is held over a token.
+d20plus.engine.addTokenHover = () => {
+	// gm notes on shift-hover
+	const cacheRenderLoop = d20.engine.renderLoop;
+	d20.engine.renderLoop = () => {
+		d20plus.engine._drawTokenHover();
+		cacheRenderLoop();
+	};
+
+	// store data for the rendering function to access
+	d20.engine.canvas.on("mouse:move", (data, ...others) => {
+		// enable hover from GM layer -> token layer
+		let hoverTarget = data.target;
+		if (data.e && window.currentEditingLayer === "gmlayer") {
+			const cache = window.currentEditingLayer;
+			window.currentEditingLayer = "objects";
+			hoverTarget = d20.engine.canvas.findTarget(data.e, null, true);
+			window.currentEditingLayer = cache;
+		}
+
+		if (data.e.shiftKey && hoverTarget && hoverTarget.model) {
+			d20.engine.redrawScreenNextTick();
+			const gmNotes = hoverTarget.model.get("gmnotes");
+			const pt = d20.engine.canvas.getPointer(data.e);
+			pt.x -= d20.engine.currentCanvasOffset[0];
+			pt.y -= d20.engine.currentCanvasOffset[1];
+			d20plus.engine._tokenHover = {
+				pt: pt,
+				text: gmNotes,
+				id: hoverTarget.model.id,
+			};
+		} else {
+			if (d20plus.engine._tokenHover) d20.engine.redrawScreenNextTick();
+			d20plus.engine._tokenHover = null;
+		}
+	})
+};
+
+} // end initEngineTokenHover
+
+SCRIPT_EXTENSIONS.push(initEngineTokenHover);
+
+
+/**
+ * WHAT THIS DOES:
+ * Adds custom layer-switcher buttons to the Roll20 toolbar for the extra layers
+ * (Floor, Roof, Weather mask). A secondary panel expands
+ * from an "extras" button, showing one button per enabled extra layer. Each button
+ * switches the editing layer and has a toggle (eye icon) to hide/show that layer's
+ * tokens. The active layer icon is mirrored on the main toolbar button.
+ *
+ * Some duplicated stuff with engine layers that can be merged together.
+ *
+ * TODO: Verify the toolbar button selectors still exist in the Jumpgate DOM.
+ * The logic itself is self-contained jQuery UI code — if the selectors are right
+ * it should work. Check also that d20plus.html.layerSecondaryPanel and
+ * d20plus.html.layerExtrasButton templates still render correctly.
+ *
+ * Originally in: js/base/base-ui.js
+ */
+
+function initUiLayers () {
+
+// Local helpers — only usable from addQuickUiGm's event handlers.
+
+// Switches the active editing layer to a betterR20 extra layer and updates toolbar state.
+const switchToB20Layer = (evt) => {
+	const $selected = $(evt.currentTarget);
+	const $icon = $selected.find(".icon-slot");
+	const icon = $icon.find("span").text();
+	const $roll20LayersButton = $("#layers-menu-button").find(".grimoire__roll20-icon");
+
+	currentEditingLayer = $selected.data("layer");
+	d20.Campaign.activePage().onLayerChange();
+	d20plus.ui.b20LayersActive = true;
+
+	d20plus.ui.secondaryPanel.buttons.removeClass("b20-selected");
+	d20plus.ui.secondaryPanel.iconSlots.removeClass("icon-selected");
+
+	$selected.addClass("b20-selected");
+	$icon.addClass("icon-selected icon-circle");
+	d20plus.ui.$r20Buttons.removeClass("icon-selected").attr("style", "");
+	d20plus.ui.extraButton.icon.text(icon);
+	$roll20LayersButton.css({"font-family": "Pictos", "font-size": "1.5em"});
+	$roll20LayersButton.text(icon);
+};
+
+// Toggles the secondary panel open/closed from either the extras button or the main layers button.
+const switchLayersToolbar = (evt) => {
+	if (evt.delegateTarget.id === "extra-layer-button") {
+		d20plus.ui.$secondaryPanel
+			.css({left: "60px"})
+			.toggle();
+		if (d20plus.ui.$secondaryPanel.css("display") === "none"
+			&& d20plus.ui.b20LayersActive) {
+			d20plus.ui.extraButton.button.addClass("b20-selected");
+			d20plus.ui.extraButton.iconSlot.addClass("icon-selected");
+		} else {
+			d20plus.ui.extraButton.button.removeClass("b20-selected");
+		}
+	} else {
+		const roll20ToolbarVisible = $("#tokens-layer-button").parent().is(":visible");
+		d20plus.ui.$secondaryPanel
+			.css({left: "110px"})
+			.toggle(roll20ToolbarVisible);
+	}
+};
+
+// Resets toolbar state when switching back to a native Roll20 layer.
+d20plus.ui.switchToR20Layer = (evt) => {
+	d20plus.ui.secondaryPanel.buttons.removeClass("b20-selected");
+	d20plus.ui.secondaryPanel.iconSlots.removeClass("icon-selected").addClass("icon-circle");
+	d20plus.ui.extraButton.button.removeClass("b20-selected");
+	d20plus.ui.extraButton.icon.text("|");
+	d20plus.ui.b20LayersActive = false;
+
+	// the following check with setTimeout is required to properly process native r20 buttons.
+	// Without it the previously active layer won't be activated again
+	const $triggeredBy = $(evt?.target || "#tokens-layer-button .icon-slot");
+	const $pressed = $triggeredBy.closest(".toolbar-button-outer");
+	const $pressedIcon = $triggeredBy.closest(".icon-slot");
+	const $pressedButton = $triggeredBy.closest(".toolbar-button-inner");
+	const isFirstButton = $pressed.attr("id") === d20plus.ui.r20Buttons[0].id;
+	const $roll20LayersButton = $("#layers-menu-button").find(".grimoire__roll20-icon");
+	const secondaryPanelHidden = d20plus.ui.$secondaryPanel.css("display") === "none";
+
+	if (secondaryPanelHidden) d20plus.ui.extraButton.iconSlot.addClass("icon-circle").removeClass("icon-selected");
+	$roll20LayersButton.css({"font-family": "Roll20Icons", "font-size": "1.3em"});
+
+	setTimeout(() => {
+		if ($pressedIcon.attr("style")) return;
+		const layer = d20plus.ui.r20Buttons.find(b => b.DOMid === $pressed.attr("id"));
+		if (!layer?.color) return;
+		$pressedIcon
+			.addClass("icon-selected")
+			.attr("style", `background-color: var(${layer.color});`);
+		currentEditingLayer = layer.id;
+		d20.Campaign.activePage().onLayerChange();
+	}, 100);
+};
+
+// Entry point: builds the extra layer button and secondary panel, appends them to the toolbar.
+d20plus.ui.addQuickUiGm = () => {
+	if (!d20plus.cfg.getOrDefault("canvas", "extraLayerButtons")) return;
+	const buttonsHmtl = d20plus.ui.b20Buttons.reduce((html, l) => {
+		l.enabled = d20plus.cfg.getOrDefault("canvas", l.cfg);
+		return `${html}${(l.enabled ? d20plus.html.layerSecondaryPanel(l) : "")}`;
+	}, "");
+	if (!d20plus.ui.b20Buttons.some(b => b.enabled)) return;
+
+	d20plus.ui.$extraButton = $(d20plus.html.layerExtrasButton);
+	d20plus.ui.$secondaryPanel = $(`
+		<div class="drawer-outer b20" style="left: 111px;display:none">
+		${buttonsHmtl}</div>
+	`);
+
+	d20plus.ui.extraButton = {
+		icon: d20plus.ui.$extraButton.find(".icon-slot span"),
+		iconSlot: d20plus.ui.$extraButton.find(".icon-slot"),
+		button: d20plus.ui.$extraButton.find(".toolbar-button-inner"),
+	};
+
+	d20plus.ui.secondaryPanel = {
+		iconSlots: d20plus.ui.$secondaryPanel.find(".icon-slot"),
+		buttons: d20plus.ui.$secondaryPanel.find(".toolbar-button-inner"),
+	};
+
+	d20plus.ui.$r20Buttons = $("#tokens-layer-button")
+		.parent()
+		.find(".toolbar-button-outer:not(.b20) .icon-slot");
+
+	$("body").append(d20plus.ui.$secondaryPanel);
+	$("#map-layer-button").after(d20plus.ui.$extraButton);
+
+	d20plus.ui.$extraButton.on("mouseenter", ".toolbar-button-inner", (evt) => {
+		$(evt.currentTarget).find(".icon-slot").addClass("icon-selected").removeClass("icon-circle");
+	}).on("mouseleave", ".toolbar-button-inner", (evt) => {
+		if (d20plus.ui.b20LayersActive || d20plus.ui.$secondaryPanel.css("display") !== "none") return;
+		$(evt.currentTarget).find(".icon-slot").removeClass("icon-selected").addClass("icon-circle");
+	}).on(clicktype, ".toolbar-button-inner", switchLayersToolbar);
+
+	d20plus.ui.$secondaryPanel.on("mouseenter", ".toolbar-button-inner", (evt) => {
+		$(evt.currentTarget).find(".icon-slot").addClass("icon-selected").removeClass("icon-circle");
+	}).on("mouseleave", ".toolbar-button-inner", (evt) => {
+		if ($(evt.currentTarget).hasClass("b20-selected")) return;
+		$(evt.currentTarget).find(".icon-slot").removeClass("icon-selected").addClass("icon-circle");
+	}).on(clicktype, ".layer-toggle", (evt) => {
+		evt.stopPropagation();
+		const $layerIcon = $(evt.currentTarget).prev(".toolbar-button-inner");
+		const state = d20plus.engine.layersToggle($layerIcon.data("layer"));
+	}).on(clicktype, ".toolbar-button-inner", switchToB20Layer);
+
+	$(document.body)
+		.on("mouseup", d20plus.ui.r20Buttons.reduce((css, b) => {
+			return `${css}${css ? ", " : ""}#${b.DOMid}  .icon-slot`;
+		}, ""), d20plus.ui.switchToR20Layer)
+		.on(clicktype, "#layers-menu-button .toolbar-button-inner", switchLayersToolbar);
+
+	$("#playerzone").css({"z-index": 10100}); // otherwise it has the same z-index as native buttons
+};
+
+// Updates the visibility icon on the extra layer button for a given layer.
+// Called from engine-layers.js (layerVisibilityOff / layersVisibilityCheck).
+d20plus.ui.layerVisibilityIcon = (layer, state) => {
+	const $layerIcon = d20plus.ui.$secondaryPanel?.find(`[data-layer=${layer}]`);
+	$layerIcon?.toggleClass("layer-off", !state);
+}
+
+} // end initUiLayers
+
+SCRIPT_EXTENSIONS.push(initUiLayers);
+
+
+/**
+ * WHAT THIS DOES:
+ * Adds an animated weather overlay to the Roll20 map.
+ * A separate <canvas> element is injected on top of Roll20's canvas and driven by requestAnimationFrame.
+ * Settings are stored as per-page custom properties (bR20cfg_weatherType1 etc.).
+ */
+function initWeatherFunctions () {
+d20plus.weather.addWeather = () => {
+    const $readyCheck = $("#editor-wrapper .canvas-container");
+    if (!d20.engine || !$readyCheck.length || !$readyCheck.width() || !$readyCheck.height()) {
+        setTimeout(d20plus.weather.addWeather, 100);
+        return;
+    }
+
+    window.force = false; // missing variable in Roll20's code(?); define it here
+
+    d20plus.ut.log("Adding weather");
+
+    const MAX_ZOOM = 2.5; // max canvas zoom
+    const tmp = []; // temp vector
+    // cache images
+    const IMAGES = {
+        "Rain": new Image(),
+        "Snow": new Image(),
+        "Fog": new Image(),
+        "Waves": new Image(),
+        "Ripples": new Image(),
+        "Blood Rain": new Image(),
+    };
+    IMAGES.Rain.src = "https://i.imgur.com/lZrqiVk.png";
+    IMAGES.Snow.src = "https://i.imgur.com/uwLQjWY.png";
+    IMAGES.Fog.src = "https://i.imgur.com/SRsUpHW.png";
+    IMAGES.Waves.src = "https://i.imgur.com/iYEzmvB.png";
+    IMAGES.Ripples.src = "https://i.imgur.com/fFCr0yx.png";
+    IMAGES["Blood Rain"].src = "https://i.imgur.com/SP2aoeq.png";
+    const SFX = {
+        lightning: [],
+    };
+
+    // FIXME find a better way of handling this; `clip` is super-slow
+    const clipMode = "EXCLUDE";
+
+    function SfxLightning () {
+        this.brightness = 255;
+    }
+
+    const $wrpEditor = $("#editor-wrapper");
+
+    // add custom canvas
+    const $wrpCanvas = $wrpEditor.find(".canvas-container");
+
+    // make buffer canvas
+    const $canBuf = $("<canvas style='position: absolute; z-index: -100; left:0; top: 0; pointer-events: none;' tabindex='-1'/>").appendTo($wrpCanvas);
+    const cvBuf = $canBuf[0];
+    const ctxBuf = cvBuf.getContext("2d");
+
+    // make weather canvas
+    const $canvasWeather = $("<canvas id='Vet-canvas-weather' style='position: absolute; z-index: 2; left:0; top: 0; pointer-events: none;' tabindex='-1'/>").appendTo($wrpCanvas);
+    const cv = $canvasWeather[0];
+    d20.engine.weathercanvas = cv;
+
+    // add our canvas to those adjusted when canvas size changes
+    // d20.engine.canvasWidth/canvasHeight don't reliably map to the container's actual
+    // width/height in the current canvas engine, so size off the DOM container directly
+    const resizeOverlay = () => {
+        cv.width = cvBuf.width = $wrpCanvas.width();
+        cv.height = cvBuf.height = $wrpCanvas.height();
+    };
+
+    const cachedSetCanvasSize = d20.engine.setCanvasSize;
+    d20.engine.setCanvasSize = function (...args) {
+        cachedSetCanvasSize(...args);
+        resizeOverlay();
+    };
+
+    resizeOverlay();
+
+    const ctx = cv.getContext("2d");
+
+    const CTX = {
+        _hasWarned: new Set(),
+    };
+
+    function ofX (x) { // offset X
+        return x - d20.engine.currentCanvasOffset[0];
+    }
+
+    function ofY (y) { // offset Y
+        return y - d20.engine.currentCanvasOffset[1];
+    }
+
+    function lineIntersectsBounds (points, bounds) {
+        return d20plus.math.doPolygonsIntersect([points[0], points[2], points[3], points[1]], bounds);
+    }
+
+    function copyPoints (toCopy) {
+        return [...toCopy.map(pt => [...pt])];
+    }
+
+    function getImage (page) {
+        const imageName = page.get("bR20cfg_weatherType1");
+
+        switch (imageName) {
+            case "Rain":
+            case "Snow":
+            case "Fog":
+            case "Waves":
+            case "Ripples":
+            case "Blood Rain":
+                IMAGES["Custom"] = null;
+                return IMAGES[imageName];
+            case "Custom (see below)": {
+                const customSrc = page.get("bR20cfg_weatherTypeCustom1");
+                if (!customSrc) return null;
+                if (!IMAGES["Custom"] || (
+                    (IMAGES["Custom"].src !== customSrc && IMAGES["Custom"]._errorSrc === null)
+                    || (IMAGES["Custom"]._errorSrc !== null && IMAGES["Custom"]._errorSrc !== customSrc))
+                ) {
+                    IMAGES["Custom"] = new Image();
+                    IMAGES["Custom"]._errorSrc = null;
+                    IMAGES["Custom"].onerror = () => {
+                        if (IMAGES["Custom"]._errorSrc === null) {
+                            IMAGES["Custom"]._errorSrc = customSrc;
+                            d20plus.ut.error(`Custom weather image "${IMAGES["Custom"].src}" failed to load!`);
+                        }
+                    };
+                    IMAGES["Custom"].src = customSrc;
+                }
+                return IMAGES["Custom"];
+            }
+            default:
+                IMAGES["Custom"] = null;
+                return null;
+        }
+    }
+
+    function getDirectionRotation (page) {
+        const dir = page.get("bR20cfg_weatherDir1") || d20plus.weather.props.weatherDir1;
+        switch (dir) {
+            case "Northerly": return 0.25 * Math.PI;
+            case "North-Easterly": return 0.5 * Math.PI;
+            case "Easterly": return 0.75 * Math.PI;
+            case "South-Easterly": return Math.PI;
+            case "Southerly": return 1.25 * Math.PI;
+            case "South-Westerly": return 1.5 * Math.PI;
+            case "Westerly": return 1.75 * Math.PI;
+            case "North-Westerly": return 0;
+            case "Custom (see below)":
+                return Number(page.get("bR20cfg_weatherDirCustom1") || d20plus.weather.props.weatherDirCustom1) * Math.PI / 180;
+            default: return 0;
+        }
+    }
+
+    function getOpacity (page) {
+        return page.get("bR20cfg_weatherOpacity1") || d20plus.weather.props.weatherOpacity1;
+    }
+
+    let oscillateMode = null;
+    function isOscillating (page) {
+        return !!page.get("bR20cfg_weatherOscillate1");
+    }
+
+    function getOscillationThresholdFactor (page) {
+        return page.get("bR20cfg_weatherOscillateThreshold1") || d20plus.weather.props.weatherOscillateThreshold1;
+    }
+
+    function getIntensity (page) {
+        const tint = page.get("bR20cfg_weatherIntensity1");
+        switch (tint) {
+            case "Heavy": return 1;
+            default: return 0;
+        }
+    }
+
+    function getTintColor (page) {
+        const tintEnabled = page.get("bR20cfg_weatherTint1");
+        if (tintEnabled) {
+            const tintOpacity = page.get("bR20cfg_weatherTintOpacity1") || d20plus.weather.props.weatherTintOpacity1;
+            const tintOpacityHex = tintOpacity ? Math.round(255 * tintOpacity).toString(16) : 80;
+            return `${(page.get("bR20cfg_weatherTintColor1") || d20plus.weather.props.weatherTintColor1)}${tintOpacityHex}`;
+        } else return null;
+    }
+
+    function getEffect (page) {
+        const effect = page.get("bR20cfg_weatherEffect1");
+        switch (effect) {
+            case "Lightning": return "lightning";
+            default: return null;
+        }
+    }
+
+    function handleSvgCoord (coords, obj, basesXY, center, angle) {
+        const vec = [
+            ofX(coords[0] * obj.scaleX) + basesXY[0],
+            ofY(coords[1] * obj.scaleY) + basesXY[1],
+        ];
+        d20plus.math.vec2.scale(vec, vec, d20.engine.canvasZoom);
+        if (angle) d20plus.math.vec2.rotate(vec, vec, center, angle);
+        return vec;
+    }
+
+    let accum = 0;
+    let then = 0;
+    let image;
+    let currentSfx;
+    let hasWeather = false;
+    function drawFrame (now) {
+        const deltaTime = now - then;
+        then = now;
+
+        const page = d20 && d20.Campaign && d20.Campaign.activePage ? d20.Campaign.activePage() : null;
+        if (page && page.get("bR20cfg_weatherType1") !== "None") {
+            image = getImage(page);
+            currentSfx = getEffect(page);
+
+            // generate SFX
+            if (currentSfx) {
+                if (currentSfx === "lightning" && Math.random() > 0.999) SFX.lightning.push(new SfxLightning());
+            } else {
+                SFX.lightning = [];
+            }
+
+            if (hasWeather) ctx.clearRect(0, 0, cv.width, cv.height);
+            const hasImage = image && image.complete;
+            const tint = getTintColor(page);
+            const scaledW = hasImage ? Math.ceil((image.width * d20.engine.canvasZoom) / MAX_ZOOM) : -1;
+            const scaledH = hasImage ? Math.ceil((image.height * d20.engine.canvasZoom) / MAX_ZOOM) : -1;
+            const hasSfx = SFX.lightning.length;
+            if (hasImage || tint || hasSfx) {
+                hasWeather = true;
+
+                // draw weather
+                if (
+                    hasImage
+                    && !(scaledW <= 0 || scaledH <= 0) // sanity check
+                ) {
+                    // mask weather
+                    const doMaskStep = () => {
+                        ctxBuf.clearRect(0, 0, cvBuf.width, cvBuf.height);
+
+                        ctxBuf.fillStyle = "#ffffffff";
+
+                        // "weather" layer shape masking relied on Roll20's old Fabric.js object
+                        // model (d20.engine.canvas._objects), which no longer exists; skip masking
+                        // shapes until this is rebuilt against the current canvas engine.
+                        const maskObjects = d20.engine.canvas?._objects || [];
+                        const objectLen = maskObjects.length;
+                        for (let i = 0; i < objectLen; ++i) {
+                            const obj = maskObjects[i];
+                            if (obj.type === "path" && obj.model && obj.model.get("layer") === "weather") {
+                                // obj.top is X pos of center of object
+                                // obj.left is Y pos of center of object
+                                const xBase = (obj.left - (obj.width * obj.scaleX / 2));
+                                const yBase = (obj.top - (obj.height * obj.scaleY / 2));
+                                const basesXY = [xBase, yBase];
+                                const angle = (obj.angle > 360 ? obj.angle - 360 : obj.angle) / 180 * Math.PI;
+                                const center = [ofX(obj.left), ofY(obj.top)];
+                                d20plus.math.vec2.scale(center, center, d20.engine.canvasZoom);
+
+                                ctxBuf.beginPath();
+                                obj.path.forEach(opp => {
+                                    const [op, x, y, ...others] = opp;
+                                    switch (op) {
+                                        case "M": {
+                                            const vec = handleSvgCoord([x, y], obj, basesXY, center, angle);
+                                            ctxBuf.moveTo(vec[0], vec[1]);
+                                            break;
+                                        }
+                                        case "L": {
+                                            const vec = handleSvgCoord([x, y], obj, basesXY, center, angle);
+                                            ctxBuf.lineTo(vec[0], vec[1]);
+                                            break;
+                                        }
+                                        case "C": {
+                                            const control1 = handleSvgCoord([x, y], obj, basesXY, center, angle);
+                                            const control2 = handleSvgCoord([others[0], others[1]], obj, basesXY, center, angle);
+                                            const end = handleSvgCoord([others[2], others[3]], obj, basesXY, center, angle);
+                                            ctxBuf.bezierCurveTo(...control1, ...control2, ...end);
+                                            break;
+                                        }
+                                        default:
+                                            if (!CTX._hasWarned.has(op)) {
+                                                CTX._hasWarned.add(op);
+                                                // eslint-disable-next-line no-console
+                                                console.error(`UNHANDLED OP!: ${op}`);
+                                            }
+                                    }
+                                });
+                                ctxBuf.fill();
+                                ctxBuf.closePath();
+                            }
+                        }
+
+                        // draw final weather mask
+                        /// / change drawing mode
+                        ctx.globalCompositeOperation = "destination-out";
+                        ctx.drawImage(cvBuf, 0, 0);
+
+                        // handle opacity
+                        const opacity = Number(getOpacity(page));
+                        if (opacity !== 1) {
+                            ctxBuf.clearRect(0, 0, cvBuf.width, cvBuf.height);
+                            ctxBuf.fillStyle = `#ffffff${Math.round((1 - opacity) * 255).toString(16)}`;
+                            ctxBuf.fillRect(0, 0, cvBuf.width, cvBuf.height);
+                            ctx.drawImage(cvBuf, 0, 0);
+                        }
+
+                        /// / reset drawing mode
+                        ctx.globalCompositeOperation = "source-over";
+                    };
+
+                    // if (clipMode === "INCLUDE") doMaskStep(true);
+
+                    const speed = page.get("bR20cfg_weatherSpeed1") || d20plus.weather.props.weatherSpeed1;
+                    const speedFactor = speed * d20.engine.canvasZoom;
+                    const maxAccum = Math.floor(scaledW / speedFactor);
+                    const rot = getDirectionRotation(page);
+                    const w = scaledW;
+                    const h = scaledH;
+                    const boundingBox = [
+                        [
+                            -1.5 * w,
+                            -1.5 * h,
+                        ],
+                        [
+                            -1.5 * w,
+                            cv.height + (1.5 * h) + d20.engine.currentCanvasOffset[1],
+                        ],
+                        [
+                            cv.width + (1.5 * w) + d20.engine.currentCanvasOffset[0],
+                            cv.height + (1.5 * h) + d20.engine.currentCanvasOffset[1],
+                        ],
+                        [
+                            cv.width + (1.5 * w) + d20.engine.currentCanvasOffset[0],
+                            -1.5 * h,
+                        ],
+                    ];
+                    const BASE_OFFSET_X = -w / 2;
+                    const BASE_OFFSET_Y = -h / 2;
+
+                    // calculate resultant points of a rotated shape
+                    const pt00 = [0, 0];
+                    const pt01 = [0, 1];
+                    const pt10 = [1, 0];
+                    const pt11 = [1, 1];
+                    const basePts = [
+                        pt00,
+                        pt01,
+                        pt10,
+                        pt11,
+                    ].map(pt => [
+                        (pt[0] * w) + BASE_OFFSET_X - d20.engine.currentCanvasOffset[0],
+                        (pt[1] * h) + BASE_OFFSET_Y - d20.engine.currentCanvasOffset[1],
+                    ]);
+                    basePts.forEach(pt => d20plus.math.vec2.rotate(pt, pt, [0, 0], rot));
+
+                    // calculate animation values
+                    (() => {
+                        if (isOscillating(page)) {
+                            const oscThreshFactor = getOscillationThresholdFactor(page);
+
+                            if (oscillateMode == null) {
+                                oscillateMode = 1;
+                                accum += deltaTime;
+                                if (accum >= maxAccum * oscThreshFactor) accum -= maxAccum;
+                            } else {
+                                if (oscillateMode === 1) {
+                                    accum += deltaTime;
+                                    if (accum >= maxAccum * oscThreshFactor) {
+                                        accum -= 2 * deltaTime;
+                                        oscillateMode = -1;
+                                    }
+                                } else {
+                                    accum -= deltaTime;
+                                    if (accum <= 0) {
+                                        oscillateMode = 1;
+                                        accum += 2 * deltaTime;
+                                    }
+                                }
+                            }
+                        } else {
+                            oscillateMode = null;
+                            accum += deltaTime;
+                            if (accum >= maxAccum) accum -= maxAccum;
+                        }
+                    })();
+
+                    const intensity = getIntensity(page) * speedFactor;
+                    const timeOffsetX = Math.ceil(speedFactor * accum);
+                    const timeOffsetY = Math.ceil(speedFactor * accum);
+
+                    /// / rotate coord space
+                    ctx.rotate(rot);
+
+                    // draw base image
+                    const doDraw = (offsetX, offsetY) => {
+                        const xPos = BASE_OFFSET_X + timeOffsetX + offsetX - d20.engine.currentCanvasOffset[0];
+                        const yPos = BASE_OFFSET_Y + timeOffsetY + offsetY - d20.engine.currentCanvasOffset[1];
+                        ctx.drawImage(
+                            image,
+                            xPos,
+                            yPos,
+                            w,
+                            h,
+                        );
+
+                        if (intensity) {
+                            const offsetIntensity = -Math.floor(w / 4);
+                            ctx.drawImage(
+                                image,
+                                xPos + offsetIntensity,
+                                yPos + offsetIntensity,
+                                w,
+                                h,
+                            );
+                        }
+                    }
+
+                    const inBounds = (nextPts) => {
+                        return lineIntersectsBounds(nextPts, boundingBox);
+                    }
+
+                    const moveXDir = (pt, i, isAdd) => {
+                        if (i % 2) d20plus.math.vec2.sub(tmp, basePts[3], basePts[1]);
+                        else d20plus.math.vec2.sub(tmp, basePts[2], basePts[0]);
+
+                        if (isAdd) d20plus.math.vec2.add(pt, pt, tmp);
+                        else d20plus.math.vec2.sub(pt, pt, tmp);
+                    }
+
+                    const moveYDir = (pt, i, isAdd) => {
+                        if (i > 1) d20plus.math.vec2.sub(tmp, basePts[3], basePts[2]);
+                        else d20plus.math.vec2.sub(tmp, basePts[1], basePts[0]);
+
+                        if (isAdd) d20plus.math.vec2.add(pt, pt, tmp);
+                        else d20plus.math.vec2.sub(pt, pt, tmp);
+                    }
+
+                    const getMaxMoves = () => {
+                        const hyp = [];
+                        d20plus.math.vec2.sub(hyp, boundingBox[2], boundingBox[0]);
+
+                        const dist = d20plus.math.vec2.len(hyp);
+                        const maxMoves = dist / Math.min(w, h);
+                        return [Math.abs(hyp[0]) > Math.abs(hyp[1]) ? "x" : "y", maxMoves];
+                    };
+
+                    const handleXAxisYIncrease = (nxtPts, maxMoves, moves, xDir) => {
+                        const handleY = (dir) => {
+                            let subNxtPts, subMoves;
+                            subNxtPts = copyPoints(nxtPts);
+                            subMoves = 0;
+                            while (subMoves <= maxMoves[1]) {
+                                subNxtPts.forEach((pt, i) => moveYDir(pt, i, dir > 0));
+                                subMoves++;
+                                if (inBounds(subNxtPts)) doDraw(xDir * moves * w, dir * (subMoves * h));
+                            }
+                        };
+
+                        handleY(1); // y axis increasing
+                        handleY(-1); // y axis decreasing
+                    };
+
+                    const handleYAxisXIncrease = (nxtPts, maxMoves, moves, yDir) => {
+                        const handleX = (dir) => {
+                            let subNxtPts, subMoves;
+                            subNxtPts = copyPoints(nxtPts);
+                            subMoves = 0;
+                            while (subMoves <= maxMoves[1]) {
+                                subNxtPts.forEach((pt, i) => moveXDir(pt, i, dir > 0));
+                                subMoves++;
+                                if (lineIntersectsBounds(subNxtPts, boundingBox)) doDraw(dir * (subMoves * w), yDir * moves * h);
+                            }
+                        };
+
+                        handleX(1); // x axis increasing
+                        handleX(-1); // x axis decreasing
+                    };
+
+                    const handleBasicX = (maxMoves) => {
+                        const handleX = (dir) => {
+                            let nxtPts, moves;
+                            nxtPts = copyPoints(basePts);
+                            moves = 0;
+                            while (moves < maxMoves) {
+                                nxtPts.forEach((pt, i) => moveXDir(pt, i, dir > 0));
+                                moves++;
+                                if (lineIntersectsBounds(nxtPts, boundingBox)) doDraw(dir * (moves * w), 0);
+                            }
+                        };
+
+                        handleX(1); // x axis increasing
+                        handleX(-1); // x axis decreasing
+                    };
+
+                    const handleBasicY = (maxMoves) => {
+                        const handleY = (dir) => {
+                            let nxtPts, moves;
+                            nxtPts = copyPoints(basePts);
+                            moves = 0;
+                            while (moves < maxMoves) {
+                                nxtPts.forEach((pt, i) => moveYDir(pt, i, dir > 0));
+                                moves++;
+                                if (lineIntersectsBounds(nxtPts, boundingBox)) doDraw(0, dir * (moves * h));
+                            }
+                        };
+
+                        handleY(1); // y axis increasing
+                        handleY(-1); // y axis decreasing
+                    };
+
+                    doDraw(0, 0);
+
+                    (() => {
+                        // choose largest axis
+                        const maxMoves = getMaxMoves();
+
+                        if (maxMoves[0] === "x") {
+                            const handleX = (dir) => {
+                                let nxtPts, moves;
+                                nxtPts = copyPoints(basePts);
+                                moves = 0;
+                                while (moves < maxMoves[1]) {
+                                    nxtPts.forEach((pt, i) => moveXDir(pt, i, dir > 0));
+                                    moves++;
+                                    if (lineIntersectsBounds(nxtPts, boundingBox)) doDraw(dir * (moves * w), 0);
+                                    handleXAxisYIncrease(nxtPts, maxMoves, moves, dir);
+                                }
+                            };
+
+                            handleBasicY(maxMoves[1]);
+                            handleX(1); // x axis increasing
+                            handleX(-1); // x axis decreasing
+                        } else {
+                            const handleY = (dir) => {
+                                let nxtPts, moves;
+                                nxtPts = copyPoints(basePts);
+                                moves = 0;
+                                while (moves < maxMoves[1]) {
+                                    nxtPts.forEach((pt, i) => moveYDir(pt, i, dir > 0));
+                                    moves++;
+                                    if (lineIntersectsBounds(nxtPts, boundingBox)) doDraw(0, dir * (moves * h));
+                                    handleYAxisXIncrease(nxtPts, maxMoves, moves, dir);
+                                }
+                            };
+
+                            handleBasicX(maxMoves[1]);
+                            handleY(1); // y axis increasing
+                            handleY(-1); // y axis decreasing
+                        }
+                    })();
+
+                    /// / revert coord space rotation
+                    ctx.rotate(-rot);
+
+                    if (clipMode === "EXCLUDE") doMaskStep(false);
+                }
+
+                // draw sfx
+                if (hasSfx) {
+                    for (let i = SFX.lightning.length - 1; i >= 0; --i) {
+                        const l = SFX.lightning[i];
+                        if (l.brightness <= 5) {
+                            SFX.lightning.splice(i, 1);
+                        } else {
+                            ctx.fillStyle = `#effbff${l.brightness.toString(16).padStart(2, "0")}`;
+                            ctx.fillRect(0, 0, cv.width, cv.height);
+                            l.brightness -= Math.floor(deltaTime);
+                        }
+                    }
+                }
+
+                // draw tint
+                if (tint) {
+                    ctx.fillStyle = tint;
+                    ctx.fillRect(0, 0, cv.width, cv.height);
+                }
+            }
+
+            requestAnimationFrame(drawFrame);
+        } else {
+            // if weather is disabled, maintain a background tick
+            if (hasWeather) {
+                ctx.clearRect(0, 0, cv.width, cv.height);
+                hasWeather = false;
+            }
+            setTimeout(() => {
+                drawFrame(0);
+            }, 1000);
+        }
+    }
+
+    requestAnimationFrame(drawFrame);
+};
+}
+
+SCRIPT_EXTENSIONS.push(initWeatherFunctions);
+
+/**
+ * Makes Array.prototype.filter and .map non-enumerable so 3d dice libraries
+ * that iterate arrays with for-in don't pick them up and break.
+ *
+ * Might be removed. THere's 3d dice in Roll20 and I find it so annoying that I will never enable it.
+ * Disabled (FIXME #165) pending a cleaner solution.
+ * Originally in: js/base/base-util.js
+ */
+
+function initUtilFix3dDice () {
+
+d20plus.ut.fix3dDice = () => {
+	Object.defineProperty(Array.prototype, "filter", {
+		enumerable: false,
+		value: Array.prototype.filter,
+	});
+
+	Object.defineProperty(Array.prototype, "map", {
+		enumerable: false,
+		value: Array.prototype.map,
+	});
+};
+
+} // end initUtilFix3dDice
+
+SCRIPT_EXTENSIONS.push(initUtilFix3dDice);
+
+
+/**
+ * BetterActions character/token data — fetches and maps character sheet attributes
+ * to the BA panel's token list.
+ * Originally in: js/base/base-ba-character.js
+ */
+
 function baseBACharacters () {
 	d20plus.ba = d20plus.ba || {};
 
@@ -27615,6 +27611,12 @@ function baseBACharacters () {
 
 SCRIPT_EXTENSIONS.push(baseBACharacters);
 
+/**
+ * BetterActions roll templates — HTML and Roll20 macro strings for attacks, saves,
+ * skills, and spells displayed in the BA panel.
+ * Originally in: js/base/base-ba-rolltemplates.js
+ */
+
 function baseBARollTemplates () {
 	d20plus.ba = d20plus.ba || {};
 
@@ -28218,203 +28220,15 @@ function baseBARollTemplates () {
 SCRIPT_EXTENSIONS.push(baseBARollTemplates);
 
 
-function baseCharacterIo () {
-	d20plus.characterIo = {};
-
-	const getCharacterFromEvent = (event) => {
-		const $target = $(event.target);
-		const $characterRoot = $target.closest(`[data-characterid]`);
-		const $fallbackRoot = $characterRoot.length ? $characterRoot : $(event.currentTarget).closest(`[data-characterid]`);
-		const cId = $fallbackRoot.attr(`data-characterid`);
-		if (!cId) return null;
-		return d20.Campaign.characters.get(cId);
-	};
-
-	const getBlobData = (character, key) => new Promise((resolve) => {
-		character._getLatestBlob(key, (data) => resolve(data));
-	});
-
-	const sanitizeFilename = (name) => (name || "character").trim().replace(/[^-\w]/g, "_");
-
-	const getImportEntry = (payload) => {
-		if (payload && payload.character) return payload.character;
-		if (payload && Array.isArray(payload.characters) && payload.characters.length) {
-			if (payload.characters.length === 1) return payload.characters[0];
-			const options = payload.characters
-				.map((entry, i) => `${i + 1}: ${(entry.attributes && entry.attributes.name) || "Unnamed character"}`)
-				.join("\n");
-			const selection = window.prompt(`Multiple characters found. Enter a number to import:\n${options}`, "1");
-			const index = Number(selection) - 1;
-			if (!Number.isInteger(index) || index < 0 || index >= payload.characters.length) return null;
-			return payload.characters[index];
-		}
-		return null;
-	};
-
-	const applyCharacterImport = (character, entry) => {
-		const safeAttributes = {...(entry.attributes || {})};
-		delete safeAttributes.id;
-		delete safeAttributes.inplayerjournals;
-		delete safeAttributes.controlledby;
-		character.set(safeAttributes);
-		character.save();
-
-		character.attribs.reset();
-		if (Array.isArray(entry.attribs)) {
-			const toSave = entry.attribs.map(a => character.attribs.push(a));
-			toSave.forEach(s => (s.syncedSave ? s.syncedSave() : s.save()));
-		}
-
-		character.abilities.reset();
-		if (Array.isArray(entry.abilities)) {
-			entry.abilities.map(a => character.abilities.push(a)).forEach(s => s.save());
-		}
-
-		character.updateBlobs({
-			bio: entry.blobBio,
-			gmnotes: entry.blobGmNotes,
-			defaulttoken: entry.blobDefaultToken,
-		});
-
-		if (character.view && character.view.updateSheetValues) character.view.updateSheetValues();
-	};
-
-	const importCharacterFromEntry = (entry) => {
-		const safeAttributes = {...(entry.attributes || {})};
-		delete safeAttributes.id;
-		d20.Campaign.characters.create(safeAttributes, {
-			success: (character) => {
-				applyCharacterImport(character, entry);
-				alert(`Imported character "${character.get("name")}".`);
-			},
-		});
-	};
-
-	d20plus.characterIo.importCharacterFromJson = () => {
-		const $input = $(`<input type="file" accept="application/json">`).appendTo("body");
-		$input.on("change", () => {
-			const fileList = $input[0] && $input[0].files;
-			const file = fileList && fileList[0];
-			if (!file) return $input.remove();
-
-			const reader = new FileReader();
-			reader.onload = () => {
-				let payload = null;
-				try {
-					payload = JSON.parse(reader.result);
-				} catch (err) {
-					alert("Invalid JSON file.");
-					$input.remove();
-					return;
-				}
-
-				const entry = getImportEntry(payload);
-				if (!entry || !entry.attribs) {
-					alert("No character data found in this JSON file.");
-					$input.remove();
-					return;
-				}
-
-				const name = (entry.attributes && entry.attributes.name) || "Unnamed character";
-				if (!confirm(`Import character "${name}" from JSON?`)) {
-					$input.remove();
-					return;
-				}
-
-				importCharacterFromEntry(entry);
-				$input.remove();
-			};
-			reader.readAsText(file);
-		});
-		$input.trigger("click");
-	};
-
-	d20plus.characterIo.initCharacterJsonButtons = () => {
-		$(document)
-			.off("click", ".character-json-export")
-			.on("click", ".character-json-export", async (event) => {
-				const character = getCharacterFromEvent(event);
-				if (!character) return alert("No character found.");
-
-				character.attribs.fetch(character.attribs);
-				const abilities = (character.abilities || {models: []}).models.map(ability => ability.attributes);
-
-				const [bio, gmnotes, defaulttoken] = await Promise.all([
-					getBlobData(character, "bio"),
-					window.is_gm ? getBlobData(character, "gmnotes") : Promise.resolve(null),
-					getBlobData(character, "defaulttoken"),
-				]);
-
-				const entry = {
-					attributes: character.attributes,
-					attribs: character.attribs.toJSON(),
-					abilities,
-					blobBio: bio,
-					blobGmNotes: gmnotes,
-					blobDefaultToken: defaulttoken,
-				};
-
-				const payload = {
-					schema_version: 1,
-					character: entry,
-				};
-
-				const filename = sanitizeFilename(character.get("name"));
-				const data = JSON.stringify(payload, null, "\t");
-				const blob = new Blob([data], {type: "application/json"});
-				d20plus.ut.saveAs(blob, `${filename}.json`);
-			});
-
-		$(document)
-			.off("click", ".character-json-import")
-			.on("click", ".character-json-import", (event) => {
-				const character = getCharacterFromEvent(event);
-				if (!character) return alert("No character found.");
-
-				const $input = $(`<input type="file" accept="application/json">`).appendTo("body");
-				$input.on("change", () => {
-					const fileList = $input[0] && $input[0].files;
-					const file = fileList && fileList[0];
-					if (!file) return $input.remove();
-
-					const reader = new FileReader();
-					reader.onload = () => {
-						let payload = null;
-						try {
-							payload = JSON.parse(reader.result);
-						} catch (err) {
-							alert("Invalid JSON file.");
-							$input.remove();
-							return;
-						}
-
-						const entry = getImportEntry(payload);
-						if (!entry || !entry.attribs) {
-							alert("No character data found in this JSON file.");
-							$input.remove();
-							return;
-						}
-
-						const name = (entry.attributes && entry.attributes.name) || character.get("name");
-						if (!confirm(`Overwrite "${character.get("name")}" with JSON data for "${name}"?`)) {
-							$input.remove();
-							return;
-						}
-
-						applyCharacterImport(character, entry);
-						alert(`Overwrote "${character.get("name")}" with JSON data.`);
-
-						$input.remove();
-					};
-					reader.readAsText(file);
-				});
-				$input.trigger("click");
-			});
-	};
-}
-
-SCRIPT_EXTENSIONS.push(baseCharacterIo);
-
+/**
+ * BetterActions — right-click action panel for tokens showing attacks, saves, skills,
+ * and spells pulled from the character sheet, with initiative tracker integration.
+ * Entry point is initBetterActions(), disabled in both bootstraps.
+ *
+ * Need to check what is useful to have back and what not.
+ * TODO: Test in Jumpgate; sheet attribute access and token model may have changed.
+ * Originally in: js/base/base-ba.js
+ */
 
 function baseBetterActions () {
 	d20plus.ba = d20plus.ba || {};
@@ -29227,272 +29041,6 @@ function baseBetterActions () {
 SCRIPT_EXTENSIONS.push(baseBetterActions);
 
 
-function remoteLibre () {
-	d20plus.remoteLibre = {
-		getRemotePlaylists () {
-			return fetch(DATA_URL_PLAYLIST)
-				.then(response => response.json())
-				.then(data => {
-					if (!data.filter) return;
-					const promises = data.filter(file => file.download_url.toLowerCase().endsWith(".json"))
-						.map(file => d20plus.remoteLibre.downloadPlaylist(file.download_url));
-					return Promise.all(promises).then(res => d20plus.remoteLibre.processRemotePlaylists(res));
-				})
-				// eslint-disable-next-line no-console
-				.catch(error => console.error(error));
-		},
-
-		downloadPlaylist (url) {
-			return fetch(url)
-				.then(response => response.json())
-				// eslint-disable-next-line no-console
-				.catch(error => console.error("Error when fetching", url, error));
-		},
-
-		processRemotePlaylists (imports) {
-			return $.map(imports.filter(p => !!p), entry => {
-				return $.map(entry.playlists, playlist => playlist.songs);
-			}).filter(track => track.source === "My Audio");
-		},
-
-		drawRemoteLibreResults (tracks) {
-			return tracks.map((t, i) => `
-                <p style="margin-top:15px">${t.title}</p>
-                <div class="br20-result" style="display: flex">
-                    <audio class="audio" controls preload="none" style="flex: 35" src="${t.track_id}"></audio>
-
-                    <button class="remote-track btn" data-id=${i} style="margin-top:auto;margin-bottom:auto;flex:1;font-size:15px;margin-left:10px;">
-                        <span class="pictos">&amp;</span>
-                    </button>
-                </div>
-            `);
-		},
-
-		drawJukeBoxTab (tracks) {
-			const trackHtml = d20plus.remoteLibre.drawRemoteLibreResults(tracks);
-			return `
-            <div class="betteR20 tab-pane" style="display: none;">
-                <div class="row-fluid">
-                    <div class="span12">
-                        <h3 style="margin-top: 6px; margin-bottom: 10px; text-align:initial;">Search for:</h3>
-                        <input id="remoteLibreSearch" type="text" placeholder="Begin typing to choose tracks by title..." style="width: 100%;">
-                        <div id="remoteLibreResults">
-                            ${trackHtml.join("")}
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-		},
-
-		wireTrackButtons () {
-			$(".remote-track.btn").click((e) => {
-				const id = $(e.currentTarget).data().id;
-				d20plus.jukebox.createTrack(d20plus.remoteLibre.filteredResults[id]);
-			});
-		},
-
-		init () {
-			d20plus.remoteLibre.jukeboxInjected = false;
-			d20plus.remoteLibre.remoteLibreTracks = {};
-			d20plus.remoteLibre.filteredResults = {};
-
-			d20plus.remoteLibre.getRemotePlaylists().then((tracks) => {
-				d20plus.remoteLibre.remoteLibreTracks = tracks;
-				d20plus.remoteLibre.filteredResults = tracks;
-			});
-
-			$("#addjukebox").click(() => {
-				if (!d20plus.remoteLibre.jukeboxInjected) {
-					setTimeout(() => {
-						const html = d20plus.remoteLibre.drawJukeBoxTab(d20plus.remoteLibre.filteredResults);
-						$(".nav.nav-tabs").append(`<li><a data-tab="betteR20" href="javascript:void(0);">BetteR20</a></li>`);
-						$(".tab-content").append(html);
-						d20plus.remoteLibre.wireTrackButtons();
-						$("#remoteLibreSearch").bind("paste keyup", function () {
-							if ($(this).val()) {
-								d20plus.remoteLibre.filteredResults = d20plus.remoteLibre.remoteLibreTracks.filter(t => t.title.toLowerCase().indexOf($(this).val()) >= 0);
-							} else {
-								d20plus.remoteLibre.filteredResults = d20plus.remoteLibre.remoteLibreTracks;
-							}
-							const results = d20plus.remoteLibre.drawRemoteLibreResults(d20plus.remoteLibre.filteredResults);
-							$("#remoteLibreResults").html(results);
-							d20plus.remoteLibre.wireTrackButtons();
-						});
-						// this needs to be moved
-						d20plus.remoteLibre.jukeboxInjected = true;
-					}, 100);
-				}
-			});
-		},
-
-	};
-}
-
-SCRIPT_EXTENSIONS.push(remoteLibre);
-
-
-function jukeboxWidget () {
-	d20plus.jukeboxWidget = {
-		getPlaylistButtonsHtml () {
-			const buttons = d20plus.jukebox.getJukeboxFileStructure()
-				.map((playlist, i) => {
-					const hotkey = i + 1 < 10 ? i + 1 : false;
-					let baseName, id;
-					if (typeof playlist === "object") {
-						baseName = playlist.n;
-						id = playlist.id;
-					} else {
-						baseName = d20plus.jukebox.getTrackById(playlist).attributes.title;
-						id = playlist;
-					}
-					const title = `${hotkey ? `[ALT+${hotkey}] ` : ""}${baseName}`;
-
-					return `
-						<div
-							class="btn btn-xs jukebox-widget-button m-1"
-							title="${title}"
-							data-id=${id}
-						>
-							<span>${hotkey ? `[${i + 1}] ` : ""}${baseName}</span>
-						</div>
-					`;
-				})
-				.filter(p => !!p);
-
-			return buttons.join("");
-		},
-
-		init () {
-			const changeTrackVolume = (trackId, value) => {
-				const track = d20plus.jukebox.getTrackById(trackId);
-				if (track && value) {
-					track.changeVolume(value);
-				}
-			};
-
-			$(`<div id="masterVolume" style="margin:10px;display:inline-block;width:80%;"></div>`)
-				.insertAfter("#jukeboxwhatsplaying").slider({
-					slide: (e, ui) => {
-						if ($("#masterVolumeEnabled").prop("checked")) {
-							window.d20.jukebox.lastFolderStructure.forEach(playlist => {
-							// The track is outside a playlist
-								if (!playlist.i) {
-									changeTrackVolume(playlist, ui.value);
-								} else {
-									playlist.i.forEach(trackId => changeTrackVolume(trackId, ui.value))
-								}
-							});
-						}
-						$("#jbwMasterVolume").slider("value", ui.value);
-					},
-					value: 50,
-				});
-			$("<h4>Master Volume</h4>").insertAfter("#jukeboxwhatsplaying").css("margin-left", "10px");
-			$(`<input type="checkbox" id="masterVolumeEnabled" style="position:relative;top:-11px;" title="Enable this to change the volume of all the tracks at the same time"/>`).insertAfter("#masterVolume").tooltip();
-
-			// TODO: Make the slider a separate component at some point
-			const slider = $(`<div id="jbwMasterVolume" class="jukebox-widget-slider"></div>`)
-				.slider({
-					slide: (e, ui) => {
-						if ($("#masterVolumeEnabled").prop("checked")) {
-							window.d20.jukebox.lastFolderStructure.forEach(playlist => {
-								// The track is outside a playlist
-								if (!playlist.i) {
-									changeTrackVolume(playlist, ui.value);
-								} else {
-									playlist.i.forEach(trackId => changeTrackVolume(trackId, ui.value));
-								}
-							});
-						}
-						$("#masterVolume").slider("value", ui.value);
-					},
-					value: 50,
-				});
-
-			// Stop and skip buttons
-			const controls = $(`
-			<div class="flex mb-2">
-				<div id="jbwStop" title="ALT+S" class="btn btn-inverse flex-1 mr-2"><span class="pictos">6</span></div>
-				<div id="jbwSkip" title="ALT+D" class="btn btn-inverse flex-1 mr-2"><span class="pictos">7</span></div>
-			</div>
-			`).append(slider);
-
-			// Jukebox widget layout
-			const dialog = $(`<div id="jukeboxWidget" title="Jukebox Player" style="margin-top:10px"></div>`)
-				.dialog({
-					autoOpen: false,
-					resizable: true,
-					width: 350,
-				})
-				.append("body")
-				.css("padding-top", "0")
-				.html(`<div id="jbwButtons" style="display:flex;flex-wrap:wrap">${d20plus.jukeboxWidget.getPlaylistButtonsHtml()}</div>`)
-				.prepend(controls)
-				.prepend(`<div id="widgeNowPlaying"></div>`);
-
-			dialog.parent().find(".ui-dialog-title").css("margin", "0").css("padding", "0");
-			$("#jbwStop").click(d20plus.jukebox.stopAll);
-			$("#jbwSkip").click(d20plus.jukebox.skip);
-
-			// Start listening to jukebox state changes
-			d20plus.jukebox.addJukeboxChangeHandler(() => {
-				$("#jbwButtons").html(d20plus.jukeboxWidget.getPlaylistButtonsHtml());
-				$(".jukebox-widget-button")
-					.removeClass("active")
-					.click((e) => {
-						const id = e.currentTarget.dataset.id;
-						if (d20plus.jukebox.getCurrentPlayingPlaylist() === id || d20plus.jukebox.getCurrentPlayingTracks().find(t => t.id === id)) {
-							d20plus.jukebox.stop(e.currentTarget.dataset.id);
-						} else {
-							d20plus.jukebox.play(e.currentTarget.dataset.id);
-						}
-					});
-				$(`.jukebox-widget-button[data-id=${d20plus.jukebox.getCurrentPlayingPlaylist()}]`).addClass("active");
-				d20plus.jukebox.getCurrentPlayingTracks().forEach(t => {
-					$(`.jukebox-widget-button[data-id=${t.id}]`).addClass("active");
-				});
-			});
-
-			// Add widget button in the Jukebox tab
-			$(`<button class="btn" style="margin-right:10px;"><span class="pictos">|</span>Widget</button>`)
-				.click(() => {
-					dialog.dialog("open");
-				})
-				.insertAfter("[href=#superjukeboxadd]");
-
-			// Add keyboard shortcuts
-			$(document).keyup((e) => {
-				if (e.altKey) {
-					if (e.keyCode > 48 && e.keyCode < 58) {
-						const numberKey = e.keyCode - 48;
-						const playElement = d20plus.jukebox.getJukeboxFileStructure()[numberKey - 1];
-						if (typeof playElement === "object") {
-							if (d20plus.jukebox.getCurrentPlayingPlaylist() === playElement.id) {
-								d20plus.jukebox.stopPlaylist(playElement.id);
-							} else {
-								d20plus.jukebox.playPlaylist(playElement.id);
-							}
-						} else {
-							if (d20plus.jukebox.getCurrentPlayingTracks().find(t => t.id === playElement)) {
-								d20plus.jukebox.stopTrack(playElement);
-							} else {
-								d20plus.jukebox.playTrack(playElement);
-							}
-						}
-					} else if (e.keyCode === 83) {
-						d20plus.jukebox.stopAll();
-					} else if (e.keyCode === 68) {
-						d20plus.jukebox.skip();
-					}
-				}
-			});
-		},
-	};
-}
-
-SCRIPT_EXTENSIONS.push(jukeboxWidget);
-
-
 const betteR20Core = function () {
 	// Page fully loaded and visible
 	d20plus.Init = async () => {
@@ -29508,6 +29056,7 @@ const betteR20Core = function () {
 			if (window.is_gm) {
 				d20plus.engine.enhancePageSelector();
 				d20plus.engine.enhanceVuePageThumbnail();
+				d20plus.weather.enhanceVuePageWeather();
 			}
 			await d20plus.js.pAddScripts();
 			await d20plus.qpi.pInitMockApi();
@@ -29524,11 +29073,7 @@ const betteR20Core = function () {
 
 			d20plus.engine.enhanceMarkdown();
 			d20plus.engine.addProFeatures();
-			// d20plus.engine.enhanceMouseDown();
-			// d20plus.engine.enhanceMouseMove();
 			// d20plus.engine.enhanceStatusEffects();
-			// It doesn't work with current version of roll20
-			// d20plus.engine.addLineCutterTool();
 			d20plus.ui.addHtmlHeader();
 			d20plus.ui.addHtmlFooter();
 			d20plus.art.initArtFromUrlButtons();
@@ -29551,11 +29096,7 @@ const betteR20Core = function () {
 			d20plus.engine.enhancePathWidths();
 			// d20plus.ut.fix3dDice(); // FIXME(165) re-enable when we have a better solution
 			// d20plus.engine.addLayers();
-			// d20plus.weather.addWeather();
-			// d20plus.engine.repairPrototypeMethods();
-			// d20plus.engine.disableFrameRecorder();
-			// d20plus.engine.fixPolygonTool();
-			// d20plus.ut.fixSidebarLayout();
+			d20plus.weather.addWeather();
 			d20plus.chat.enhanceChat();
 			// d20plus.ba.initBetterActions();
 
@@ -29660,6 +29201,31 @@ const D20plus = function (version) {
 
 // if we are the topmost frame, inject
 if (window.top === window.self) {
+	// Bridge header.js globals into the page window so the eval'd code can access them.
+	// Without this, sandboxed userscript managers (Tampermonkey, Violentmonkey) keep these
+	// implicit globals in the userscript scope, invisible to unsafeWindow.eval().
+	unsafeWindow.ART_HANDOUT = ART_HANDOUT;
+	unsafeWindow.CONFIG_HANDOUT = CONFIG_HANDOUT;
+	unsafeWindow.B20_NAME = B20_NAME;
+	unsafeWindow.B20_VERSION = B20_VERSION;
+	unsafeWindow.B20_REPO_URL = B20_REPO_URL;
+	unsafeWindow.BASE_SITE_URL = BASE_SITE_URL;
+	unsafeWindow.LINK_BASE_URL = LINK_BASE_URL;
+	unsafeWindow.SITE_JS_URL = SITE_JS_URL;
+	unsafeWindow.DATA_URL = DATA_URL;
+	unsafeWindow.DATA_URL_MODULES = DATA_URL_MODULES;
+	unsafeWindow.DATA_URL_IMG_REPO = DATA_URL_IMG_REPO;
+	unsafeWindow.DATA_URL_ART_REPO = DATA_URL_ART_REPO;
+	unsafeWindow.DATA_URL_PLAYLIST = DATA_URL_PLAYLIST;
+	unsafeWindow.DATA_URL_COMMUNITY_MODULES = DATA_URL_COMMUNITY_MODULES;
+	unsafeWindow.JSON_DATA = JSON_DATA;
+	unsafeWindow.CONFIG_OPTIONS = CONFIG_OPTIONS;
+	unsafeWindow.addConfigOptions = addConfigOptions;
+	unsafeWindow.EXT_LIB_SCRIPTS = EXT_LIB_SCRIPTS;
+	unsafeWindow.EXT_LIB_API_SCRIPTS = EXT_LIB_API_SCRIPTS;
+	unsafeWindow.OBJECT_DEFINE_PROPERTY = OBJECT_DEFINE_PROPERTY;
+	unsafeWindow.ACCOUNT_ORIGINAL_PERMS = ACCOUNT_ORIGINAL_PERMS;
+
 	const strip = (str) => {
 		return `${str.replace(/use strict/, "").substring(str.indexOf("\n") + 1, str.lastIndexOf("\n"))}\n`;
 	};
