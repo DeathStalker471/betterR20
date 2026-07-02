@@ -1,218 +1,657 @@
 function d20plusAdventure () {
 	d20plus.adventures = {};
+	d20plus.books = {};
 
-	// Import Adventures button was clicked
-	d20plus.adventures.button = function () {
-		const url = $("#import-adventures-url").val();
-		if (url !== null) d20plus.adventures.load(url);
-	};
+	const ROLL20_PX = 70;
+	const GRID_DIVISORS = [100, 140, 72, 80, 60, 50, 90, 120, 150, 70];
+	const PLUTONIUM_BASE = "https://raw.githubusercontent.com/TheGiddyLimit/plutonium-scenes/main/data";
 
-	// Fetch adventure data from file
-	d20plus.adventures.load = async function (url) {
-		$("a.ui-tabs-anchor[href='#journal']").trigger("click");
-		const data = await DataUtil.loadJSON(url);
-
-		function isPart (e) {
-			return typeof e === "string" || (typeof e === "object" && (e.type !== "entries"));
+	function makeId () {
+		try { return "-" + crypto.randomUUID().replace(/-/g, "").slice(0, 20); } catch (e) {
+			return "-" + Math.random().toString(36).slice(2).padEnd(20, "0").slice(0, 20);
 		}
+	}
 
-		// open progress window
-		$("#d20plus-import").dialog("open");
-		$("#import-remaining").text("Initialising...");
+	// Walk all entries and detect what content types are present
+	function scanContent (entries) {
+		const result = {hasMaps: false, hasCreatures: false, hasItems: false};
+		function walk (e) {
+			if (Array.isArray(e)) { e.forEach(walk); return; }
+			if (typeof e === "string") {
+				if (!result.hasCreatures && /{@creature/.test(e)) result.hasCreatures = true;
+				if (!result.hasItems && /{@item/.test(e)) result.hasItems = true;
+				return;
+			}
+			if (typeof e !== "object" || !e) return;
+			if (!result.hasMaps && (e.imageType === "map" || e.imageType === "mapPlayer")) result.hasMaps = true;
+			if (!result.hasCreatures && e.type === "statblock" && e.tag === "creature") result.hasCreatures = true;
+			for (const v of Object.values(e)) {
+				if (v && typeof v === "object") walk(v);
+			}
+		}
+		walk(entries);
+		return result;
+	}
 
-		// FIXME(homebrew) this always selects the first item in a list of homebrew adventures
-		// FIXME(5etools) this selects the source based on the select dropdown, which can be wrong
-		// get metadata
-		const adMeta = data.adventure
-			? data.adventure[0]
-			: adventureMetadata.adventure.find(a => a.id.toLowerCase() === $("#import-adventures-url").data("id").toLowerCase());
-
-		const addQueue = [];
-		const sections = JSON.parse(JSON.stringify(data.adventureData ? data.adventureData[0].data : data.data));
-		const adDir = `${Parser.sourceJsonToFull(adMeta.id)}`;
-		sections.forEach((s, i) => {
-			if (i >= adMeta.contents.length) return;
-
-			const chapterDir = [adDir, adMeta.contents[i].name];
-
-			const introEntries = [];
-			if (s.entries && s.entries.length && isPart(s.entries[0])) {
-				while (isPart(s.entries[0])) {
-					introEntries.push(s.entries[0]);
-					s.entries.shift();
+	// Extract all {@creature Name|Source} references and inline statblocks from content
+	function extractCreatureRefs (entries) {
+		const CREATURE_RE = /\{@creature ([^|}]+?)(?:\|([^|}]*?))?(?:\|[^}]*)?\}/g;
+		const refs = new Map();
+		function walk (e) {
+			if (typeof e === "string") {
+				let m;
+				CREATURE_RE.lastIndex = 0;
+				while ((m = CREATURE_RE.exec(e))) {
+					const name = m[1].trim();
+					const source = (m[2] || "MM").trim();
+					refs.set(`${name.toLowerCase()}|${source.toUpperCase()}`, {name, source: source.toUpperCase()});
+				}
+			} else if (Array.isArray(e)) {
+				e.forEach(walk);
+			} else if (e && typeof e === "object") {
+				if (e.type === "statblock" && e.tag === "creature" && e.name) {
+					const source = (e.source || "MM").toUpperCase();
+					refs.set(`${e.name.toLowerCase()}|${source}`, {name: e.name, source});
+				}
+				for (const v of Object.values(e)) {
+					if (v && typeof v === "object") walk(v);
 				}
 			}
-			addQueue.push({
-				dir: chapterDir,
-				type: "entries",
-				name: s.name,
-				entries: introEntries,
-			});
+		}
+		walk(entries);
+		return [...refs.values()];
+	}
 
-			// compact entries into layers
-			front = null;
-			let tempStack = [];
+	// Extract all {@item Name} references from content
+	function extractItemRefs (entries) {
+		const ITEM_RE = /\{@item ([^|}]+?)(?:\|[^}]*)?\}/g;
+		const names = new Set();
+		function walk (e) {
+			if (typeof e === "string") {
+				let m;
+				ITEM_RE.lastIndex = 0;
+				while ((m = ITEM_RE.exec(e))) names.add(m[1].trim().toLowerCase());
+			} else if (Array.isArray(e)) {
+				e.forEach(walk);
+			} else if (e && typeof e === "object") {
+				for (const v of Object.values(e)) {
+					if (v && typeof v === "object") walk(v);
+				}
+			}
+		}
+		walk(entries);
+		return [...names];
+	}
+
+	// Fetch creature data from CDN, grouped by source
+	async function fetchCreatureData (refs) {
+		if (!refs.length) return [];
+		const bySource = {};
+		refs.forEach(({name, source}) => {
+			if (!bySource[source]) bySource[source] = new Set();
+			bySource[source].add(name.toLowerCase());
+		});
+		const result = [];
+		for (const [source, names] of Object.entries(bySource)) {
+			const filename = monsterDataUrls[source] || monsterDataUrls[source.toLowerCase()];
+			if (!filename) {
+				d20plus.ut.log(`Bestiary: no file for source "${source}" — skipping`);
+				continue;
+			}
+			try {
+				const data = await DataUtil.loadJSON(`${MONSTER_DATA_DIR}${filename}`);
+				(data.monster || []).forEach(m => {
+					if (names.has(m.name.toLowerCase())) result.push(m);
+				});
+			} catch (e) {
+				d20plus.ut.log(`Bestiary fetch failed for "${source}": ${e.message || e}`);
+			}
+		}
+		return result;
+	}
+
+	// Fetch item data using the same pipeline as the normal item button (loads mastery/property refs)
+	async function fetchItemData (itemNames) {
+		if (!itemNames.length) return [];
+		const nameSet = new Set(itemNames);
+		try {
+			await Renderer.item.pPopulatePropertyAndTypeReference();
+			const allItems = await Renderer.item.pBuildList();
+			return allItems.filter(it => nameSet.has(it.name.toLowerCase()));
+		} catch (e) {
+			d20plus.ut.log(`Item fetch failed: ${e.message || e}`);
+			return [];
+		}
+	}
+
+	// Strip "Map X.X: " prefix and lowercase for fuzzy Foundry matching
+	function normalizeMapName (name) {
+		return (name || "").replace(/^Map\s+\d+(?:\.\d+)?:\s*/i, "").toLowerCase().trim();
+	}
+
+	// Index Foundry map data by name (exact lowercase + normalized)
+	function indexFoundryMaps (foundryData) {
+		const byName = {};
+		(foundryData?.map || []).forEach(m => {
+			const name = m.name || "";
+			byName[name.toLowerCase()] = m;
+			const norm = normalizeMapName(name);
+			if (norm && norm !== name.toLowerCase()) byName[norm] = m;
+		});
+		return byName;
+	}
+
+	// Fetch Plutonium Scenes wall data, trying adventure ID then source code
+	async function fetchFoundryMaps (adventureId, adventureSource) {
+		const attempts = [
+			adventureId ? `${PLUTONIUM_BASE}/foundry-maps-${adventureId.toLowerCase()}.json` : null,
+			(adventureSource && adventureSource.toLowerCase() !== adventureId?.toLowerCase())
+				? `${PLUTONIUM_BASE}/foundry-maps-${adventureSource.toLowerCase()}.json`
+				: null,
+		].filter(Boolean);
+		for (const url of attempts) {
+			try {
+				const d = await DataUtil.loadJSON(url);
+				if (d?.map?.length) return indexFoundryMaps(d);
+			} catch (e) { /* try next */ }
+		}
+		return null;
+	}
+
+	// Convert one Foundry wall segment to a Roll20 path dict
+	function foundryWallToPath (wall, scale) {
+		const coords = wall.c;
+		if (!coords || coords.length !== 4) return null;
+		const [x1, y1, x2, y2] = coords.map(v => v * scale);
+		const minX = Math.min(x1, x2), minY = Math.min(y1, y2);
+		const maxX = Math.max(x1, x2), maxY = Math.max(y1, y2);
+		const w = Math.max(1, Math.round(maxX - minX));
+		const h = Math.max(1, Math.round(maxY - minY));
+		const isDoor = !!wall.door;
+		const isLockedDoor = wall.ds === 2;
+		const isSecretDoor = wall.door === 2;
+		const stroke = isDoor
+			? (isLockedDoor ? "#ff0000" : isSecretDoor ? "#800080" : "#00ff00")
+			: "#0000ff";
+		return {
+			path: JSON.stringify([
+				["M", Math.round(x1 - minX), Math.round(y1 - minY)],
+				["L", Math.round(x2 - minX), Math.round(y2 - minY)],
+			]),
+			shape: "", points: "",
+			barrierType: "wall",
+			z_index: isDoor ? 1 : 0,
+			fill: "transparent",
+			stroke,
+			type: "path",
+			rotation: 0,
+			layer: "walls",
+			stroke_width: isSecretDoor ? 8 : 5,
+			controlledby: "", groupwith: "",
+			width: w, height: h,
+			top: Math.round(minY + h / 2),
+			left: Math.round(minX + w / 2),
+			x: 0, y: 0,
+			scaleX: 1, scaleY: 1,
+			oneWayReversed: false,
+			id: makeId(),
+		};
+	}
+
+	// Convert all Foundry walls for a map to Roll20 paths
+	function convertFoundryWalls (foundryMap, roll20W, roll20H) {
+		const walls = foundryMap.walls || [];
+		if (!walls.length) return [];
+		const xs = walls.flatMap(w => w.c?.length === 4 ? [w.c[0], w.c[2]] : []);
+		const ys = walls.flatMap(w => w.c?.length === 4 ? [w.c[1], w.c[3]] : []);
+		if (!xs.length) return [];
+		const maxX = Math.max(...xs), maxY = Math.max(...ys);
+		if (maxX <= 0 || maxY <= 0) return [];
+		const scale = Math.min(roll20W / maxX, roll20H / maxY);
+		return walls.map(w => foundryWallToPath(w, scale)).filter(Boolean);
+	}
+
+	// Convert mapRegion polygon to a wall outline path
+	function regionToPath (region, scaleX, scaleY) {
+		const pts = region.points || [];
+		if (pts.length < 2) return null;
+		const scaled = pts.map(p => [p[0] * scaleX, p[1] * scaleY]);
+		const minX = Math.min(...scaled.map(p => p[0]));
+		const minY = Math.min(...scaled.map(p => p[1]));
+		const maxX = Math.max(...scaled.map(p => p[0]));
+		const maxY = Math.max(...scaled.map(p => p[1]));
+		const w = Math.max(1, Math.round(maxX - minX));
+		const h = Math.max(1, Math.round(maxY - minY));
+		const cmds = scaled.map((p, i) => [i === 0 ? "M" : "L", Math.round(p[0] - minX), Math.round(p[1] - minY)]);
+		cmds.push(["L", Math.round(scaled[0][0] - minX), Math.round(scaled[0][1] - minY)]);
+		return {
+			path: JSON.stringify(cmds),
+			shape: "", points: "",
+			barrierType: "wall",
+			z_index: 0, fill: "transparent", stroke: "#0000ff",
+			type: "path", rotation: 0, layer: "walls",
+			stroke_width: 5, controlledby: "", groupwith: "",
+			width: w, height: h,
+			top: Math.round(minY + h / 2), left: Math.round(minX + w / 2),
+			x: 0, y: 0, scaleX: 1, scaleY: 1, oneWayReversed: false,
+			id: makeId(),
+		};
+	}
+
+	// Build a map of area ID → [creature names] by walking section entries with .id fields
+	function buildAreaCreatures (sections) {
+		const CREATURE_RE = /\{@creature ([^|}]+?)(?:\|[^}]*)?\}/g;
+		const areaCreatures = {};
+		function walk (e, currentArea) {
+			if (typeof e === "string") {
+				if (!currentArea) return;
+				let m;
+				CREATURE_RE.lastIndex = 0;
+				while ((m = CREATURE_RE.exec(e))) {
+					const name = m[1].trim();
+					if (!areaCreatures[currentArea]) areaCreatures[currentArea] = [];
+					if (!areaCreatures[currentArea].includes(name)) areaCreatures[currentArea].push(name);
+				}
+			} else if (Array.isArray(e)) {
+				e.forEach(item => walk(item, currentArea));
+			} else if (e && typeof e === "object") {
+				const area = e.id || currentArea;
+				for (const [k, v] of Object.entries(e)) {
+					if (v && typeof v === "object") walk(v, area);
+					else if (typeof v === "string") walk(v, area);
+				}
+			}
+		}
+		walk(sections, null);
+		return areaCreatures;
+	}
+
+	// Recursively find all map image entries in adventure/book data
+	function findMapEntries (entries, result = []) {
+		if (!Array.isArray(entries)) entries = [entries];
+		for (const e of entries) {
+			if (typeof e !== "object" || !e) continue;
+			if (e.imageType === "map" || e.imageType === "mapPlayer") result.push(e);
+			if (e.entries) findMapEntries(e.entries, result);
+			if (e.images) findMapEntries(e.images, result);
+			if (Array.isArray(e.data)) findMapEntries(e.data, result);
+		}
+		return result;
+	}
+
+	// Build a Roll20 map object from a 5etools map image entry
+	function buildMapObject (entry, foundryMaps) {
+		const title = entry.title || entry.name || "Map";
+		const grid = entry.grid || {};
+		const imgPixelW = entry.width || 1750;
+		const imgPixelH = entry.height || 1750;
+		let gridSizePx = grid.size || 0;
+		if (!gridSizePx && grid.type) {
+			gridSizePx = GRID_DIVISORS.find(d => imgPixelW % d === 0 && imgPixelH % d === 0) || 0;
+		}
+		if (!gridSizePx) gridSizePx = 70;
+
+		const mapW = Math.max(1, Math.round(imgPixelW / gridSizePx));
+		const mapH = Math.max(1, Math.round(imgPixelH / gridSizePx));
+		const roll20W = mapW * ROLL20_PX;
+		const roll20H = mapH * ROLL20_PX;
+		const scaleX = roll20W / imgPixelW;
+		const scaleY = roll20H / imgPixelH;
+
+		// Resolve image URL
+		const href = entry.href || {};
+		let imgUrl;
+		if (href.type === "internal" && href.path) {
+			imgUrl = `https://5e.tools/img/${href.path}`;
+		} else {
+			imgUrl = href.url || href.path || "";
+			if (imgUrl.includes("raw.githubusercontent.com") && !imgUrl.includes("?")) {
+				imgUrl = imgUrl.replace(
+					"githubusercontent.com/TheGiddyLimit/homebrew-img/main/",
+					"githubusercontent.com/TheGiddyLimit/homebrew-img/refs/heads/main/",
+				);
+			}
+		}
+
+		// Collect area centroids from mapRegions for future token placement
+		const areaCentroids = {};
+		(entry.mapRegions || []).forEach(r => {
+			if (r.area && r.points?.length) {
+				const xs = r.points.map(p => p[0]);
+				const ys = r.points.map(p => p[1]);
+				areaCentroids[r.area] = [
+					(xs.reduce((a, b) => a + b, 0) / xs.length) * scaleX,
+					(ys.reduce((a, b) => a + b, 0) / ys.length) * scaleY,
+				];
+			}
+		});
+
+		// Look up Foundry wall data by title
+		const foundryMap = foundryMaps && (foundryMaps[title.toLowerCase()] || foundryMaps[normalizeMapName(title)]);
+		let paths = [];
+		if (foundryMap) {
+			paths = convertFoundryWalls(foundryMap, roll20W, roll20H);
+			d20plus.ut.log(`Map "${title}": ${paths.length} wall/door paths from Foundry data`);
+		} else {
+			(entry.mapRegions || []).forEach(r => {
+				const p = regionToPath(r, scaleX, scaleY);
+				if (p) paths.push(p);
+			});
+			if (paths.length) d20plus.ut.log(`Map "${title}": ${paths.length} mapRegion outlines (no Foundry data)`);
+		}
+
+		const mapId = makeId();
+		paths.forEach(p => { p.page_id = mapId; });
+
+		return {
+			mapId,
+			title,
+			areaCentroids,
+			pageAttrs: {
+				name: title,
+				version: 0,
+				showgrid: true,
+				showdarkness: false,
+				width: mapW,
+				height: mapH,
+				snapping_increment: 1,
+				grid_opacity: 0.5,
+				fog_opacity: 0.35,
+				background_color: "#FFFFFF",
+				gridcolor: "#C0C0C0",
+				grid_type: grid.type || "square",
+				scale_number: grid.scale || grid.distance || 5,
+				scale_units: grid.units || "ft",
+				archived: false,
+				thumbnail: imgUrl,
+				dynamic_lighting_enabled: paths.length > 0,
+				id: mapId,
+			},
+			backgroundGraphic: {
+				left: roll20W / 2, top: roll20H / 2,
+				width: roll20W, height: roll20H,
+				z_index: 0, imgsrc: imgUrl,
+				rotation: 0, type: "image",
+				page_id: mapId, layer: "map",
+				locked: true, name: title,
+				id: makeId(),
+			},
+			paths,
+		};
+	}
+
+	// Create Roll20 pages from map objects (mirrors base-tool-module.js pattern)
+	// Returns [{roll20PageId, areaCentroids, title}] for token placement
+	async function importMaps (mapObjects) {
+		d20plus.ut.log(`Creating ${mapObjects.length} map page(s)...`);
+		const savedMaps = [];
+		for (const mo of mapObjects) {
+			const page = d20.Campaign.pages.create(mo.pageAttrs);
+			page.save();
+			const roll20PageId = page.id;
+			await new Promise(resolve => {
+				setTimeout(async () => {
+					const savedPage = d20.Campaign.pages.get(roll20PageId);
+					if (!savedPage) { resolve(); return; }
+					if (!savedPage.thegraphics) await savedPage.fullyLoadPage();
+					const fixUrl = url => (d20plus.ut.fixS3Url ? d20plus.ut.fixS3Url(url, false) : url);
+					const bg = {...mo.backgroundGraphic, page_id: savedPage.id};
+					bg.imgsrc = fixUrl(bg.imgsrc);
+					savedPage.thegraphics?.create(bg);
+					mo.paths.forEach(p => {
+						savedPage.thepaths?.create({...p, page_id: savedPage.id});
+					});
+					savedMaps.push({roll20PageId, areaCentroids: mo.areaCentroids, title: mo.title});
+					d20plus.ut.log(`Map page created: ${mo.title}`);
+					resolve();
+				}, 150);
+			});
+		}
+		d20plus.ut.log(`All map pages created.`);
+		return savedMaps;
+	}
+
+	// Place NPC tokens on the GM layer at map area centroids
+	function placeTokensOnMaps (savedMaps, areaCreatures, monsters) {
+		const CREATURE_SIZE_SQUARES = {T: 1, S: 1, M: 1, L: 2, H: 3, G: 4};
+		let placed = 0;
+		savedMaps.forEach(({roll20PageId, areaCentroids}) => {
+			const savedPage = d20.Campaign.pages.get(roll20PageId);
+			if (!savedPage?.thegraphics) return;
+			Object.entries(areaCentroids).forEach(([areaId, [cx, cy]]) => {
+				const names = areaCreatures[areaId] || [];
+				names.forEach((name, idx) => {
+					const monster = monsters.find(m => m.name.toLowerCase() === name.toLowerCase());
+					const char = d20.Campaign.characters.find(c => c.get("name").toLowerCase() === name.toLowerCase());
+					if (!char) return;
+					const sizeKey = (Array.isArray(monster?.size) ? monster.size[0] : monster?.size) || "M";
+					const squares = CREATURE_SIZE_SQUARES[sizeKey] || 1;
+					const tokenPx = squares * ROLL20_PX;
+					const avatar = char.get("avatar") || "";
+					const imgUrl = avatar && d20plus.ut.fixS3Url ? d20plus.ut.fixS3Url(avatar, false) : avatar;
+					const hp = monster?.hp?.average ?? "";
+					const ac = Array.isArray(monster?.ac)
+						? (monster.ac[0]?.ac ?? monster.ac[0])
+						: (monster?.ac ?? "");
+					savedPage.thegraphics.create({
+						type: "image",
+						layer: "gmlayer",
+						page_id: roll20PageId,
+						left: Math.round(cx + idx * tokenPx),
+						top: Math.round(cy),
+						width: tokenPx,
+						height: tokenPx,
+						represents: char.id,
+						name: name,
+						imgsrc: imgUrl,
+						bar1_value: hp,
+						bar1_max: hp,
+						bar2_value: ac,
+						id: makeId(),
+					});
+					placed++;
+				});
+			});
+		});
+		d20plus.ut.log(`Placed ${placed} token(s) on maps.`);
+	}
+
+	// Shared import pipeline for adventures and books
+	async function loadContent (url, opts) {
+		const getData = opts.getData || (json => json.adventureData ? json.adventureData[0].data : json.data);
+		const getMeta = opts.getMeta || ((json, id) =>
+			json.adventure?.[0] || adventureMetadata.adventure?.find(a => a.id?.toLowerCase() === id?.toLowerCase()));
+		const contentId = opts.contentId || null;
+		const contentSource = opts.contentSource || null;
+
+		$("a.ui-tabs-anchor[href='#journal']").trigger("click");
+		const data = await DataUtil.loadJSON(url);
+		const meta = getMeta(data, contentId) || {name: contentId || "Unknown", contents: []};
+		const sections = getData(data);
+
+		if (!sections?.length) {
+			d20plus.ut.log(`No content found for ${meta.name}`);
+			return;
+		}
+
+		// Detect what content types are present
+		const {hasMaps, hasCreatures, hasItems} = scanContent(sections);
+		d20plus.ut.log(`Content scan [${meta.name}]: maps=${hasMaps} creatures=${hasCreatures} items=${hasItems}`);
+
+		// Fetch Foundry wall data upfront if maps exist
+		let foundryMaps = null;
+		if (hasMaps) {
+			foundryMaps = await fetchFoundryMaps(contentId, contentSource || meta.source);
+			d20plus.ut.log(foundryMaps ? "Foundry wall data loaded." : "No Foundry wall data; maps will be wall-free.");
+		}
+
+		// Build handout queue from sections
+		function isPart (e) {
+			return typeof e === "string" || (typeof e === "object" && e.type !== "entries");
+		}
+		const addQueue = [];
+		const sectionsCopy = JSON.parse(JSON.stringify(sections));
+		const adDir = meta.name || contentId || "Import";
+		sectionsCopy.forEach((s, i) => {
+			if (meta.contents && i >= meta.contents.length) return;
+			const chapterName = meta.contents?.[i]?.name || s.name || `Section ${i + 1}`;
+			const chapterDir = [adDir, chapterName];
+			const introEntries = [];
+			if (s.entries?.length && isPart(s.entries[0])) {
+				while (s.entries.length && isPart(s.entries[0])) introEntries.push(s.entries.shift());
+			}
+			addQueue.push({dir: chapterDir, type: "entries", name: s.name, entries: introEntries});
 			let textIndex = 1;
-			while ((front = s.entries.shift())) {
+			const tempStack = [];
+			let front;
+			while ((front = s.entries?.shift())) {
 				if (isPart(front)) {
 					tempStack.push(front);
 				} else {
 					if (tempStack.length) {
-						addQueue.push({
-							dir: chapterDir,
-							type: "entries",
-							name: `Text ${textIndex++}`,
-							entries: tempStack,
-						});
-						tempStack = [];
+						addQueue.push({dir: chapterDir, type: "entries", name: `Text ${textIndex++}`, entries: [...tempStack]});
+						tempStack.length = 0;
 					}
 					front.dir = chapterDir;
 					addQueue.push(front);
 				}
 			}
+			if (tempStack.length) addQueue.push({dir: chapterDir, type: "entries", name: `Text ${textIndex++}`, entries: tempStack});
 		});
 
+		// Renderer pass builds handout HTML and captures tag→id linkage for cross-references
 		const renderer = new Renderer();
 		renderer.setBaseUrl(LINK_BASE_URL);
-
-		const $stsName = $("#import-name");
-		const $stsRemain = $("#import-remaining");
-		const interval = d20plus.cfg.get("import", "importIntervalHandout") || d20plus.cfg.getDefault("import", "importIntervalHandout");
-
-		/// /////////////////////////////////////////////////////////////////////////////////////////////////////
 		Renderer.get().setBaseUrl(LINK_BASE_URL);
-		// pre-import tags
 		const tags = {};
 		renderer.doExportTags(tags);
-		addQueue.forEach(entry => {
-			renderer.recursiveRender(entry, []);
-		});
+		addQueue.forEach(entry => renderer.recursiveRender(entry, []));
 
-		// storage for returned handout/character IDs
+		// Dynamic checkbox options based on detected content
+		const checkboxOptions = ["Handouts"];
+		if (hasMaps) checkboxOptions.push("Maps");
+		if (hasMaps && hasCreatures) checkboxOptions.push("Place Tokens");
+		if (hasCreatures) checkboxOptions.push("Creatures");
+		if (hasItems) checkboxOptions.push("Items");
+
+		$("#d20plus-import").dialog("open");
+		$("#import-remaining").text("Initialising...");
+
+		const toImport = await d20plus.ui.chooseCheckboxList(checkboxOptions, `What to import for ${meta.name}?`);
+
+		// Import maps first (sequential, awaited); save page IDs for token placement
+		let savedMaps = [];
+		if (toImport.includes("Maps") && hasMaps) {
+			const mapEntries = findMapEntries(sections);
+			const mapObjects = mapEntries.map(e => buildMapObject(e, foundryMaps));
+			if (mapObjects.length) savedMaps = await importMaps(mapObjects);
+		}
+
+		// Build area→creature name mapping for token placement
+		const areaCreatures = (toImport.includes("Place Tokens") && savedMaps.length)
+			? buildAreaCreatures(sections)
+			: {};
+
+		// Pre-fetch all creature and item data from CDN before opening selection dialogs,
+		// so the subsequent dialog callbacks are synchronous (no async inside setInterval)
+		d20plus.ut.log("Fetching referenced creature/item data from CDN...");
+		const [monsters, items] = await Promise.all([
+			(toImport.includes("Creatures") && hasCreatures)
+				? fetchCreatureData(extractCreatureRefs(sections))
+					.catch(e => { d20plus.ut.log("Creature fetch error: " + e); return []; })
+				: Promise.resolve([]),
+			(toImport.includes("Items") && hasItems)
+				? fetchItemData(extractItemRefs(sections))
+					.catch(e => { d20plus.ut.log("Item fetch error: " + e); return []; })
+				: Promise.resolve([]),
+		]);
+		if (monsters.length) d20plus.ut.log(`Found ${monsters.length} creature(s) to import.`);
+		if (items.length) d20plus.ut.log(`Found ${items.length} item(s) to import.`);
+
 		const RETURNED_IDS = {};
+		const interval = d20plus.cfg.get("import", "importIntervalHandout") || d20plus.cfg.getDefault("import", "importIntervalHandout");
+		const $stsName = $("#import-name");
+		const $stsRemain = $("#import-remaining");
 
-		// Check to see what should be imported
-		const toImport = await d20plus.ui.chooseCheckboxList(["Creatures", "Items", "Handouts"], "What to import for this adventure?");
-
-		// monsters
-		const preMonsters = Object.keys(tags)
-			.filter(k => tags[k].page === "bestiary.html")
-			.map(k => tags[k]);
-		if (toImport.includes("Creatures")) doPreImport(preMonsters, showMonsterImport);
-		else doItemImport();
-
-		function showMonsterImport (toImport) {
-			d20plus.ut.log(`Displaying monster import list for [${adMeta.name}]`);
+		// Sequential dialog chain: monsters → [place tokens] → items → handouts
+		if (monsters.length) {
 			d20plus.importer.showImportList(
 				"monster",
-				toImport.filter(it => it),
+				monsters,
 				d20plus.monsters.handoutBuilder,
 				{
 					groupOptions: d20plus.monsters._groupOptions,
 					saveIdsTo: RETURNED_IDS,
-					callback: doItemImport,
+					callback: doAfterMonsters,
 					listItemBuilder: d20plus.monsters._listItemBuilder,
 					listIndex: d20plus.monsters._listCols,
 					listIndexConverter: d20plus.monsters._listIndexConverter,
 				},
 			);
+		} else {
+			doAfterMonsters();
 		}
 
-		// items
+		function doAfterMonsters () {
+			if (toImport.includes("Place Tokens") && savedMaps.length) {
+				placeTokensOnMaps(savedMaps, areaCreatures, monsters);
+			}
+			doItemImport();
+		}
+
 		function doItemImport () {
-			const preItems = Object.keys(tags)
-				.filter(k => tags[k].page === "items.html")
-				.map(k => tags[k]);
-			if (toImport.includes("Items")) doPreImport(preItems, showItemImport);
-			else doMainImport();
+			if (items.length) {
+				d20plus.importer.showImportList(
+					"item",
+					items,
+					d20plus.items.handoutBuilder,
+					{
+						groupOptions: d20plus.items._groupOptions,
+						saveIdsTo: RETURNED_IDS,
+						callback: doMainImport,
+						listItemBuilder: d20plus.items._listItemBuilder,
+						listIndex: d20plus.items._listCols,
+						listIndexConverter: d20plus.items._listIndexConverter,
+					},
+				);
+			} else {
+				doMainImport();
+			}
 		}
 
-		function showItemImport (toImport) {
-			d20plus.ut.log(`Displaying item import list for [${adMeta.name}]`);
-			d20plus.importer.showImportList(
-				"item",
-				toImport.filter(it => it),
-				d20plus.items.handoutBuilder,
-				{
-					groupOptions: d20plus.items._groupOptions,
-					saveIdsTo: RETURNED_IDS,
-					callback: doMainImport,
-					listItemBuilder: d20plus.items._listItemBuilder,
-					listIndex: d20plus.items._listCols,
-					listIndexConverter: d20plus.items._listIndexConverter,
-				},
-			);
-		}
-
-		function doPreImport (asTags, callback) {
-			const tmp = [];
-			let cachedCount = asTags.length;
-			// FIXME crappy inefficient conversion to promise-based version; requires cleanup
-			asTags.forEach(async it => {
-				try {
-					await Renderer.hover.pCacheAndGet(it.page, it.source, it.hash);
-					tmp.push(Renderer.hover.getFromCache(it.page, it.source, it.hash));
-					cachedCount--;
-					if (cachedCount <= 0) callback(tmp);
-				} catch (x) {
-					// eslint-disable-next-line no-console
-					console.log(x);
-					cachedCount--;
-					if (cachedCount <= 0) callback(tmp);
-				}
-			});
-		}
-		/// /////////////////////////////////////////////////////////////////////////////////////////////////////
 		function doMainImport () {
-			// Check to make sure the user wants to import everything
 			if (!toImport.includes("Handouts")) {
 				$("#d20plus-import").dialog("close");
 				return;
 			}
-
-			// pass in any created handouts/characters to use for links in the renderer
 			renderer.setRoll20Ids(RETURNED_IDS);
-
 			let cancelWorker = false;
-			const $btnCancel = $(`#importcancel`);
-			$btnCancel.off("click");
-			$btnCancel.on("click", () => {
-				cancelWorker = true;
-			});
-
+			const $btnCancel = $("#importcancel");
+			$btnCancel.off("click").on("click", () => { cancelWorker = true; });
 			let remaining = addQueue.length;
-
-			d20plus.ut.log(`Running import of [${adMeta.name}] with ${interval} ms delay between each handout create`);
-			let lastId = null;
-			let lastName = null;
-
+			d20plus.ut.log(`Running import of [${meta.name}] with ${interval}ms delay (${remaining} handouts)`);
+			let lastId = null, lastName = null;
 			const worker = setInterval(() => {
 				if (!addQueue.length || cancelWorker) {
 					clearInterval(worker);
 					$stsName.text("DONE!");
 					$stsRemain.text("0");
-					d20plus.ut.log(`Finished import of [${adMeta.name}]`);
+					d20plus.ut.log(`Finished import of [${meta.name}]`);
 					renderer.resetRoll20Ids();
 					return;
 				}
-
-				// pull items out the queue in LIFO order, for journal ordering (last created will be at the top)
 				const entry = addQueue.pop();
 				entry.name = entry.name || "(Unknown)";
 				entry.name = d20plus.importer.getCleanText(renderer.render(entry.name));
 				$stsName.text(entry.name);
 				$stsRemain.text(remaining--);
 				const folder = d20plus.journal.makeDirTree(entry.dir);
-
-				d20.Campaign.handouts.create({
-					name: entry.name,
-				}, {
+				d20.Campaign.handouts.create({name: entry.name}, {
 					success: function (handout) {
 						const renderStack = [];
 						renderer.recursiveRender(entry, renderStack);
 						if (lastId && lastName) renderStack.push(`<br><p>Next handout: <a href="http://journal.roll20.net/handout/${lastId}">${lastName}</a></p>`);
 						const rendered = renderStack.join("");
-
 						lastId = handout.id;
 						lastName = entry.name;
 						handout.updateBlobs({notes: rendered});
@@ -222,6 +661,45 @@ function d20plusAdventure () {
 				});
 			}, interval);
 		}
+	}
+
+	// Adventure import entry point
+	d20plus.adventures.button = function () {
+		const $url = $("#import-adventures-url");
+		const url = $url.val();
+		if (!url) return;
+		const id = $url.data("id");
+		const adMeta = adventureMetadata.adventure?.find(a => a.id?.toLowerCase() === id?.toLowerCase());
+		loadContent(url, {
+			contentId: id,
+			contentSource: adMeta?.source,
+			getData: json => json.adventureData ? json.adventureData[0].data : json.data,
+			getMeta: (json, cid) => json.adventure?.[0]
+				|| adventureMetadata.adventure?.find(a => a.id?.toLowerCase() === cid?.toLowerCase()),
+		});
+	};
+
+	// Kept for backwards compatibility
+	d20plus.adventures.load = function (url) {
+		const $url = $("#import-adventures-url");
+		$url.val(url);
+		d20plus.adventures.button();
+	};
+
+	// Book import entry point
+	d20plus.books.button = function () {
+		const $url = $("#import-books-url");
+		const url = $url.val();
+		if (!url) return;
+		const id = $url.data("id");
+		const bkMeta = (typeof bookMetadata !== "undefined" && bookMetadata.book?.find(b => b.id?.toLowerCase() === id?.toLowerCase())) || null;
+		loadContent(url, {
+			contentId: id,
+			contentSource: bkMeta?.source,
+			getData: json => json.data,
+			getMeta: (json, cid) => (typeof bookMetadata !== "undefined" && bookMetadata.book?.find(b => b.id?.toLowerCase() === cid?.toLowerCase()))
+				|| {name: cid || "Book", contents: []},
+		});
 	};
 }
 

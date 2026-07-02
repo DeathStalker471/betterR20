@@ -125,6 +125,31 @@ const d20plusTemplate = function () {
 		});
 	}
 
+	d20plus.template5e._populateBooksDropdown = function () {
+		const $iptUrl = $("#import-books-url");
+		const $sel = $("#button-books-select");
+		const books = (bookMetadata?.book || []).slice().sort((a, b) => SortUtil.ascSortLower(a.name, b.name));
+		books.forEach(b => {
+			$sel.append($("<option>", {
+				value: `${BOOK_DATA_DIR}book-${b.id.toLowerCase()}.json|${b.id}`,
+				text: b.name,
+			}));
+		});
+		$sel.append($("<option>", {value: "", text: "Custom"}));
+		if (books.length) {
+			const first = books[0];
+			const url = `${BOOK_DATA_DIR}book-${first.id.toLowerCase()}.json`;
+			$iptUrl.val(url).data("id", first.id);
+			$sel.val(`${url}|${first.id}`);
+		}
+		$sel.change(() => {
+			const val = $sel.val();
+			if (!val) { $iptUrl.val("").data("id", ""); return; }
+			const [url, id] = val.split("|");
+			$iptUrl.val(url).data("id", id || "");
+		});
+	}
+
 	d20plus.template5e._onDataURLChanging = ($input) => {
 		$input.val() && (d20plus.template5e._dataURLCache = {
 			url: $input.val(),
@@ -164,6 +189,7 @@ const d20plusTemplate = function () {
 			$wrpSettings.append(d20plus.template5e.settingsHtmlSelector());
 			const $ptAdventures = $(d20plus.template5e.settingsHtmlPtAdventures);
 			$wrpSettings.append($ptAdventures);
+			$wrpSettings.append($(d20plus.template5e.settingsHtmlPtBooks));
 
 			IMPORT_CATEGORIES.forEach(ic => {
 				$wrpSettings.append(d20plus.template5e.getSettingsHTML(ic));
@@ -174,7 +200,8 @@ const d20plusTemplate = function () {
 			$("#bind-drop-locations").on(window.mousedowntype, d20plus.bindDropLocations);
 			//$("#initiativewindow .characterlist").before(d20plus.template5e.initiativeHeaders);
 
-//d20.Campaign.initiativewindow.rebuildInitiativeList();
+			//d20plus.setTurnOrderTemplate();
+			//d20.Campaign.initiativewindow.rebuildInitiativeList();
 		//	d20plus.hpAllowEdit();
 			//d20.Campaign.initiativewindow.model.on("change:turnorder", function () {
 			//	d20plus.updateDifficulty();
@@ -182,6 +209,7 @@ const d20plusTemplate = function () {
 			//d20plus.updateDifficulty();
 
 			d20plus.template5e._populateAdventuresDropdown();
+			d20plus.template5e._populateBooksDropdown();
 
 			// Bind buttons for GM import
 			IMPORT_CATEGORIES.forEach(ic => {
@@ -220,7 +248,7 @@ const d20plusTemplate = function () {
 				<h3 style="margin-bottom: 4px">BetteR20</h3>
 				<button id="b20-temp-import-open-button" class="btn" href="#" title="A tool to import temporary copies of various things, which can be drag-and-dropped to character sheets." style="margin-top: 5px">Temp Import Spells, Items, Classes,...</button>
 					<div style="clear: both"></div>
-				<hr>
+				<hr></hr>
 			</div>`);
 
 		$wrpPlayerImport.find("#b20-temp-import-open-button").on("click", () => {
@@ -483,6 +511,18 @@ ${IMPORT_CATEGORIES.filter(ic => ic.playerImport).map(ic => `<option value="${ic
 </div>
 `;
 
+	d20plus.template5e.settingsHtmlPtBooks = `
+<div class="importer-section" data-import-group="book">
+<h4>Book Importing</h4>
+<label for="import-books-url">Book Data URL:</label>
+<select id="button-books-select">
+<!-- populate with JS-->
+</select>
+<input type="text" id="import-books-url">
+<p><a class="btn" href="#" id="import-books-load">Import Book</a></p>
+</div>
+`;
+
 	d20plus.template5e.settingsHtmlPtImportFooter = `
 <p><a class="btn bind-drop-locations" href="#" id="bind-drop-locations" style="margin-top: 5px;width: 100%;box-sizing: border-box;">Bind Drag-n-Drop</a></p>
 <p><strong>Readme</strong></p>
@@ -522,9 +562,9 @@ To restore this functionality, press the "Bind Drag-n-Drop" button.<br>
 	<div class="tracker-extra-columns">
 		<!--5ETOOLS_REPLACE_TARGET-->
 	</div>
-	<$ if (this.avatar) { $><img src='<$!this.avatar$>'  alt=""/><$ } $>
+	<$ if (this.avatar) { $><img src='<$!this.avatar$>' /><$ } $>
 	<span class='name'><$!this.name$></span>
-		<div class='clear' style='height: 0;'></div>
+		<div class='clear' style='height: 0px;'></div>
 		<div class='controls'>
 	<span class='pictos remove'>#</span>
 	</div>
