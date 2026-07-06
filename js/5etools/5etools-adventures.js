@@ -5,6 +5,15 @@ function d20plusAdventure () {
 	const ROLL20_PX = 70;
 	const GRID_DIVISORS = [100, 140, 72, 80, 60, 50, 90, 120, 150, 70];
 	const PLUTONIUM_BASE = "https://raw.githubusercontent.com/TheGiddyLimit/plutonium-scenes/main/data";
+	// Roll20 only understands square/hex/hexr/dimetric/isometric; 5etools grid.type is finer-grained (e.g. "hexColsOdd").
+	function resolveGridType (rawType) {
+		if (!rawType) return "square";
+		const lower = rawType.toLowerCase();
+		if (lower.startsWith("hexcol")) return "hexr"; // Hex (H)
+		if (lower.startsWith("hexrow")) return "hex"; // Hex (V)
+		if (lower === "hex" || lower === "hexr" || lower === "isometric" || lower === "dimetric") return lower;
+		return "square";
+	}
 
 	function makeId () {
 		try { return "-" + crypto.randomUUID().replace(/-/g, "").slice(0, 20); } catch (e) {
@@ -285,18 +294,25 @@ function d20plusAdventure () {
 		const grid = entry.grid || {};
 		const imgPixelW = entry.width || 1750;
 		const imgPixelH = entry.height || 1750;
+		const offsetX = (grid.offsetX || 0) * -1;
+		const offsetY = (grid.offsetY || 0) * -1;
 		let gridSizePx = grid.size || 0;
 		if (!gridSizePx && grid.type) {
 			gridSizePx = GRID_DIVISORS.find(d => imgPixelW % d === 0 && imgPixelH % d === 0) || 0;
 		}
 		if (!gridSizePx) gridSizePx = 70;
 
-		const mapW = Math.max(1, Math.round(imgPixelW / gridSizePx));
-		const mapH = Math.max(1, Math.round(imgPixelH / gridSizePx));
+		const roll20MapW = imgPixelW * ROLL20_PX / gridSizePx;
+		const roll20MapH = imgPixelH * ROLL20_PX / gridSizePx;
+		const mapW = Math.max(1, Math.ceil((imgPixelW + offsetX) / gridSizePx));
+		const mapH = Math.max(1, Math.ceil((imgPixelH + offsetY) / gridSizePx));
 		const roll20W = mapW * ROLL20_PX;
 		const roll20H = mapH * ROLL20_PX;
 		const scaleX = roll20W / imgPixelW;
 		const scaleY = roll20H / imgPixelH;
+		const imageScale = ROLL20_PX / gridSizePx;
+		const gridScale = grid.scale || 1;
+		const gridType = resolveGridType(grid.type);
 
 		// Resolve image URL
 		const href = entry.href || {};
@@ -359,8 +375,8 @@ function d20plusAdventure () {
 				fog_opacity: 0.35,
 				background_color: "#FFFFFF",
 				gridcolor: "#C0C0C0",
-				grid_type: grid.type || "square",
-				scale_number: grid.scale || grid.distance || 5,
+				grid_type: gridType,
+				scale_number: grid.distance || gridScale * 5,
 				scale_units: grid.units || "ft",
 				archived: false,
 				thumbnail: imgUrl,
@@ -368,8 +384,8 @@ function d20plusAdventure () {
 				id: mapId,
 			},
 			backgroundGraphic: {
-				left: roll20W / 2, top: roll20H / 2,
-				width: roll20W, height: roll20H,
+				left: (imgPixelW / 2 + offsetX / gridScale) * imageScale, top: (imgPixelH / 2 + offsetY / gridScale) * imageScale,
+				width: imgPixelW * imageScale, height: imgPixelH * imageScale,
 				z_index: 0, imgsrc: imgUrl,
 				rotation: 0, type: "image",
 				page_id: mapId, layer: "map",
