@@ -288,8 +288,107 @@ function d20plusAdventure () {
 		return result;
 	}
 
-	// Build a Roll20 map object from a 5etools map image entry
-	function buildMapObject (entry, foundryMaps) {
+	// Some adventure maps declare `grid.size` as a whole multiple of the grid actually
+	// painted on the artwork (schema requires `grid.size >= 50`, so on maps with a finer
+	// painted grid the author declares a multiple and bumps `grid.scale` to compensate).
+	// This causes Roll20's grid to come out 2-4x too coarse. Detect the real painted pitch
+	// by measuring the image directly, rather than guessing from the JSON alone (JSON-only
+	// rules were tried and proven wrong - structurally identical entries need different
+	// treatment depending on the actual artwork).
+	async function measurePaintedGridSize (entry) {
+		const grid = entry.grid || {};
+		if (grid.type !== "square" || !grid.size || !grid.scale) return null;
+		if (!Number.isInteger(grid.scale) || grid.scale < 2) return null;
+
+		const candidates = [];
+		for (let m = 2; m <= 8; m++) {
+			const ft = (grid.scale * 5) / m;
+			if (![5, 10, 15, 20].includes(ft)) continue;
+			const pitch = grid.size / m;
+			if (pitch >= 8) candidates.push(pitch);
+		}
+		if (!candidates.length) return null;
+
+		const href = entry.href || {};
+		let imgUrl;
+		if (href.type === "internal" && href.path) {
+			imgUrl = `https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main/${href.path}`;
+		} else {
+			imgUrl = href.url || href.path || "";
+		}
+		if (!imgUrl) return null;
+
+		let bitmap;
+		try {
+			const resp = await fetch(imgUrl, {mode: "cors"});
+			if (!resp.ok) return null;
+			const blob = await resp.blob();
+			bitmap = await createImageBitmap(blob);
+		} catch (e) { return null; }
+
+		const canvas = document.createElement("canvas");
+		canvas.width = bitmap.width;
+		canvas.height = bitmap.height;
+		const ctx = canvas.getContext("2d", {willReadFrequently: true});
+		ctx.drawImage(bitmap, 0, 0);
+		let imgData;
+		try {
+			imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+		} catch (e) { return null; } // e.g. tainted canvas
+		bitmap.close?.();
+
+		const {width: w, height: h, data} = imgData;
+		const gray = new Float64Array(w * h);
+		for (let i = 0; i < w * h; i++) {
+			gray[i] = (data[i * 4] + data[i * 4 + 1] + data[i * 4 + 2]) / 3;
+		}
+
+		const profX = new Float64Array(w);
+		for (let y = 0; y < h; y++) {
+			const row = y * w;
+			for (let x = 1; x < w; x++) profX[x] += Math.abs(gray[row + x] - gray[row + x - 1]);
+		}
+		const profY = new Float64Array(h);
+		for (let y = 1; y < h; y++) {
+			const row = y * w, prev = (y - 1) * w;
+			for (let x = 0; x < w; x++) profY[y] += Math.abs(gray[row + x] - gray[prev + x]);
+		}
+		const meanSubtract = arr => {
+			const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+			for (let i = 0; i < arr.length; i++) arr[i] -= mean;
+		};
+		meanSubtract(profX);
+		meanSubtract(profY);
+
+		const autocorrAt = (prof, lag) => {
+			const n = prof.length;
+			const L = Math.floor(lag), frac = lag - L;
+			let num = 0, d1 = 0, d2 = 0;
+			for (let i = 0; i + L + 1 < n; i++) {
+				const shifted = prof[i + L] * (1 - frac) + prof[i + L + 1] * frac;
+				num += prof[i] * shifted;
+				d1 += prof[i] * prof[i];
+				d2 += shifted * shifted;
+			}
+			return d1 && d2 ? num / Math.sqrt(d1 * d2) : 0;
+		};
+
+		// Empirically-derived thresholds (measured against 15 real adventure maps: 5 known-broken,
+		// 10 known-good). Broken maps scored >=0.44 mean / >=0.35 min; good maps scored <=0.30 mean
+		// / <=0.19 min. Accept the finest candidate pitch that clears both bars on both axes.
+		for (const pitch of candidates.sort((a, b) => a - b)) {
+			const corrX = autocorrAt(profX, pitch);
+			const corrY = autocorrAt(profY, pitch);
+			if (Math.min(corrX, corrY) >= 0.3 && (corrX + corrY) / 2 >= 0.4) return pitch;
+		}
+		return null;
+	}
+
+	// Build a Roll20 map object from a 5etools map image entry.
+	// `paintedGridSize`, if given, is a directly-measured pixel pitch of the grid actually
+	// painted on the artwork (see `measurePaintedGridSize`) - used when the declared
+	// `grid.size` is a multiple of the painted grid rather than the painted grid itself.
+	function buildMapObject (entry, foundryMaps, paintedGridSize) {
 		const title = entry.title || entry.name || "Map";
 		const grid = entry.grid || {};
 		const imgPixelW = entry.width || 1750;
@@ -302,6 +401,16 @@ function d20plusAdventure () {
 		}
 		if (!gridSizePx) gridSizePx = 70;
 
+		// Subdivision factor for when `grid.size` is a multiple of the painted grid pitch
+		// (e.g. declared 50px but the art has a 16.7px grid painted on it, 3x finer).
+		const subdivision = (paintedGridSize && gridSizePx > paintedGridSize)
+			? gridSizePx / paintedGridSize
+			: 1;
+		if (subdivision > 1) {
+			d20plus.ut.log(`Map "${title}": painted grid detected at ${paintedGridSize.toFixed(1)}px (declared ${gridSizePx}px); subdividing by ${subdivision.toFixed(2)}`);
+			gridSizePx = paintedGridSize;
+		}
+
 		const roll20MapW = imgPixelW * ROLL20_PX / gridSizePx;
 		const roll20MapH = imgPixelH * ROLL20_PX / gridSizePx;
 		const mapW = Math.max(1, Math.ceil((imgPixelW + offsetX) / gridSizePx));
@@ -312,6 +421,7 @@ function d20plusAdventure () {
 		const scaleY = roll20H / imgPixelH;
 		const imageScale = ROLL20_PX / gridSizePx;
 		const gridScale = grid.scale || 1;
+		const distanceScale = gridScale / subdivision;
 		const gridType = resolveGridType(grid.type);
 
 		// Resolve image URL
@@ -376,7 +486,7 @@ function d20plusAdventure () {
 				background_color: "#FFFFFF",
 				gridcolor: "#C0C0C0",
 				grid_type: gridType,
-				scale_number: grid.distance || gridScale * 5,
+				scale_number: (grid.distance && subdivision === 1) ? grid.distance : distanceScale * 5,
 				scale_units: grid.units || "ft",
 				archived: false,
 				thumbnail: imgUrl,
@@ -559,7 +669,12 @@ function d20plusAdventure () {
 		let savedMaps = [];
 		if (toImport.includes("Maps") && hasMaps) {
 			const mapEntries = findMapEntries(sections);
-			const mapObjects = mapEntries.map(e => buildMapObject(e, foundryMaps));
+			const mapObjects = [];
+			for (const e of mapEntries) {
+				let paintedGridSize = null;
+				try { paintedGridSize = await measurePaintedGridSize(e); } catch (err) { paintedGridSize = null; }
+				mapObjects.push(buildMapObject(e, foundryMaps, paintedGridSize));
+			}
 			if (mapObjects.length) savedMaps = await importMaps(mapObjects);
 		}
 
