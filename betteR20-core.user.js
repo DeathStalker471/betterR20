@@ -14886,6 +14886,7 @@ function d20plusEngine () {
 	// hook into, so watch for its "Backdrop Color" block and inject our Thumbnail section next to it.
 	d20plus.engine.enhanceVuePageThumbnail = () => {
 		const SECTION_CLASS = "b20-thumbnail-section";
+		const GRIDFIX_CLASS = "b20-gridfix-section";
 
 		if (!document.getElementById("b20-thumbnail-style")) {
 			document.head.insertAdjacentHTML("beforeend", `<style id="b20-thumbnail-style">
@@ -14893,8 +14894,12 @@ function d20plusEngine () {
 				.${SECTION_CLASS} .b20-thumbnail-row { display: flex; align-items: center; gap: 8px; }
 				.${SECTION_CLASS} .b20-thumbnail-preview { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; background: rgba(128,128,128,.2); flex-shrink: 0; }
 				.${SECTION_CLASS} .b20-thumbnail-url { flex: 1; min-width: 0; padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(128,128,128,.4); box-sizing: border-box; font: inherit; }
-				.${SECTION_CLASS} .b20-thumbnail-btn { padding: 6px 14px; border-radius: 4px; border: 1px solid rgba(128,128,128,.4); background: rgba(128,128,128,.12); color: inherit; cursor: pointer; font: inherit; font-size: 13px; }
-				.${SECTION_CLASS} .b20-thumbnail-btn:hover { background: rgba(128,128,128,.25); }
+				.b20-thumbnail-btn { padding: 6px 14px; border-radius: 4px; border: 1px solid rgba(128,128,128,.4); background: rgba(128,128,128,.12); color: inherit; cursor: pointer; font: inherit; font-size: 13px; }
+				.b20-thumbnail-btn:hover { background: rgba(128,128,128,.25); }
+				.${GRIDFIX_CLASS} .b20-thumbnail-row { display: flex; align-items: center; gap: 8px; }
+				.${GRIDFIX_CLASS} .b20-gridfix-desc { font-size: 12px; opacity: .75; margin: 0; }
+				.${GRIDFIX_CLASS} .b20-gridfix-factor { width: 64px; padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(128,128,128,.4); box-sizing: border-box; font: inherit; }
+				.${GRIDFIX_CLASS} { position: relative; z-index: 10000; }
 			</style>`);
 		}
 
@@ -14964,6 +14969,99 @@ function d20plusEngine () {
 				$url.val(imgsrc);
 				$preview.attr("src", imgsrc).show();
 				setThumbnail(imgsrc);
+			});
+
+			// Manual grid correction: if the imported grid is coarser than the artwork's real
+			// painted grid (e.g. 4 map squares fit inside 1 Roll20 square), dividing
+			// snapping_increment by the factor N draws N-times-denser grid lines over the SAME
+			// background image and page size (Roll20's own "Cell Width" control: "the number of
+			// cells per 70 pixels... .5 = 35 pixels per cell"). Resizing the page/background
+			// instead (an earlier version of this) grows the page's total footprint and can push
+			// it out of bounds relative to viewport/camera/fog - this way nothing but the grid
+			// line density changes.
+			const $gridFixSection = $(`
+				<div class="section ${GRIDFIX_CLASS}">
+					<h4 class="title large-title">Grid Correction</h4>
+					<p class="b20-gridfix-desc">If map squares don't match the Roll20 grid, enter how many map squares fit across ONE SIDE of a Roll20 square (not the total count) - e.g. enter 2 if you see a 2x2 arrangement of 4 map squares inside one Roll20 square, or 3 for a 3x3 arrangement of 9.</p>
+					<div class="b20-thumbnail-row">
+						<input class="b20-gridfix-factor" type="number" min="1" step="any" value="1">
+						<button type="button" class="b20-thumbnail-btn b20-gridfix-apply">Apply Correction</button>
+						<button type="button" class="b20-thumbnail-btn b20-gridfix-revert">Revert to Stock</button>
+					</div>
+				</div>
+			`);
+			$newSection.after($gridFixSection);
+
+			// scale_number / snapping_increment is invariant across any number of Apply clicks
+			// (both divide by the same factor each time), and always equals the original stock
+			// scale_number since stock snapping_increment is 1. So Revert can recompute stock
+			// directly from current state - no need to persist anything extra on the page (an
+			// earlier version stashed a custom attribute alongside the real ones in one save
+			// call, which may have caused Roll20 to reject the whole save).
+
+			// Roll20 doesn't live-redraw the canvas when page-level grid attributes change, but
+			// it does when a graphic on the page changes. Force a real change event on the
+			// background graphic's `top` (nudge away, then immediately back) so Backbone actually
+			// fires `change` - a true no-op save wouldn't - which triggers a redraw that picks up
+			// the new grid pitch too. Confirmed via console testing this does not corrupt the
+			// graphic (its saved state came back identical/correct afterward).
+			const nudgeRedraw = (activePage) => {
+				const mapGraphics = activePage.thegraphics?.filter(g => g.get("layer") === "map") || [];
+				if (!mapGraphics.length) return;
+				const main = mapGraphics.reduce((a, b) => (a.get("width") * a.get("height") >= b.get("width") * b.get("height")) ? a : b);
+				const top = main.get("top");
+				main.save({top: top + 1});
+				main.save({top});
+			};
+
+			// The Page Settings Vue dialog keeps its own local copy of form values and writes
+			// THAT back over the model when its native Save button is clicked - so a direct
+			// activePage.save() alone gets silently reverted the moment the user hits Save.
+			// Updating the actual <input> elements (via the native value setter, which bypasses
+			// any framework-overridden setter, then dispatching input/change) keeps Vue's own
+			// reactive state in sync, so its Save button persists the corrected value instead.
+			const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+			const setVueInput = (testid, value) => {
+				const input = document.querySelector(`[data-testid="${testid}"] input`);
+				if (!input) return;
+				nativeInputValueSetter.call(input, value);
+				input.dispatchEvent(new Event("input", {bubbles: true}));
+				input.dispatchEvent(new Event("change", {bubbles: true}));
+			};
+
+			$gridFixSection.find(".b20-gridfix-apply").on("click", () => {
+				const factor = parseFloat($gridFixSection.find(".b20-gridfix-factor").val());
+				if (!factor || factor <= 0) return;
+				if (factor === 1) return;
+
+				const activePage = d20.Campaign.activePage();
+				if (!activePage) return;
+
+				const newSnappingIncrement = (activePage.get("snapping_increment") || 1) / factor;
+				const newScaleNumber = activePage.get("scale_number") / factor;
+				activePage.save({
+					snapping_increment: newSnappingIncrement,
+					scale_number: newScaleNumber,
+				});
+				nudgeRedraw(activePage);
+				setVueInput("pageSettings-pd-tab-cellSize", newSnappingIncrement);
+				setVueInput("pageSettings-pd-tab-scale", newScaleNumber);
+			});
+
+			$gridFixSection.find(".b20-gridfix-revert").on("click", () => {
+				const activePage = d20.Campaign.activePage();
+				if (!activePage) return;
+
+				const currentIncrement = activePage.get("snapping_increment") || 1;
+				if (currentIncrement === 1) return;
+				const stockScaleNumber = activePage.get("scale_number") / currentIncrement;
+				activePage.save({
+					snapping_increment: 1,
+					scale_number: stockScaleNumber,
+				});
+				nudgeRedraw(activePage);
+				setVueInput("pageSettings-pd-tab-cellSize", 1);
+				setVueInput("pageSettings-pd-tab-scale", stockScaleNumber);
 			});
 		};
 
