@@ -15,6 +15,7 @@ function baseToolModule () {
 				<div style="border-bottom: 1px solid #ccc; margin-bottom: 3px; padding-bottom: 3px;">
 					<button class="btn" name="load-Vetools">Load from 5etools</button>
 					<button class="btn" name="load-dmsguild">Load from R20 Repo</button>
+					<button class="btn" name="search-homebrew">Search Homebrew</button>
 					<button class="btn" name="load-file">Upload File</button>
 				</div>
 				<div>
@@ -82,6 +83,21 @@ function baseToolModule () {
 					<p><button class="btn load">Load Module Data</button></p>
 				</div>
 
+				<div id="d20plus-module-importer-homebrew" title="Search Homebrew">
+					<div id="module-importer-list-homebrew">
+						<input type="search" class="search" placeholder="Search homebrew adventures/books...">
+						<div>
+							<div class="col-8 col">Name</div>
+							<div class="col-2 col" style="text-align: center;">Type</div>
+							<div class="col-2 col" style="text-align: center;">Edition</div>
+						</div>
+						<div class="list" style="transform: translateZ(0); max-height: 480px; overflow-y: auto; overflow-x: hidden; margin-bottom: 10px;">
+						<i>Loading...</i>
+						</div>
+					</div>
+					<p><button class="btn load">Import Selected</button></p>
+				</div>
+
 				<div id="d20plus-module-importer-select-exports-p1" title="Select Categories to Export">
 					<div>
 						<label>Characters <input type="checkbox" class="float-right" name="cb-characters"></label>
@@ -109,6 +125,12 @@ function baseToolModule () {
 				resizable: false,
 			});
 			$("#d20plus-module-importer-5etools").dialog({
+				autoOpen: false,
+				resizable: true,
+				width: 800,
+				height: 600,
+			});
+			$("#d20plus-module-importer-homebrew").dialog({
 				autoOpen: false,
 				resizable: true,
 				width: 800,
@@ -722,14 +744,96 @@ function baseToolModule () {
 				});
 			});
 
-			// Load from file
+			// Load from file - sniff each upload for the 5etools homebrew shape (adventure/
+			// adventureData or book/bookData keys) and route it to the homebrew importer instead
+			// of treating it as a pre-built Roll20-module file.
+			const isHomebrewJson = (d) => !!((d.adventure?.length && d.adventureData?.length) || (d.book?.length && d.bookData?.length));
+
 			const $btnLoadFile = $win.find(`[name="load-file"]`);
 			$btnLoadFile.off("click").click(async () => {
 				const data = await InputUiUtil.pGetUserUploadJson();
 				// Due to the new util functon, need to account for data being an array
 				data.jsons.forEach(d => {
+					if (isHomebrewJson(d)) {
+						d20plus.homebrew.importParsed(d);
+						return;
+					}
 					preprocessModuleData(d);
 					handleLoadedData(d);
+				});
+			});
+
+			// Homebrew: uses the 5etools-mirror "homebrew" repo's generated index (the same data
+			// 5etools.com's own homebrew browser uses) rather than the pre-built Roll20-module
+			// format above - homebrew adventures/books are raw 5etools JSON, so they route through
+			// d20plus.homebrew.importParsed (js/5etools/5etools-adventures.js), which opens the
+			// Adventure Importer's own dialog, not this one's category list.
+			const HOMEBREW_INDEX_BASE = "https://raw.githubusercontent.com/TheGiddyLimit/homebrew/master/_generated";
+			const HOMEBREW_FILE_BASE = "https://raw.githubusercontent.com/TheGiddyLimit/homebrew/master";
+
+			const $winHomebrew = $(`#d20plus-module-importer-homebrew`);
+			const $btnSearchHomebrew = $win.find(`[name="search-homebrew"]`);
+			$btnSearchHomebrew.off("click").click(() => {
+				$winHomebrew.dialog("open");
+				const $lst = $winHomebrew.find(`.list`);
+				const $btnLoad = $winHomebrew.find(`.load`).off("click");
+				$lst.html("<i>Loading...</i>");
+
+				Promise.all([
+					DataUtil.loadJSON(`${HOMEBREW_INDEX_BASE}/index-props.json`),
+					DataUtil.loadJSON(`${HOMEBREW_INDEX_BASE}/index-meta.json`),
+				]).then(([props, meta]) => {
+					const byPath = {};
+					(Object.entries(props.adventure || {})).forEach(([path]) => { byPath[path] = byPath[path] || {path, isAdventure: false, isBook: false}; byPath[path].isAdventure = true; });
+					(Object.entries(props.book || {})).forEach(([path]) => { byPath[path] = byPath[path] || {path, isAdventure: false, isBook: false}; byPath[path].isBook = true; });
+
+					const entries = Object.values(byPath).map(e => {
+						const filename = e.path.slice(e.path.indexOf("/") + 1);
+						const m = meta[filename] || {};
+						const names = m.n || [filename.replace(/\.json$/, "")];
+						return {
+							...e,
+							filename,
+							name: names.join(" / "),
+							edition: m.e === 1 ? "2014+2024" : "2024",
+						};
+					}).sort((a, b) => SortUtil.ascSortLower(a.name, b.name));
+
+					let tmp = "";
+					entries.forEach((t, i) => {
+						tmp += `
+								<label class="import-cb-label" data-listid="${i}">
+									<input type="radio" name="homebrew-select">
+									<span class="name col-8 readable">${t.name}</span>
+									<span class="type col-2 readable" style="text-align: center;">${t.isAdventure && t.isBook ? "Adv/Book" : t.isAdventure ? "Adventure" : "Book"}</span>
+									<span class="edition col-2 readable" style="text-align: center;">${t.edition}</span>
+								</label>
+							`;
+					});
+					$lst.html(tmp);
+					tmp = null;
+
+					const listHomebrew = new List("module-importer-list-homebrew", {valueNames: ["name"]});
+
+					$btnLoad.on("click", () => {
+						const sel = listHomebrew.items
+							.filter(it => $(it.elm).find(`input`).prop("checked"))
+							.map(it => entries[$(it.elm).attr("data-listid")])[0];
+						if (!sel) return;
+
+						$winHomebrew.dialog("close");
+						DataUtil.loadJSON(`${HOMEBREW_FILE_BASE}/${sel.path.split("/").map(encodeURIComponent).join("/")}`)
+							.then(data => d20plus.homebrew.importParsed(data, {displayName: sel.name}))
+							.catch(e => {
+								// eslint-disable-next-line no-console
+								console.error(e);
+								alert(`Failed to load homebrew data! See the console for more information.`);
+							});
+					});
+				}).catch(e => {
+					$lst.html("<i>Failed to load homebrew index.</i>");
+					// eslint-disable-next-line no-console
+					console.error(e);
 				});
 			});
 
