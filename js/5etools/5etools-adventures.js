@@ -1,6 +1,7 @@
 function d20plusAdventure () {
 	d20plus.adventures = {};
 	d20plus.books = {};
+	d20plus.homebrew = {};
 
 	const ROLL20_PX = 70;
 	const GRID_DIVISORS = [100, 140, 72, 80, 60, 50, 90, 120, 150, 70];
@@ -92,15 +93,30 @@ function d20plusAdventure () {
 		return [...names];
 	}
 
-	// Fetch creature data from CDN, grouped by source
-	async function fetchCreatureData (refs) {
+	// Fetch creature data from CDN, grouped by source. `homebrewMonsters`, if given, is checked
+	// first (name+source, falling back to name-only) since homebrew-defined creatures won't
+	// exist on the official CDN under any source code.
+	async function fetchCreatureData (refs, homebrewMonsters) {
 		if (!refs.length) return [];
+		const result = [];
+		const remaining = [];
+		if (homebrewMonsters?.length) {
+			refs.forEach(ref => {
+				const nameLower = ref.name.toLowerCase();
+				const match = homebrewMonsters.find(m => m.name.toLowerCase() === nameLower && (m.source || "").toLowerCase() === ref.source.toLowerCase())
+					|| homebrewMonsters.find(m => m.name.toLowerCase() === nameLower);
+				if (match) result.push(match);
+				else remaining.push(ref);
+			});
+		} else {
+			remaining.push(...refs);
+		}
+
 		const bySource = {};
-		refs.forEach(({name, source}) => {
+		remaining.forEach(({name, source}) => {
 			if (!bySource[source]) bySource[source] = new Set();
 			bySource[source].add(name.toLowerCase());
 		});
-		const result = [];
 		for (const [source, names] of Object.entries(bySource)) {
 			const filename = monsterDataUrls[source] || monsterDataUrls[source.toLowerCase()];
 			if (!filename) {
@@ -119,17 +135,29 @@ function d20plusAdventure () {
 		return result;
 	}
 
-	// Fetch item data using the same pipeline as the normal item button (loads mastery/property refs)
-	async function fetchItemData (itemNames) {
+	// Fetch item data using the same pipeline as the normal item button (loads mastery/property refs).
+	// `homebrewItems`, if given, is checked first for names not resolved from the official CDN.
+	async function fetchItemData (itemNames, homebrewItems) {
 		if (!itemNames.length) return [];
 		const nameSet = new Set(itemNames);
+		const result = [];
+		if (homebrewItems?.length) {
+			homebrewItems.forEach(it => {
+				const nameLower = it.name.toLowerCase();
+				if (nameSet.has(nameLower)) {
+					result.push(it);
+					nameSet.delete(nameLower);
+				}
+			});
+		}
+		if (!nameSet.size) return result;
 		try {
 			await Renderer.item.pPopulatePropertyAndTypeReference();
 			const allItems = await Renderer.item.pBuildList();
-			return allItems.filter(it => nameSet.has(it.name.toLowerCase()));
+			return result.concat(allItems.filter(it => nameSet.has(it.name.toLowerCase())));
 		} catch (e) {
 			d20plus.ut.log(`Item fetch failed: ${e.message || e}`);
-			return [];
+			return result;
 		}
 	}
 
@@ -288,105 +316,129 @@ function d20plusAdventure () {
 		return result;
 	}
 
-	// Some adventure maps declare `grid.size` as a whole multiple of the grid actually
-	// painted on the artwork (schema requires `grid.size >= 50`, so on maps with a finer
-	// painted grid the author declares a multiple and bumps `grid.scale` to compensate).
-	// This causes Roll20's grid to come out 2-4x too coarse. Detect the real painted pitch
-	// by measuring the image directly, rather than guessing from the JSON alone (JSON-only
-	// rules were tried and proven wrong - structurally identical entries need different
-	// treatment depending on the actual artwork).
-	async function measurePaintedGridSize (entry) {
+	// Resolve a map entry's image URL the same way buildMapObject does, for fetching purposes.
+	function resolveMapImageUrl (entry) {
+		const href = entry.href || {};
+		if (href.type === "internal" && href.path) {
+			return `https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main/${href.path}`;
+		}
+		return href.url || href.path || "";
+	}
+
+	// Some homebrew map entries omit width/height entirely (just {type:"image", href, title,
+	// imageType, id} - no grid, no dimensions at all). buildMapObject's `entry.width || 1750`
+	// fallback then guesses a square 1750x1750 for whatever the real image size is - verified
+	// against a real case (declared: none, actual: 960x480) this produces a completely wrong
+	// size/aspect ratio, not just a coarse grid. Separately, some adventure maps declare
+	// `grid.size` as a whole multiple of the grid actually painted on the artwork (schema
+	// requires `grid.size >= 50`, so on maps with a finer painted grid the author declares a
+	// multiple and bumps `grid.scale` to compensate), causing Roll20's grid to come out 2-4x too
+	// coarse. Both cases require inspecting the real image, so do it once per map: fetch+decode
+	// only when needed, and reuse the same decoded bitmap for whichever check applies.
+	async function analyzeMapImage (entry) {
+		const result = {realWidth: null, realHeight: null, paintedGridSize: null};
 		const grid = entry.grid || {};
-		if (grid.type !== "square" || !grid.size || !grid.scale) return null;
-		if (!Number.isInteger(grid.scale) || grid.scale < 2) return null;
+		const needsDimensions = !entry.width || !entry.height;
 
 		const candidates = [];
-		for (let m = 2; m <= 8; m++) {
-			const ft = (grid.scale * 5) / m;
-			if (![5, 10, 15, 20].includes(ft)) continue;
-			const pitch = grid.size / m;
-			if (pitch >= 8) candidates.push(pitch);
+		if (grid.type === "square" && grid.size && Number.isInteger(grid.scale) && grid.scale >= 2) {
+			for (let m = 2; m <= 8; m++) {
+				const ft = (grid.scale * 5) / m;
+				if (![5, 10, 15, 20].includes(ft)) continue;
+				const pitch = grid.size / m;
+				if (pitch >= 8) candidates.push(pitch);
+			}
 		}
-		if (!candidates.length) return null;
+		const needsGridCheck = candidates.length > 0;
 
-		const href = entry.href || {};
-		let imgUrl;
-		if (href.type === "internal" && href.path) {
-			imgUrl = `https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main/${href.path}`;
-		} else {
-			imgUrl = href.url || href.path || "";
-		}
-		if (!imgUrl) return null;
+		if (!needsDimensions && !needsGridCheck) return result;
+
+		const imgUrl = resolveMapImageUrl(entry);
+		if (!imgUrl) return result;
 
 		let bitmap;
 		try {
 			const resp = await fetch(imgUrl, {mode: "cors"});
-			if (!resp.ok) return null;
+			if (!resp.ok) return result;
 			const blob = await resp.blob();
 			bitmap = await createImageBitmap(blob);
-		} catch (e) { return null; }
+		} catch (e) { return result; }
 
-		const canvas = document.createElement("canvas");
-		canvas.width = bitmap.width;
-		canvas.height = bitmap.height;
-		const ctx = canvas.getContext("2d", {willReadFrequently: true});
-		ctx.drawImage(bitmap, 0, 0);
-		let imgData;
-		try {
-			imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-		} catch (e) { return null; } // e.g. tainted canvas
-		bitmap.close?.();
-
-		const {width: w, height: h, data} = imgData;
-		const gray = new Float64Array(w * h);
-		for (let i = 0; i < w * h; i++) {
-			gray[i] = (data[i * 4] + data[i * 4 + 1] + data[i * 4 + 2]) / 3;
+		if (needsDimensions) {
+			result.realWidth = bitmap.width;
+			result.realHeight = bitmap.height;
 		}
 
-		const profX = new Float64Array(w);
-		for (let y = 0; y < h; y++) {
-			const row = y * w;
-			for (let x = 1; x < w; x++) profX[x] += Math.abs(gray[row + x] - gray[row + x - 1]);
-		}
-		const profY = new Float64Array(h);
-		for (let y = 1; y < h; y++) {
-			const row = y * w, prev = (y - 1) * w;
-			for (let x = 0; x < w; x++) profY[y] += Math.abs(gray[row + x] - gray[prev + x]);
-		}
-		const meanSubtract = arr => {
-			const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
-			for (let i = 0; i < arr.length; i++) arr[i] -= mean;
-		};
-		meanSubtract(profX);
-		meanSubtract(profY);
+		if (needsGridCheck) {
+			const canvas = document.createElement("canvas");
+			canvas.width = bitmap.width;
+			canvas.height = bitmap.height;
+			const ctx = canvas.getContext("2d", {willReadFrequently: true});
+			ctx.drawImage(bitmap, 0, 0);
+			let imgData;
+			try {
+				imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			} catch (e) { imgData = null; } // e.g. tainted canvas
 
-		const autocorrAt = (prof, lag) => {
-			const n = prof.length;
-			const L = Math.floor(lag), frac = lag - L;
-			let num = 0, d1 = 0, d2 = 0;
-			for (let i = 0; i + L + 1 < n; i++) {
-				const shifted = prof[i + L] * (1 - frac) + prof[i + L + 1] * frac;
-				num += prof[i] * shifted;
-				d1 += prof[i] * prof[i];
-				d2 += shifted * shifted;
+			if (imgData) {
+				const {width: w, height: h, data} = imgData;
+				const gray = new Float64Array(w * h);
+				for (let i = 0; i < w * h; i++) {
+					gray[i] = (data[i * 4] + data[i * 4 + 1] + data[i * 4 + 2]) / 3;
+				}
+
+				const profX = new Float64Array(w);
+				for (let y = 0; y < h; y++) {
+					const row = y * w;
+					for (let x = 1; x < w; x++) profX[x] += Math.abs(gray[row + x] - gray[row + x - 1]);
+				}
+				const profY = new Float64Array(h);
+				for (let y = 1; y < h; y++) {
+					const row = y * w, prev = (y - 1) * w;
+					for (let x = 0; x < w; x++) profY[y] += Math.abs(gray[row + x] - gray[prev + x]);
+				}
+				const meanSubtract = arr => {
+					const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+					for (let i = 0; i < arr.length; i++) arr[i] -= mean;
+				};
+				meanSubtract(profX);
+				meanSubtract(profY);
+
+				const autocorrAt = (prof, lag) => {
+					const n = prof.length;
+					const L = Math.floor(lag), frac = lag - L;
+					let num = 0, d1 = 0, d2 = 0;
+					for (let i = 0; i + L + 1 < n; i++) {
+						const shifted = prof[i + L] * (1 - frac) + prof[i + L + 1] * frac;
+						num += prof[i] * shifted;
+						d1 += prof[i] * prof[i];
+						d2 += shifted * shifted;
+					}
+					return d1 && d2 ? num / Math.sqrt(d1 * d2) : 0;
+				};
+
+				// Empirically-derived thresholds (measured against 15 real adventure maps: 5
+				// known-broken, 10 known-good). Broken maps scored >=0.44 mean / >=0.35 min; good
+				// maps scored <=0.30 mean / <=0.19 min. Accept the finest candidate pitch that
+				// clears both bars on both axes.
+				for (const pitch of candidates.sort((a, b) => a - b)) {
+					const corrX = autocorrAt(profX, pitch);
+					const corrY = autocorrAt(profY, pitch);
+					if (Math.min(corrX, corrY) >= 0.3 && (corrX + corrY) / 2 >= 0.4) {
+						result.paintedGridSize = pitch;
+						break;
+					}
+				}
 			}
-			return d1 && d2 ? num / Math.sqrt(d1 * d2) : 0;
-		};
-
-		// Empirically-derived thresholds (measured against 15 real adventure maps: 5 known-broken,
-		// 10 known-good). Broken maps scored >=0.44 mean / >=0.35 min; good maps scored <=0.30 mean
-		// / <=0.19 min. Accept the finest candidate pitch that clears both bars on both axes.
-		for (const pitch of candidates.sort((a, b) => a - b)) {
-			const corrX = autocorrAt(profX, pitch);
-			const corrY = autocorrAt(profY, pitch);
-			if (Math.min(corrX, corrY) >= 0.3 && (corrX + corrY) / 2 >= 0.4) return pitch;
 		}
-		return null;
+
+		bitmap.close?.();
+		return result;
 	}
 
 	// Build a Roll20 map object from a 5etools map image entry.
 	// `paintedGridSize`, if given, is a directly-measured pixel pitch of the grid actually
-	// painted on the artwork (see `measurePaintedGridSize`) - used when the declared
+	// painted on the artwork (see `analyzeMapImage`) - used when the declared
 	// `grid.size` is a multiple of the painted grid rather than the painted grid itself.
 	function buildMapObject (entry, foundryMaps, paintedGridSize) {
 		const title = entry.title || entry.name || "Map";
@@ -591,7 +643,7 @@ function d20plusAdventure () {
 		const contentSource = opts.contentSource || null;
 
 		$("a.ui-tabs-anchor[href='#journal']").trigger("click");
-		const data = await DataUtil.loadJSON(url);
+		const data = opts.data || await DataUtil.loadJSON(url);
 		const meta = getMeta(data, contentId) || {name: contentId || "Unknown", contents: []};
 		const sections = getData(data);
 
@@ -672,7 +724,12 @@ function d20plusAdventure () {
 			const mapObjects = [];
 			for (const e of mapEntries) {
 				let paintedGridSize = null;
-				try { paintedGridSize = await measurePaintedGridSize(e); } catch (err) { paintedGridSize = null; }
+				try {
+					const analysis = await analyzeMapImage(e);
+					paintedGridSize = analysis.paintedGridSize;
+					if (analysis.realWidth && !e.width) e.width = analysis.realWidth;
+					if (analysis.realHeight && !e.height) e.height = analysis.realHeight;
+				} catch (err) { paintedGridSize = null; }
 				mapObjects.push(buildMapObject(e, foundryMaps, paintedGridSize));
 			}
 			if (mapObjects.length) savedMaps = await importMaps(mapObjects);
@@ -684,15 +741,17 @@ function d20plusAdventure () {
 			: {};
 
 		// Pre-fetch all creature and item data from CDN before opening selection dialogs,
-		// so the subsequent dialog callbacks are synchronous (no async inside setInterval)
-		d20plus.ut.log("Fetching referenced creature/item data from CDN...");
+		// so the subsequent dialog callbacks are synchronous (no async inside setInterval).
+		// For homebrew, opts.homebrewData carries the monster/item arrays bundled in the SAME
+		// uploaded/fetched file, since those won't exist on the official CDN by source code.
+		d20plus.ut.log("Fetching referenced creature/item data...");
 		const [monsters, items] = await Promise.all([
 			(toImport.includes("Creatures") && hasCreatures)
-				? fetchCreatureData(extractCreatureRefs(sections))
+				? fetchCreatureData(extractCreatureRefs(sections), opts.homebrewData?.monster)
 					.catch(e => { d20plus.ut.log("Creature fetch error: " + e); return []; })
 				: Promise.resolve([]),
 			(toImport.includes("Items") && hasItems)
-				? fetchItemData(extractItemRefs(sections))
+				? fetchItemData(extractItemRefs(sections), opts.homebrewData?.item)
 					.catch(e => { d20plus.ut.log("Item fetch error: " + e); return []; })
 				: Promise.resolve([]),
 		]);
@@ -827,10 +886,58 @@ function d20plusAdventure () {
 		loadContent(url, {
 			contentId: id,
 			contentSource: bkMeta?.source,
-			getData: json => json.data,
-			getMeta: (json, cid) => (typeof bookMetadata !== "undefined" && bookMetadata.book?.find(b => b.id?.toLowerCase() === cid?.toLowerCase()))
+			getData: json => json.bookData ? json.bookData[0].data : json.data,
+			getMeta: (json, cid) => json.book?.[0]
+				|| (typeof bookMetadata !== "undefined" && bookMetadata.book?.find(b => b.id?.toLowerCase() === cid?.toLowerCase()))
 				|| {name: cid || "Book", contents: []},
 		});
+	};
+
+	// Homebrew import: takes an already-parsed 5etools-format JSON blob (from file upload or a
+	// fetched homebrew URL) rather than a URL to fetch. Homebrew "collection" files can bundle
+	// adventure AND book content in the same file (5etools-mirror repos confirm this happens),
+	// so ask which to import when both are present.
+	d20plus.homebrew.importParsed = async function (data, opts = {}) {
+		const hasAdventure = !!(data.adventure?.length && data.adventureData?.length);
+		const hasBook = !!(data.book?.length && data.bookData?.length);
+		if (!hasAdventure && !hasBook) {
+			alert("This file doesn't contain adventure or book content to import.");
+			return;
+		}
+
+		let useType;
+		if (hasAdventure && hasBook) {
+			try {
+				const sel = await d20plus.ui.chooseCheckboxList(["Adventure", "Book"], `${opts.displayName || "This homebrew file"} contains both an Adventure and a Book. Which do you want to import?`, {count: 1});
+				useType = sel[0];
+			} catch (e) {
+				return; // user cancelled
+			}
+		} else {
+			useType = hasAdventure ? "Adventure" : "Book";
+		}
+
+		const homebrewData = {monster: data.monster, item: data.item};
+
+		if (useType === "Adventure") {
+			await loadContent(null, {
+				data,
+				contentId: opts.contentId || data.adventure[0].id,
+				contentSource: opts.contentSource || data.adventure[0].source,
+				getData: json => json.adventureData[0].data,
+				getMeta: json => json.adventure[0],
+				homebrewData,
+			});
+		} else {
+			await loadContent(null, {
+				data,
+				contentId: opts.contentId || data.book[0].id,
+				contentSource: opts.contentSource || data.book[0].source,
+				getData: json => json.bookData[0].data,
+				getMeta: json => json.book[0],
+				homebrewData,
+			});
+		}
 	};
 }
 
