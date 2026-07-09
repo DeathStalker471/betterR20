@@ -235,16 +235,27 @@ function d20plusAdventure () {
 		};
 	}
 
-	// Convert all Foundry walls for a map to Roll20 paths
-	function convertFoundryWalls (foundryMap, roll20W, roll20H) {
+	// Convert all Foundry walls for a map to Roll20 paths. Foundry/Plutonium scene data is
+	// sometimes authored against a higher-resolution version of the map image than the one
+	// 5etools declares - verified on real LMOP data: Cragmaw Hideout/Redbrand Hideout/Cragmaw
+	// Castle have wall coords matching the declared image 1:1 (ratio ~0.96-1.00 on both axes),
+	// while Ruins of Thundertree/Wave Echo Cave have wall coords at ~2x the declared image size
+	// (ratio ~1.9-1.98 on both axes) - applying imageScale directly to those put every wall
+	// ~2x too far out, outside the map. The two groups are cleanly separated (no data anywhere
+	// between ~1.0 and ~1.9), and both axes agree closely within each map, so the resolution
+	// multiplier can be read off directly: compare the walls' own bounding box to the declared
+	// image size and round to the nearest whole multiple, rather than assuming it's always 1:1.
+	function convertFoundryWalls (foundryMap, imageScale, imgPixelW, imgPixelH) {
 		const walls = foundryMap.walls || [];
 		if (!walls.length) return [];
 		const xs = walls.flatMap(w => w.c?.length === 4 ? [w.c[0], w.c[2]] : []);
 		const ys = walls.flatMap(w => w.c?.length === 4 ? [w.c[1], w.c[3]] : []);
 		if (!xs.length) return [];
 		const maxX = Math.max(...xs), maxY = Math.max(...ys);
-		if (maxX <= 0 || maxY <= 0) return [];
-		const scale = Math.min(roll20W / maxX, roll20H / maxY);
+		if (maxX <= 0 || maxY <= 0 || !imgPixelW || !imgPixelH) return [];
+		const ratio = ((maxX / imgPixelW) + (maxY / imgPixelH)) / 2;
+		const resolutionMultiplier = Math.max(1, Math.round(ratio));
+		const scale = imageScale / resolutionMultiplier;
 		return walls.map(w => foundryWallToPath(w, scale)).filter(Boolean);
 	}
 
@@ -508,11 +519,11 @@ function d20plusAdventure () {
 		const foundryMap = foundryMaps && (foundryMaps[title.toLowerCase()] || foundryMaps[normalizeMapName(title)]);
 		let paths = [];
 		if (foundryMap) {
-			paths = convertFoundryWalls(foundryMap, roll20W, roll20H);
+			paths = convertFoundryWalls(foundryMap, imageScale, imgPixelW, imgPixelH);
 			d20plus.ut.log(`Map "${title}": ${paths.length} wall/door paths from Foundry data`);
 		} else {
 			(entry.mapRegions || []).forEach(r => {
-				const p = regionToPath(r, scaleX, scaleY);
+				const p = regionToPath(r, imageScale, imageScale);
 				if (p) paths.push(p);
 			});
 			if (paths.length) d20plus.ut.log(`Map "${title}": ${paths.length} mapRegion outlines (no Foundry data)`);
