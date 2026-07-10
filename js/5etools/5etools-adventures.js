@@ -195,7 +195,7 @@ function d20plusAdventure () {
 		return null;
 	}
 
-	// Convert one Foundry wall segment to a Roll20 path dict
+	// Convert one plain (non-door) Foundry wall segment to a Roll20 path dict
 	function foundryWallToPath (wall, scale) {
 		const coords = wall.c;
 		if (!coords || coords.length !== 4) return null;
@@ -204,12 +204,6 @@ function d20plusAdventure () {
 		const maxX = Math.max(x1, x2), maxY = Math.max(y1, y2);
 		const w = Math.max(1, Math.round(maxX - minX));
 		const h = Math.max(1, Math.round(maxY - minY));
-		const isDoor = !!wall.door;
-		const isLockedDoor = wall.ds === 2;
-		const isSecretDoor = wall.door === 2;
-		const stroke = isDoor
-			? (isLockedDoor ? "#ff0000" : isSecretDoor ? "#800080" : "#00ff00")
-			: "#0000ff";
 		return {
 			path: JSON.stringify([
 				["M", Math.round(x1 - minX), Math.round(y1 - minY)],
@@ -217,13 +211,13 @@ function d20plusAdventure () {
 			]),
 			shape: "", points: "",
 			barrierType: "wall",
-			z_index: isDoor ? 1 : 0,
+			z_index: 0,
 			fill: "transparent",
-			stroke,
+			stroke: "#0000ff",
 			type: "path",
 			rotation: 0,
 			layer: "walls",
-			stroke_width: isSecretDoor ? 8 : 5,
+			stroke_width: 5,
 			controlledby: "", groupwith: "",
 			width: w, height: h,
 			top: Math.round(minY + h / 2),
@@ -235,7 +229,34 @@ function d20plusAdventure () {
 		};
 	}
 
-	// Convert all Foundry walls for a map to Roll20 paths. Foundry/Plutonium scene data is
+	// Convert one Foundry door wall segment to a Roll20 native Door object dict.
+	// Roll20's Door/Window objects use an inverted y axis for their own position (confirmed
+	// against base-tool-dlimport.js's proven working UVTT/DungeonAlchemist importer, which
+	// uses the identical `x: xCenter, y: -yCenter` convention) - the handle offsets themselves
+	// are inverted too, since the whole door object shares one y-inverted coordinate frame -
+	// confirmed by real diagonal-door testing: leaving handle y un-inverted (matching
+	// base-tool-dlimport.js's convention) mirrored diagonal doors' rotation while leaving
+	// horizontal/vertical doors unaffected (dy=0 or dx=0 respectively, so the sign flip is a no-op
+	// for those two cases specifically, which is exactly the symptom observed).
+	function foundryWallToDoor (wall, scale) {
+		const coords = wall.c;
+		if (!coords || coords.length !== 4) return null;
+		const [x1, y1, x2, y2] = coords.map(v => v * scale);
+		const xCenter = (x1 + x2) / 2, yCenter = (y1 + y2) / 2;
+		return {
+			color: "#00ff00",
+			x: xCenter, y: -yCenter,
+			isOpen: wall.ds === 1,
+			isLocked: wall.ds === 2,
+			isSecret: wall.door === 2,
+			path: {
+				handle0: {x: x1 - xCenter, y: yCenter - y1},
+				handle1: {x: x2 - xCenter, y: yCenter - y2},
+			},
+		};
+	}
+
+	// Convert all Foundry walls for a map to Roll20 paths/doors. Foundry/Plutonium scene data is
 	// sometimes authored against a higher-resolution version of the map image than the one
 	// 5etools declares - verified on real LMOP data: Cragmaw Hideout/Redbrand Hideout/Cragmaw
 	// Castle have wall coords matching the declared image 1:1 (ratio ~0.96-1.00 on both axes),
@@ -247,16 +268,21 @@ function d20plusAdventure () {
 	// image size and round to the nearest whole multiple, rather than assuming it's always 1:1.
 	function convertFoundryWalls (foundryMap, imageScale, imgPixelW, imgPixelH) {
 		const walls = foundryMap.walls || [];
-		if (!walls.length) return [];
+		if (!walls.length) return {paths: [], doors: []};
 		const xs = walls.flatMap(w => w.c?.length === 4 ? [w.c[0], w.c[2]] : []);
 		const ys = walls.flatMap(w => w.c?.length === 4 ? [w.c[1], w.c[3]] : []);
-		if (!xs.length) return [];
+		if (!xs.length) return {paths: [], doors: []};
 		const maxX = Math.max(...xs), maxY = Math.max(...ys);
-		if (maxX <= 0 || maxY <= 0 || !imgPixelW || !imgPixelH) return [];
+		if (maxX <= 0 || maxY <= 0 || !imgPixelW || !imgPixelH) return {paths: [], doors: []};
 		const ratio = ((maxX / imgPixelW) + (maxY / imgPixelH)) / 2;
 		const resolutionMultiplier = Math.max(1, Math.round(ratio));
 		const scale = imageScale / resolutionMultiplier;
-		return walls.map(w => foundryWallToPath(w, scale)).filter(Boolean);
+		const wallSegs = walls.filter(w => !w.door);
+		const doorSegs = walls.filter(w => w.door);
+		return {
+			paths: wallSegs.map(w => foundryWallToPath(w, scale)).filter(Boolean),
+			doors: doorSegs.map(w => foundryWallToDoor(w, scale)).filter(Boolean),
+		};
 	}
 
 	// Convert mapRegion polygon to a wall outline path
@@ -517,10 +543,10 @@ function d20plusAdventure () {
 
 		// Look up Foundry wall data by title
 		const foundryMap = foundryMaps && (foundryMaps[title.toLowerCase()] || foundryMaps[normalizeMapName(title)]);
-		let paths = [];
+		let paths = [], doors = [];
 		if (foundryMap) {
-			paths = convertFoundryWalls(foundryMap, imageScale, imgPixelW, imgPixelH);
-			d20plus.ut.log(`Map "${title}": ${paths.length} wall/door paths from Foundry data`);
+			({paths, doors} = convertFoundryWalls(foundryMap, imageScale, imgPixelW, imgPixelH));
+			d20plus.ut.log(`Map "${title}": ${paths.length} wall paths, ${doors.length} doors from Foundry data`);
 		} else {
 			(entry.mapRegions || []).forEach(r => {
 				const p = regionToPath(r, imageScale, imageScale);
@@ -531,6 +557,7 @@ function d20plusAdventure () {
 
 		const mapId = makeId();
 		paths.forEach(p => { p.page_id = mapId; });
+		doors.forEach(d => { d.pageid = mapId; });
 
 		return {
 			mapId,
@@ -553,7 +580,7 @@ function d20plusAdventure () {
 				scale_units: grid.units || "ft",
 				archived: false,
 				thumbnail: imgUrl,
-				dynamic_lighting_enabled: paths.length > 0,
+				dynamic_lighting_enabled: (paths.length + doors.length) > 0,
 				id: mapId,
 			},
 			backgroundGraphic: {
@@ -566,6 +593,7 @@ function d20plusAdventure () {
 				id: makeId(),
 			},
 			paths,
+			doors,
 		};
 	}
 
@@ -589,6 +617,9 @@ function d20plusAdventure () {
 					savedPage.thegraphics?.create(bg);
 					mo.paths.forEach(p => {
 						savedPage.thepaths?.create({...p, page_id: savedPage.id});
+					});
+					mo.doors.forEach(d => {
+						savedPage.doors?.create({...d, pageid: savedPage.id});
 					});
 					savedMaps.push({roll20PageId, areaCentroids: mo.areaCentroids, title: mo.title});
 					d20plus.ut.log(`Map page created: ${mo.title}`);
