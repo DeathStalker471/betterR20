@@ -509,8 +509,8 @@ function d20plusAdventure () {
 				const xs = r.points.map(p => p[0]);
 				const ys = r.points.map(p => p[1]);
 				areaCentroids[r.area] = [
-					(xs.reduce((a, b) => a + b, 0) / xs.length) * scaleX,
-					(ys.reduce((a, b) => a + b, 0) / ys.length) * scaleY,
+					((xs.reduce((a, b) => a + b, 0) / xs.length) + offsetX / gridScale) * imageScale,
+					((ys.reduce((a, b) => a + b, 0) / ys.length) + offsetY / gridScale) * imageScale,
 				];
 			}
 		});
