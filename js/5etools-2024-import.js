@@ -2780,6 +2780,244 @@ function d20plus2024Import() {
 		save2024Store(charModel, storeAttr, store);
 	};
 
+	// A raw 5etools subclass-feature entry is often a "wrapper" object whose own
+	// entries array mixes plain flavor text with further named sub-feature objects
+	// (e.g. the level-3 "Bladesinger" entry nests "Bladesong" and "Training in War
+	// and Song" inside it). At other levels the wrapper itself has NO name at all —
+	// it's just a {level, header, entries} container around one real named feature
+	// (e.g. level 6's wrapper around "Extra Attack"). Split/unwrap both cases so
+	// each real feature becomes its own Features row.
+	function splitSubclassFeature (feature) {
+		if (!feature) return [];
+		if (!feature.entries) return feature.name ? [{name: feature.name, entries: []}] : [];
+
+		const subFeatures = [];
+		const baseEntries = feature.entries.filter(e => {
+			if (e && typeof e === "object" && e.name && e.type === "entries") {
+				subFeatures.push(e);
+				return false;
+			}
+			return true;
+		});
+
+		const result = [];
+		if (feature.name && baseEntries.length) result.push({name: feature.name, entries: baseEntries});
+		subFeatures.forEach(sf => result.push(...splitSubclassFeature(sf)));
+		// Named wrapper had no flavor text of its own and no named sub-features — keep it as-is.
+		if (!result.length && feature.name) result.push({name: feature.name, entries: feature.entries});
+		return result;
+	}
+
+	/**
+	 * Import a 5etools subclass onto a 2024 Jumpgate character.
+	 * Requires the base Class to already have been imported. Subclass features
+	 * attach onto that Class's "Class Level" integrants via the sheet's subClassID
+	 * linkage (the field import2024Class always leaves blank on every level it
+	 * creates) — any levels above the class's current max are created here so
+	 * higher-level subclass features (e.g. level 6/10/14) aren't silently dropped.
+	 */
+	d20plus.importer.import2024Subclass = async function (charModel, data) {
+		const sc = data.Vetoolscontent;
+		if (!sc || !sc.subclassFeatures) return;
+
+		const {attr: storeAttr, store} = get2024Store(charModel);
+		if (!store) return;
+
+		const ints = store.integrants.integrants;
+
+		const className = sc.className || "";
+		const classId = Object.keys(ints).find(id => ints[id].type === "Class" && ints[id].name && ints[id].name.toLowerCase() === className.toLowerCase());
+		if (!classId) {
+			alert(`Import the ${className} class onto this character before importing the ${sc.name} subclass.`);
+			return;
+		}
+
+		const classChildren = JSON.parse(ints[classId].childIDs || "[]");
+		const levelIds = classChildren
+			.filter(id => ints[id] && ints[id].type === "Class Level")
+			.sort((a, b) => ints[a].level - ints[b].level);
+		if (!levelIds.length) return;
+
+		const curMaxLevel = ints[levelIds[levelIds.length - 1]].level;
+
+		// Unlike clss.classFeatures, sc.subclassFeatures is NOT a 20-slot array indexed by
+		// level — it's a compact array holding only the groups that actually have content
+		// (e.g. 4 groups for a subclass with features at 3/6/10/14). Each raw feature inside
+		// a group carries its own explicit "level" property; read that instead of the index.
+		const levelGroups = sc.subclassFeatures
+			.map(group => {
+				const withLevel = (group || []).find(f => f && typeof f.level === "number");
+				return withLevel ? {level: withLevel.level, group} : null;
+			})
+			.filter(Boolean)
+			.sort((a, b) => a.level - b.level);
+		if (!levelGroups.length) return;
+
+		// Lowest level at which the subclass actually grants a feature — this is the
+		// level the subclass was chosen at, so every level from here up gets subClassID set.
+		const subclassLevel = levelGroups[0].level;
+
+		const levelInput = prompt(`Import ${sc.name} at what level? (${subclassLevel}-20)`, String(Math.max(subclassLevel, curMaxLevel)));
+		if (levelInput === null) return;
+		const maxLevel = Math.min(20, Math.max(subclassLevel, parseInt(levelInput, 10) || subclassLevel));
+
+		let pos = getNextArrayPos(store);
+		const makeBase = (type) => {
+			const {id, base} = make2024IntegrantBase(type, pos++);
+			base.source = "Class";
+			return {id, base};
+		};
+
+		const renderer = Renderer.get().setBaseUrl(LINK_BASE_URL);
+
+		// Hit dice size isn't stored on the Class integrant itself — read it off any
+		// existing Class Level's Hit Dice child so newly-created levels match.
+		const sampleHdInt = Object.values(ints).find(i => i.type === "Hit Dice" && i.classID === classId);
+		const dieSize = sampleHdInt ? sampleHdInt.dieSize : 8;
+		const avgHP = Math.ceil((dieSize + 1) / 2);
+
+		// --- Create any missing Class Level integrants up to maxLevel ---
+		for (let lvl = curMaxLevel + 1; lvl <= maxLevel; lvl++) {
+			const {id: lvlId, base: lvlBase} = makeBase("Class Level");
+			ints[lvlId] = {
+				...lvlBase,
+				name: className,
+				recordName: `${className} Level ${lvl}`,
+				level: lvl,
+				totalLevel: lvl,
+				classID: classId,
+				parentID: classId,
+				sourceID: classId,
+				subClassID: "",
+				childIDs: "[]",
+				cascades: {},
+				relations: {},
+			};
+			classChildren.push(lvlId);
+			levelIds.push(lvlId);
+
+			const lvlChildren = [];
+
+			const {id: hdId, base: hdBase} = makeBase("Hit Dice");
+			ints[hdId] = {
+				...hdBase,
+				name: `${className} Hit Dice (Level ${lvl})`,
+				recordName: `${className} Hit Dice (Level ${lvl})`,
+				ability: "Constitution",
+				dieCount: 1,
+				dieSize,
+				recovery: "Long",
+				classID: classId,
+				parentID: lvlId,
+				sourceID: classId,
+				childIDs: "[]",
+				cascades: {},
+				relations: {},
+			};
+			lvlChildren.push(hdId);
+
+			const {id: hpId, base: hpBase} = makeBase("Hit Points");
+			ints[hpId] = {
+				...hpBase,
+				_label: `Hit Points - Max - Level ${lvl}`,
+				name: `Hit Points - Max - Level ${lvl}`,
+				hitpointType: "Maximum",
+				calculation: "Modify",
+				isFixed: false,
+				parentID: lvlId,
+				sourceID: classId,
+				childIDs: "[]",
+				valueFormula: {
+					flatValue: avgHP,
+					ability: {add: true, name: "Constitution"},
+				},
+				cascades: {},
+				relations: {},
+			};
+			lvlChildren.push(hpId);
+
+			ints[lvlId].childIDs = JSON.stringify(lvlChildren);
+		}
+		ints[classId].childIDs = JSON.stringify(classChildren);
+
+		// --- Subclass integrant (attached under the Class, alongside its levels) ---
+		// Re-dragging the same subclass reuses the existing integrant and wipes its old
+		// features first, instead of piling up duplicate "Subclass" integrants/rows.
+		let subclassId = Object.keys(ints).find(id => ints[id].type === "Subclass" && ints[id].parentID === classId && ints[id].name && ints[id].name.toLowerCase() === sc.name.toLowerCase());
+
+		if (subclassId) {
+			Object.keys(ints).forEach(id => {
+				if (ints[id].type !== "Features" || ints[id].sourceID !== subclassId) return;
+				const parent = ints[ints[id].parentID];
+				if (parent) parent.childIDs = JSON.stringify(JSON.parse(parent.childIDs || "[]").filter(cid => cid !== id));
+				delete ints[id];
+			});
+		} else {
+			const {id, base} = makeBase("Subclass");
+			subclassId = id;
+			ints[subclassId] = {
+				...base,
+				name: sc.name,
+				recordName: sc.name,
+				classID: classId,
+				source: "Custom",
+				parentID: classId,
+				childIDs: "[]",
+				cascades: {},
+				relations: {},
+			};
+		}
+
+		if (store.features?.classFeatureDisplayOrder) {
+			const order = JSON.parse(store.features.classFeatureDisplayOrder || "[]").filter(id => ints[id]);
+			store.features.classFeatureDisplayOrder = JSON.stringify(order);
+		}
+
+		levelIds.forEach(lvlId => {
+			const lvl = ints[lvlId].level;
+			if (lvl >= subclassLevel && lvl <= maxLevel) ints[lvlId].subClassID = subclassId;
+		});
+
+		const subclassFeatureIds = [];
+
+		levelGroups.forEach(({level: lvl, group}) => {
+			if (lvl > maxLevel) return;
+			const lvlId = levelIds.find(id => ints[id].level === lvl);
+			if (!lvlId) return;
+
+			const lvlChildren = JSON.parse(ints[lvlId].childIDs || "[]");
+
+			for (const rawFeature of group) {
+				splitSubclassFeature(rawFeature).forEach(feature => {
+					const renderStack = [];
+					if (feature.entries?.length) renderer.recursiveRender({entries: feature.entries}, renderStack);
+					const description = d20plus.importer.getCleanText(renderStack.join(""));
+
+					const {id: featId, base: featBase} = makeBase("Features");
+					ints[featId] = {
+						...featBase,
+						name: feature.name,
+						recordName: `${sc.name} ${feature.name}`,
+						description,
+						parentID: lvlId,
+						sourceID: subclassId,
+						childIDs: "[]",
+						cascades: {},
+						relations: {},
+					};
+					lvlChildren.push(featId);
+					subclassFeatureIds.push(featId);
+				});
+			}
+
+			ints[lvlId].childIDs = JSON.stringify(lvlChildren);
+		});
+
+		push2024DisplayOrder(store, "features", "classFeatureDisplayOrder", subclassFeatureIds);
+
+		save2024Store(charModel, storeAttr, store);
+	};
+
 	/**
 	 * Route a drag-drop import to the appropriate 2024 handler.
 	 * Falls back to the standard importData path for unhandled categories.
@@ -2794,6 +3032,8 @@ function d20plus2024Import() {
 			d20plus.importer.import2024Item(charModel, data);
 		} else if (category === "Classes") {
 			d20plus.importer.import2024Class(charModel, data);
+		} else if (category === "Subclasses") {
+			d20plus.importer.import2024Subclass(charModel, data);
 		} else if (category === "Races") {
 			d20plus.importer.import2024Race(charModel, data);
 		} else if (category === "Feats") {
