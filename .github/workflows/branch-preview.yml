@@ -1,0 +1,49 @@
+name: Branch Preview
+
+on:
+  push:
+    branches-ignore:
+      - development-jumpgate
+      - main-jumpgate
+      - master
+      - JumpGateTest
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve version
+        run: |
+          BASE=$(grep -oP '(?<=process\.env\.SCRIPT_VERSION \|\| ")[^"]+' node/build-scripts.js)
+          SAFE_BRANCH=$(echo "${{ github.ref_name }}" | tr '/' '-')
+          echo "SCRIPT_VERSION=${BASE}-preview-${SAFE_BRANCH}" >> "$GITHUB_ENV"
+          echo "SCRIPT_REPO=https://mighty-frosty.github.io/betterR20/branches/${SAFE_BRANCH}/" >> "$GITHUB_ENV"
+          echo "SAFE_BRANCH=${SAFE_BRANCH}" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Deploy preview to Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          destination_dir: branches/${{ env.SAFE_BRANCH }}
+          keep_files: true
+          commit_message: "preview: ${{ github.ref_name }} @ ${{ github.sha }}"

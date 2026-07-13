@@ -1,0 +1,101 @@
+name: Build Dist
+
+on:
+  push:
+    branches:
+      - development-jumpgate
+      - main-jumpgate
+
+jobs:
+  build-testing:
+    if: github.ref_name == 'development-jumpgate'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve version
+        run: |
+          BASE=$(grep -oP '(?<=process\.env\.SCRIPT_VERSION \|\| ")[^"]+' node/build-scripts.js)
+          echo "SCRIPT_VERSION=${BASE}-testing" >> "$GITHUB_ENV"
+          # echo "SCRIPT_REPO=https://deathstalker471.github.io/betterR20/" >> "$GITHUB_ENV"
+          echo "SCRIPT_REPO=https://mighty-frosty.github.io/betterR20/" >> "$GITHUB_ENV"
+
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Deploy to Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          keep_files: true
+          commit_message: "deploy: testing build ${{ env.SCRIPT_VERSION }}"
+
+  build-release:
+    if: github.ref_name == 'main-jumpgate'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve version
+        run: |
+          BASE=$(grep -oP '(?<=process\.env\.SCRIPT_VERSION \|\| ")[^"]+' node/build-scripts.js)
+          RELEASE="${BASE%-beta}"
+          NEXT=$(echo "$RELEASE" | awk -F. '{$NF=$NF+1; print}' OFS=.)
+          echo "RELEASE_VERSION=${RELEASE}" >> "$GITHUB_ENV"
+          echo "NEXT_BETA_VERSION=${NEXT}-beta" >> "$GITHUB_ENV"
+          echo "SCRIPT_VERSION=${RELEASE}" >> "$GITHUB_ENV"
+          # echo "SCRIPT_REPO=https://github.com/deathstalker471/betterR20/releases/latest/download/" >> "$GITHUB_ENV"
+          echo "SCRIPT_REPO=https://github.com/mighty-frosty/betterR20/releases/latest/download/" >> "$GITHUB_ENV"
+
+
+      - name: Build
+        run: npm run build
+
+      - name: Create or update release
+        run: |
+          gh release upload "v${{ env.RELEASE_VERSION }}" dist/* --clobber \
+          || gh release create "v${{ env.RELEASE_VERSION }}" dist/* \
+            --title "Release v${{ env.RELEASE_VERSION }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump version on development-jumpgate
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin development-jumpgate
+          git checkout development-jumpgate
+          sed -i 's/process\.env\.SCRIPT_VERSION || "[^"]*"/process.env.SCRIPT_VERSION || "${{ env.NEXT_BETA_VERSION }}"/' node/build-scripts.js
+          git add node/build-scripts.js
+          git commit -m "chore: bump version to ${{ env.NEXT_BETA_VERSION }}"
+          git push origin development-jumpgate

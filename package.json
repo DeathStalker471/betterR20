@@ -7,14 +7,21 @@
 	"scripts": {
 		"lint": "eslint js js/overwrites js/templates",
 		"lint:fix": "eslint js js/overwrites js/templates --fix",
-		"build": "node node/build-scripts.js"
+		"build": "node node/build-scripts.js",
+		"test": "npm run build && jest",
+		"test:ci": "npm run build && jest"
 	},
 	"repository": "5etools/5etoolsR20",
 	"dependencies": {
-		"js-beautify": "^1.15.2",
-		"rollup": "^4.20.0"
+		"js-beautify": "^1.15.4",
+		"rollup": "^4.62.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.32.0"
+		"@types/jquery": "^4.0.1",
+		"eslint": "^10.5.0",
+		"jest": "^30.4.2"
+	},
+	"engines": {
+		"node": ">=24.0.0"
 	}
 }

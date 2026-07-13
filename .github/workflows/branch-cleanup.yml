@@ -1,0 +1,42 @@
+name: Branch Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+  delete:
+
+jobs:
+  cleanup:
+    # For delete events, only act on branch deletions (not tags)
+    if: github.event_name == 'pull_request' || github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Resolve branch name
+        run: |
+          if [ "${{ github.event_name }}" = "delete" ]; then
+            RAW_BRANCH="${{ github.event.ref }}"
+          else
+            RAW_BRANCH="${{ github.head_ref }}"
+          fi
+          SAFE_BRANCH=$(echo "$RAW_BRANCH" | tr '/' '-')
+          echo "SAFE_BRANCH=${SAFE_BRANCH}" >> "$GITHUB_ENV"
+
+      - name: Remove preview folder
+        run: |
+          if [ -d "branches/${{ env.SAFE_BRANCH }}" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git rm -rf "branches/${{ env.SAFE_BRANCH }}"
+            git commit -m "cleanup: remove preview for ${{ env.SAFE_BRANCH }}"
+            git push
+          else
+            echo "No preview found for branches/${{ env.SAFE_BRANCH }}, nothing to clean up."
+          fi

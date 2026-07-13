@@ -119,6 +119,7 @@ function initHTMLroll20EditorsMisc () {
 							</label>
 							<input class='tags'>
 							<div class='clear'></div>
+							<$ } $>
 							<label>
 								<strong>JSON Import/Export</strong>
 							</label>
@@ -128,6 +129,7 @@ function initHTMLroll20EditorsMisc () {
 								<a class='showtip pictos' title='Export or overwrite this character as JSON. Overwriting will replace this sheet&#39;s data.'>?</a>
 							</div>
 							<div class='clear'></div>
+							<$ if(window.is_gm) { $>
 							<hr>
 							<$ if(this.get("ownedBy")) { $>
 							<button class='removefromgame btn btn-danger' data-test='character-remove-from-game' style='float: right;'>
