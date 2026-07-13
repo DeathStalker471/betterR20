@@ -2,9 +2,9 @@
 // @name         betteR20-beta-core-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.4-beta-testing
-// @updateURL    https://mighty-frosty.github.io/betterR20/betteR20-core.meta.js
-// @downloadURL  https://mighty-frosty.github.io/betterR20/betteR20-core.user.js
+// @version      1.36.1.5-beta-testing
+// @updateURL    https://deathstalker471.github.io/betterR20/betteR20-core.meta.js
+// @downloadURL  https://deathstalker471.github.io/betterR20/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
 // @author       TheGiddyLimit/Redweller
 

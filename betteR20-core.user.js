@@ -2,9 +2,9 @@
 // @name         betteR20-beta-core-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.4-beta-testing
-// @updateURL    https://mighty-frosty.github.io/betterR20/betteR20-core.meta.js
-// @downloadURL  https://mighty-frosty.github.io/betterR20/betteR20-core.user.js
+// @version      1.36.1.5-beta-testing
+// @updateURL    https://deathstalker471.github.io/betterR20/betteR20-core.meta.js
+// @downloadURL  https://deathstalker471.github.io/betterR20/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
 // @author       TheGiddyLimit/Redweller
 
@@ -30,8 +30,8 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.36.1.4-beta-testing`;
-B20_REPO_URL = `https://mighty-frosty.github.io/betterR20/`;
+B20_VERSION = `1.36.1.5-beta-testing`;
+B20_REPO_URL = `https://deathstalker471.github.io/betterR20/`;
 
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";
