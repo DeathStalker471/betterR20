@@ -28,8 +28,8 @@ jobs:
         run: |
           BASE=$(grep -oP '(?<=process\.env\.SCRIPT_VERSION \|\| ")[^"]+' node/build-scripts.js)
           echo "SCRIPT_VERSION=${BASE}-testing" >> "$GITHUB_ENV"
-          # echo "SCRIPT_REPO=https://deathstalker471.github.io/betterR20/" >> "$GITHUB_ENV"
-          echo "SCRIPT_REPO=https://mighty-frosty.github.io/betterR20/" >> "$GITHUB_ENV"
+          echo "SCRIPT_REPO=https://deathstalker471.github.io/betterR20/" >> "$GITHUB_ENV"
+          # echo "SCRIPT_REPO=https://mighty-frosty.github.io/betterR20/" >> "$GITHUB_ENV"
 
 
       - name: Build
@@ -73,8 +73,8 @@ jobs:
           echo "RELEASE_VERSION=${RELEASE}" >> "$GITHUB_ENV"
           echo "NEXT_BETA_VERSION=${NEXT}-beta" >> "$GITHUB_ENV"
           echo "SCRIPT_VERSION=${RELEASE}" >> "$GITHUB_ENV"
-          # echo "SCRIPT_REPO=https://github.com/deathstalker471/betterR20/releases/latest/download/" >> "$GITHUB_ENV"
-          echo "SCRIPT_REPO=https://github.com/mighty-frosty/betterR20/releases/latest/download/" >> "$GITHUB_ENV"
+          echo "SCRIPT_REPO=https://github.com/deathstalker471/betterR20/releases/latest/download/" >> "$GITHUB_ENV"
+          # echo "SCRIPT_REPO=https://github.com/mighty-frosty/betterR20/releases/latest/download/" >> "$GITHUB_ENV"
 
 
       - name: Build
