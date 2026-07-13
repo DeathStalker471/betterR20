@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const SCRIPT_VERSION = process.env.SCRIPT_VERSION || "1.36.1.5-beta";
-const SCRIPT_REPO = process.env.SCRIPT_REPO || "https://github.com/mighty-frosty/betterR20/releases/latest/download/";
+const SCRIPT_REPO = process.env.SCRIPT_REPO || "https://github.com/DeathStalker471/betterR20/releases/latest/download/";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 1.36.1.1jj - Weather Configuration
