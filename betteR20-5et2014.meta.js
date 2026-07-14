@@ -2,7 +2,7 @@
 // @name         betteR20-beta-5et2014-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.5-beta-testing
+// @version      1.36.1.6-beta-testing
 // @updateURL    https://deathstalker471.github.io/betterR20/betteR20-5et2014.meta.js
 // @downloadURL  https://deathstalker471.github.io/betterR20/betteR20-5et2014.user.js
 // @description  Enhance your Roll20 experience
