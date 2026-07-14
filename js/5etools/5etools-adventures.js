@@ -477,7 +477,10 @@ function d20plusAdventure () {
 	// `paintedGridSize`, if given, is a directly-measured pixel pitch of the grid actually
 	// painted on the artwork (see `analyzeMapImage`) - used when the declared
 	// `grid.size` is a multiple of the painted grid rather than the painted grid itself.
-	function buildMapObject (entry, foundryMaps, paintedGridSize) {
+	// `wallLookupTitle`, if given, is used instead of the entry's own title to key into
+	// `foundryMaps` - needed for "mapPlayer" entries, whose own title is often a generic
+	// literal like "Player Version" and would otherwise never match Foundry's map names.
+	function buildMapObject (entry, foundryMaps, paintedGridSize, wallLookupTitle) {
 		const title = entry.title || entry.name || "Map";
 		const grid = entry.grid || {};
 		const imgPixelW = entry.width || 1750;
@@ -542,7 +545,8 @@ function d20plusAdventure () {
 		});
 
 		// Look up Foundry wall data by title
-		const foundryMap = foundryMaps && (foundryMaps[title.toLowerCase()] || foundryMaps[normalizeMapName(title)]);
+		const lookupTitle = wallLookupTitle || title;
+		const foundryMap = foundryMaps && (foundryMaps[lookupTitle.toLowerCase()] || foundryMaps[normalizeMapName(lookupTitle)]);
 		let paths = [], doors = [];
 		if (foundryMap) {
 			({paths, doors} = convertFoundryWalls(foundryMap, imageScale, imgPixelW, imgPixelH));
@@ -763,6 +767,13 @@ function d20plusAdventure () {
 		let savedMaps = [];
 		if (toImport.includes("Maps") && hasMaps) {
 			const mapEntries = findMapEntries(sections);
+			// "mapPlayer" entries carry their own title as the generic literal "Player Version"
+			// (5etools schema), so they can't be keyed into `foundryMaps` directly - resolve
+			// via `mapParent.id`, which points back at the sibling "map" entry's real title.
+			const idToTitle = {};
+			mapEntries.forEach(e => {
+				if (e.imageType === "map" && e.id) idToTitle[e.id] = e.title || e.name;
+			});
 			const mapObjects = [];
 			for (const e of mapEntries) {
 				let paintedGridSize = null;
@@ -772,7 +783,10 @@ function d20plusAdventure () {
 					if (analysis.realWidth && !e.width) e.width = analysis.realWidth;
 					if (analysis.realHeight && !e.height) e.height = analysis.realHeight;
 				} catch (err) { paintedGridSize = null; }
-				mapObjects.push(buildMapObject(e, foundryMaps, paintedGridSize));
+				const wallLookupTitle = e.imageType === "mapPlayer" && e.mapParent?.id
+					? idToTitle[e.mapParent.id]
+					: null;
+				mapObjects.push(buildMapObject(e, foundryMaps, paintedGridSize, wallLookupTitle));
 			}
 			if (mapObjects.length) savedMaps = await importMaps(mapObjects);
 		}
