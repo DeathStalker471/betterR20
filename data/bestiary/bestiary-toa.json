@@ -637,6 +637,9 @@
 			"name": "Almiraj",
 			"source": "ToA",
 			"page": 211,
+			"referenceSources": [
+				"TTP"
+			],
 			"size": [
 				"S"
 			],
@@ -1099,13 +1102,9 @@
 			"name": "Assassin Vine",
 			"source": "ToA",
 			"page": 213,
-			"otherSources": [
-				{
-					"source": "GoS"
-				},
-				{
-					"source": "SDW"
-				}
+			"referenceSources": [
+				"GoS",
+				"SDW"
 			],
 			"size": [
 				"L"
@@ -1387,7 +1386,8 @@
 				"N",
 				"G"
 			],
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Bag of Nails",
@@ -1616,6 +1616,9 @@
 			"name": "Chwinga",
 			"source": "ToA",
 			"page": 216,
+			"referenceSources": [
+				"TTP"
+			],
 			"size": [
 				"T"
 			],
@@ -1979,6 +1982,9 @@
 			"name": "Eblis",
 			"source": "ToA",
 			"page": 219,
+			"referenceSources": [
+				"TTP"
+			],
 			"size": [
 				"L"
 			],
@@ -2116,7 +2122,8 @@
 					}
 				}
 			},
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Elok Jaharwon",
@@ -2171,7 +2178,8 @@
 				"N",
 				"G"
 			],
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Fenthaza",
@@ -2404,6 +2412,9 @@
 			"name": "Giant Snapping Turtle",
 			"source": "ToA",
 			"page": 222,
+			"referenceSources": [
+				"TTP"
+			],
 			"size": [
 				"L"
 			],
@@ -2619,7 +2630,8 @@
 				"H",
 				"X"
 			],
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Grabstab",
@@ -2808,6 +2820,9 @@
 			"name": "Jaculi",
 			"source": "ToA",
 			"page": 225,
+			"referenceSources": [
+				"TTP"
+			],
 			"size": [
 				"L"
 			],
@@ -2960,6 +2975,9 @@
 			"name": "Kamadan",
 			"source": "ToA",
 			"page": 225,
+			"referenceSources": [
+				"TLK"
+			],
 			"size": [
 				"L"
 			],
@@ -3204,7 +3222,8 @@
 					}
 				}
 			},
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Kwayothé",
@@ -3283,10 +3302,9 @@
 			"isNamedCreature": true,
 			"source": "ToA",
 			"page": 227,
-			"otherSources": [
-				{
-					"source": "BGDIA"
-				}
+			"referenceSources": [
+				"BGDIA",
+				"TTP"
 			],
 			"size": [
 				"M"
@@ -3525,7 +3543,8 @@
 				"L",
 				"G"
 			],
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Mwaxanaré",
@@ -3970,7 +3989,8 @@
 				"N",
 				"G"
 			],
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Ras Nsi",
@@ -3978,6 +3998,9 @@
 			"isNamedCreature": true,
 			"source": "ToA",
 			"page": 230,
+			"referenceSources": [
+				"TTP"
+			],
 			"size": [
 				"M"
 			],
@@ -4245,7 +4268,8 @@
 					}
 				}
 			},
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Salida",
@@ -4367,7 +4391,8 @@
 				"intimidation": "+5",
 				"survival": "+7"
 			},
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Skeleton Key",
@@ -4794,7 +4819,8 @@
 				]
 			},
 			"alignment": [
-				"L"
+				"L",
+				"N"
 			],
 			"languages": [
 				"Common",
@@ -5844,10 +5870,9 @@
 			"isNamedCreature": true,
 			"source": "ToA",
 			"page": 235,
-			"otherSources": [
-				{
-					"source": "WDH"
-				}
+			"referenceSources": [
+				"TTP",
+				"WDH"
 			],
 			"size": [
 				"M"

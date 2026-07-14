@@ -266,7 +266,7 @@
 				}
 			],
 			"entries": [
-				"lf you take the Dodge action, you gain the following benefits: until the start of your next turn, any attack roll made against you has {@variantrule Disadvantage|XPHB} if you can see the attacker, and you make Dexterity {@variantrule Saving Throw|XPHB|saving throws} with {@variantrule Advantage|XPHB}.",
+				"If you take the Dodge action, you gain the following benefits: until the start of your next turn, any attack roll made against you has {@variantrule Disadvantage|XPHB} if you can see the attacker, and you make Dexterity {@variantrule Saving Throw|XPHB|saving throws} with {@variantrule Advantage|XPHB}.",
 				"You lose these benefits if you have the {@condition Incapacitated|XPHB} condition or if your {@variantrule Speed|XPHB} is 0."
 			]
 		},
@@ -418,7 +418,7 @@
 			],
 			"entries": [
 				"As an action, a character can use a healing surge and spend up to half his or her Hit Dice. For each Hit Die spent in this way, the player rolls the die and adds the character's Constitution modifier. The character regains hit points equal to the total. The player can decide to spend an additional Hit Die after each roll.",
-				"A character who uses a healing surge can't do so again until he or she finishes a short or long rest. Under this optional rule, a character regains all spent Hit Dice at the end of a long rest. With a short rest, a character regains Hit Dice equal to his or her level divided by four (minimum of one dice)."
+				"A character who uses a healing surge can't do so again until he or she finishes a short or long rest. Under this optional rule, a character regains all spent Hit Dice at the end of a long rest. With a short rest, a character regains Hit Dice equal to his or her level divided by four (minimum of one die)."
 			]
 		},
 		{
@@ -508,7 +508,7 @@
 			],
 			"entries": [
 				"With the Hide action, you try to conceal yourself. To do so, you must succeed on a {@dc 15} Dexterity ({@skill Stealth|XPHB}) check while you're {@variantrule Heavily Obscured|XPHB} or behind {@variantrule Cover|XPHB|Three-Quarters Cover or Total Cover}, and you must be out of any enemy's line of sight; if you can see a creature, you can discern whether it can see you.",
-				"On a successful check, you have the {@condition Invisible|XPHB} condition. Make note of your check's total, which is the DC for a creature to find you with a Wisdom ({@skill Perception|XPHB}) check.",
+				"On a successful check, you have the {@condition Invisible|XPHB} condition while hidden. Make note of your check's total, which is the DC for a creature to find you with a Wisdom ({@skill Perception|XPHB}) check.",
 				"You stop being hidden immediately after any of the following occurs: you make a sound louder than a whisper, an enemy finds you, you make an attack roll, or you cast a spell with a Verbal component."
 			]
 		},
@@ -647,8 +647,8 @@
 				}
 			],
 			"entries": [
-				"When you take the Magic action, you cast a spell that has a casting time of an action or use a feature or magic item that requires a Magic action to be activated.",
-				"If you cast a spell that has a casting time of 1 minute or longer, you must take the Magic action on each turn of that casting, and you must maintain {@status Concentration|XPHB} while you do so. If your {@status Concentration|XPHB} is broken, the spell fails, but you don't expend a spell slot."
+				"When you take the {@action Magic|XPHB} action, you cast a spell that has a casting time of an action or use a feature or magic item that requires a {@action Magic|XPHB} action to be activated.",
+				"If you cast a spell that has a casting time of 1 minute or longer, you must take the {@action Magic|XPHB} action on each turn of that casting, and you must maintain {@status Concentration|XPHB} while you do so. If your {@status Concentration|XPHB} is broken, the spell fails, but you don't expend a spell slot."
 			]
 		},
 		{

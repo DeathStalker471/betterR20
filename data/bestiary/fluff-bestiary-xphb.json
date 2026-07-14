@@ -10,7 +10,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Aberrant Spirit.webp"
 					},
-					"credit": "Justine Cruz"
+					"credit": "Justine Cruz",
+					"width": 1189,
+					"height": 890
 				}
 			]
 		},
@@ -24,7 +26,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Animated Object.webp"
 					},
-					"credit": "David Auden Nash"
+					"credit": "David Auden Nash",
+					"width": 802,
+					"height": 1333
 				}
 			]
 		},
@@ -37,7 +41,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/XPHB/Beast of the Land.webp"
-					}
+					},
+					"width": 1745,
+					"height": 1440
 				}
 			]
 		},
@@ -50,7 +56,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/XPHB/Beast of the Sea.webp"
-					}
+					},
+					"width": 1285,
+					"height": 1440
 				}
 			]
 		},
@@ -63,7 +71,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/XPHB/Beast of the Sky.webp"
-					}
+					},
+					"width": 1279,
+					"height": 1440
 				}
 			]
 		},
@@ -76,7 +86,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/XPHB/Bestial Spirit.webp"
-					}
+					},
+					"width": 1475,
+					"height": 1440
 				}
 			]
 		},
@@ -90,7 +102,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Celestial Spirit.webp"
 					},
-					"credit": "Eric Belisle"
+					"credit": "Eric Belisle",
+					"width": 1238,
+					"height": 1440
 				}
 			]
 		},
@@ -104,7 +118,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Construct Spirit.webp"
 					},
-					"credit": "Hector Ortiz"
+					"credit": "Hector Ortiz",
+					"width": 850,
+					"height": 1241
 				}
 			]
 		},
@@ -118,7 +134,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Draconic Spirit.webp"
 					},
-					"credit": "Polar Engine"
+					"credit": "Polar Engine",
+					"width": 1152,
+					"height": 1440
 				}
 			]
 		},
@@ -131,7 +149,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/XPHB/Elemental Spirit.webp"
-					}
+					},
+					"width": 883,
+					"height": 1393
 				}
 			]
 		},
@@ -145,7 +165,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Fey Spirit.webp"
 					},
-					"credit": "Joseph Weston"
+					"credit": "Joseph Weston",
+					"width": 1111,
+					"height": 1440
 				}
 			]
 		},
@@ -159,7 +181,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Fiendish Spirit.webp"
 					},
-					"credit": "Alexandre Honore"
+					"credit": "Alexandre Honore",
+					"width": 1403,
+					"height": 1440
 				}
 			]
 		},
@@ -172,7 +196,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/XPHB/Giant Insect.webp"
-					}
+					},
+					"width": 1128,
+					"height": 1440
 				}
 			]
 		},
@@ -186,7 +212,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Otherworldly Steed.webp"
 					},
-					"credit": "Nikki Dawes"
+					"credit": "Nikki Dawes",
+					"width": 1304,
+					"height": 1339
 				}
 			]
 		},
@@ -200,7 +228,9 @@
 						"type": "internal",
 						"path": "bestiary/XPHB/Undead Spirit.webp"
 					},
-					"credit": "Ustin Sweet"
+					"credit": "Ustin Sweet",
+					"width": 1108,
+					"height": 1440
 				}
 			]
 		}

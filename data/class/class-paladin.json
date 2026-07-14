@@ -833,6 +833,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -898,6 +899,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -963,6 +965,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1025,6 +1028,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1087,6 +1091,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1151,6 +1156,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1190,7 +1196,7 @@
 							"hypnotic pattern"
 						],
 						"13": [
-							"Otiluke's resilient sphere",
+							"Otiluke's Resilient Sphere",
 							"stoneskin"
 						],
 						"17": [
@@ -1224,6 +1230,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1305,6 +1312,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1377,6 +1385,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1568,6 +1577,7 @@
 			"source": "FRHoF",
 			"className": "Paladin",
 			"classSource": "XPHB",
+			"page": 20,
 			"edition": "one",
 			"additionalSpells": [
 				{
@@ -4397,7 +4407,7 @@
 						],
 						[
 							"13th",
-							"{@spell Otiluke's resilient sphere}, {@spell stoneskin}"
+							"{@spell Otiluke's Resilient Sphere}, {@spell stoneskin}"
 						],
 						[
 							"17th",
@@ -4540,6 +4550,7 @@
 		{
 			"name": "Dao's Crush",
 			"source": "FRHoF",
+			"page": 20,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4556,6 +4567,7 @@
 		{
 			"name": "Djinni's Escape",
 			"source": "FRHoF",
+			"page": 20,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4572,6 +4584,7 @@
 		{
 			"name": "Efreeti's Fury",
 			"source": "FRHoF",
+			"page": 21,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4588,6 +4601,7 @@
 		{
 			"name": "Elemental Smite",
 			"source": "FRHoF",
+			"page": 20,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4616,6 +4630,7 @@
 		{
 			"name": "Genie Spells",
 			"source": "FRHoF",
+			"page": 21,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4661,6 +4676,7 @@
 		{
 			"name": "Genie's Splendor",
 			"source": "FRHoF",
+			"page": 21,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4674,6 +4690,7 @@
 		{
 			"name": "Marid's Surge",
 			"source": "FRHoF",
+			"page": 21,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4690,6 +4707,7 @@
 		{
 			"name": "Oath of the Noble Genies",
 			"source": "FRHoF",
+			"page": 20,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4725,6 +4743,7 @@
 		{
 			"name": "Aura of Elemental Shielding",
 			"source": "FRHoF",
+			"page": 21,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4739,6 +4758,7 @@
 		{
 			"name": "Elemental Rebuke",
 			"source": "FRHoF",
+			"page": 21,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4753,6 +4773,7 @@
 		{
 			"name": "Noble Scion",
 			"source": "FRHoF",
+			"page": 21,
 			"className": "Paladin",
 			"classSource": "XPHB",
 			"subclassShortName": "Noble Genies",
@@ -4998,7 +5019,7 @@
 					"rows": [
 						[
 							"3rd",
-							"{@spell Protection from Evil And Good|XPHB}, {@spell Shield of Faith|XPHB}"
+							"{@spell Protection from Evil and Good|XPHB}, {@spell Shield of Faith|XPHB}"
 						],
 						[
 							"5th",

@@ -229,6 +229,141 @@
 		}
 	},
 	{
+		"name": "Backlash",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "4d6",
+			"Damage Type": "Force",
+			"Save Success": "Half damage",
+			"Add Casting Modifier": "Yes",
+			"Higher Spell Slot Die": "d6",
+			"Higher Spell Slot Dice": "1"
+		}
+	},
+	{
+		"name": "Blade of Disaster",
+		"source": "FRHoF",
+		"data": {
+			"Damage": "10d6",
+			"Damage Type": "Force",
+			"Spell Attack": "Melee"
+		}
+	},
+	{
+		"name": "Cacophonic Shield",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "3d6",
+			"Damage Type": "Thunder",
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d6",
+			"Higher Spell Slot Dice": "1"
+		}
+	},
+	{
+		"name": "Conjure Constructs",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Dexterity"
+		}
+	},
+	{
+		"name": "Death Armor",
+		"source": "FRHoF",
+		"data": {
+			"Damage": "2d4",
+			"Damage Type": "Necrotic"
+		}
+	},
+	{
+		"name": "Dirge",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "3d10",
+			"Damage Type": "Necrotic",
+			"Save Success": "Half damage"
+		}
+	},
+	{
+		"name": "Doomtide",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Wisdom",
+			"Damage": "5d6",
+			"Damage Type": "Psychic",
+			"Save Success": "Half damage"
+		}
+	},
+	{
+		"name": "Holy Star of Mystra",
+		"source": "FRHoF",
+		"data": {
+			"Add Casting Modifier": "Yes"
+		}
+	},
+	{
+		"name": "Laeral's Silver Lance",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Strength",
+			"Damage": "3d10",
+			"Damage Type": "Force",
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d10",
+			"Higher Spell Slot Dice": "1"
+		}
+	},
+	{
+		"name": "Simbul's Synostodweomer",
+		"source": "FRHoF",
+		"data": {
+			"Add Casting Modifier": "Yes"
+		}
+	},
+	{
+		"name": "Songal's Elemental Suffusion",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Dexterity"
+		}
+	},
+	{
+		"name": "Spellfire Flare",
+		"source": "FRHoF",
+		"data": {
+			"Damage": "2d10",
+			"Damage Type": "Radiant",
+			"Spell Attack": "Ranged"
+		}
+	},
+	{
+		"name": "Spellfire Storm",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "4d10",
+			"Damage Type": "Radiant",
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d10",
+			"Higher Spell Slot Dice": "1"
+		}
+	},
+	{
+		"name": "Wardaway",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "2d4",
+			"Damage Type": "Force",
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d4",
+			"Higher Spell Slot Dice": "2"
+		}
+	},
+	{
 		"name": "Ashardalon's Stride",
 		"source": "FTD",
 		"data": {

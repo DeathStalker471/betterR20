@@ -1064,10 +1064,8 @@
 			"name": "Dark Tide Knight",
 			"source": "PotA",
 			"page": 205,
-			"otherSources": [
-				{
-					"source": "SLW"
-				}
+			"referenceSources": [
+				"SLW"
 			],
 			"size": [
 				"M"
@@ -1772,10 +1770,8 @@
 			"name": "Fathomer",
 			"source": "PotA",
 			"page": 207,
-			"otherSources": [
-				{
-					"source": "GoS"
-				}
+			"referenceSources": [
+				"GoS"
 			],
 			"size": [
 				"M"

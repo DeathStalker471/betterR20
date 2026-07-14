@@ -242,10 +242,8 @@
 			"name": "Aurumvorax",
 			"source": "JttRC",
 			"page": 105,
-			"otherSources": [
-				{
-					"source": "QftIS"
-				}
+			"referenceSources": [
+				"QftIS"
 			],
 			"size": [
 				"S"
@@ -346,10 +344,8 @@
 			"name": "Aurumvorax Den Leader",
 			"source": "JttRC",
 			"page": 105,
-			"otherSources": [
-				{
-					"source": "QftIS"
-				}
+			"referenceSources": [
+				"QftIS"
 			],
 			"size": [
 				"M"
@@ -1712,8 +1708,7 @@
 				"Tletlahtolli"
 			],
 			"spellcastingTags": [
-				"CC",
-				"I"
+				"CC"
 			],
 			"hasToken": true,
 			"hasFluffImages": true

@@ -7,6 +7,9 @@
 				"MOT"
 			]
 		},
+		"internalCopies": [
+			"monster"
+		],
 		"otherSources": {
 			"monster": {
 				"MM": "CM",
@@ -473,7 +476,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"Bak Mei takes the Disengage or Hide action."
+						"Bak Mei takes the {@action Disengage} or {@action Hide} action."
 					]
 				}
 			],
@@ -646,6 +649,9 @@
 			"name": "Chwinga",
 			"source": "CM",
 			"page": 212,
+			"referenceSources": [
+				"ToA"
+			],
 			"_copy": {
 				"name": "Chwinga",
 				"source": "ToA"
@@ -791,6 +797,7 @@
 				}
 			],
 			"traitTags": [
+				"Ethereal Sight",
 				"Incorporeal Movement",
 				"Regeneration"
 			],
@@ -1009,6 +1016,11 @@
 				"name": "Dragon Turtle",
 				"source": "MM",
 				"_mod": {
+					"*": {
+						"mode": "replaceTxt",
+						"replace": "turtle",
+						"with": "tortoise"
+					},
 					"trait": {
 						"mode": "removeArr",
 						"names": "Amphibious"
@@ -1036,8 +1048,7 @@
 				"DR",
 				"T"
 			],
-			"hasToken": true,
-			"hasFluff": true
+			"hasToken": true
 		},
 		{
 			"name": "Faerl",
@@ -1607,6 +1618,7 @@
 		},
 		{
 			"name": "Hag of the Fetid Gaze",
+			"isNpc": true,
 			"source": "CM",
 			"page": 76,
 			"_copy": {
@@ -1885,7 +1897,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"Jade Tigress takes the Disengage or Hide action."
+						"Jade Tigress takes the {@action Disengage} or {@action Hide} action."
 					]
 				}
 			],
@@ -3237,6 +3249,27 @@
 			"hasToken": true,
 			"hasFluff": true,
 			"hasFluffImages": true
+		},
+		{
+			"name": "Ogruhl",
+			"isNpc": true,
+			"isNamedCreature": true,
+			"source": "CM",
+			"page": 205,
+			"_copy": {
+				"name": "Dragon Tortoise",
+				"source": "CM",
+				"_mod": {
+					"*": {
+						"mode": "replaceTxt",
+						"replace": "the dragon tortoise",
+						"with": "Ogruhl",
+						"flags": "i"
+					}
+				}
+			},
+			"hasToken": true,
+			"hasFluff": true
 		},
 		{
 			"name": "Parasite-infested Behir",

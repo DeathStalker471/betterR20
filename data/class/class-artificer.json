@@ -492,6 +492,7 @@
 		{
 			"name": "Artificer",
 			"source": "EFA",
+			"page": 7,
 			"edition": "one",
 			"primaryAbility": [
 				{
@@ -552,6 +553,15 @@
 				4,
 				4,
 				4
+			],
+			"additionalSpells": [
+				{
+					"innate": {
+						"1": [
+							"mending|xphb#c"
+						]
+					}
+				}
 			],
 			"featProgression": [
 				{
@@ -675,8 +685,8 @@
 					"colLabels": [
 						"Plans Known",
 						"Magic Items",
-						"{@filter Cantrips Known|spells|source=|level=0|class=artificer}",
-						"Prepared Spells"
+						"{@filter Cantrips|spells|level=0|class=artificer}",
+						"{@filter Prepared Spells|spells|level=!0|class=artificer}"
 					],
 					"rows": [
 						[
@@ -1059,6 +1069,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1125,6 +1136,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1197,6 +1209,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1269,6 +1282,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1281,6 +1295,7 @@
 			"source": "EFA",
 			"className": "Artificer",
 			"classSource": "EFA",
+			"page": 12,
 			"additionalSpells": [
 				{
 					"prepared": {
@@ -1337,6 +1352,7 @@
 			"source": "EFA",
 			"className": "Artificer",
 			"classSource": "EFA",
+			"page": 14,
 			"additionalSpells": [
 				{
 					"prepared": {
@@ -1377,6 +1393,7 @@
 			"source": "EFA",
 			"className": "Artificer",
 			"classSource": "EFA",
+			"page": 16,
 			"additionalSpells": [
 				{
 					"prepared": {
@@ -1417,6 +1434,7 @@
 			"source": "EFA",
 			"className": "Artificer",
 			"classSource": "EFA",
+			"page": 18,
 			"additionalSpells": [
 				{
 					"prepared": {
@@ -1457,6 +1475,7 @@
 			"source": "EFA",
 			"className": "Artificer",
 			"classSource": "EFA",
+			"page": 20,
 			"additionalSpells": [
 				{
 					"prepared": {
@@ -1491,17 +1510,60 @@
 				"Superior Atlas|Artificer|EFA|Cartographer|EFA|15|EFA"
 			],
 			"hasFluffImages": true
+		},
+		{
+			"name": "Reanimator",
+			"shortName": "Reanimator",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"additionalSpells": [
+				{
+					"prepared": {
+						"3": [
+							"false life|xphb",
+							"spare the dying|xphb",
+							"witch bolt|xphb"
+						],
+						"5": [
+							"blindness/deafness|xphb",
+							"enhance ability|xphb"
+						],
+						"9": [
+							"animate dead|xphb",
+							"lightning bolt|xphb"
+						],
+						"13": [
+							"blight|xphb",
+							"death ward|xphb"
+						],
+						"17": [
+							"antilife shell|xphb",
+							"raise dead|xphb"
+						]
+					}
+				}
+			],
+			"subclassFeatures": [
+				"Reanimator|Artificer|EFA|Reanimator|RHW|3|RHW",
+				"Strange Modifications|Artificer|EFA|Reanimator|RHW|5|RHW",
+				"Improved Reanimation|Artificer|EFA|Reanimator|RHW|9|RHW",
+				"Macabre Modifications|Artificer|EFA|Reanimator|RHW|9|RHW",
+				"Refined Reanimation|Artificer|EFA|Reanimator|RHW|15|RHW"
+			],
+			"hasFluffImages": true
 		}
 	],
 	"classFeature": [
 		{
 			"name": "Spellcasting",
 			"source": "EFA",
+			"page": 7,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 1,
 			"entries": [
-				"You have learned how to channel magical energy through objects. See the {@book Player's Handbook|XPHB} for the rules on spellcasting. The information below details how you use those rules with Artificer spells, which appear in the Artificer spell list later in the class's description.",
+				"You have learned how to channel magical energy through objects. See the {@book Player's Handbook|XPHB} for the rules on spellcasting. The information below details how you use those rules with Artificer spells, which appear in the {@filter Artificer spell list|spells|class=Artificer} later in the class's description.",
 				{
 					"type": "entries",
 					"entries": [
@@ -1516,7 +1578,7 @@
 							"type": "entries",
 							"name": "Cantrips",
 							"entries": [
-								"You know two Artificer cantrips of your choice. {@spell Acid Splash|XPHB} and {@spell Prestidigitation|XPHB} are recommended.",
+								"You know two {@filter Artificer cantrips|spells|level=0|class=Artificer} of your choice. {@spell Acid Splash|XPHB} and {@spell Prestidigitation|XPHB} are recommended.",
 								"Whenever you finish a {@variantrule Long Rest|XPHB}, you can replace one of your cantrips from this feature with another Artificer cantrip of your choice.",
 								"When you reach Artificer levels 10 and 14, you learn another Artificer cantrip of your choice, as shown in the Cantrips column of the Artificer Features table."
 							]
@@ -1532,8 +1594,8 @@
 							"type": "entries",
 							"name": "Prepared Spells of Level 1+",
 							"entries": [
-								"You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose two level 1 Artificer spells. {@spell Cure Wounds|XPHB} and {@spell Grease|XPHB} are recommended.",
-								"The number of spells on your list increases as you gain Artificer levels, as shown in the Prepared Spells column of the Artificer Features table. Whenever that number increases, choose additional Artificer spells until the number of spells on your list matches the number on the table. The chosen spells must be of a level for which you have spell slots. For example, if you're a level 5 Artificer, your list of prepared spells can include six Artificer spells of levels 1 and 2 in any combination.",
+								"You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose two {@filter level 1 Artificer spells|spells|level=1|class=Artificer}. {@spell Cure Wounds|XPHB} and {@spell Grease|XPHB} are recommended.",
+								"The number of spells on your list increases as you gain Artificer levels, as shown in the Prepared Spells column of the Artificer Features table. Whenever that number increases, choose additional {@filter Artificer spells|spells|class=Artificer} until the number of spells on your list matches the number on the table. The chosen spells must be of a level for which you have spell slots. For example, if you're a level 5 Artificer, your list of prepared spells can include six Artificer spells of levels 1 and 2 in any combination.",
 								"If another Artificer feature gives you spells that you always have prepared, those don't count against the number of spells you can prepare with this feature, but those spells otherwise count as Artificer spells for you."
 							]
 						},
@@ -1558,6 +1620,7 @@
 		{
 			"name": "Tinker's Magic",
 			"source": "EFA",
+			"page": 8,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 1,
@@ -1609,6 +1672,7 @@
 		{
 			"name": "Replicate Magic Item",
 			"source": "EFA",
+			"page": 8,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 2,
@@ -1954,16 +2018,18 @@
 		{
 			"name": "Artificer Subclass",
 			"source": "EFA",
+			"page": 10,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 3,
 			"entries": [
-				"You gain an Artificer subclass of your choice. The {@subclass Alchemist|Artificer|EFA|EFA}, {@subclass Armorer|Artificer|EFA|EFA}, {@subclass Artillerist|Artificer|EFA|EFA}, and {@subclass Battle Smith|Artificer|EFA|EFA}, and {@subclass Cartographer|Artificer|EFA|EFA} subclasses are detailed after this class's description. A subclass is a specialization that grants you features at certain Artificer levels. For the rest of your career, you gain each of your subclass's features that are of your Artificer level or lower."
+				"You gain an Artificer subclass of your choice. The {@subclass Alchemist|Artificer|EFA|EFA}, {@subclass Armorer|Artificer|EFA|EFA}, {@subclass Artillerist|Artificer|EFA|EFA}, {@subclass Battle Smith|Artificer|EFA|EFA}, and {@subclass Cartographer|Artificer|EFA|EFA} subclasses are detailed after this class's description. A subclass is a specialization that grants you features at certain Artificer levels. For the rest of your career, you gain each of your subclass's features that are of your Artificer level or lower."
 			]
 		},
 		{
 			"name": "Ability Score Improvement",
 			"source": "EFA",
+			"page": 10,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 4,
@@ -1974,6 +2040,7 @@
 		{
 			"name": "Subclass feature",
 			"source": "EFA",
+			"page": 8,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 5,
@@ -1984,6 +2051,7 @@
 		{
 			"name": "Magic Item Tinker",
 			"source": "EFA",
+			"page": 10,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 6,
@@ -2020,6 +2088,7 @@
 		{
 			"name": "Flash of Genius",
 			"source": "EFA",
+			"page": 10,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 7,
@@ -2031,6 +2100,7 @@
 		{
 			"name": "Ability Score Improvement",
 			"source": "EFA",
+			"page": 10,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 8,
@@ -2041,6 +2111,7 @@
 		{
 			"name": "Subclass feature",
 			"source": "EFA",
+			"page": 8,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 9,
@@ -2051,6 +2122,7 @@
 		{
 			"name": "Magic Item Adept",
 			"source": "EFA",
+			"page": 10,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 10,
@@ -2061,6 +2133,7 @@
 		{
 			"name": "Spell-Storing Item",
 			"source": "EFA",
+			"page": 11,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 11,
@@ -2073,6 +2146,7 @@
 		{
 			"name": "Ability Score Improvement",
 			"source": "EFA",
+			"page": 10,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 12,
@@ -2083,6 +2157,7 @@
 		{
 			"name": "Advanced Artifice",
 			"source": "EFA",
+			"page": 11,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 14,
@@ -2112,6 +2187,7 @@
 		{
 			"name": "Subclass feature",
 			"source": "EFA",
+			"page": 8,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 15,
@@ -2122,6 +2198,7 @@
 		{
 			"name": "Ability Score Improvement",
 			"source": "EFA",
+			"page": 10,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 16,
@@ -2132,6 +2209,7 @@
 		{
 			"name": "Magic Item Master",
 			"source": "EFA",
+			"page": 11,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 18,
@@ -2142,6 +2220,7 @@
 		{
 			"name": "Epic Boon",
 			"source": "EFA",
+			"page": 11,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 19,
@@ -2152,6 +2231,7 @@
 		{
 			"name": "Soul of Artifice",
 			"source": "EFA",
+			"page": 11,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"level": 20,
@@ -2705,6 +2785,7 @@
 		{
 			"name": "Alchemist",
 			"source": "EFA",
+			"page": 12,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Alchemist",
@@ -2730,6 +2811,7 @@
 		{
 			"name": "Alchemist Spells",
 			"source": "EFA",
+			"page": 13,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Alchemist",
@@ -2740,6 +2822,7 @@
 				{
 					"caption": "Alchemist Spells",
 					"type": "table",
+					"page": 13,
 					"colLabels": [
 						"Artificer Level",
 						"Spells"
@@ -2776,6 +2859,7 @@
 		{
 			"name": "Experimental Elixir",
 			"source": "EFA",
+			"page": 13,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Alchemist",
@@ -2801,6 +2885,7 @@
 				{
 					"caption": "Experimental Elixir",
 					"type": "table",
+					"page": 13,
 					"colLabels": [
 						"1d6",
 						"Effect"
@@ -2841,6 +2926,7 @@
 		{
 			"name": "Tools of the Trade",
 			"source": "EFA",
+			"page": 12,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Alchemist",
@@ -2867,6 +2953,7 @@
 		{
 			"name": "Alchemical Savant",
 			"source": "EFA",
+			"page": 14,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Alchemist",
@@ -2880,6 +2967,7 @@
 		{
 			"name": "Restorative Reagents",
 			"source": "EFA",
+			"page": 14,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Alchemist",
@@ -2893,6 +2981,7 @@
 		{
 			"name": "Chemical Mastery",
 			"source": "EFA",
+			"page": 14,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Alchemist",
@@ -2927,6 +3016,7 @@
 		{
 			"name": "Arcane Armor",
 			"source": "EFA",
+			"page": 15,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -2961,6 +3051,7 @@
 		{
 			"name": "Armor Model",
 			"source": "EFA",
+			"page": 15,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -2987,6 +3078,7 @@
 		{
 			"name": "Armorer",
 			"source": "EFA",
+			"page": 14,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3016,6 +3108,7 @@
 		{
 			"name": "Armorer Spells",
 			"source": "EFA",
+			"page": 15,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3026,6 +3119,7 @@
 				{
 					"caption": "Armorer Spells",
 					"type": "table",
+					"page": 15,
 					"colLabels": [
 						"Artificer Level",
 						"Spells"
@@ -3062,6 +3156,7 @@
 		{
 			"name": "Dreadnaught",
 			"source": "EFA",
+			"page": 15,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3094,6 +3189,7 @@
 		{
 			"name": "Guardian",
 			"source": "EFA",
+			"page": 15,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3120,6 +3216,7 @@
 		{
 			"name": "Infiltrator",
 			"source": "EFA",
+			"page": 15,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3159,6 +3256,7 @@
 		{
 			"name": "Tools of the Trade",
 			"source": "EFA",
+			"page": 14,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3169,6 +3267,7 @@
 				{
 					"type": "entries",
 					"name": "Armor Training",
+					"page": 15,
 					"entries": [
 						"You gain training with Heavy armor."
 					]
@@ -3176,6 +3275,7 @@
 				{
 					"type": "entries",
 					"name": "Tool Proficiency",
+					"page": 15,
 					"entries": [
 						"You gain proficiency with {@item Smith's Tools|XPHB}. If you already have this tool proficiency, you gain proficiency with one other type of {@item Artisan's Tools|XPHB} of your choice."
 					]
@@ -3183,6 +3283,7 @@
 				{
 					"type": "entries",
 					"name": "Armor Crafting",
+					"page": 15,
 					"entries": [
 						"When you craft nonmagical or magic armor, the amount of time required to craft it is halved."
 					]
@@ -3192,6 +3293,7 @@
 		{
 			"name": "Extra Attack",
 			"source": "EFA",
+			"page": 15,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3205,6 +3307,7 @@
 		{
 			"name": "Improved Armorer",
 			"source": "EFA",
+			"page": 15,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3216,6 +3319,7 @@
 				{
 					"type": "entries",
 					"name": "Armor Replication",
+					"page": 16,
 					"entries": [
 						"You learn an additional plan for your Replicate Magic Item feature, and it must be in the Armor category. If you replace that plan, you must replace it with another Armor plan.",
 						"In addition, you can create an additional item with that feature, and the item must also be in the Armor category."
@@ -3224,6 +3328,7 @@
 				{
 					"type": "entries",
 					"name": "Improved Arsenal",
+					"page": 16,
 					"entries": [
 						"You gain a +1 bonus to attack and damage rolls made with the special weapon of your Arcane Armor model."
 					]
@@ -3233,6 +3338,7 @@
 		{
 			"name": "Perfected Armor",
 			"source": "EFA",
+			"page": 16,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Armorer",
@@ -3271,6 +3377,7 @@
 		{
 			"name": "Artillerist",
 			"source": "EFA",
+			"page": 16,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Artillerist",
@@ -3296,6 +3403,7 @@
 		{
 			"name": "Artillerist Spells",
 			"source": "EFA",
+			"page": 16,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Artillerist",
@@ -3306,6 +3414,7 @@
 				{
 					"caption": "Artillerist Spells",
 					"type": "table",
+					"page": 16,
 					"colLabels": [
 						"Artificer Level",
 						"Spells"
@@ -3342,6 +3451,7 @@
 		{
 			"name": "Eldritch Cannon",
 			"source": "EFA",
+			"page": 16,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Artillerist",
@@ -3355,6 +3465,7 @@
 		{
 			"name": "Tools of the Trade",
 			"source": "EFA",
+			"page": 16,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Artillerist",
@@ -3388,6 +3499,7 @@
 		{
 			"name": "Arcane Firearm",
 			"source": "EFA",
+			"page": 17,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Artillerist",
@@ -3402,6 +3514,7 @@
 		{
 			"name": "Explosive Cannon",
 			"source": "EFA",
+			"page": 17,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Artillerist",
@@ -3429,6 +3542,7 @@
 		{
 			"name": "Fortified Position",
 			"source": "EFA",
+			"page": 17,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Artillerist",
@@ -3456,6 +3570,7 @@
 		{
 			"name": "Battle Ready",
 			"source": "EFA",
+			"page": 18,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Battle Smith",
@@ -3482,6 +3597,7 @@
 		{
 			"name": "Battle Smith",
 			"source": "EFA",
+			"page": 18,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Battle Smith",
@@ -3511,6 +3627,7 @@
 		{
 			"name": "Battle Smith Spells",
 			"source": "EFA",
+			"page": 18,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Battle Smith",
@@ -3521,6 +3638,7 @@
 				{
 					"caption": "Battle Smith Spells",
 					"type": "table",
+					"page": 18,
 					"colLabels": [
 						"Artificer Level",
 						"Spells"
@@ -3557,6 +3675,7 @@
 		{
 			"name": "Steel Defender",
 			"source": "EFA",
+			"page": 18,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Battle Smith",
@@ -3575,6 +3694,7 @@
 				{
 					"type": "entries",
 					"name": "Restoring or Replacing the Defender",
+					"page": 19,
 					"entries": [
 						"If the defender has died within the last hour, you can take a {@action Magic|XPHB} action to touch it and expend a spell slot. The defender returns to life after 1 minute with all its {@variantrule Hit Points|XPHB} restored.",
 						"Whenever you finish a {@variantrule Long Rest|XPHB}, you can create a new {@creature Steel Defender|EFA|defender} if you have {@item Smith's Tools|XPHB} in hand. If you already have a defender from this feature, the first one vanishes."
@@ -3585,6 +3705,7 @@
 		{
 			"name": "Tools of the Trade",
 			"source": "EFA",
+			"page": 18,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Battle Smith",
@@ -3611,6 +3732,7 @@
 		{
 			"name": "Extra Attack",
 			"source": "EFA",
+			"page": 19,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Battle Smith",
@@ -3624,6 +3746,7 @@
 		{
 			"name": "Arcane Jolt",
 			"source": "EFA",
+			"page": 19,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Battle Smith",
@@ -3658,6 +3781,7 @@
 		{
 			"name": "Improved Defender",
 			"source": "EFA",
+			"page": 19,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Battle Smith",
@@ -3685,6 +3809,7 @@
 		{
 			"name": "Adventurer's Atlas",
 			"source": "EFA",
+			"page": 20,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Cartographer",
@@ -3712,6 +3837,7 @@
 		{
 			"name": "Cartographer",
 			"source": "EFA",
+			"page": 20,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Cartographer",
@@ -3741,6 +3867,7 @@
 		{
 			"name": "Cartographer Spells",
 			"source": "EFA",
+			"page": 20,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Cartographer",
@@ -3751,6 +3878,7 @@
 				{
 					"caption": "Cartographer Spells",
 					"type": "table",
+					"page": 20,
 					"colLabels": [
 						"Artificer Level",
 						"Spells"
@@ -3787,6 +3915,7 @@
 		{
 			"name": "Mapping Magic",
 			"source": "EFA",
+			"page": 21,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Cartographer",
@@ -3813,6 +3942,7 @@
 		{
 			"name": "Tools of the Trade",
 			"source": "EFA",
+			"page": 20,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Cartographer",
@@ -3839,6 +3969,7 @@
 		{
 			"name": "Guided Precision",
 			"source": "EFA",
+			"page": 21,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Cartographer",
@@ -3853,6 +3984,7 @@
 		{
 			"name": "Ingenious Movement",
 			"source": "EFA",
+			"page": 21,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Cartographer",
@@ -3866,6 +3998,7 @@
 		{
 			"name": "Superior Atlas",
 			"source": "EFA",
+			"page": 21,
 			"className": "Artificer",
 			"classSource": "EFA",
 			"subclassShortName": "Cartographer",
@@ -3886,6 +4019,233 @@
 					"name": "Unerring Path",
 					"entries": [
 						"If you are one of the map holders for your Adventurer's Atlas, you can cast {@spell Find the Path|XPHB} without expending a spell slot, without preparing the spell, and without needing spell components. Once you use this benefit, you can't use it again until you finish a {@variantrule Long Rest|XPHB}."
+					]
+				}
+			]
+		},
+		{
+			"name": "Reanimated Companion",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"subclassShortName": "Reanimator",
+			"subclassSource": "RHW",
+			"level": 3,
+			"entries": [
+				"Using {@item Tinker's Tools|XPHB} or another type of Artisan's Tools with which you have proficiency, you can take a {@action Magic|XPHB} action to create a {@creature Reanimated Companion|RHW} through the power of necromancy and science. The companion manifests in an unoccupied space within 5 feet of you. You determine the companion's appearance; your choices don't affect the companion's game statistics.",
+				"The companion is {@variantrule Friendly [Attitude]|XPHB|Friendly} to you and your allies and obeys you. It lasts until you finish a Long Rest or until you take a {@action Magic|XPHB} action to dismiss it early, at which point it harmlessly collapses into a pile of viscera. It immediately drops to 0 Hit Points and dies (triggering its Death Burst trait) if you die.",
+				"Once you create a companion, you can't do so again until you finish a Long Rest or expend a spell slot to create one. You can have only one companion at a time and can't create one while your companion is present.",
+				{
+					"type": "entries",
+					"name": "The Companion in Combat",
+					"entries": [
+						"In combat, the companion acts during your turn. It can move and take its Reaction on its own, but the only action it takes is the {@action Dodge|XPHB} action unless you take a Bonus Action to command it to take an action. If you have the {@condition Incapacitated|XPHB} condition, the companion acts on its own and isn't limited to the Dodge action."
+					]
+				}
+			]
+		},
+		{
+			"name": "Reanimator",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"subclassShortName": "Reanimator",
+			"subclassSource": "RHW",
+			"level": 3,
+			"entries": [
+				"{@i Reassemble Corpses and Raise the Dead}",
+				"Reanimators defy the laws of nature in pursuit of gruesome experiments. These grim Artificers stitch together servants from disparate corpses, use foul magic to strengthen the living, and transform the art of necromancy into a terrifying science.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Reanimator Spells|Artificer|EFA|Reanimator|RHW|3|RHW"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Reanimator's Skill Set|Artificer|EFA|Reanimator|RHW|3|RHW"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Reanimated Companion|Artificer|EFA|Reanimator|RHW|3|RHW"
+				}
+			]
+		},
+		{
+			"name": "Reanimator Spells",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"subclassShortName": "Reanimator",
+			"subclassSource": "RHW",
+			"level": 3,
+			"entries": [
+				"When you reach an Artificer level specified in the Reanimator Spells table, you thereafter always have the listed spells prepared.",
+				{
+					"type": "table",
+					"caption": "Reanimator Spells",
+					"colLabels": [
+						"Artificer Level",
+						"Spells"
+					],
+					"colStyles": [
+						"col-2 text-center",
+						"col-10"
+					],
+					"rows": [
+						[
+							"3",
+							"{@spell False Life|XPHB}, {@spell Spare the Dying|XPHB}, {@spell Witch Bolt|XPHB}"
+						],
+						[
+							"5",
+							"{@spell Blindness/Deafness|XPHB}, {@spell Enhance Ability|XPHB}"
+						],
+						[
+							"9",
+							"{@spell Animate Dead|XPHB}, {@spell Lightning Bolt|XPHB}"
+						],
+						[
+							"13",
+							"{@spell Blight|XPHB}, {@spell Death Ward|XPHB}"
+						],
+						[
+							"17",
+							"{@spell Antilife Shell|XPHB}, {@spell Raise Dead|XPHB}"
+						]
+					]
+				}
+			]
+		},
+		{
+			"name": "Reanimator's Skill Set",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"subclassShortName": "Reanimator",
+			"subclassSource": "RHW",
+			"level": 3,
+			"entries": [
+				"You gain the following benefits.",
+				{
+					"type": "entries",
+					"name": "Jolt to Life",
+					"entries": [
+						"When you cast {@spell Spare the Dying|XPHB}, you can modify the spell so that it sends a jolt of electricity through the target, reviving it. The target regains a number of Hit Points equal to your Artificer level, and each creature of your choice in a 10-foot {@variantrule Emanation [Area of Effect]|XPHB|Emanation} originating from the target makes a Dexterity saving throw against your spell save DC, taking {@damage 2d4} Lightning damage on a failed save or half as much damage on a successful one.",
+						"You can modify the spell this way a number of times equal to your Intelligence modifier, and you regain all expended uses when you finish a Long Rest. The Lightning damage of this feature increases by {@dice 1d4} when you reach Artificer levels 11 ({@dice 3d4}) and 17 ({@dice 4d4})."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Reanimator's Tools",
+					"entries": [
+						"You gain proficiency with {@item Alchemist's Supplies|XPHB}. If you already have this proficiency, you gain proficiency with one other type of Artisan's Tools of your choice."
+					]
+				}
+			]
+		},
+		{
+			"name": "Strange Modifications",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"subclassShortName": "Reanimator",
+			"subclassSource": "RHW",
+			"level": 5,
+			"header": 2,
+			"entries": [
+				"Whenever you create a {@creature Reanimated Companion|RHW}, it gains one of the following options of your choice; choose when you create the companion.",
+				{
+					"type": "entries",
+					"name": "Arcane Conduit",
+					"entries": [
+						"You can cast spells as though you were in the companion's space, but you must use your own senses. Once per turn, when you cast an Artificer spell from the Evocation or Necromancy school and deal damage while your companion is within 120 feet of you, you can add your Intelligence modifier to one damage roll of that spell."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Ferocity",
+					"entries": [
+						"The damage die of the companion's Dreadful Swipe increases to {@dice 1d6}."
+					]
+				}
+			]
+		},
+		{
+			"name": "Improved Reanimation",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"subclassShortName": "Reanimator",
+			"subclassSource": "RHW",
+			"level": 9,
+			"header": 2,
+			"entries": [
+				"The damage of your {@creature Reanimated Companion|RHW|Reanimated Companion's} Death Burst increases to {@dice 4d4}. Necrotic damage dealt by your companion ignores Resistance."
+			]
+		},
+		{
+			"name": "Macabre Modifications",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"subclassShortName": "Reanimator",
+			"subclassSource": "RHW",
+			"level": 9,
+			"header": 2,
+			"entries": [
+				"You experiment and alter your companion further. Whenever you create a {@creature Reanimated Companion|RHW}, the companion now gains two options for Strange Modifications, instead of one. Additionally, when picking options for Strange Modifications, you can also choose from the following options.",
+				{
+					"type": "entries",
+					"name": "Bloated",
+					"entries": [
+						"The companion becomes Large. Whenever it hits a Large or smaller creature with its Dreadful Swipe action, that creature is pushed up to 10 feet away from the companion. Additionally, you can add your Intelligence modifier to the damage dealt by the companion's Death Burst."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Gaunt",
+					"entries": [
+						"The companion's Speed increases to 45 feet, and it gains a Climb Speed equal to its Speed. It can climb difficult surfaces, including along ceilings, without needing to make an ability check. In addition, whenever a creature of your choice starts its turn within a 10-foot {@variantrule Emanation [Area of Effect]|XPHB|Emanation} originating from your companion, the creature must succeed on a Wisdom saving throw against your spell save DC or have the {@condition Frightened|XPHB} condition until the start of its next turn."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Moist",
+					"entries": [
+						"The companion gains a Swim Speed equal to its Speed, and it can move through a space as narrow as 1 inch without expending extra movement to do so. In addition, whenever the companion is hit by an attack roll from a creature within 10 feet of itself, the attacker takes Acid damage equal to your Intelligence modifier."
+					]
+				}
+			]
+		},
+		{
+			"name": "Refined Reanimation",
+			"source": "RHW",
+			"className": "Artificer",
+			"classSource": "EFA",
+			"subclassShortName": "Reanimator",
+			"subclassSource": "RHW",
+			"level": 15,
+			"header": 2,
+			"entries": [
+				"You have mastered the science of revivification, granting you the following benefits.",
+				{
+					"type": "entries",
+					"name": "Facilitated Revival",
+					"entries": [
+						"You can cast {@spell Raise Dead|XPHB} once without expending a spell slot and without Material components, provided you use {@item Tinker's Tools|XPHB} or another type of Artisan's Tools with which you have proficiency as the Spellcasting Focus. Once you use this feature, you can't use it again until you finish a Long Rest."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Life Transfer",
+					"entries": [
+						"You can siphon the animating magic of your {@creature Reanimated Companion|RHW} to bolster yourself. When you or your companion takes damage, you can take a Reaction to gain a number of Hit Points equal to your companion's current Hit Points. The companion then immediately drops to 0 Hit Points and dies (triggering its Death Burst trait)."
+					]
+				},
+				{
+					"type": "entries",
+					"name": "Superior Modifications",
+					"entries": [
+						"Whenever you create a {@creature Reanimated Companion|RHW}, the companion now gains three options for Strange Modifications."
 					]
 				}
 			]

@@ -539,6 +539,9 @@
 			"attachedItems": [
 				"battleaxe|phb"
 			],
+			"traitTags": [
+				"Sure-Footed"
+			],
 			"senseTags": [
 				"D"
 			],
@@ -1201,7 +1204,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"The goblin takes the Disengage or Hide action."
+						"The goblin takes the {@action Disengage} or {@action Hide} action."
 					]
 				},
 				{
@@ -1358,7 +1361,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"The goblin takes the Disengage or Hide action."
+						"The goblin takes the {@action Disengage} or {@action Hide} action."
 					]
 				}
 			],

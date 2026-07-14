@@ -35,7 +35,16 @@ const recursiveReadDir = (p, a = []) => {
 }
 // endregion
 
+function reportSkipped (skipped) {
+	if (!skipped.length) return;
+	msg.warn(`\n/!\\ ${skipped.length} file(s) were NOT updated (missing from upstream source):`);
+	skipped.forEach(pth => msg.warn(`  ${pth}`));
+	msg.warn(`These files are now stale relative to the local copies. If they've moved to a different upstream location, update this script; otherwise they'll keep being skipped on every run.\n`);
+	process.exitCode = 1;
+}
+
 async function main () {
+	const skipped = [];
 	const curListing = recursiveReadDir("data");
 
 	for (const pth of curListing) {
@@ -43,27 +52,29 @@ async function main () {
 		if (_BLOCKLIST_FILENAMES_JSON.has(path.basename(pth))) continue;
 		const pathSiteDir = path.join(SRC_PATH, pth);
 		if (!fs.existsSync(pathSiteDir)) {
-			msg.warn(`File ${pth} does not exist in 5etools data! Skipping.`);
+			skipped.push(pth);
 			continue;
 		}
 		fs.copyFileSync(pathSiteDir, pth);
 	}
 
-	if (!SRC_2014_PATH) return;
-	const oldListing = recursiveReadDir("data2014");
+	if (SRC_2014_PATH) {
+		const oldListing = recursiveReadDir("data2014");
 
-	for (const pth of oldListing) {
-		if (!pth.endsWith(".json")) continue;
-		if (_BLOCKLIST_FILENAMES_JSON.has(path.basename(pth))) continue;
-		const pathSiteDir = path.join(SRC_2014_PATH, pth.replace("data2014", "data"));
-		if (!fs.existsSync(pathSiteDir)) {
-			msg.warn(`File ${pth} does not exist in 5etools data! Skipping.`);
-			continue;
+		for (const pth of oldListing) {
+			if (!pth.endsWith(".json")) continue;
+			if (_BLOCKLIST_FILENAMES_JSON.has(path.basename(pth))) continue;
+			const pathSiteDir = path.join(SRC_2014_PATH, pth.replace("data2014", "data"));
+			if (!fs.existsSync(pathSiteDir)) {
+				skipped.push(pth);
+				continue;
+			}
+			fs.copyFileSync(pathSiteDir, pth);
 		}
-		fs.copyFileSync(pathSiteDir, pth);
 	}
 
 	msg.log("Successfully processed data");
+	reportSkipped(skipped);
 }
 
 require.main === module && main().then(() => msg.log("Done!"));
