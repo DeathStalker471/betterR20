@@ -705,6 +705,7 @@
 		{
 			"name": "Celebrated in House",
 			"source": "EFA",
+			"page": 68,
 			"featureType": [
 				"RP"
 			],
@@ -717,7 +718,7 @@
 				}
 			],
 			"entries": [
-				"When you request a favor from your house (as decribed under \"{@optfeature Favored in House|EFA}\"), it can take one of the following additional forms:",
+				"When you request a favor from your house (as described under \"{@optfeature Favored in House|EFA}\"), it can take one of the following additional forms:",
 				{
 					"type": "list",
 					"items": [
@@ -1668,6 +1669,7 @@
 		{
 			"name": "Favored in House",
 			"source": "EFA",
+			"page": 67,
 			"featureType": [
 				"RP"
 			],
@@ -3406,6 +3408,7 @@
 		{
 			"name": "Preeminent in House",
 			"source": "EFA",
+			"page": 68,
 			"featureType": [
 				"RP"
 			],
@@ -3418,7 +3421,7 @@
 				}
 			],
 			"entries": [
-				"When you request a favor from your house (as decribed under \"{@optfeature Favored in House|EFA}\"), it can take one of the following additional forms:",
+				"When you request a favor from your house (as described under \"{@optfeature Favored in House|EFA}\"), it can take one of the following additional forms:",
 				{
 					"type": "list",
 					"items": [
@@ -3641,6 +3644,7 @@
 		{
 			"name": "Recognized in House",
 			"source": "EFA",
+			"page": 68,
 			"featureType": [
 				"RP"
 			],
@@ -3653,7 +3657,7 @@
 				}
 			],
 			"entries": [
-				"When you request a favor from your house (as decribed under \"{@optfeature Favored in House|EFA}\"), it can take one of the following additional forms:",
+				"When you request a favor from your house (as described under \"{@optfeature Favored in House|EFA}\"), it can take one of the following additional forms:",
 				{
 					"type": "list",
 					"items": [
@@ -3754,7 +3758,7 @@
 				{
 					"spell": [
 						{
-							"choose": "level=0|class=Warlock",
+							"choose": "level=0|class=Warlock|spell attack=m;r;o",
 							"entry": "a Warlock Cantrip That Deals Damage via an Attack Roll",
 							"entrySummary": "Warlock Cantrip That Deals Damage via an Attack Roll"
 						}

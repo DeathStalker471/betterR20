@@ -46,7 +46,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/LFL/Incarnation of Transience.webp"
-					}
+					},
+					"width": 1000,
+					"height": 735
 				}
 			]
 		},
@@ -76,7 +78,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/LFL/Incarnation of Vibrance.webp"
-					}
+					},
+					"width": 1000,
+					"height": 735
 				}
 			]
 		},
@@ -121,7 +125,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/LFL/Lorwyn Giant.webp"
-					}
+					},
+					"width": 1000,
+					"height": 602
 				}
 			]
 		},
@@ -164,7 +170,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/LFL/Merrow Doublespeaker.webp"
-					}
+					},
+					"width": 1000,
+					"height": 602
 				}
 			]
 		},
@@ -194,7 +202,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/LFL/Merrow Haranguer.webp"
-					}
+					},
+					"width": 1000,
+					"height": 735
 				}
 			]
 		},
@@ -224,7 +234,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/LFL/Noggle Ransacker.webp"
-					}
+					},
+					"width": 1000,
+					"height": 735
 				}
 			]
 		},

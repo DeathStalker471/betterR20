@@ -233,10 +233,8 @@
 			"name": "Thessalhydra",
 			"source": "HftT",
 			"page": 41,
-			"otherSources": [
-				{
-					"source": "IMR"
-				}
+			"referenceSources": [
+				"IMR"
 			],
 			"size": [
 				"H"

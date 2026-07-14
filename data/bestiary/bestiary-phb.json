@@ -272,6 +272,9 @@
 			"name": "Animated Object (Tiny)",
 			"source": "PHB",
 			"page": 213,
+			"referenceSources": [
+				"WDMM"
+			],
 			"reprintedAs": [
 				"Animated Object|XPHB"
 			],

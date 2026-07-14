@@ -618,7 +618,7 @@
 				{
 					"name": "Blizzard Veil",
 					"entries": [
-						"Auril creates a magical blizzard in a 30-foot-radius sphere centered on herself. The area within the sphere is heavily obscured, and the sphere moves with Auril. The effect lasts until Auril drops to 0 hit points in this form, until she chooses to end the effect (no action required), or until her {@status concentration} is broken (as if {@status concentration||concentrating} on a spell)."
+						"Auril creates a magical blizzard in a 30-foot-radius sphere centered on herself. The area within the sphere is {@quickref Vision and Light||2||heavily obscured}, and the sphere moves with Auril. The effect lasts until Auril drops to 0 hit points in this form, until she chooses to end the effect (no action required), or until her {@status concentration} is broken (as if {@status concentration||concentrating} on a spell)."
 					]
 				}
 			],
@@ -941,7 +941,8 @@
 				}
 			],
 			"traitTags": [
-				"Charge"
+				"Charge",
+				"Sure-Footed"
 			],
 			"actionTags": [
 				"Multiattack"
@@ -1553,6 +1554,9 @@
 			"name": "Chwinga",
 			"source": "IDRotF",
 			"page": 282,
+			"referenceSources": [
+				"CM"
+			],
 			"_copy": {
 				"name": "Chwinga",
 				"source": "ToA"
@@ -2733,7 +2737,7 @@
 				{
 					"name": "Regeneration",
 					"entries": [
-						"The vampire regains 10 hit points at the start of its turn if it has at least 1 hit point and isn't in sunlight or running water. If the vampire takes radiant damage or damage from holy water, this trait doesn't function at the start of the vampire's next turn."
+						"The vampire regains 10 hit points at the start of its turn if it has at least 1 hit point and isn't in sunlight or running water. If the vampire takes radiant damage or damage from {@item Holy Water (Flask)|PHB|holy water}, this trait doesn't function at the start of the vampire's next turn."
 					]
 				},
 				{
@@ -3365,7 +3369,7 @@
 				{
 					"name": "Bite (Bear or Hybrid Form Only)",
 					"entries": [
-						"{@atk mw} {@hit 8} to hit, reach 5 ft., one creature. {@h}16 ({@damage 2d10 + 5}) piercing damage. If the target is a humanoid, it must succeed on a {@dc 15} Constitution saving throw or be cursed with werebear lycanthropy, as described in the Monster Manual."
+						"{@atk mw} {@hit 8} to hit, reach 5 ft., one creature. {@h}16 ({@damage 2d10 + 5}) piercing damage. If the target is a humanoid, it must succeed on a {@dc 15} Constitution saving throw or be cursed with werebear {@variantrule Player Characters as Lycanthropes|MM|lycanthropy}, as described in the Monster Manual."
 					]
 				},
 				{
@@ -3709,7 +3713,7 @@
 				{
 					"name": "Escape",
 					"entries": [
-						"The hare can take the Dash, Disengage, or Hide action as a bonus action on each of its turns."
+						"The hare can take the {@action Dash}, {@action Disengage}, or {@action Hide} action as a bonus action on each of its turns."
 					]
 				}
 			],
@@ -3790,7 +3794,13 @@
 				"N",
 				"G"
 			],
+			"languages": [
+				"Common"
+			],
 			"tokenCustom": true,
+			"languageTags": [
+				"C"
+			],
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -4529,8 +4539,7 @@
 				"R"
 			],
 			"spellcastingTags": [
-				"CC",
-				"I"
+				"CC"
 			],
 			"hasToken": true,
 			"hasFluff": true,
@@ -4629,6 +4638,10 @@
 					}
 				}
 			},
+			"alignment": [
+				"L",
+				"E"
+			],
 			"languages": [
 				"Common",
 				"Infernal"
@@ -4782,7 +4795,7 @@
 				{
 					"name": "Regeneration",
 					"entries": [
-						"The vampire regains 10 hit points at the start of its turn if it has at least 1 hit point and isn't in sunlight or running water. If the vampire takes radiant damage or damage from holy water, this trait doesn't function at the start of its next turn."
+						"The vampire regains 10 hit points at the start of its turn if it has at least 1 hit point and isn't in sunlight or running water. If the vampire takes radiant damage or damage from {@item Holy Water (Flask)|PHB|holy water}, this trait doesn't function at the start of its next turn."
 					]
 				},
 				{
@@ -5301,7 +5314,8 @@
 				}
 			],
 			"traitTags": [
-				"Charge"
+				"Charge",
+				"Sure-Footed"
 			],
 			"damageTags": [
 				"B"
@@ -5470,6 +5484,7 @@
 				}
 			],
 			"traitTags": [
+				"Ethereal Sight",
 				"Incorporeal Movement"
 			],
 			"senseTags": [
@@ -5655,18 +5670,30 @@
 							"replace": "gladiator",
 							"with": "chieftain"
 						}
-					],
-					"_": [
-						{
-							"mode": "addSkills",
-							"skills": {
-								"survival": 1
-							}
-						}
 					]
 				}
 			},
+			"ac": [
+				{
+					"ac": 16,
+					"from": [
+						"{@item hide armor|PHB}",
+						"{@item shield|PHB}"
+					]
+				}
+			],
+			"skill": {
+				"athletics": "+10",
+				"intimidation": "+5",
+				"survival": "+5"
+			},
+			"languages": [
+				"Common"
+			],
 			"tokenCustom": true,
+			"languageTags": [
+				"C"
+			],
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -5684,18 +5711,30 @@
 							"replace": "gladiator",
 							"with": "great warrior"
 						}
-					],
-					"_": [
-						{
-							"mode": "addSkills",
-							"skills": {
-								"survival": 1
-							}
-						}
 					]
 				}
 			},
+			"ac": [
+				{
+					"ac": 16,
+					"from": [
+						"{@item hide armor|PHB}",
+						"{@item shield|PHB}"
+					]
+				}
+			],
+			"skill": {
+				"athletics": "+10",
+				"intimidation": "+5",
+				"survival": "+5"
+			},
+			"languages": [
+				"Common"
+			],
 			"tokenCustom": true,
+			"languageTags": [
+				"C"
+			],
 			"hasToken": true,
 			"hasFluff": true
 		},

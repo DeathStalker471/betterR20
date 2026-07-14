@@ -37,6 +37,10 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			]
 		},
@@ -53,6 +57,10 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			]
 		}
@@ -245,6 +253,10 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			]
 		}
@@ -285,6 +297,11 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB",
+					"definedInSource": "FTD"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
 					"definedInSource": "FTD"
 				}
 			]
@@ -6240,6 +6257,10 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			]
 		},
@@ -6292,6 +6313,10 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			]
 		},
@@ -6394,6 +6419,10 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "SCAG"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			],
 			"classVariant": [
@@ -6508,6 +6537,10 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "SCAG"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			],
 			"classVariant": [
@@ -6548,6 +6581,10 @@
 				{
 					"name": "Artificer",
 					"source": "TCE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			],
 			"classVariant": [
@@ -6628,6 +6665,10 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "SCAG"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			],
 			"classVariant": [
@@ -6773,6 +6814,10 @@
 				{
 					"name": "Artificer",
 					"source": "TCE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			],
 			"classVariant": [
@@ -6913,6 +6958,10 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "SCAG"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			],
 			"classVariant": [
@@ -6953,6 +7002,10 @@
 				{
 					"name": "Artificer",
 					"source": "TCE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA"
 				}
 			],
 			"classVariant": [
@@ -7108,6 +7161,11 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -7199,6 +7257,11 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -7237,6 +7300,11 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB",
+					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
 					"definedInSource": "XGE"
 				}
 			]
@@ -7445,6 +7513,11 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB",
+					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
 					"definedInSource": "XGE"
 				}
 			]
@@ -7731,6 +7804,11 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -7940,6 +8018,11 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -7988,6 +8071,11 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB",
+					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
 					"definedInSource": "XGE"
 				}
 			]
@@ -8501,6 +8589,11 @@
 					"name": "Warlock",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -8853,6 +8946,11 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -9042,6 +9140,11 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -9081,6 +9184,11 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -9119,6 +9227,11 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB",
+					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
 					"definedInSource": "XGE"
 				}
 			]
@@ -9374,6 +9487,11 @@
 					"name": "Artificer",
 					"source": "TCE",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -9427,6 +9545,11 @@
 					"name": "Wizard",
 					"source": "XPHB",
 					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
+					"definedInSource": "XGE"
 				}
 			]
 		},
@@ -9474,6 +9597,11 @@
 				{
 					"name": "Wizard",
 					"source": "XPHB",
+					"definedInSource": "XGE"
+				},
+				{
+					"name": "Artificer",
+					"source": "EFA",
 					"definedInSource": "XGE"
 				}
 			]

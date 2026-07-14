@@ -493,6 +493,9 @@
 			"name": "Animated Knife",
 			"source": "EGW",
 			"page": 248,
+			"referenceSources": [
+				"FS"
+			],
 			"_copy": {
 				"name": "Flying Sword",
 				"source": "MM",
@@ -531,10 +534,8 @@
 			"name": "Animated Tree",
 			"source": "EGW",
 			"page": 130,
-			"otherSources": [
-				{
-					"source": "MOT"
-				}
+			"referenceSources": [
+				"MOT"
 			],
 			"_copy": {
 				"name": "Treant",
@@ -720,6 +721,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 261,
+			"referenceSources": [
+				"US"
+			],
 			"size": [
 				"S"
 			],
@@ -807,7 +811,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"Bol'bara can take the Disengage or Hide action as a bonus action on each of her turns."
+						"Bol'bara can take the {@action Disengage} or {@action Hide} action as a bonus action on each of her turns."
 					]
 				}
 			],
@@ -892,6 +896,9 @@
 					"source": "CRCotN",
 					"page": 295
 				}
+			],
+			"referenceSources": [
+				"CRCotN"
 			],
 			"size": [
 				"L"
@@ -1499,6 +1506,9 @@
 			"name": "Damaged Flesh Golem",
 			"source": "EGW",
 			"page": 248,
+			"referenceSources": [
+				"FS"
+			],
 			"_copy": {
 				"name": "Flesh Golem",
 				"source": "MM",
@@ -1523,6 +1533,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 249,
+			"referenceSources": [
+				"FS"
+			],
 			"_copy": {
 				"name": "Wight",
 				"source": "MM",
@@ -1945,6 +1958,9 @@
 					"page": 291
 				}
 			],
+			"referenceSources": [
+				"CRCotN"
+			],
 			"size": [
 				"L"
 			],
@@ -2187,6 +2203,10 @@
 					"page": 292
 				}
 			],
+			"referenceSources": [
+				"CRCotN",
+				"US"
+			],
 			"size": [
 				"G"
 			],
@@ -2297,6 +2317,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 240,
+			"referenceSources": [
+				"FS"
+			],
 			"_copy": {
 				"name": "Cult Fanatic",
 				"source": "MM",
@@ -2452,6 +2475,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 231,
+			"referenceSources": [
+				"DD"
+			],
 			"_copy": {
 				"name": "Drow",
 				"source": "MM",
@@ -2507,6 +2533,9 @@
 			"name": "Kobold Underling",
 			"source": "EGW",
 			"page": 221,
+			"referenceSources": [
+				"DD"
+			],
 			"size": [
 				"S"
 			],
@@ -2766,6 +2795,9 @@
 					"page": 295
 				}
 			],
+			"referenceSources": [
+				"CRCotN"
+			],
 			"size": [
 				"L"
 			],
@@ -2834,6 +2866,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 256,
+			"referenceSources": [
+				"US"
+			],
 			"_copy": {
 				"name": "Horizonback Tortoise",
 				"source": "EGW",
@@ -2968,7 +3003,7 @@
 				{
 					"name": "Shadow Stealth",
 					"entries": [
-						"While in dim light or darkness, the nergaliid can take the Hide action as a bonus action."
+						"While in dim light or darkness, the nergaliid can take the {@action Hide} action as a bonus action."
 					]
 				},
 				{
@@ -3031,6 +3066,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 251,
+			"referenceSources": [
+				"US"
+			],
 			"_copy": {
 				"name": "Ogre",
 				"source": "MM",
@@ -3058,6 +3096,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 240,
+			"referenceSources": [
+				"FS"
+			],
 			"_copy": {
 				"name": "Giant Toad",
 				"source": "MM",
@@ -3117,6 +3158,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 261,
+			"referenceSources": [
+				"US"
+			],
 			"_copy": {
 				"name": "Priest",
 				"source": "MM",
@@ -3188,6 +3232,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 240,
+			"referenceSources": [
+				"FS"
+			],
 			"_copy": {
 				"name": "Cultist",
 				"source": "MM",
@@ -3216,6 +3263,9 @@
 			"name": "Sahuagin Warlock of Uk'otoa",
 			"source": "EGW",
 			"page": 297,
+			"referenceSources": [
+				"ToR"
+			],
 			"size": [
 				"M"
 			],
@@ -3694,7 +3744,7 @@
 				{
 					"name": "Shadow Stealth",
 					"entries": [
-						"While in dim light or darkness, the shadowghast can take the Hide action as a bonus action."
+						"While in dim light or darkness, the shadowghast can take the {@action Hide} action as a bonus action."
 					]
 				}
 			],
@@ -3746,6 +3796,9 @@
 			"name": "Sharkbody Abomination",
 			"source": "EGW",
 			"page": 215,
+			"referenceSources": [
+				"ToR"
+			],
 			"_copy": {
 				"name": "Hunter Shark",
 				"source": "MM",
@@ -3780,6 +3833,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 221,
+			"referenceSources": [
+				"DD"
+			],
 			"size": [
 				"M"
 			],
@@ -3875,6 +3931,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 254,
+			"referenceSources": [
+				"US"
+			],
 			"_copy": {
 				"name": "Lizardfolk Shaman",
 				"source": "MM",
@@ -3937,6 +3996,9 @@
 			"name": "Swarm of Undead Snakes",
 			"source": "EGW",
 			"page": 247,
+			"referenceSources": [
+				"FS"
+			],
 			"_copy": {
 				"name": "Swarm of Poisonous Snakes",
 				"source": "MM",
@@ -4070,6 +4132,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 211,
+			"referenceSources": [
+				"ToR"
+			],
 			"_copy": {
 				"name": "Bandit Captain",
 				"source": "MM",
@@ -4237,6 +4302,9 @@
 			"name": "Vox Seeker",
 			"source": "EGW",
 			"page": 270,
+			"referenceSources": [
+				"DD"
+			],
 			"size": [
 				"T"
 			],
@@ -4329,6 +4397,9 @@
 			"isNamedCreature": true,
 			"source": "EGW",
 			"page": 223,
+			"referenceSources": [
+				"DD"
+			],
 			"size": [
 				"M"
 			],

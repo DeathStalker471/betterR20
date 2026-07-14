@@ -523,6 +523,16 @@ const betteR205etoolsMain = function () {
 	};
 	d20plus.tokenBindings = {};
 
+	// Classic (2014 DMG) per-level XP thresholds for the initiative-tracker difficulty calculator
+	// below. Kept as a local copy rather than sourced from the vendored 5etools `Parser` - 5etools
+	// dropped these arrays (and `Parser.levelToXpThreshold`) when it moved to the 2024 DMG's
+	// monster-XP-budget encounter system, so relying on the lib would break on the next lib sync.
+	const LEVEL_TO_XP_EASY = [0, 25, 50, 75, 125, 250, 300, 350, 450, 550, 600, 800, 1000, 1100, 1250, 1400, 1600, 2000, 2100, 2400, 2800];
+	const LEVEL_TO_XP_MEDIUM = [0, 50, 100, 150, 250, 500, 600, 750, 900, 1100, 1200, 1600, 2000, 2200, 2500, 2800, 3200, 3900, 4100, 4900, 5700];
+	const LEVEL_TO_XP_HARD = [0, 75, 150, 225, 375, 750, 900, 1100, 1400, 1600, 1900, 2400, 3000, 3400, 3800, 4300, 4800, 5900, 6300, 7300, 8500];
+	const LEVEL_TO_XP_DEADLY = [0, 100, 200, 400, 500, 1100, 1400, 1700, 2100, 2400, 2800, 3600, 4500, 5100, 5700, 6400, 7200, 8800, 9500, 10900, 12700];
+	const levelToXpThreshold = level => [LEVEL_TO_XP_EASY[level], LEVEL_TO_XP_MEDIUM[level], LEVEL_TO_XP_HARD[level], LEVEL_TO_XP_DEADLY[level]];
+
 	// Determine difficulty of current encounter (iniativewindow)
 	d20plus.getDifficulty = function () {
 		let difficulty = "Unknown";
@@ -552,7 +562,7 @@ const betteR205etoolsMain = function () {
 									return;
 								}
 								// Total party threshold
-								for (i = 0; i < partyXPThreshold.length; i++) partyXPThreshold[i] += Parser.levelToXpThreshold(level.get("current"))[i];
+								for (i = 0; i < partyXPThreshold.length; i++) partyXPThreshold[i] += levelToXpThreshold(level.get("current"))[i];
 								players.push(players.length + 1);
 							}
 						}

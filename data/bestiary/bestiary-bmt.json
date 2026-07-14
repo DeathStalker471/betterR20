@@ -834,7 +834,7 @@
 				{
 					"name": "Bite (Wolf or Hybrid Form Only)",
 					"entries": [
-						"{@atk mw} {@hit 8} to hit, reach 5 ft., one target. {@h}26 ({@damage 5d8 + 4}) piercing damage. If the target is a Humanoid, it must succeed on a {@dc 15} Constitution saving throw or be cursed with lycanthropy. While cursed in this way, the target retains its alignment, languages, and equipment but otherwise uses the werewolf stat block, excluding actions that require equipment the target doesn't have. During any night when there's a full moon in the sky, the target becomes an NPC under the DM's control and remains so until the night ends. A {@spell Remove Curse} spell or similar magic ends this curse."
+						"{@atk mw} {@hit 8} to hit, reach 5 ft., one target. {@h}26 ({@damage 5d8 + 4}) piercing damage. If the target is a Humanoid, it must succeed on a {@dc 15} Constitution saving throw or be cursed with {@variantrule Player Characters as Lycanthropes|MM|lycanthropy}. While cursed in this way, the target retains its alignment, languages, and equipment but otherwise uses the werewolf stat block, excluding actions that require equipment the target doesn't have. During any night when there's a full moon in the sky, the target becomes an NPC under the DM's control and remains so until the night ends. A {@spell Remove Curse} spell or similar magic ends this curse."
 					]
 				},
 				{
@@ -860,7 +860,7 @@
 				{
 					"name": "Cunning Action",
 					"entries": [
-						"Augustus takes the Dash, Disengage, or Hide action."
+						"Augustus takes the {@action Dash}, {@action Disengage}, or {@action Hide} action."
 					]
 				}
 			],
@@ -973,7 +973,7 @@
 				{
 					"name": "Bite (Rat or Hybrid Form Only)",
 					"entries": [
-						"{@atk mw} {@hit 8} to hit, reach 5 ft., one target. {@h}26 ({@damage 5d8 + 4}) piercing damage. If the target is a Humanoid, it must succeed on a {@dc 14} Constitution saving throw or be cursed with lycanthropy. While cursed in this way, the target retains its alignment, languages, and equipment but otherwise uses the wererat stat block, excluding actions that require equipment the target doesn't have. During any night when there's a full moon in the sky, the target becomes an NPC under the DM's control and remains so until the night ends. A {@spell Remove Curse} spell or similar magic ends this curse."
+						"{@atk mw} {@hit 8} to hit, reach 5 ft., one target. {@h}26 ({@damage 5d8 + 4}) piercing damage. If the target is a Humanoid, it must succeed on a {@dc 14} Constitution saving throw or be cursed with {@variantrule Player Characters as Lycanthropes|MM|lycanthropy}. While cursed in this way, the target retains its alignment, languages, and equipment but otherwise uses the wererat stat block, excluding actions that require equipment the target doesn't have. During any night when there's a full moon in the sky, the target becomes an NPC under the DM's control and remains so until the night ends. A {@spell Remove Curse} spell or similar magic ends this curse."
 					]
 				},
 				{
@@ -999,7 +999,7 @@
 				{
 					"name": "Cunning Action",
 					"entries": [
-						"Delour takes the Dash, Disengage, or Hide action."
+						"Delour takes the {@action Dash}, {@action Disengage}, or {@action Hide} action."
 					]
 				}
 			],
@@ -1470,7 +1470,7 @@
 				{
 					"name": "Swift Step (Acrobat Form Only)",
 					"entries": [
-						"The deck defender takes the Dash or Disengage action."
+						"The deck defender takes the {@action Dash} or {@action Disengage} action."
 					]
 				}
 			],
@@ -2222,6 +2222,7 @@
 			"tokenCredit": "Nidoart",
 			"tokenCustom": true,
 			"traitTags": [
+				"Ethereal Sight",
 				"Incorporeal Movement",
 				"Legendary Resistances"
 			],
@@ -4462,7 +4463,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"Oddlewin takes the Disengage or Hide action."
+						"Oddlewin takes the {@action Disengage} or {@action Hide} action."
 					]
 				}
 			],

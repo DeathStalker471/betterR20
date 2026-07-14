@@ -15,7 +15,9 @@
 						"path": "bestiary/MGELFT/Dankwood Duergar.webp"
 					},
 					"credit": "Emi Tanji",
-					"expectsLightBackground": true
+					"expectsLightBackground": true,
+					"width": 539,
+					"height": 249
 				}
 			]
 		},
@@ -44,7 +46,9 @@
 						"path": "bestiary/MGELFT/Dankwood Grung.webp"
 					},
 					"credit": "Emi Tanji",
-					"expectsLightBackground": true
+					"expectsLightBackground": true,
+					"width": 822,
+					"height": 656
 				}
 			]
 		},
@@ -70,7 +74,9 @@
 						"path": "bestiary/MGELFT/Sludge Hag.webp"
 					},
 					"credit": "Emi Tanji",
-					"expectsLightBackground": true
+					"expectsLightBackground": true,
+					"width": 456,
+					"height": 288
 				}
 			]
 		},
@@ -89,7 +95,9 @@
 						"path": "bestiary/MGELFT/Spiderfrog.webp"
 					},
 					"credit": "Emi Tanji",
-					"expectsLightBackground": true
+					"expectsLightBackground": true,
+					"width": 273,
+					"height": 243
 				}
 			]
 		},
@@ -117,7 +125,9 @@
 						"path": "bestiary/MGELFT/Yeti Tyke.webp"
 					},
 					"credit": "Emi Tanji",
-					"expectsLightBackground": true
+					"expectsLightBackground": true,
+					"width": 370,
+					"height": 418
 				}
 			]
 		}

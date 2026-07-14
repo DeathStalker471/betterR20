@@ -162,6 +162,9 @@
 						"with": "Diderius",
 						"flags": "i"
 					}
+				},
+				"_preserve": {
+					"legendaryGroup": true
 				}
 			},
 			"int": 18,
@@ -549,7 +552,7 @@
 							{
 								"name": "Draconic Majesty",
 								"entries": [
-									"While wearing no armor and wearing the Blue Dragon Mask, Galvan adds his Charisma bonus to her AC (included)."
+									"While wearing no armor and wearing the Blue Dragon Mask, Galvan adds his Charisma bonus to his AC (included)."
 								]
 							},
 							{
@@ -602,12 +605,12 @@
 			"page": 55,
 			"otherSources": [
 				{
-					"source": "DC"
-				},
-				{
 					"source": "ToD",
 					"page": 141
 				}
+			],
+			"referenceSources": [
+				"DC"
 			],
 			"_copy": {
 				"name": "Gladiator",
@@ -915,7 +918,8 @@
 				"N",
 				"E"
 			],
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Maccath the Crimson",
@@ -958,10 +962,10 @@
 				"X"
 			],
 			"spellcastingTags": [
-				"CW",
-				"I"
+				"CW"
 			],
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Marfulb",
@@ -1529,6 +1533,7 @@
 				"strength"
 			],
 			"hasToken": true,
+			"hasFluff": true,
 			"hasFluffImages": true
 		},
 		{
@@ -1601,12 +1606,12 @@
 			"page": 92,
 			"otherSources": [
 				{
-					"source": "BGDIA"
-				},
-				{
 					"source": "ToD",
 					"page": 190
 				}
+			],
+			"referenceSources": [
+				"BGDIA"
 			],
 			"size": [
 				"G"
@@ -1907,7 +1912,8 @@
 				"DR",
 				"I"
 			],
-			"hasToken": true
+			"hasToken": true,
+			"hasFluffImages": true
 		}
 	]
 }
