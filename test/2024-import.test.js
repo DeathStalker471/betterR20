@@ -440,7 +440,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		}, store);
 		const heal = Object.values(store.integrants.integrants).find(i => i.type === 'Healing');
 		expect(heal).toBeDefined();
-		expect(heal.diceCount).toBe(1);
+		expect(heal._diceCount).toBe(1);
 		expect(heal.diceSize).toBe('d8');
 		expect(heal.isTemp).toBe(false);
 	});
@@ -469,7 +469,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 
 		const heal = all.find(i => i.type === 'Healing');
 		expect(heal).toBeDefined();
-		expect(heal.diceCount).toBeUndefined();
+		expect(heal._diceCount).toBeUndefined();
 		expect(heal.diceSize).toBe('');
 		expect(heal._bonus).toBe(70);
 		expect(heal.isTemp).toBe(false);
@@ -507,7 +507,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 
 		const heal = all.find(i => i.type === 'Healing');
 		expect(heal).toBeDefined();
-		expect(heal.diceCount).toBeUndefined();
+		expect(heal._diceCount).toBeUndefined();
 		expect(heal.diceSize).toBe('');
 		expect(heal._bonus).toBe(70);
 		expect(heal.isTemp).toBe(false);
@@ -618,7 +618,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(attack.cascades).toEqual({});
 
 		const [dmgId, dmg] = entries.find(([, i]) => i.type === 'Damage');
-		expect(dmg.diceCount).toBeUndefined();
+		expect(dmg._diceCount).toBeUndefined();
 		expect(dmg.diceSize).toBe('');
 		expect(dmg._bonus).toBe(5);
 		expect(dmg.damageType).toBe('Cold');
@@ -626,7 +626,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(JSON.parse(attack.childIDs)).toEqual([dmgId]);
 
 		const [healId, heal] = entries.find(([, i]) => i.type === 'Healing');
-		expect(heal.diceCount).toBeUndefined();
+		expect(heal._diceCount).toBeUndefined();
 		expect(heal.diceSize).toBe('');
 		expect(heal._bonus).toBe(5);
 		expect(heal.isTemp).toBe(true);
@@ -648,6 +648,50 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(healUpcast.value).toBe(5);
 		expect(healUpcast.startingLevel).toBe(2);
 		expect(healUpcast.cascades).toEqual({});
+	});
+
+	test('Magic Missile: a real projectile attack (repeat count from "three darts") builds a different Attack shape than a reactive spell like Armor of Agathys - plain spell name (not "... Force Damage"), "... Free Attack" recordName, range included, and a dice-based Damage integrant using "_diceCount" (underscore-prefixed) - all confirmed against Roll20\'s own compendium output for Magic Missile', () => {
+		const store = makeBatchStore();
+		ctx.d20plus.importer.import2024Spell(nullModel, {
+			name: 'Magic Missile',
+			data: { 'Level': '1', 'Components': 'V, S', 'School': 'Evocation', 'Casting Time': 'Action', 'Range': '120 feet', 'Duration': 'Instantaneous', 'data-description': '' },
+			Vetoolscontent: {
+				level: 1, school: 'V',
+				time:     [{ number: 1, unit: 'action' }],
+				range:    { type: 'point', distance: { amount: 120, type: 'feet' } },
+				duration: [{ type: 'instant' }],
+				components: { v: true, s: true },
+				damageInflict: ['force'],
+				entries: ['You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. A dart deals {@damage 1d4 + 1} Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.'],
+				entriesHigherLevel: [{
+					type: 'entries', name: 'Using a Higher-Level Spell Slot',
+					entries: ['The spell creates one more dart for each spell slot level above 1.'],
+				}],
+			},
+		}, store);
+
+		const entries = Object.entries(store.integrants.integrants);
+
+		const [attackId, attack] = entries.find(([, i]) => i.type === 'Attack');
+		expect(attack.autoHit).toBe(true);
+		expect(attack.name).toBe('Magic Missile');
+		expect(attack.recordName).toBe('Magic Missile Free Attack');
+		expect(attack.range).toBe('120 feet');
+		expect(attack.repeat).toBe(3);
+
+		const [dmgId, dmg] = entries.find(([, i]) => i.type === 'Damage');
+		expect(dmg._diceCount).toBe(1);
+		expect(dmg.diceSize).toBe('d4');
+		expect(dmg._bonus).toBe(1);
+		expect(dmg.damageType).toBe('Force');
+		expect(JSON.parse(attack.childIDs)).toEqual([dmgId, expect.any(String)]);
+
+		const upcast = entries.find(([id]) => JSON.parse(attack.childIDs).includes(id) && id !== dmgId)[1];
+		expect(upcast.type).toBe('Upcasting');
+		expect(upcast.target).toBe('$.repeat');
+		expect(upcast.value).toBe(1);
+		expect(upcast.startingLevel).toBe(2);
+		expect(upcast.parentID).toBe(attackId);
 	});
 
 	test('creates multiple Damage integrants for a multi-damage-type spell', () => {
@@ -695,7 +739,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		const upcast = Object.values(store.integrants.integrants).find(i => i.type === 'Upcasting');
 		expect(upcast).toBeDefined();
 		expect(upcast.value).toBe(1);
-		expect(upcast.target).toBe('$.diceCount');
+		expect(upcast.target).toBe('$._diceCount');
 	});
 });
 
