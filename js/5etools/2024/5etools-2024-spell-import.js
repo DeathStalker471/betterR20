@@ -251,7 +251,7 @@ function d20plus2024SpellImport() {
 				startingLevel: isRepeat ? levelIdx + 1 : upcast.startingLevel,
 				level: isRepeat ? 1 : (upcast.stepLevels || 1),
 				mode: "Per X Spell Level",
-				target: isRepeat ? "$.repeat" : (upcast.targetBonus ? "$._bonus" : "$.diceCount"),
+				target: isRepeat ? "$.repeat" : (upcast.targetBonus ? "$._bonus" : "$._diceCount"),
 				value: isRepeat ? 1 : upcast.value,
 				changeMode: "Add",
 				parentID: isRepeat ? attackId : dmgId,
@@ -286,7 +286,10 @@ function d20plus2024SpellImport() {
 				cascades: {},
 				relations: {},
 			};
-			if (!isFlatOnly) dmgIntegrant.diceCount = firstParsed ? firstParsed.diceCount : 1;
+			// "_diceCount" (underscore-prefixed), not "diceCount" - confirmed against Roll20's own
+			// Magic Missile compendium output, the first ground-truth dump this session with a real
+			// (non-flat) dice-based Damage integrant to check the field name against.
+			if (!isFlatOnly) dmgIntegrant._diceCount = firstParsed ? firstParsed.diceCount : 1;
 			if (firstParsed && firstParsed.flatBonus) dmgIntegrant._bonus = firstParsed.flatBonus;
 			store.integrants.integrants[dmgId] = dmgIntegrant;
 
@@ -297,7 +300,7 @@ function d20plus2024SpellImport() {
 					name: eName,
 					recordName: eName,
 					ability: "none",
-					diceCount: ep.diceCount,
+					_diceCount: ep.diceCount,
 					diceSize: ep.diceSize,
 					damageType: ep.damageType,
 					overrideCrit: false,
@@ -321,7 +324,7 @@ function d20plus2024SpellImport() {
 				mode: "Specific Character Level",
 				level,
 				startingLevel: 0,
-				target: isDice ? "$.diceCount" : "$.repeat",
+				target: isDice ? "$._diceCount" : "$.repeat",
 				value: 1,
 				changeMode: "Add",
 				parentID: isDice ? dmgId : attackId,
@@ -343,18 +346,25 @@ function d20plus2024SpellImport() {
 				// upcast case, e.g. Magic Missile gaining darts) - a dice/bonus upcast on the Damage
 				// value itself is parented to Damage instead (see the upcastId integrant above), so it
 				// must not also be listed here or it'd appear as a child of both. Confirmed via Roll20's
-				// own compendium output for Armor of Agathys: its Attack childIDs is just [Damage id].
+				// own compendium output for both Armor of Agathys and Magic Missile: Attack's childIDs
+				// only ever includes 2 entries when isRepeatUpcast is the active upcast mode.
 				const childIds = (upcastId && isRepeatUpcast) ? [dmgId, upcastId] : [dmgId];
-				// Ground truth (Roll20's own compendium output for Armor of Agathys) names this
-				// integrant after what it actually does ("Armor of Agathys Cold Damage") rather than
-				// the generic spell name, has no "range" key at all (Combat tab pulls range from the
-				// parent Spell instead), and omits "repeat" entirely for the non-projectile repeat:1
-				// case rather than storing a no-op value.
+				// Two ground-truth compendium dumps disagree on name/recordName/range, and the
+				// distinguishing factor is whether this is a real projectile attack (a repeat count
+				// word was found in the text, e.g. Magic Missile's "three darts") vs a reactive/
+				// passive proc with no such word (Armor of Agathys). Projectile case: name is just the
+				// plain spell name, recordName is "... Free Attack", range is included (e.g. "120
+				// feet" - it's meaningfully attacking at range). Reactive case: name includes the
+				// damage type ("Armor of Agathys Cold Damage"), recordName is "... Attack" (no
+				// "Free"), and range is omitted entirely (the spell's own range is "Self" - "attacking
+				// yourself at range Self" isn't meaningful attack-range info).
+				const isProjectile = rawRepeat !== null;
 				atkIntegrant = {
 					...attackBase,
-					name: damageType ? `${spellData.name} ${damageType} Damage` : spellData.name,
-					recordName: `${spellData.name} Attack`,
+					name: isProjectile ? spellData.name : (damageType ? `${spellData.name} ${damageType} Damage` : spellData.name),
+					recordName: isProjectile ? `${spellData.name} Free Attack` : `${spellData.name} Attack`,
 					actionType: castingTime,
+					...(isProjectile ? {range} : {}),
 					autoHit: true,
 					parentID: spellId,
 					childIDs: JSON.stringify(childIds),
@@ -438,7 +448,7 @@ function d20plus2024SpellImport() {
 						mode: "Specific Character Level",
 						level,
 						startingLevel: 0,
-						target: "$.diceCount",
+						target: "$._diceCount",
 						value: 1,
 						changeMode: "Add",
 						parentID: mDmgId,
@@ -452,7 +462,7 @@ function d20plus2024SpellImport() {
 					name: dmgName,
 					recordName: dmgName,
 					ability: "none",
-					diceCount: baseDiceCount,
+					_diceCount: baseDiceCount,
 					diceSize: baseDiceSize,
 					damageType,
 					overrideCrit: false,
@@ -502,7 +512,7 @@ function d20plus2024SpellImport() {
 					startingLevel: healUpcastData.startingLevel,
 					level: healUpcastData.stepLevels || 1,
 					mode: "Per X Spell Level",
-					target: healUpcastData.targetBonus ? "$._bonus" : "$.diceCount",
+					target: healUpcastData.targetBonus ? "$._bonus" : "$._diceCount",
 					value: healUpcastData.value,
 					changeMode: "Add",
 					parentID: healId,
@@ -527,7 +537,7 @@ function d20plus2024SpellImport() {
 				cascades: {},
 				relations: {},
 			};
-			if (!healIsFlatOnly) healIntegrant.diceCount = healParsed.diceCount;
+			if (!healIsFlatOnly) healIntegrant._diceCount = healParsed.diceCount;
 			store.integrants.integrants[healId] = healIntegrant;
 		}
 
