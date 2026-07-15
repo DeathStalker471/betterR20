@@ -34,7 +34,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Aerosaur.webp"
-					}
+					},
+					"width": 850,
+					"height": 1050
 				}
 			]
 		},
@@ -68,7 +70,9 @@
 						"type": "internal",
 						"path": "bestiary/BGG/Altisaur.webp"
 					},
-					"credit": "Claudio Pozas"
+					"credit": "Claudio Pozas",
+					"width": 1700,
+					"height": 647
 				}
 			]
 		},
@@ -86,7 +90,7 @@
 				{
 					"type": "entries",
 					"entries": [
-						"Bag jellies are olive-hued oozes similar to the dungeon scavengers described in the{@i Monster Manual}. As their name suggests, though, these creatures are most often found in the bags carried by giants, where they feed on whatever organic material they find. Bag jellies are resistant to squishing, which helps them survive when a giant throws the bag, sits on it, or uses it as a makeshift bludgeon.",
+						"Bag jellies are olive-hued oozes similar to the dungeon scavengers described in the {@i Monster Manual}. As their name suggests, though, these creatures are most often found in the bags carried by giants, where they feed on whatever organic material they find. Bag jellies are resistant to squishing, which helps them survive when a giant throws the bag, sits on it, or uses it as a makeshift bludgeon.",
 						"Some giants keep their bags scrupulously clean to avoid attracting bag jellies, but others actually use these scavengers to hinder thieves. Many would-be thieves who rummage through a sleeping giant's bag find themselves stuck to a bag jelly's adhesive surface and unable to flee as the sound of their struggle wakes the giant."
 					]
 				},
@@ -104,7 +108,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Bag Jelly.webp"
-					}
+					},
+					"width": 569,
+					"height": 1000
 				}
 			]
 		},
@@ -126,7 +132,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Barrowghast.webp"
-					}
+					},
+					"width": 389,
+					"height": 1000
 				}
 			]
 		},
@@ -148,7 +156,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Cairnwight.webp"
-					}
+					},
+					"width": 415,
+					"height": 1000
 				}
 			]
 		},
@@ -181,7 +191,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Ceratops.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1111
 				}
 			]
 		},
@@ -203,7 +215,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Cinder Hulk.webp"
-					}
+					},
+					"width": 686,
+					"height": 1000
 				}
 			]
 		},
@@ -226,7 +240,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Cloud Giant Destiny Gambler.webp"
-					}
+					},
+					"width": 430,
+					"height": 1000
 				}
 			]
 		},
@@ -248,7 +264,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Cloud Giant of Evil Air.webp"
-					}
+					},
+					"width": 497,
+					"height": 1000
 				}
 			]
 		},
@@ -439,7 +457,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Death Giant Reaper.webp"
-					}
+					},
+					"width": 533,
+					"height": 1000
 				}
 			]
 		},
@@ -472,7 +492,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Death Giant Shrouded One.webp"
-					}
+					},
+					"width": 657,
+					"height": 1000
 				}
 			]
 		},
@@ -542,7 +564,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Dust Hulk.webp"
-					}
+					},
+					"width": 396,
+					"height": 1000
 				}
 			]
 		},
@@ -571,7 +595,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Echo of Demogorgon.webp"
-					}
+					},
+					"width": 637,
+					"height": 1000
 				}
 			]
 		},
@@ -582,7 +608,7 @@
 				{
 					"type": "entries",
 					"entries": [
-						"Mind flayers, which are described in the{@i Monster Manual}, are created through ceremorphosis, a process that begins with the implantation of an illithid tadpole in the brain of a Humanoid host. Mind flayers have subjected giants to this process in an effort to create larger, stronger mind flayers, but those experiments all ended in failure: a giant's body is simply too large for a single tadpole to take over. Ettins, however, proved to be perfect subjects. An ettin's two brains provide sufficient food for two tadpoles, and the two tadpoles are able to transform the entirety of the ettin's body, creating an ettin ceremorph. As part of the transformation process, one of the ettin's heads sinks into the body, with that brain focused on controlling the body. The other head focuses on cogitation and psionic power, though its power is not as great as a mind flayer's.",
+						"Mind flayers, which are described in the {@i Monster Manual}, are created through ceremorphosis, a process that begins with the implantation of an illithid tadpole in the brain of a Humanoid host. Mind flayers have subjected giants to this process in an effort to create larger, stronger mind flayers, but those experiments all ended in failure: a giant's body is simply too large for a single tadpole to take over. Ettins, however, proved to be perfect subjects. An ettin's two brains provide sufficient food for two tadpoles, and the two tadpoles are able to transform the entirety of the ettin's body, creating an ettin ceremorph. As part of the transformation process, one of the ettin's heads sinks into the body, with that brain focused on controlling the body. The other head focuses on cogitation and psionic power, though its power is not as great as a mind flayer's.",
 						"Ettin ceremorphs serve mind flayer colonies, protecting the elder brains that rule the communities and guarding their treasures. They retain no memory of their previous existence as ettins."
 					]
 				}
@@ -593,7 +619,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Ettin Ceremorph.webp"
-					}
+					},
+					"width": 447,
+					"height": 1000
 				}
 			]
 		},
@@ -626,7 +654,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Fensir Devourer.webp"
-					}
+					},
+					"width": 961,
+					"height": 1000
 				}
 			]
 		},
@@ -712,7 +742,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Firbolg Primeval Warden.webp"
-					}
+					},
+					"width": 850,
+					"height": 1077
 				}
 			]
 		},
@@ -745,7 +777,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Firbolg Wanderer.webp"
-					}
+					},
+					"width": 898,
+					"height": 1000
 				}
 			]
 		},
@@ -781,7 +815,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Fire Giant Forgecaller.webp"
-					}
+					},
+					"width": 850,
+					"height": 1741
 				}
 			]
 		},
@@ -792,7 +828,7 @@
 				{
 					"type": "entries",
 					"entries": [
-						"A fire giant is born around flame, works with flame, and lives among flames, but a fire giant who gazes into flames too deeply may see the Prince of Evil Fire, Imix, gazing back. Giants who fall to Imix's corruption might leave their homes to join with likeminded cultists, but others remain within their communities to pursue Imix's destructive agenda.",
+						"A fire giant is born around flame, works with flame, and lives among flames, but a fire giant who gazes into flames too deeply may see the Prince of Evil Fire, Imix, gazing back. Giants who fall to Imix's corruption might leave their homes to join with like-minded cultists, but others remain within their communities to pursue Imix's destructive agenda.",
 						"A fire giant of Evil Fire forges a set of armor and weapons in flames blessed by Imix. The giant can then call on these magical flames to strike the foes of the Eternal Flame. The armor forged in these flames welds to the flesh, so while the giant isn't burned, the armor can't be removed once donned. When the giant dies, the armor explodes as a final gift from the All-Consuming Fire."
 					]
 				}
@@ -803,7 +839,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Fire Giant of Evil Fire.webp"
-					}
+					},
+					"width": 556,
+					"height": 1000
 				}
 			]
 		},
@@ -833,7 +871,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Fire Hellion.webp"
-					}
+					},
+					"width": 424,
+					"height": 1000
 				}
 			]
 		},
@@ -855,7 +895,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Firegaunt.webp"
-					}
+					},
+					"width": 809,
+					"height": 1000
 				}
 			]
 		},
@@ -877,7 +919,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Flesh Colossus.webp"
-					}
+					},
+					"width": 690,
+					"height": 1000
 				}
 			]
 		},
@@ -910,7 +954,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Fomorian Deep Crawler.webp"
-					}
+					},
+					"width": 1700,
+					"height": 768
 				}
 			]
 		},
@@ -951,7 +997,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Fomorian Noble.webp"
-					}
+					},
+					"width": 683,
+					"height": 1000
 				}
 			]
 		},
@@ -984,7 +1032,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Fomorian Warlock of the Dark.webp"
-					}
+					},
+					"width": 416,
+					"height": 1000
 				}
 			]
 		},
@@ -1019,7 +1069,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Frost Giant Ice Shaper.webp"
-					}
+					},
+					"width": 850,
+					"height": 1735
 				}
 			]
 		},
@@ -1037,7 +1089,7 @@
 							],
 							"by": "Bigby"
 						},
-						"Though primordials of frost and ice do exist (most notably Cryonax, who is sometimes considered almost the equal of the four Princes of Elemental Evil), frost giants who turn from the gods of the Ordning to embrace Elemental Evil are more likely to serve Olhydra, the Princess of Evil Water. To these giants, water is a cruel and destructive force that finds its ultimate expression in ice. These cultists of Evil Water often hide their allegiance as long as possible while urging their communities to everincreasing depths of cruelty and violence, but if the cultists' apostasy is revealed and they are exiled, they often end up as leaders of Olhydra's cults in colder regions.",
+						"Though primordials of frost and ice do exist (most notably Cryonax, who is sometimes considered almost the equal of the four Princes of Elemental Evil), frost giants who turn from the gods of the Ordning to embrace Elemental Evil are more likely to serve Olhydra, the Princess of Evil Water. To these giants, water is a cruel and destructive force that finds its ultimate expression in ice. These cultists of Evil Water often hide their allegiance as long as possible while urging their communities to ever increasing depths of cruelty and violence, but if the cultists' apostasy is revealed and they are exiled, they often end up as leaders of Olhydra's cults in colder regions.",
 						"Olhydra grants these frost giants the ability to breathe underwater, and they wield armor and weapons that reflect their commitment to the cult. Their armor is outfitted with enormous crossbows that can launch barbed harpoons, which the giants use to drag enemies into or through the water."
 					]
 				}
@@ -1048,7 +1100,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Frost Giant of Evil Water.webp"
-					}
+					},
+					"width": 725,
+					"height": 1000
 				}
 			]
 		},
@@ -1071,7 +1125,9 @@
 						"type": "internal",
 						"path": "bestiary/BGG/Frostmourn.webp"
 					},
-					"credit": "Daneen Wilkerson"
+					"credit": "Daneen Wilkerson",
+					"width": 850,
+					"height": 2247
 				}
 			]
 		},
@@ -1093,7 +1149,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Fury of Kostchtchie.webp"
-					}
+					},
+					"width": 942,
+					"height": 1000
 				}
 			]
 		},
@@ -1116,7 +1174,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Gargantua.webp"
-					}
+					},
+					"width": 437,
+					"height": 1000
 				}
 			]
 		},
@@ -1139,7 +1199,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Giant Goose.webp"
-					}
+					},
+					"width": 537,
+					"height": 1000
 				}
 			]
 		},
@@ -1176,7 +1238,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Giant Lynx.webp"
-					}
+					},
+					"width": 950,
+					"height": 1000
 				}
 			]
 		},
@@ -1204,7 +1268,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Giant Ox.webp"
-					}
+					},
+					"width": 1000,
+					"height": 704
 				}
 			]
 		},
@@ -1226,7 +1292,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Giant Ram.webp"
-					}
+					},
+					"width": 885,
+					"height": 1000
 				}
 			]
 		},
@@ -1247,7 +1315,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Giant Tick.webp"
-					}
+					},
+					"width": 821,
+					"height": 1000
 				}
 			]
 		},
@@ -1270,7 +1340,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Gigant.webp"
-					}
+					},
+					"width": 840,
+					"height": 1000
 				}
 			]
 		},
@@ -1300,7 +1372,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Goliath Giant-Kin.webp"
-					}
+					},
+					"width": 1000,
+					"height": 976
 				}
 			]
 		},
@@ -1337,7 +1411,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Grinning Cat.webp"
-					}
+					},
+					"width": 352,
+					"height": 1000
 				}
 			]
 		},
@@ -1359,7 +1435,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Hill Giant Avalancher.webp"
-					}
+					},
+					"width": 850,
+					"height": 2248
 				}
 			]
 		},
@@ -1388,7 +1466,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Lightning Hulk.webp"
-					}
+					},
+					"width": 600,
+					"height": 1000
 				}
 			]
 		},
@@ -1412,7 +1492,9 @@
 						"type": "internal",
 						"path": "bestiary/BGG/Maw of Yeenoghu.webp"
 					},
-					"credit": "Daarken"
+					"credit": "Daarken",
+					"width": 1700,
+					"height": 963
 				}
 			]
 		},
@@ -1442,7 +1524,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Mist Hulk.webp"
-					}
+					},
+					"width": 379,
+					"height": 1000
 				}
 			]
 		},
@@ -1471,7 +1555,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Mud Hulk.webp"
-					}
+					},
+					"width": 443,
+					"height": 1000
 				}
 			]
 		},
@@ -1505,7 +1591,9 @@
 						"type": "internal",
 						"path": "bestiary/BGG/Regisaur.webp"
 					},
-					"credit": "Quintin Gleim"
+					"credit": "Quintin Gleim",
+					"width": 1700,
+					"height": 1197
 				}
 			]
 		},
@@ -1535,7 +1623,9 @@
 						"type": "internal",
 						"path": "bestiary/BGG/Rime Hulk.webp"
 					},
-					"credit": "Linda Lithén"
+					"credit": "Linda Lithén",
+					"width": 850,
+					"height": 1521
 				}
 			]
 		},
@@ -1546,7 +1636,7 @@
 				{
 					"type": "entries",
 					"entries": [
-						"According to{@i The Saga of the Dragon Queller}, told by giants on some worlds, a disparate group of giants combined their efforts to protect their ancient empire from a particularly vicious dragon. Stone and hill giants hewed a mighty form from living stone. Cloud and frost giants gathered rare metals, and fire giants shaped them into flexible joints and plated armor. Storm giants inscribed runes into the inert form to give it the semblance of life. The fruit of these labors was an everlasting guardian: the first runic colossus.",
+						"According to {@i The Saga of the Dragon Queller}, told by giants on some worlds, a disparate group of giants combined their efforts to protect their ancient empire from a particularly vicious dragon. Stone and hill giants hewed a mighty form from living stone. Cloud and frost giants gathered rare metals, and fire giants shaped them into flexible joints and plated armor. Storm giants inscribed runes into the inert form to give it the semblance of life. The fruit of these labors was an everlasting guardian: the first runic colossus.",
 						"A runic colossus stands 30 feet tall. It regards all non-giants as a threat, and unless it has other orders, it attacks such creatures on sight.",
 						"The art of crafting a runic colossus is lost to modern giants, but many tales suggest the instructions might be buried deep in ruins from ancient giants' empires."
 					]
@@ -1558,7 +1648,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Runic Colossus.webp"
-					}
+					},
+					"width": 325,
+					"height": 1000
 				}
 			]
 		},
@@ -1593,7 +1685,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Scion of Grolantor.webp"
-					}
+					},
+					"width": 1000,
+					"height": 664
 				}
 			]
 		},
@@ -1629,7 +1723,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Scion of Memnor.webp"
-					}
+					},
+					"width": 1000,
+					"height": 606
 				}
 			]
 		},
@@ -1678,7 +1774,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Scion of Skoraeus.webp"
-					}
+					},
+					"width": 378,
+					"height": 1000
 				}
 			]
 		},
@@ -1714,7 +1812,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Scion of Stronmaus.webp"
-					}
+					},
+					"width": 382,
+					"height": 1000
 				}
 			]
 		},
@@ -1756,7 +1856,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Scion of Surtur.webp"
-					}
+					},
+					"width": 1000,
+					"height": 630
 				}
 			]
 		},
@@ -1791,7 +1893,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Scion of Thrym.webp"
-					}
+					},
+					"width": 1000,
+					"height": 624
 				}
 			]
 		},
@@ -1803,7 +1907,7 @@
 					"type": "section",
 					"name": "Scions of Giants' Gods",
 					"entries": [
-						"Giants are descended from the All-Father, Annam, and his children. But scions of giants' gods boast a greater claim: they are Annam's grandchildren, and they occupy a privileged place among giants. On some worlds, these scions ruled the first empires of giants until Annam retreated into seclusion. On other worlds, the scions guard their birthplaces (which are rich in elemental magic) or hold the substance of the world together. (See \" Giants of Myth \" in chapter 3 for additional inspiration.)",
+						"Giants are descended from the All-Father, Annam, and his children. But scions of giants' gods boast a greater claim: they are Annam's grandchildren, and they occupy a privileged place among giants. On some worlds, these scions ruled the first empires of giants until Annam retreated into seclusion. On other worlds, the scions guard their birthplaces (which are rich in elemental magic) or hold the substance of the world together. (See \"{@book Giants of Myth|BGG|3|Giants of Myth}\" in chapter 3 for additional inspiration.)",
 						"Scions of giants' gods are enormously powerful beings who infuse the world around them with primeval magic. In many worlds, they slumber and have become part of the landscape. In this case, each scion is enclosed in stasis inside a powerful Elemental called a cradle. The cradle protects the slumbering scion and follows its subconscious wishes, including driving off intruders. But if the cradle dies, the scion within fully awakens."
 					]
 				}
@@ -1827,7 +1931,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Spectral Cloud.webp"
-					}
+					},
+					"width": 370,
+					"height": 1000
 				}
 			]
 		},
@@ -1856,7 +1962,9 @@
 						"type": "internal",
 						"path": "bestiary/BGG/Spotted Lion.webp"
 					},
-					"credit": "Brynn Metheney"
+					"credit": "Brynn Metheney",
+					"width": 519,
+					"height": 1000
 				}
 			]
 		},
@@ -1879,7 +1987,9 @@
 						"type": "internal",
 						"path": "bestiary/BGG/Stalker of Baphomet.webp"
 					},
-					"credit": "Suzanne Helmigh"
+					"credit": "Suzanne Helmigh",
+					"width": 850,
+					"height": 2128
 				}
 			]
 		},
@@ -1901,7 +2011,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Stone Giant of Evil Earth.webp"
-					}
+					},
+					"width": 393,
+					"height": 1000
 				}
 			]
 		},
@@ -1923,7 +2035,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Stone Giant Rockspeaker.webp"
-					}
+					},
+					"width": 669,
+					"height": 1000
 				}
 			]
 		},
@@ -1952,7 +2066,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Storm Crab.webp"
-					}
+					},
+					"width": 378,
+					"height": 1000
 				}
 			]
 		},
@@ -1974,7 +2090,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Storm Giant Tempest Caller.webp"
-					}
+					},
+					"width": 654,
+					"height": 1000
 				}
 			]
 		},
@@ -1997,7 +2115,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Storm Herald.webp"
-					}
+					},
+					"width": 474,
+					"height": 1000
 				}
 			]
 		},
@@ -2019,7 +2139,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Tempest Spirit.webp"
-					}
+					},
+					"width": 830,
+					"height": 1000
 				}
 			]
 		},
@@ -2048,7 +2170,9 @@
 						"type": "internal",
 						"path": "bestiary/BGG/Titanothere.webp"
 					},
-					"credit": "Brian Valeza"
+					"credit": "Brian Valeza",
+					"width": 360,
+					"height": 1000
 				}
 			]
 		},
@@ -2082,7 +2206,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Troll Amalgam.webp"
-					}
+					},
+					"width": 811,
+					"height": 1000
 				}
 			]
 		},
@@ -2115,7 +2241,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/BGG/Troll Mutate.webp"
-					}
+					},
+					"width": 434,
+					"height": 1000
 				}
 			]
 		},
@@ -2127,7 +2255,7 @@
 					"type": "section",
 					"name": "Trolls",
 					"entries": [
-						"The dwarven tale titled{@i The Saga of Gnarldan Steelshield}claims the god Vaprak the Destroyer came into being when Annam was injured and his blood spilled on the ground. The saga further claims that trolls were born similarly when Vaprak's blood was spilled. Whatever the truth of their origin, trolls embody life's steadfast determination to grow and thrive despite all obstacles.",
+						"The dwarven tale titled {@i The Saga of Gnarldan Steelshield} claims the god Vaprak the Destroyer came into being when Annam was injured and his blood spilled on the ground. The saga further claims that trolls were born similarly when Vaprak's blood was spilled. Whatever the truth of their origin, trolls embody life's steadfast determination to grow and thrive despite all obstacles.",
 						"Trolls' rapid healing makes them subject to bizarre mutations, particularly when they regenerate in unusual environments or heal from extraordinary magical wounds. Troll amalgams and troll mutates are two examples of such strangely mutated forms.",
 						{
 							"type": "quote",

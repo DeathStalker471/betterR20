@@ -1,7 +1,8 @@
 {
 	"_meta": {
 		"internalCopies": [
-			"race"
+			"race",
+			"subrace"
 		]
 	},
 	"race": [
@@ -31,6 +32,10 @@
 					"auran": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/aarakocra.opus"
+			},
 			"entries": [
 				{
 					"name": "Dive Attack",
@@ -97,7 +102,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/aarakocra.mp3"
+				"path": "races/aarakocra.opus"
 			},
 			"entries": [
 				{
@@ -161,6 +166,10 @@
 			"traitTags": [
 				"Natural Weapon"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/aarakocra.opus"
+			},
 			"additionalSpells": [
 				{
 					"innate": {
@@ -235,7 +244,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/aasimar.mp3"
+				"path": "races/aasimar.opus"
 			},
 			"additionalSpells": [
 				{
@@ -326,6 +335,10 @@
 				"necrotic",
 				"radiant"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/aasimar.opus"
+			},
 			"additionalSpells": [
 				{
 					"ability": {
@@ -511,7 +524,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/aasimar.mp3"
+				"path": "races/aasimar.opus"
 			},
 			"additionalSpells": [
 				{
@@ -1103,6 +1116,10 @@
 					"goblin": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/bugbear.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -1194,6 +1211,10 @@
 					"stealth": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/bugbear.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -1297,6 +1318,10 @@
 					"goblin": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/bugbear.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -1384,6 +1409,10 @@
 					"other": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/bullywug.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -1474,6 +1503,10 @@
 					"sylvan": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/centaur.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -1591,6 +1624,10 @@
 					]
 				}
 			},
+			"soundClip": {
+				"type": "internal",
+				"path": "races/centaur.opus"
+			},
 			"hasFluff": true,
 			"hasFluffImages": true
 		},
@@ -1622,6 +1659,10 @@
 					}
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/centaur.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -2160,7 +2201,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/dragonborn.mp3"
+				"path": "races/dragonborn.opus"
 			},
 			"entries": [
 				{
@@ -2299,6 +2340,10 @@
 					}
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/dragonborn.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -2475,6 +2520,10 @@
 					}
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/dragonborn.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -2657,6 +2706,10 @@
 					}
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/dragonborn.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -2854,6 +2907,10 @@
 			"resist": [
 				"poison"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/duergar.opus"
+			},
 			"additionalSpells": [
 				{
 					"innate": {
@@ -2972,7 +3029,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/dwarf.mp3"
+				"path": "races/dwarf.opus"
 			},
 			"entries": [
 				{
@@ -3020,7 +3077,7 @@
 				{
 					"name": "Tool Proficiency",
 					"entries": [
-						"You gain proficiency with the artisan's tools of your choice: {@item Smith's tools|phb}, {@item brewer's supplies|phb}, or {@item mason's tools|phb}."
+						"You gain proficiency with the {@item artisan's tools|PHB} of your choice: {@item Smith's tools|phb}, {@item brewer's supplies|phb}, or {@item mason's tools|phb}."
 					],
 					"type": "entries"
 				},
@@ -3075,6 +3132,10 @@
 			"resist": [
 				"poison"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/dwarf.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -3284,7 +3345,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/elf.mp3"
+				"path": "races/elf.opus"
 			},
 			"entries": [
 				{
@@ -3382,6 +3443,10 @@
 					"longbow|phb": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/elf.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -3487,6 +3552,10 @@
 					"elvish": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/elf.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -3708,6 +3777,10 @@
 			"traitTags": [
 				"Powerful Build"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/firbolg.opus"
+			},
 			"additionalSpells": [
 				{
 					"ability": {
@@ -3804,7 +3877,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/firbolg.mp3"
+				"path": "races/firbolg.opus"
 			},
 			"additionalSpells": [
 				{
@@ -3921,7 +3994,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/genasi.mp3"
+				"path": "races/genasi.opus"
 			},
 			"entries": [
 				{
@@ -3970,6 +4043,10 @@
 				"max": 120
 			},
 			"darkvision": 60,
+			"soundClip": {
+				"type": "internal",
+				"path": "races/genasi.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -4009,6 +4086,10 @@
 					"firearms": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/giff.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -4022,7 +4103,7 @@
 					"type": "entries",
 					"name": "Firearms Mastery",
 					"entries": [
-						"You have a mystical connection to firearms that traces back to the gods of the giff, who delighted in such weapons. You have proficiency with all firearms and ignore the loading property of any firearm. In addition, attacking at long range with a firearm doesn't impose disadvantage on your attack roll."
+						"You have a mystical connection to firearms that traces back to the gods of the giff, who delighted in such weapons. You have proficiency with all firearms and ignore the {@itemProperty LD||loading} property of any firearm. In addition, attacking at long range with a firearm doesn't impose disadvantage on your attack roll."
 					]
 				},
 				{
@@ -4264,6 +4345,10 @@
 				"Natural Weapon",
 				"NPC Race"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/gnoll.opus"
+			},
 			"entries": [
 				{
 					"name": "Bite",
@@ -4323,7 +4408,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/gnome.mp3"
+				"path": "races/gnome.opus"
 			},
 			"entries": [
 				{
@@ -4390,6 +4475,10 @@
 					"undercommon": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/gnome.opus"
+			},
 			"additionalSpells": [
 				{
 					"ability": "int",
@@ -4485,6 +4574,10 @@
 					"goblin": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/goblin.opus"
+			},
 			"entries": [
 				{
 					"name": "Nimble Escape",
@@ -4549,6 +4642,10 @@
 				"S"
 			],
 			"traitTags": null,
+			"soundClip": {
+				"type": "internal",
+				"path": "races/goblin.opus"
+			},
 			"hasFluffImages": true
 		},
 		{
@@ -4599,6 +4696,10 @@
 				}
 			},
 			"traitTags": null,
+			"soundClip": {
+				"type": "internal",
+				"path": "races/goblin.opus"
+			},
 			"hasFluff": true
 		},
 		{
@@ -4617,6 +4718,10 @@
 			],
 			"speed": 30,
 			"darkvision": 60,
+			"soundClip": {
+				"type": "internal",
+				"path": "races/goblin.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -4690,6 +4795,10 @@
 				"fire",
 				"psychic"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/goblin.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -4723,6 +4832,13 @@
 					"name": "Languages",
 					"entries": [
 						"You can speak, read, and write Common and Goblin."
+					],
+					"type": "entries"
+				},
+				{
+					"name": "Grit",
+					"entries": [
+						"You have resistance to fire damage and psychic damage. In addition, when you are wearing no armor, your AC is equal to 11 + your Dexterity modifier."
 					],
 					"type": "entries"
 				}
@@ -4772,6 +4888,10 @@
 					"goblin": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/goblin.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -4829,12 +4949,18 @@
 				"_mod": {
 					"entries": [
 						{
+							"mode": "replaceTxt",
+							"replace": "Goblins",
+							"with": "Dankwood goblins",
+							"flags": "i"
+						},
+						{
 							"mode": "appendArr",
 							"items": {
 								"name": "Alignment",
 								"type": "entries",
 								"entries": [
-									"Dankwood goblins are typically neutral or neutral good, though some mischievous dankwood goblins are chaotic neutral."
+									"Dankwood goblins are typically neutral or neutral good, though some mischievous Dankwood goblins are chaotic neutral."
 								]
 							}
 						},
@@ -4862,6 +4988,10 @@
 				}
 			],
 			"heightAndWeight": null,
+			"soundClip": {
+				"type": "internal",
+				"path": "races/goblin.opus"
+			},
 			"hasFluff": true
 		},
 		{
@@ -4884,6 +5014,10 @@
 			"resist": [
 				"cold"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/goliath.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -4970,7 +5104,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/goliath.mp3"
+				"path": "races/goliath.opus"
 			},
 			"entries": [
 				{
@@ -5049,6 +5183,10 @@
 					"undercommon": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/grimlock.opus"
+			},
 			"entries": [
 				{
 					"name": "Blindsight",
@@ -5120,6 +5258,10 @@
 			"conditionImmune": [
 				"poisoned"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/grung.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -5192,7 +5334,8 @@
 						"You can speak, read, and write Grung."
 					]
 				}
-			]
+			],
+			"hasFluffImages": true
 		},
 		{
 			"name": "Hadozee",
@@ -5293,7 +5436,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/half-elf.mp3"
+				"path": "races/half-elf.opus"
 			},
 			"entries": [
 				{
@@ -5384,7 +5527,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/half-orc.mp3"
+				"path": "races/half-orc.opus"
 			},
 			"entries": [
 				{
@@ -5472,7 +5615,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/halfling.mp3"
+				"path": "races/halfling.opus"
 			},
 			"entries": [
 				{
@@ -5761,6 +5904,10 @@
 					"goblin": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/hobgoblin.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -5821,6 +5968,10 @@
 					"reprintedAs": true
 				}
 			},
+			"soundClip": {
+				"type": "internal",
+				"path": "races/hobgoblin.opus"
+			},
 			"hasFluffImages": true
 		},
 		{
@@ -5839,6 +5990,10 @@
 			],
 			"speed": 30,
 			"darkvision": 60,
+			"soundClip": {
+				"type": "internal",
+				"path": "races/hobgoblin.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -5957,6 +6112,10 @@
 					"light": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/hobgoblin.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -6032,7 +6191,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/human.mp3"
+				"path": "races/human.opus"
 			},
 			"entries": [
 				{
@@ -6061,96 +6220,6 @@
 			"hasFluffImages": true
 		},
 		{
-			"name": "Human (Amonkhet)",
-			"source": "PSA",
-			"page": 14,
-			"size": [
-				"M"
-			],
-			"speed": 30,
-			"ability": [
-				{
-					"choose": {
-						"from": [
-							"str",
-							"dex",
-							"con",
-							"int",
-							"wis",
-							"cha"
-						],
-						"count": 2
-					}
-				}
-			],
-			"age": {
-				"mature": 20,
-				"max": 100
-			},
-			"feats": [
-				{
-					"any": 1
-				}
-			],
-			"skillProficiencies": [
-				{
-					"any": 1
-				}
-			],
-			"languageProficiencies": [
-				{
-					"common": true,
-					"anyStandard": 1
-				}
-			],
-			"entries": [
-				{
-					"name": "Age",
-					"type": "entries",
-					"entries": [
-						"Humans reach adulthood in their late teens. Most human initiates have completed the trials and found a glorious or inglorious death before they turn 30. Viziers can enjoy longer service to their gods, in theory living up to a century."
-					]
-				},
-				{
-					"name": "Alignment",
-					"type": "entries",
-					"entries": [
-						"Humans tend toward no particular alignment. The best and the worst are found among them."
-					]
-				},
-				{
-					"type": "entries",
-					"name": "Size",
-					"entries": [
-						"Humans vary widely in height and build, from barely 5 feet to well over 6 feet tall. Regardless of your position in that range, your size is Medium"
-					]
-				},
-				{
-					"name": "Skills",
-					"entries": [
-						"You gain proficiency in one skill of your choice."
-					],
-					"type": "entries"
-				},
-				{
-					"name": "Feat",
-					"entries": [
-						"You gain one {@5etools feat|feats.html} of your choice."
-					],
-					"type": "entries"
-				},
-				{
-					"name": "Languages",
-					"entries": [
-						"You can speak, read, and write Common and one extra language of your choice."
-					],
-					"type": "entries"
-				}
-			],
-			"hasFluff": true,
-			"hasFluffImages": true
-		},
-		{
 			"name": "Human (Innistrad)",
 			"source": "PSI",
 			"page": 8,
@@ -6168,6 +6237,10 @@
 					"anyStandard": 1
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/human.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -6265,6 +6338,10 @@
 					"anyStandard": 1
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/human.opus"
+			},
 			"hasFluff": true,
 			"hasFluffImages": true
 		},
@@ -6321,6 +6398,10 @@
 					"cha": 1
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/human.opus"
+			},
 			"hasFluff": true,
 			"hasFluffImages": true
 		},
@@ -6355,6 +6436,10 @@
 					"cha": 1
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/human.opus"
+			},
 			"hasFluff": true,
 			"hasFluffImages": true
 		},
@@ -6528,7 +6613,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/kenku.mp3"
+				"path": "races/kenku.opus"
 			},
 			"entries": [
 				{
@@ -6569,6 +6654,10 @@
 					"any": 2
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/kenku.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -6657,7 +6746,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/kenku.mp3"
+				"path": "races/kenku.opus"
 			},
 			"entries": [
 				{
@@ -6809,6 +6898,10 @@
 					"draconic": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/kobold.opus"
+			},
 			"entries": [
 				{
 					"name": "Pack Tactics",
@@ -6863,6 +6956,10 @@
 					}
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/kobold.opus"
+			},
 			"additionalSpells": [
 				{
 					"ability": {
@@ -7022,6 +7119,10 @@
 					"draconic": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/kobold.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -7192,6 +7293,10 @@
 					"undercommon": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/kuo-toa.opus"
+			},
 			"entries": [
 				{
 					"name": "Amphibious",
@@ -7370,6 +7475,10 @@
 					"draconic": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/lizardfolk.opus"
+			},
 			"entries": [
 				{
 					"name": "Hold Breath",
@@ -7425,6 +7534,10 @@
 					}
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/lizardfolk.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -7526,6 +7639,10 @@
 					"draconic": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/lizardfolk.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -7830,6 +7947,10 @@
 					"aquan": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/merfolk.opus"
+			},
 			"entries": [
 				{
 					"name": "Amphibious",
@@ -7883,6 +8004,10 @@
 					"anyStandard": 1
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/merfolk.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -7976,6 +8101,10 @@
 					"other": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/minotaur.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -8080,6 +8209,10 @@
 					]
 				}
 			},
+			"soundClip": {
+				"type": "internal",
+				"path": "races/minotaur.opus"
+			},
 			"hasFluff": true,
 			"hasFluffImages": true
 		},
@@ -8095,6 +8228,10 @@
 			"traitTags": [
 				"Natural Weapon"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/minotaur.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -8160,6 +8297,10 @@
 					"other": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/minotaur.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -8347,6 +8488,10 @@
 					"orc": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/orc.opus"
+			},
 			"entries": [
 				{
 					"name": "Aggressive",
@@ -8445,7 +8590,11 @@
 						"count": 2
 					}
 				}
-			]
+			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/orc.opus"
+			}
 		},
 		{
 			"name": "Orc",
@@ -8500,6 +8649,10 @@
 					"orc": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/orc.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -8572,6 +8725,10 @@
 			"traitTags": [
 				"Powerful Build"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/orc.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -8660,6 +8817,10 @@
 					"orc": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/orc.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -8744,6 +8905,10 @@
 					"orc": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/orc.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -9040,6 +9205,10 @@
 					"anyMusicalInstrument": 1
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/satyr.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -9135,6 +9304,10 @@
 					"anyMusicalInstrument": 1
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/satyr.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -9830,6 +10003,10 @@
 				"exhaustion",
 				"poisoned"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/skeleton.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -9891,6 +10068,10 @@
 					"stealth": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/tabaxi.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -9992,7 +10173,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/tabaxi.mp3"
+				"path": "races/tabaxi.opus"
 			},
 			"entries": [
 				{
@@ -10066,6 +10247,10 @@
 				"Improved Resting",
 				"Natural Armor"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/thri-kreen.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -10100,7 +10285,7 @@
 					"type": "entries",
 					"name": "Secondary Arms",
 					"entries": [
-						"You have two slightly smaller secondary arms below your primary pair of arms. The secondary arms can manipulate an object, open or close a door or container, pick up or set down a Tiny object, or wield a weapon that has the light property."
+						"You have two slightly smaller secondary arms below your primary pair of arms. The secondary arms can manipulate an object, open or close a door or container, pick up or set down a Tiny object, or wield a weapon that has the {@itemProperty L||light} property."
 					]
 				},
 				{
@@ -10161,7 +10346,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/tiefling.mp3"
+				"path": "races/tiefling.opus"
 			},
 			"additionalSpells": [
 				{
@@ -10264,6 +10449,10 @@
 					}
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/tortle.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -10353,6 +10542,10 @@
 					"common": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/tortle.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -10452,6 +10645,10 @@
 					"reprintedAs": true
 				}
 			},
+			"soundClip": {
+				"type": "internal",
+				"path": "races/triton.opus"
+			},
 			"hasFluff": true,
 			"hasFluffImages": true
 		},
@@ -10474,6 +10671,10 @@
 			"resist": [
 				"cold"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/triton.opus"
+			},
 			"additionalSpells": [
 				{
 					"innate": {
@@ -10602,7 +10803,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/triton.mp3"
+				"path": "races/triton.opus"
 			},
 			"additionalSpells": [
 				{
@@ -10727,6 +10928,10 @@
 					"other": true
 				}
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/troglodyte.opus"
+			},
 			"entries": [
 				{
 					"name": "Chameleon Skin",
@@ -10801,6 +11006,10 @@
 			"resist": [
 				"necrotic"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/vampire.opus"
+			},
 			"entries": [
 				{
 					"name": "Age",
@@ -11394,6 +11603,10 @@
 			"conditionImmune": [
 				"poisoned"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/yuan-ti-pureblood.opus"
+			},
 			"additionalSpells": [
 				{
 					"innate": {
@@ -11501,6 +11714,10 @@
 			"conditionImmune": [
 				"poisoned"
 			],
+			"soundClip": {
+				"type": "internal",
+				"path": "races/zombie.opus"
+			},
 			"entries": [
 				{
 					"type": "entries",
@@ -11541,6 +11758,55 @@
 		}
 	],
 	"subrace": [
+		{
+			"name": "Amonkhet",
+			"source": "PSA",
+			"page": 14,
+			"_copy": {
+				"name": "Variant",
+				"source": "PHB",
+				"raceName": "Human",
+				"raceSource": "PHB",
+				"_mod": {
+					"entries": [
+						{
+							"mode": "appendArr",
+							"items": [
+								{
+									"name": "Age",
+									"type": "entries",
+									"entries": [
+										"Humans reach adulthood in their late teens. Most human initiates have completed the trials and found a glorious or inglorious death before they turn 30. Viziers can enjoy longer service to their gods, in theory living up to a century."
+									],
+									"data": {
+										"overwrite": "Age"
+									}
+								},
+								{
+									"name": "Languages",
+									"entries": [
+										"You can speak, read, and write Common and one extra language of your choice."
+									],
+									"type": "entries",
+									"data": {
+										"overwrite": "Languages"
+									}
+								},
+								{
+									"name": "Alignment",
+									"type": "entries",
+									"entries": [
+										"Humans tend toward no particular alignment. The best and the worst are found among them."
+									]
+								}
+							]
+						}
+					]
+				}
+			},
+			"hasFluff": true,
+			"hasFluffImages": true
+		},
 		{
 			"name": "Fallen",
 			"source": "VGM",
@@ -14482,7 +14748,7 @@
 				{
 					"name": "Tinker",
 					"entries": [
-						"You have proficiency with artisan's tools ({@item tinker's tools|phb}). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time.",
+						"You have proficiency with {@item artisan's tools|PHB} ({@item tinker's tools|phb}). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it; at that time, you can reclaim the materials used to create it. You can have up to three such devices active at a time.",
 						"When you create a device, choose one of the following options:",
 						{
 							"type": "entries",
@@ -14524,6 +14790,7 @@
 					"dex": 2
 				}
 			],
+			"resist": null,
 			"entries": [
 				{
 					"name": "Alignment",
@@ -14575,13 +14842,6 @@
 			],
 			"entries": [
 				{
-					"name": "Grit",
-					"entries": [
-						"You have resistance to fire damage and psychic damage. In addition, when you are wearing no armor, your AC is equal to 11 + your Dexterity modifier."
-					],
-					"type": "entries"
-				},
-				{
 					"name": "Grotag Tamer",
 					"entries": [
 						"You have proficiency in the {@skill Animal Handling} skill."
@@ -14605,13 +14865,6 @@
 				}
 			],
 			"entries": [
-				{
-					"name": "Grit",
-					"entries": [
-						"You have resistance to fire damage and psychic damage. In addition, when you are wearing no armor, your AC is equal to 11 + your Dexterity modifier."
-					],
-					"type": "entries"
-				},
 				{
 					"name": "Lavastep Grit",
 					"entries": [
@@ -14641,13 +14894,6 @@
 				}
 			],
 			"entries": [
-				{
-					"name": "Grit",
-					"entries": [
-						"You have resistance to fire damage and psychic damage. In addition, when you are wearing no armor, your AC is equal to 11 + your Dexterity modifier."
-					],
-					"type": "entries"
-				},
 				{
 					"name": "Tuktuk Cunning",
 					"entries": [
@@ -15401,7 +15647,7 @@
 			],
 			"soundClip": {
 				"type": "internal",
-				"path": "races/half-orc.mp3"
+				"path": "races/half-orc.opus"
 			},
 			"additionalSpells": [
 				{
@@ -16195,7 +16441,7 @@
 					"type": "entries",
 					"name": "Maker's Gift",
 					"entries": [
-						"You gain proficiency with one type of artisan's tools of your choice."
+						"You gain proficiency with one type of {@item artisan's tools|PHB} of your choice."
 					]
 				},
 				{

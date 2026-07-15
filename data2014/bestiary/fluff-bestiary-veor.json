@@ -8,7 +8,7 @@
 					"type": "entries",
 					"entries": [
 						"Lady Alustriel Silverhand, called the Shining Lady, has been an influential wizard and proponent of good across Toril for centuries. Alustriel is one of the Seven Sisters\u2014immortal daughters of Mystra, the god of magic. The divine energy Mystra passed to Alustriel grants Alustriel incredible power over arcane magic.",
-						"Alustriel's youthful appearance as a human woman with silver hair gives no hint of her supernaturally extended life span. She typically wears long robes and wields a unicorn-headed staff, her{@i Staff of Silverymoon}."
+						"Alustriel's youthful appearance as a human woman with silver hair gives no hint of her supernaturally extended life span. She typically wears long robes and wields a unicorn-headed staff, her {@i Staff of Silverymoon}."
 					]
 				},
 				{
@@ -26,7 +26,7 @@
 							"name": "History",
 							"entries": [
 								"Like other Chosen of Mystra, Alustriel is concerned with preserving the Weave, the primary incarnation of magic that permeates Toril. She believes that the Weave favors those who act with mercy and compassion, seeks to deliver lives of security for all, and bolsters people's efforts when they seek to right wrongs and combat evil.",
-								"Nowhere are Alustriel and her deeds better known than in the Silver Marches and its capital, Silverymoon. Alustriel ruled Silverymoon for centuries, once disguised as a wizard named Elué Dualen and then later in her true form. She helped create Silverymoon's famous Moonbridge and cofounded the Lady's College, the first school in Faerûn for mages as students rather than as apprentices in service.",
+								"Nowhere are Alustriel and her deeds better known than in the Silver Marches and its capital, Silverymoon. Alustriel ruled Silverymoon for centuries, once disguised as a wizard named Elué Dualen and then later in her true form. She helped create Silverymoon's famous Moonbridge and co-founded the Lady's College, the first school in Faerûn for mages as students rather than as apprentices in service.",
 								"Alustriel stepped down as Silverymoon's high mage more than a century ago. Her son, Methrammar Aerasumé, now leads the city and works to uphold his mother's legacy.",
 								"Alustriel has partaken in countless adventures before and after her tenure as Silverymoon's high mage. She has befriended famous adventurers such as Drizzt Do'Urden, worked with prominent organizations like the Harpers, and helped prevent or undo many kinds of evil."
 							]
@@ -40,7 +40,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Alustriel Silverhand.webp"
-					}
+					},
+					"width": 606,
+					"height": 1000
 				}
 			]
 		},
@@ -70,7 +72,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Black Rose Bearer.webp"
-					}
+					},
+					"width": 797,
+					"height": 1000
 				}
 			]
 		},
@@ -103,7 +107,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Blade Lieutenant.webp"
-					}
+					},
+					"width": 1000,
+					"height": 506
 				}
 			]
 		},
@@ -136,7 +142,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Blade Scout.webp"
-					}
+					},
+					"width": 1000,
+					"height": 506
 				}
 			]
 		},
@@ -164,7 +172,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Blazebear.webp"
-					}
+					},
+					"width": 829,
+					"height": 1000
 				}
 			]
 		},
@@ -222,7 +232,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Bone Roc.webp"
-					}
+					},
+					"width": 1000,
+					"height": 751
 				}
 			]
 		},
@@ -244,7 +256,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Borthak.webp"
-					}
+					},
+					"width": 850,
+					"height": 1000
 				}
 			]
 		},
@@ -266,7 +280,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Camlash.webp"
-					}
+					},
+					"width": 965,
+					"height": 1000
 				}
 			]
 		},
@@ -294,7 +310,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Citadel Spider.webp"
-					}
+					},
+					"width": 810,
+					"height": 1000
 				}
 			]
 		},
@@ -318,7 +336,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Deadbark Dryad.webp"
-					}
+					},
+					"width": 797,
+					"height": 1000
 				}
 			]
 		},
@@ -347,7 +367,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Deathwolf.webp"
-					}
+					},
+					"width": 809,
+					"height": 1000
 				}
 			]
 		},
@@ -368,7 +390,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Degloth.webp"
-					}
+					},
+					"width": 1000,
+					"height": 642
 				}
 			]
 		},
@@ -391,7 +415,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/False Lich.webp"
-					}
+					},
+					"width": 745,
+					"height": 1000
 				}
 			]
 		},
@@ -412,7 +438,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Glaive.webp"
-					}
+					},
+					"width": 971,
+					"height": 1000
 				}
 			]
 		},
@@ -440,7 +468,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Granite Juggernaut.webp"
-					}
+					},
+					"width": 1000,
+					"height": 941
 				}
 			]
 		},
@@ -469,7 +499,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Hazvongel.webp"
-					}
+					},
+					"width": 830,
+					"height": 1000
 				}
 			]
 		},
@@ -497,7 +529,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Hertilod.webp"
-					}
+					},
+					"width": 1000,
+					"height": 953
 				}
 			]
 		},
@@ -532,7 +566,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Kakkuu Spyder-Fiend.webp"
-					}
+					},
+					"width": 1000,
+					"height": 659
 				}
 			]
 		},
@@ -543,7 +579,7 @@
 				{
 					"type": "entries",
 					"entries": [
-						"The Betrayer, the Bloody Handed, the Destroyer\u2014Kas has earned many epithets during his long existence. He is a vampire, legendary swordfighter, and ruthless warlord, and he is driven primarily by one thing: his hatred for Vecna.",
+						"The Betrayer, the Bloody Handed, the Destroyer\u2014Kas has earned many epithets during his long existence. He is a vampire, legendary sword-fighter, and ruthless warlord, and he is driven primarily by one thing: his hatred for Vecna.",
 						"Kas resembles a well-muscled, raven-haired, human man in his thirties, though he is far older. His fangs reveal his vampiric nature."
 					]
 				},
@@ -555,7 +591,7 @@
 							"name": "Personality",
 							"entries": [
 								"Kas is cruel, spiteful, and unrelenting in his pursuit of vengeance against Vecna. He readily lies, breaks promises, betrays allies, and taunts those who fall for his ruses. Kas has little use for those who can't validate his superiority or help advance his goals.",
-								"In{@i Vecna: Eve of Ruin}, Kas fools Tasha and Alustriel, two incredibly powerful wizards. In addition to defeating Vecna, Kas desperately wants the wizards to witness and acknowledge his strength."
+								"In {@i Vecna: Eve of Ruin}, Kas fools Tasha and Alustriel, two incredibly powerful wizards. In addition to defeating Vecna, Kas desperately wants the wizards to witness and acknowledge his strength."
 							]
 						}
 					]
@@ -567,7 +603,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Kas the Betrayer.webp"
-					}
+					},
+					"width": 550,
+					"height": 1000
 				}
 			]
 		},
@@ -595,7 +633,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Mirror Shade.webp"
-					}
+					},
+					"width": 811,
+					"height": 1000
 				}
 			]
 		},
@@ -629,7 +669,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Miska the Wolf-Spider.webp"
-					}
+					},
+					"width": 818,
+					"height": 1000
 				}
 			]
 		},
@@ -645,7 +687,7 @@
 							"entries": [
 								"Thought it was a person at first, but then I saw its head. Next, its arm. I knew I had to run."
 							],
-							"by": "Werthil,Kender Adventurer"
+							"by": "Werthil, Kender Adventurer"
 						},
 						"Moonlight guardians are gleaming bipedal statues made of silver and mithral. They were originally created by a desperate mage on Krynn who drew the Moon card from a Deck of Many Things. The mage wished for a retinue of bodyguards ideally suited to fighting lycanthropes and other shapeshifting creatures. In response, the Moon card spawned the first moonlight guardian.",
 						"A moonlight guardian's body is infused with magical moonlight that the creature can channel into its blows. It can also unleash searing blasts of lunar energy that can expose shapeshifters by forcing them into their true forms."
@@ -658,7 +700,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Moonlight Guardian.webp"
-					}
+					},
+					"width": 385,
+					"height": 1000
 				}
 			]
 		},
@@ -694,7 +738,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Phisarazu Spyder-Fiend.webp"
-					}
+					},
+					"width": 821,
+					"height": 1000
 				}
 			]
 		},
@@ -729,7 +775,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Quavilithku Spyder-Fiend.webp"
-					}
+					},
+					"width": 736,
+					"height": 1000
 				}
 			]
 		},
@@ -764,7 +812,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Raklupis Spyder-Fiend.webp"
-					}
+					},
+					"width": 788,
+					"height": 1000
 				}
 			]
 		},
@@ -787,7 +837,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Relentless Impaler.webp"
-					}
+					},
+					"width": 849,
+					"height": 1000
 				}
 			]
 		},
@@ -809,7 +861,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Spiderdragon.webp"
-					}
+					},
+					"width": 797,
+					"height": 1000
 				}
 			]
 		},
@@ -830,7 +884,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Star Angler.webp"
-					}
+					},
+					"width": 686,
+					"height": 1000
 				}
 			]
 		},
@@ -864,7 +920,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Strahd, Master of Death House.webp"
-					}
+					},
+					"width": 364,
+					"height": 1000
 				}
 			]
 		},
@@ -885,7 +943,7 @@
 							"type": "entries",
 							"name": "Answering the Summons",
 							"entries": [
-								"When Zybilna received Alustriel Silverhand's summons to combat Vecna, the archfey was sorely needed in Prismeer. As a compromise, and to honor Tasha's friendship with Alustriel, Zybilna sent a version of herself from the past to Alustriel's side. The Tasha who appears in{@i Vecna: Eve of Ruin}is a powerful wizard, though she is not yet a witch queen or an archfey."
+								"When Zybilna received Alustriel Silverhand's summons to combat Vecna, the archfey was sorely needed in Prismeer. As a compromise, and to honor Tasha's friendship with Alustriel, Zybilna sent a version of herself from the past to Alustriel's side. The Tasha who appears in {@i Vecna: Eve of Ruin} is a powerful wizard, though she is not yet a witch queen or an archfey."
 							]
 						}
 					]
@@ -897,7 +955,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Tasha the Witch.webp"
-					}
+					},
+					"width": 508,
+					"height": 1000
 				}
 			]
 		},
@@ -938,7 +998,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Vecna the Archlich.webp"
-					}
+					},
+					"width": 1700,
+					"height": 2186
 				}
 			]
 		},
@@ -960,7 +1022,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Vlazok.webp"
-					}
+					},
+					"width": 1000,
+					"height": 620
 				}
 			]
 		},
@@ -981,7 +1045,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Warforged Warrior.webp"
-					}
+					},
+					"width": 1000,
+					"height": 921
 				}
 			]
 		},
@@ -1002,7 +1068,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Whirling Chandelier.webp"
-					}
+					},
+					"width": 794,
+					"height": 1000
 				}
 			]
 		},
@@ -1024,7 +1092,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/VEoR/Windfall.webp"
-					}
+					},
+					"width": 906,
+					"height": 1000
 				}
 			]
 		}

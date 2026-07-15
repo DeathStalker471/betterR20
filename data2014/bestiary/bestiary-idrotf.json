@@ -46,8 +46,39 @@
 					]
 				}
 			},
+			"tokenCustom": true,
 			"hasToken": true,
 			"hasFluff": true
+		},
+		{
+			"name": "Arveiaturace",
+			"isNpc": true,
+			"isNamedCreature": true,
+			"source": "IDRotF",
+			"page": 105,
+			"_copy": {
+				"name": "Ancient White Dragon",
+				"source": "MM",
+				"_mod": {
+					"*": {
+						"mode": "replaceTxt",
+						"replace": "the dragon",
+						"with": "Arveiaturace",
+						"flags": "i"
+					}
+				}
+			},
+			"senses": [
+				"blindsight 60 ft. (blind beyond this radius)",
+				"darkvision 60 ft."
+			],
+			"senseTags": [
+				"B",
+				"D"
+			],
+			"hasToken": true,
+			"hasFluff": true,
+			"hasFluffImages": true
 		},
 		{
 			"name": "Auril (First Form)",
@@ -148,7 +179,7 @@
 				{
 					"name": "Divine Rejuvenation",
 					"entries": [
-						"When Auril drops to 0 hit points, her body turns to slush and melts away. Auril instantly reappears in her {@creature Auril (second form)|idrotf|second form}, in an unoccupied space within 60 feet of where her first form disappeared. Her initiative count doesn't change."
+						"When Auril drops to 0 hit points, her body turns to slush and melts away. Auril instantly reappears in her {@creature Auril (second form)|IDRotF|second form}, in an unoccupied space within 60 feet of where her first form disappeared. Her initiative count doesn't change."
 					]
 				},
 				{
@@ -340,7 +371,7 @@
 				{
 					"name": "Divine Rejuvenation",
 					"entries": [
-						"When Auril drops to 0 hit points, her body collapses into shards of ice, whereupon Auril instantly reappears in her {@creature Auril (third form)|idrotf|third form}, in an unoccupied space within 60 feet of where her second form was destroyed. Her initiative count doesn't change."
+						"When Auril drops to 0 hit points, her body collapses into shards of ice, whereupon Auril instantly reappears in her {@creature Auril (third form)|IDRotF|third form}, in an unoccupied space within 60 feet of where her second form was destroyed. Her initiative count doesn't change."
 					]
 				},
 				{
@@ -587,7 +618,7 @@
 				{
 					"name": "Blizzard Veil",
 					"entries": [
-						"Auril creates a magical blizzard in a 30-foot-radius sphere centered on herself. The area within the sphere is heavily obscured, and the sphere moves with Auril. The effect lasts until Auril drops to 0 hit points in this form, until she chooses to end the effect (no action required), or until her {@status concentration} is broken (as if {@status concentration||concentrating} on a spell)."
+						"Auril creates a magical blizzard in a 30-foot-radius sphere centered on herself. The area within the sphere is {@quickref Vision and Light||2||heavily obscured}, and the sphere moves with Auril. The effect lasts until Auril drops to 0 hit points in this form, until she chooses to end the effect (no action required), or until her {@status concentration} is broken (as if {@status concentration||concentrating} on a spell)."
 					]
 				}
 			],
@@ -910,7 +941,8 @@
 				}
 			],
 			"traitTags": [
-				"Charge"
+				"Charge",
+				"Sure-Footed"
 			],
 			"actionTags": [
 				"Multiattack"
@@ -982,6 +1014,7 @@
 				"L",
 				"G"
 			],
+			"tokenCustom": true,
 			"senseTags": [
 				"D"
 			],
@@ -1396,6 +1429,7 @@
 					}
 				}
 			},
+			"tokenCustom": true,
 			"hasToken": true
 		},
 		{
@@ -1410,6 +1444,7 @@
 				"blindsight 60 ft.",
 				"tremorsense 60 ft."
 			],
+			"tokenCustom": true,
 			"senseTags": [
 				"B",
 				"T"
@@ -1436,6 +1471,7 @@
 					}
 				}
 			},
+			"tokenCustom": true,
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -1452,6 +1488,7 @@
 				"burrow": 5,
 				"fly": 30
 			},
+			"tokenCustom": true,
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -1474,6 +1511,7 @@
 					}
 				}
 			},
+			"tokenCustom": true,
 			"hasToken": true
 		},
 		{
@@ -1505,6 +1543,7 @@
 					}
 				}
 			},
+			"tokenCustom": true,
 			"miscTags": [
 				"AOE",
 				"MW"
@@ -1515,6 +1554,9 @@
 			"name": "Chwinga",
 			"source": "IDRotF",
 			"page": 282,
+			"referenceSources": [
+				"CM"
+			],
 			"_copy": {
 				"name": "Chwinga",
 				"source": "ToA"
@@ -2030,6 +2072,7 @@
 			"cr": "0",
 			"spellcasting": null,
 			"action": null,
+			"tokenCustom": true,
 			"actionTags": [],
 			"spellcastingTags": [],
 			"miscTags": [],
@@ -2694,7 +2737,7 @@
 				{
 					"name": "Regeneration",
 					"entries": [
-						"The vampire regains 10 hit points at the start of its turn if it has at least 1 hit point and isn't in sunlight or running water. If the vampire takes radiant damage or damage from holy water, this trait doesn't function at the start of the vampire's next turn."
+						"The vampire regains 10 hit points at the start of its turn if it has at least 1 hit point and isn't in sunlight or running water. If the vampire takes radiant damage or damage from {@item Holy Water (Flask)|PHB|holy water}, this trait doesn't function at the start of the vampire's next turn."
 					]
 				},
 				{
@@ -2715,10 +2758,32 @@
 					"name": "Vampire Weaknesses",
 					"entries": [
 						"The vampire has the following flaws:",
-						"{@i Enraged by Celestial.} If it hears words of Celestial spoken, the vampire must try to attack the source of those spoken words on its next turn. If these words come from multiple sources and from opposite directions, the vampire is {@condition restrained}. Otherwise, it moves to attack what it perceives to be the closest source.",
-						"{@i Repulsed by Perfume.} The vampire has disadvantage on melee attack rolls made against any creature wearing perfume or carrying an open container of it.",
-						"{@i Stake to the Heart.} If a piercing weapon made of wood is driven into the vampire's heart while the vampire is {@condition incapacitated} in its resting place, the vampire is {@condition paralyzed} until the stake is removed.",
-						"{@i Sunlight Hypersensitivity.} The vampire takes 20 radiant damage when it starts its turn in sunlight. While in sunlight, it has disadvantage on attack rolls and ability checks."
+						{
+							"type": "list",
+							"style": "list-hang-subtrait",
+							"items": [
+								{
+									"type": "itemSub",
+									"name": "Enraged by Celestial",
+									"entry": "If it hears words of Celestial spoken, the vampire must try to attack the source of those spoken words on its next turn. If these words come from multiple sources and from opposite directions, the vampire is {@condition restrained}. Otherwise, it moves to attack what it perceives to be the closest source."
+								},
+								{
+									"type": "itemSub",
+									"name": "Repulsed by Perfume",
+									"entry": "The vampire has disadvantage on melee attack rolls made against any creature wearing perfume or carrying an open container of it."
+								},
+								{
+									"type": "itemSub",
+									"name": "Stake to the Heart",
+									"entry": "If a piercing weapon made of wood is driven into the vampire's heart while the vampire is {@condition incapacitated} in its resting place, the vampire is {@condition paralyzed} until the stake is removed."
+								},
+								{
+									"type": "itemSub",
+									"name": "Sunlight Hypersensitivity",
+									"entry": "The vampire takes 20 radiant damage when it starts its turn in sunlight. While in sunlight, it has disadvantage on attack rolls and ability checks."
+								}
+							]
+						}
 					]
 				}
 			],
@@ -3304,7 +3369,7 @@
 				{
 					"name": "Bite (Bear or Hybrid Form Only)",
 					"entries": [
-						"{@atk mw} {@hit 8} to hit, reach 5 ft., one creature. {@h}16 ({@damage 2d10 + 5}) piercing damage. If the target is a humanoid, it must succeed on a {@dc 15} Constitution saving throw or be cursed with werebear lycanthropy, as described in the Monster Manual."
+						"{@atk mw} {@hit 8} to hit, reach 5 ft., one creature. {@h}16 ({@damage 2d10 + 5}) piercing damage. If the target is a humanoid, it must succeed on a {@dc 15} Constitution saving throw or be cursed with werebear {@variantrule Player Characters as Lycanthropes|MM|lycanthropy}, as described in the Monster Manual."
 					]
 				},
 				{
@@ -3580,6 +3645,7 @@
 					]
 				}
 			],
+			"tokenCustom": true,
 			"attachedItems": [
 				"battleaxe|phb",
 				"javelin|phb"
@@ -3647,7 +3713,7 @@
 				{
 					"name": "Escape",
 					"entries": [
-						"The hare can take the Dash, Disengage, or Hide action as a bonus action on each of its turns."
+						"The hare can take the {@action Dash}, {@action Disengage}, or {@action Hide} action as a bonus action on each of its turns."
 					]
 				}
 			],
@@ -3727,6 +3793,13 @@
 			"alignment": [
 				"N",
 				"G"
+			],
+			"languages": [
+				"Common"
+			],
+			"tokenCustom": true,
+			"languageTags": [
+				"C"
 			],
 			"hasToken": true,
 			"hasFluff": true
@@ -4156,6 +4229,7 @@
 					]
 				}
 			],
+			"tokenCustom": true,
 			"attachedItems": [
 				"javelin|phb"
 			],
@@ -4276,6 +4350,7 @@
 					]
 				}
 			],
+			"tokenCustom": true,
 			"attachedItems": [
 				"heavy crossbow|phb",
 				"sickle|phb"
@@ -4393,6 +4468,7 @@
 					]
 				}
 			],
+			"tokenCustom": true,
 			"attachedItems": [
 				"javelin|phb",
 				"warhammer|phb"
@@ -4463,8 +4539,7 @@
 				"R"
 			],
 			"spellcastingTags": [
-				"CC",
-				"I"
+				"CC"
 			],
 			"hasToken": true,
 			"hasFluff": true,
@@ -4562,10 +4637,15 @@
 					}
 				}
 			},
+			"alignment": [
+				"L",
+				"E"
+			],
 			"languages": [
 				"Common",
 				"Infernal"
 			],
+			"tokenCustom": true,
 			"languageTags": [
 				"C",
 				"I"
@@ -4713,7 +4793,7 @@
 				{
 					"name": "Regeneration",
 					"entries": [
-						"The vampire regains 10 hit points at the start of its turn if it has at least 1 hit point and isn't in sunlight or running water. If the vampire takes radiant damage or damage from holy water, this trait doesn't function at the start of its next turn."
+						"The vampire regains 10 hit points at the start of its turn if it has at least 1 hit point and isn't in sunlight or running water. If the vampire takes radiant damage or damage from {@item Holy Water (Flask)|PHB|holy water}, this trait doesn't function at the start of its next turn."
 					]
 				},
 				{
@@ -4726,10 +4806,32 @@
 					"name": "Vampire Weaknesses",
 					"entries": [
 						"The vampire has the following flaws:",
-						"{@i Forbiddance.} The vampire can't enter a residence without an invitation from one of the occupants.",
-						"{@i Harmed by Running Water.} The vampire takes 20 acid damage when it starts its turn in running water.",
-						"{@i Stake to the Heart.} The vampire is destroyed if a piercing weapon made of wood is driven into its heart while it is {@condition incapacitated} in its resting place.",
-						"{@i Sunlight Hypersensitivity.} The vampire takes 20 radiant damage when it starts its turn in sunlight. While in sunlight, it has disadvantage on attack rolls and ability checks."
+						{
+							"type": "list",
+							"style": "list-hang-subtrait",
+							"items": [
+								{
+									"type": "itemSub",
+									"name": "Forbiddance",
+									"entry": "The vampire can't enter a residence without an invitation from one of the occupants."
+								},
+								{
+									"type": "itemSub",
+									"name": "Harmed by Running Water",
+									"entry": "The vampire takes 20 acid damage when it starts its turn in running water."
+								},
+								{
+									"type": "itemSub",
+									"name": "Stake to the Heart",
+									"entry": "The vampire is destroyed if a piercing weapon made of wood is driven into its heart while it is {@condition incapacitated} in its resting place."
+								},
+								{
+									"type": "itemSub",
+									"name": "Sunlight Hypersensitivity",
+									"entry": "The vampire takes 20 radiant damage when it starts its turn in sunlight. While in sunlight, it has disadvantage on attack rolls and ability checks."
+								}
+							]
+						}
 					]
 				}
 			],
@@ -5153,6 +5255,7 @@
 			"alignment": [
 				"N"
 			],
+			"tokenCustom": true,
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -5209,7 +5312,8 @@
 				}
 			],
 			"traitTags": [
-				"Charge"
+				"Charge",
+				"Sure-Footed"
 			],
 			"damageTags": [
 				"B"
@@ -5378,6 +5482,7 @@
 				}
 			],
 			"traitTags": [
+				"Ethereal Sight",
 				"Incorporeal Movement"
 			],
 			"senseTags": [
@@ -5563,17 +5668,30 @@
 							"replace": "gladiator",
 							"with": "chieftain"
 						}
-					],
-					"_": [
-						{
-							"mode": "addSkills",
-							"skills": {
-								"survival": 1
-							}
-						}
 					]
 				}
 			},
+			"ac": [
+				{
+					"ac": 16,
+					"from": [
+						"{@item hide armor|PHB}",
+						"{@item shield|PHB}"
+					]
+				}
+			],
+			"skill": {
+				"athletics": "+10",
+				"intimidation": "+5",
+				"survival": "+5"
+			},
+			"languages": [
+				"Common"
+			],
+			"tokenCustom": true,
+			"languageTags": [
+				"C"
+			],
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -5591,17 +5709,30 @@
 							"replace": "gladiator",
 							"with": "great warrior"
 						}
-					],
-					"_": [
-						{
-							"mode": "addSkills",
-							"skills": {
-								"survival": 1
-							}
-						}
 					]
 				}
 			},
+			"ac": [
+				{
+					"ac": 16,
+					"from": [
+						"{@item hide armor|PHB}",
+						"{@item shield|PHB}"
+					]
+				}
+			],
+			"skill": {
+				"athletics": "+10",
+				"intimidation": "+5",
+				"survival": "+5"
+			},
+			"languages": [
+				"Common"
+			],
+			"tokenCustom": true,
+			"languageTags": [
+				"C"
+			],
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -5634,6 +5765,7 @@
 				"Common",
 				"Druidic"
 			],
+			"tokenCustom": true,
 			"languageTags": [
 				"C",
 				"DU"
@@ -5696,6 +5828,7 @@
 					}
 				}
 			},
+			"tokenCustom": true,
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -6434,6 +6567,7 @@
 				"swim": 30,
 				"climb": 30
 			},
+			"tokenCustom": true,
 			"hasToken": true,
 			"hasFluff": true
 		},
@@ -6617,6 +6751,7 @@
 			],
 			"languages": null,
 			"trait": null,
+			"tokenCustom": true,
 			"traitTags": [],
 			"senseTags": [
 				"B"
@@ -7066,6 +7201,7 @@
 					]
 				}
 			],
+			"tokenCustom": true,
 			"traitTags": [
 				"Hold Breath"
 			],

@@ -152,6 +152,7 @@
 				}
 			],
 			"tokenCredit": "Mate Lukacs",
+			"tokenCustom": true,
 			"attachedItems": [
 				"warhammer|phb"
 			],
@@ -270,7 +271,7 @@
 				{
 					"name": "Cunning",
 					"entries": [
-						"Aeshma takes the Dash, Disengage, or Hide action."
+						"Aeshma takes the {@action Dash}, {@action Disengage}, or {@action Hide} action."
 					]
 				}
 			],
@@ -557,6 +558,7 @@
 				}
 			],
 			"tokenCredit": "jameszapata",
+			"tokenCustom": true,
 			"senseTags": [
 				"SD",
 				"U"
@@ -691,7 +693,7 @@
 			],
 			"bonus": [
 				{
-					"name": "Defensive Swordwork",
+					"name": "Defensive Sword-work",
 					"entries": [
 						"Anagwendol can forgo attacking with her Defending Greatsword on this turn and gain a +3 to her armor class. She can still attack with her Longbow."
 					]
@@ -758,6 +760,7 @@
 				}
 			],
 			"tokenCredit": "Jeferson Cordeiro",
+			"tokenCustom": true,
 			"hasToken": true
 		},
 		{
@@ -1306,6 +1309,7 @@
 				}
 			],
 			"tokenCredit": "sμ (smew)",
+			"tokenCustom": true,
 			"traitTags": [
 				"Legendary Resistances",
 				"Spider Climb"
@@ -2056,6 +2060,7 @@
 				"name": "Bel",
 				"source": "CoA"
 			},
+			"tokenCustom": true,
 			"attachedItems": [
 				"greatsword|phb"
 			],
@@ -2208,7 +2213,7 @@
 				{
 					"name": "Devil's Sight",
 					"entries": [
-						"Magical darkness doesn't impede Belials darkvision."
+						"Magical darkness doesn't impede Belial's darkvision."
 					]
 				},
 				{
@@ -3161,6 +3166,7 @@
 				"slashing"
 			],
 			"tokenCredit": "Unknown",
+			"tokenCustom": true,
 			"hasToken": true
 		},
 		{
@@ -3288,6 +3294,7 @@
 				}
 			],
 			"tokenCredit": "Rahzy",
+			"tokenCustom": true,
 			"traitTags": [
 				"Legendary Resistances"
 			],
@@ -3809,6 +3816,7 @@
 				}
 			],
 			"tokenCredit": "Donggeon Son",
+			"tokenCustom": true,
 			"traitTags": [
 				"Regeneration"
 			],
@@ -4114,6 +4122,7 @@
 				}
 			],
 			"tokenCredit": "Paizo",
+			"tokenCustom": true,
 			"senseTags": [
 				"D"
 			],
@@ -4323,6 +4332,9 @@
 			"damageTags": [
 				"F"
 			],
+			"miscTags": [
+				"AOE"
+			],
 			"savingThrowForced": [
 				"dexterity",
 				"wisdom"
@@ -4529,6 +4541,7 @@
 				}
 			],
 			"tokenCredit": "Artguyonthefly",
+			"tokenCustom": true,
 			"hasToken": true
 		},
 		{
@@ -4875,7 +4888,7 @@
 				{
 					"name": "Change Shape",
 					"entries": [
-						"The shadow transforms into a Beast, Humanoid or Fiend that it has an Empathic Link with, or back into its true form. In a new form, the shadow retains its align ment, hit points, hit dice, telepathy, and Intelligence, Wisdom, and Charisma scores, as well as this action. Its statistics and capabilities are otherwise replaced by those of the new form, except any class features, lair actions, or legendary actions of that form."
+						"The shadow transforms into a Beast, Humanoid or Fiend that it has an Empathic Link with, or back into its true form. In a new form, the shadow retains its alignment, hit points, hit dice, telepathy, and Intelligence, Wisdom, and Charisma scores, as well as this action. Its statistics and capabilities are otherwise replaced by those of the new form, except any class features, lair actions, or legendary actions of that form."
 					]
 				}
 			],
@@ -4953,6 +4966,7 @@
 			},
 			"spellcasting": null,
 			"tokenCredit": "Irene Meniconi",
+			"tokenCustom": true,
 			"hasToken": true
 		},
 		{
@@ -5218,6 +5232,7 @@
 				"cold"
 			],
 			"tokenCredit": "Caverns of the Snow Witch",
+			"tokenCustom": true,
 			"hasToken": true
 		},
 		{
@@ -5545,6 +5560,7 @@
 				}
 			},
 			"tokenCredit": "CrazyMind351",
+			"tokenCustom": true,
 			"damageTags": [
 				"B",
 				"L",
@@ -5669,7 +5685,7 @@
 				{
 					"name": "Change Shape",
 					"entries": [
-						"The shadow transforms into a Beast, Humanoid or Fiend that it has an Empathic Link with, or back into its true form. In a new form, the shadow retains its align ment, hit points, hit dice, telepathy, and Intelligence, Wisdom, and Charisma scores, as well as this action. Its statistics and capabilities are otherwise replaced by those of the new form, except any class features, lair actions, or legendary actions of that form."
+						"The shadow transforms into a Beast, Humanoid or Fiend that it has an Empathic Link with, or back into its true form. In a new form, the shadow retains its alignment, hit points, hit dice, telepathy, and Intelligence, Wisdom, and Charisma scores, as well as this action. Its statistics and capabilities are otherwise replaced by those of the new form, except any class features, lair actions, or legendary actions of that form."
 					]
 				}
 			],
@@ -7199,6 +7215,7 @@
 			"wis": 16,
 			"cha": 16,
 			"tokenCredit": "Konstantin Vavilov",
+			"tokenCustom": true,
 			"hasToken": true
 		},
 		{
@@ -7408,6 +7425,7 @@
 				}
 			],
 			"tokenCredit": "Bufflewump, Kekai Kotaki",
+			"tokenCustom": true,
 			"senseTags": [
 				"D"
 			],
@@ -7855,6 +7873,7 @@
 				}
 			],
 			"tokenCredit": "V-OneShot",
+			"tokenCustom": true,
 			"traitTags": [
 				"Devil's Sight",
 				"Magic Resistance"
@@ -8335,7 +8354,7 @@
 				{
 					"name": "Shadows of Death {@recharge}",
 					"entries": [
-						"The shadow discharges inky-black shadows in a 90-foot-radius sphere around itself. Creatures in the shadows must succeed on a {@dc 19} Wisdom saving throw or take 27 ({@damage 6d8}) necrotic damage and have the {@condition frightened} condition for 1 minute. A {@condition frightened} creature may repeat the saving throw at the end of each of its turns, ending the effect on a succesful save, but taking the damage again on a failed save."
+						"The shadow discharges inky-black shadows in a 90-foot-radius sphere around itself. Creatures in the shadows must succeed on a {@dc 19} Wisdom saving throw or take 27 ({@damage 6d8}) necrotic damage and have the {@condition frightened} condition for 1 minute. A {@condition frightened} creature may repeat the saving throw at the end of each of its turns, ending the effect on a successful save, but taking the damage again on a failed save."
 					]
 				}
 			],
@@ -8343,7 +8362,7 @@
 				{
 					"name": "Change Shape",
 					"entries": [
-						"The shadow transforms into a Beast, Humanoid or Fiend that it has an Empathic Link with, or back into its true form. In a new form, the shadow retains its align ment, hit points, hit dice, telepathy, and Intelligence, Wisdom, and Charisma scores, as well as this action. Its statistics and capabilities are otherwise replaced by those of the new form, except any class features, lair actions, or legendary actions of that form."
+						"The shadow transforms into a Beast, Humanoid or Fiend that it has an Empathic Link with, or back into its true form. In a new form, the shadow retains its alignment, hit points, hit dice, telepathy, and Intelligence, Wisdom, and Charisma scores, as well as this action. Its statistics and capabilities are otherwise replaced by those of the new form, except any class features, lair actions, or legendary actions of that form."
 					]
 				}
 			],
@@ -8667,6 +8686,7 @@
 				}
 			],
 			"tokenCredit": "RussFairchild",
+			"tokenCustom": true,
 			"traitTags": [
 				"Legendary Resistances",
 				"Magic Resistance"
@@ -9197,6 +9217,7 @@
 				"name": "Zariel",
 				"source": "CoA"
 			},
+			"tokenCustom": true,
 			"attachedItems": [
 				"flail|phb",
 				"longsword|phb"
