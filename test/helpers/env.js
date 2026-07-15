@@ -129,13 +129,15 @@ function load2024FromDist (context) {
 	}
 
 	const dist        = fs.readFileSync(distPath, 'utf8');
-	const startMarker = 'function d20plus2024Utils()';
+	// Starts at d20plusSpellParsers (js/5etools/5etools-spell-parsers.js), not d20plus2024Utils -
+	// the 2024 spell importer now depends on d20plus.spellParsers, which must be set up first.
+	const startMarker = 'function d20plusSpellParsers ()';
 	const endMarker   = 'SCRIPT_EXTENSIONS.push(d20plus2024Router);';
 
 	const start = dist.indexOf(startMarker);
 	const end   = dist.indexOf(endMarker);
 
-	if (start === -1) throw new Error('d20plus2024Utils not found in dist — are the 5etools-2024-* files in the build?');
+	if (start === -1) throw new Error('d20plusSpellParsers not found in dist — is 5etools-spell-parsers.js in the build?');
 	if (end   === -1) throw new Error('SCRIPT_EXTENSIONS.push(d20plus2024Router) not found in dist');
 
 	const code = dist.slice(start, end + endMarker.length);

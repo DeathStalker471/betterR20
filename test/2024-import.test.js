@@ -445,6 +445,80 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(heal.isTemp).toBe(false);
 	});
 
+	test('Heal (2014/PHB text): an untagged flat healing amount ("HL" tag, no THP) builds a Healing + Upcasting integrant, matching Roll20\'s own genuine compendium output (_bonus: 70, isTemp: false, upcast startingLevel: 7, "Heal Healing"/"Heal Healing Upcast" naming - a "HL" spell mechanizes the same as a "THP" one)', () => {
+		const store = makeBatchStore();
+		ctx.d20plus.importer.import2024Spell(nullModel, {
+			name: 'Heal',
+			data: { 'Level': '6', 'Components': 'V, S', 'School': 'Evocation', 'Casting Time': 'Action', 'Range': '60 feet', 'Duration': 'Instantaneous', 'data-description': '' },
+			Vetoolscontent: {
+				level: 6, school: 'V',
+				time:     [{ number: 1, unit: 'action' }],
+				range:    { type: 'point', distance: { amount: 60, type: 'feet' } },
+				duration: [{ type: 'instant' }],
+				components: { v: true, s: true },
+				miscTags:   ['HL', 'SGT'],
+				entries:    ['Choose a creature that you can see within range. A surge of positive energy washes through the creature, causing it to regain 70 hit points.'],
+				entriesHigherLevel: [{
+					type: 'entries', name: 'At Higher Levels',
+					entries: ['When you cast this spell using a spell slot of 7th level or higher, the amount of healing increases by 10 for each slot level above 6th.'],
+				}],
+			},
+		}, store);
+		const all = Object.values(store.integrants.integrants);
+		expect(all).toHaveLength(3); // Spell, Healing, Upcasting
+
+		const heal = all.find(i => i.type === 'Healing');
+		expect(heal).toBeDefined();
+		expect(heal.diceCount).toBeUndefined();
+		expect(heal.diceSize).toBe('');
+		expect(heal._bonus).toBe(70);
+		expect(heal.isTemp).toBe(false);
+		expect(heal.name).toBe('Heal Healing');
+
+		const upcast = all.find(i => i.type === 'Upcasting');
+		expect(upcast).toBeDefined();
+		expect(upcast.target).toBe('$._bonus');
+		expect(upcast.value).toBe(10);
+		expect(upcast.startingLevel).toBe(7);
+		expect(upcast.name).toBe('Heal Healing Upcast');
+	});
+
+	test('Heal (2024/XPHB text, verbatim from data/spells/spells-xphb.json): "restoring N Hit Points" prose + a {@scaledice base|N-M|flatValue} tagged upcast both parse correctly - this is what live Roll20 testing actually exercises on the 2024 sheet, and it uses completely different phrasing/tagging than the 2014 text above', () => {
+		const store = makeBatchStore();
+		ctx.d20plus.importer.import2024Spell(nullModel, {
+			name: 'Heal',
+			data: { 'Level': '6', 'Components': 'V, S', 'School': 'Abjuration', 'Casting Time': 'Action', 'Range': '60 feet', 'Duration': 'Instantaneous', 'data-description': '' },
+			Vetoolscontent: {
+				level: 6, school: 'A',
+				time:     [{ number: 1, unit: 'action' }],
+				range:    { type: 'point', distance: { amount: 60, type: 'feet' } },
+				duration: [{ type: 'instant' }],
+				components: { v: true, s: true },
+				miscTags:   ['HL', 'SGT'],
+				entries:    ['Choose a creature that you can see within range. Positive energy washes through the target, restoring 70 {@variantrule Hit Points|XPHB}. This spell also ends the {@condition Blinded|XPHB}, {@condition Deafened|XPHB}, and {@condition Poisoned|XPHB} conditions on the target.'],
+				entriesHigherLevel: [{
+					type: 'entries', name: 'Using a Higher-Level Spell Slot',
+					entries: ['The healing increases by {@scaledice 70|6-9|10} for each spell slot level above 6.'],
+				}],
+			},
+		}, store);
+		const all = Object.values(store.integrants.integrants);
+		expect(all).toHaveLength(3); // Spell, Healing, Upcasting
+
+		const heal = all.find(i => i.type === 'Healing');
+		expect(heal).toBeDefined();
+		expect(heal.diceCount).toBeUndefined();
+		expect(heal.diceSize).toBe('');
+		expect(heal._bonus).toBe(70);
+		expect(heal.isTemp).toBe(false);
+
+		const upcast = all.find(i => i.type === 'Upcasting');
+		expect(upcast).toBeDefined();
+		expect(upcast.target).toBe('$._bonus');
+		expect(upcast.value).toBe(10);
+		expect(upcast.startingLevel).toBe(7);
+	});
+
 	test('sets isTemp on the Healing integrant for a THP spell', () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
@@ -507,6 +581,73 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(all.find(i => i.type === 'Spell')).toBeDefined();
 		expect(all.find(i => i.type === 'Attack')).toBeUndefined();
 		expect(all.find(i => i.type === 'Damage')).toBeUndefined();
+	});
+
+	test('Armor of Agathys: reactive auto-hit damage + temporary HP built from untagged flat prose (2024/XPHB text, verbatim from data/spells/spells-xphb.json - ground-truth regression matching Roll20\'s own compendium output)', () => {
+		const store = makeBatchStore();
+		ctx.d20plus.importer.import2024Spell(nullModel, {
+			name: 'Armor of Agathys',
+			data: { 'Level': '1', 'Components': 'V, S, M', 'School': 'Abjuration', 'Casting Time': 'Bonus Action', 'Range': 'Self', 'Duration': '1 hour', 'data-description': '' },
+			Vetoolscontent: {
+				level: 1, school: 'A',
+				time:     [{ number: 1, unit: 'bonus' }],
+				range:    { type: 'point', distance: { type: 'self' } },
+				duration: [{ type: 'timed', duration: { type: 'hour', amount: 1 } }],
+				components: { v: true, s: true, m: 'a shard of blue glass' },
+				miscTags:      ['THP'],
+				damageInflict: ['cold'],
+				entries: ['Protective magical frost surrounds you. You gain 5 {@variantrule Temporary Hit Points|XPHB}. If a creature hits you with a melee attack roll before the spell ends, the creature takes 5 Cold damage. The spell ends early if you have no {@variantrule Temporary Hit Points|XPHB}.'],
+				entriesHigherLevel: [{
+					type: 'entries', name: 'Using a Higher-Level Spell Slot',
+					entries: ['The {@variantrule Temporary Hit Points|XPHB} and the Cold damage both increase by 5 for each spell slot level above 1.'],
+				}],
+			},
+		}, store);
+
+		const entries = Object.entries(store.integrants.integrants);
+
+		const [, attack] = entries.find(([, i]) => i.type === 'Attack');
+		expect(attack.autoHit).toBe(true);
+		// Matches Roll20's own compendium output exactly: named after the damage it deals, no
+		// "range" key (Combat tab pulls range from the parent Spell), childIDs is just [Damage id]
+		// (the Damage-side Upcasting integrant is nested under Damage, not a direct Attack child).
+		expect(attack.name).toBe('Armor of Agathys Cold Damage');
+		expect(attack.recordName).toBe('Armor of Agathys Attack');
+		expect(attack.range).toBeUndefined();
+		expect(attack.repeat).toBeUndefined();
+		expect(attack.cascades).toEqual({});
+
+		const [dmgId, dmg] = entries.find(([, i]) => i.type === 'Damage');
+		expect(dmg.diceCount).toBeUndefined();
+		expect(dmg.diceSize).toBe('');
+		expect(dmg._bonus).toBe(5);
+		expect(dmg.damageType).toBe('Cold');
+		expect(dmg.cascades).toEqual({});
+		expect(JSON.parse(attack.childIDs)).toEqual([dmgId]);
+
+		const [healId, heal] = entries.find(([, i]) => i.type === 'Healing');
+		expect(heal.diceCount).toBeUndefined();
+		expect(heal.diceSize).toBe('');
+		expect(heal._bonus).toBe(5);
+		expect(heal.isTemp).toBe(true);
+		expect(heal.name).toBe('Armor of Agathys Temporary HP');
+		expect(heal.parentID).toBe(attack.parentID); // both Attack and Healing hang off the Spell
+		expect(heal.cascades).toEqual({});
+
+		const upcasts = entries.filter(([, i]) => i.type === 'Upcasting').map(([, i]) => i);
+		const dmgUpcast = upcasts.find(u => u.parentID === dmgId);
+		expect(dmgUpcast).toBeDefined();
+		expect(dmgUpcast.target).toBe('$._bonus');
+		expect(dmgUpcast.value).toBe(5);
+		expect(dmgUpcast.startingLevel).toBe(2);
+		expect(dmgUpcast.cascades).toEqual({});
+
+		const healUpcast = upcasts.find(u => u.parentID === healId);
+		expect(healUpcast).toBeDefined();
+		expect(healUpcast.target).toBe('$._bonus');
+		expect(healUpcast.value).toBe(5);
+		expect(healUpcast.startingLevel).toBe(2);
+		expect(healUpcast.cascades).toEqual({});
 	});
 
 	test('creates multiple Damage integrants for a multi-damage-type spell', () => {
