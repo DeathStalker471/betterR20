@@ -22,6 +22,7 @@ const betteR205etools = function () {
 			await d20plus.js.pAddApiScripts();
 
 			JqueryUtil.initEnhancements();
+			d20plus.engine.patchJqote();
 			await loadHomebrewMetadata();
 
 			// Load config first so custom base URL is available
