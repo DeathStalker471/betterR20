@@ -28,7 +28,9 @@ function createRoll20Env () {
 			_getHandoutData: () => ['', JSON.stringify({ data: {}, Vetoolscontent: null })],
 			formSpellUrl:    (url) => url,
 		},
-		ut:  { log: () => {}, sendHackerChat: () => {} },
+		// Test char models are always already "fully loaded", so this just resolves immediately -
+		// mirrors the real d20plus.ut.fetchCharAttribs fast path (attribs.length already truthy).
+		ut:  { log: () => {}, sendHackerChat: () => {}, fetchCharAttribs: async (char) => char },
 		cfg: { getOrDefault: (_s, key) => key === 'importSheetFormat' ? 'dnd_2024' : null },
 		setSheet:   function () {},
 		sheet:      'ogl5e',
