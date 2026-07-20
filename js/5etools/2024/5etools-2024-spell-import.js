@@ -272,11 +272,18 @@ function d20plus2024SpellImport() {
 				? JSON.stringify([upcastId])
 				: dmgUpcastChildIds.length ? JSON.stringify(dmgUpcastChildIds) : "[]";
 
+			// "auto" (not "Strength"/"Dexterity"/"none") is the value Roll20's own compendium uses
+			// to add the caster's spellcasting modifier to damage - confirmed against a live
+			// ground-truth dump of a native Flame Blade import (2024 XPHB text: "3d6 plus your
+			// spellcasting ability modifier"). Mirrors the same phrase check get-data-roll20.js
+			// already uses for the OGL sheet's "Add Casting Modifier" flag.
+			const hasCastingModDamage = (vc.entries || []).some(e => typeof e === "string" && e.includes("spellcasting ability modifier"));
+
 			const dmgIntegrant = {
 				...dmgBase,
 				name: dmgName,
 				recordName: dmgName,
-				ability: "none",
+				ability: hasCastingModDamage ? "auto" : "none",
 				diceSize,
 				damageType: dmgType,
 				overrideCrit: false,
@@ -423,19 +430,42 @@ function d20plus2024SpellImport() {
 			const damageType = cap(vc.damageInflict[0]);
 
 			for (const sldEntry of scalingLevelDice) {
-				const baseDiceStr = sldEntry.scaling["1"] || "1d8";
-				const baseDiceM = baseDiceStr.match(/(\d+)d(\d+)/i);
-				const baseDiceCount = baseDiceM ? parseInt(baseDiceM[1], 10) : 1;
-				const baseDiceSize = baseDiceM ? "d" + baseDiceM[2] : "d8";
+				// The base value isn't always keyed at level 1 - e.g. Booming Blade's "on hit" bonus
+				// damage only starts at level 5, so `scaling` has no "1" key at all. Use whichever
+				// level is actually the first one present instead of assuming "1" (which previously
+				// fell back to a hardcoded "1d8" guess for any entry missing that key).
+				const scalingLevelKeys = Object.keys(sldEntry.scaling).map(Number).sort((a, b) => a - b);
+				const baseLevel = scalingLevelKeys[0] ?? 1;
+				const baseDiceStr = sldEntry.scaling[String(baseLevel)];
+				// Some scaling entries aren't dice at all - e.g. Green-Flame Blade's secondary-target
+				// damage at level 1 is "{{spellcasting_mod}}" (a flat "+ your spellcasting modifier"
+				// value 5etools represents as a literal template placeholder, not a dice string).
+				// Matching the `isFlatOnly` convention used for the main damage chain above rather
+				// than forcing a fabricated "1d8" onto it.
+				const baseDiceM = baseDiceStr && baseDiceStr.match(/(\d+)d(\d+)/i);
+				const isFlatOnly = !baseDiceM;
+				const baseDiceCount = baseDiceM ? parseInt(baseDiceM[1], 10) : undefined;
+				const baseDiceSize = baseDiceM ? "d" + baseDiceM[2] : "";
 
-				const suffix = `(${baseDiceStr})`;
+				// Use 5etools' own human-readable label (e.g. "fire damage to secondary creature")
+				// rather than the raw scaling value - the value is meant for level lookups, not
+				// display, and using it directly is what let "{{spellcasting_mod}}" leak into names.
+				const suffix = `(${sldEntry.label})`;
 				const dmgName = `${spellData.name} ${suffix} Damage`;
 				const atkName = `${spellData.name} ${suffix}`;
 				const atkRecordName = `${spellData.name} ${suffix} Attack`;
 
 				const {id: mAtkId, base: mAtkBase} = spellCtx.makeIntegrantBase("Attack", pos++);
 				const {id: mDmgId, base: mDmgBase} = spellCtx.makeIntegrantBase("Damage", pos++);
-				const mUpcastEntries = cantripLevels.map(lvl => {
+				// `cantripLevels` is derived from scalingLevelDice[0] and shared across every entry in
+				// this loop, so it can include this entry's own base level (e.g. 5, for Booming Blade's
+				// "on hit" entry) - excluding levels at or below `baseLevel` avoids double-counting a
+				// bump that's already baked into `baseDiceStr`. Skipped entirely when flat: Upcasting's
+				// "$._diceCount" target assumes an existing die to increment, but a flat entry (e.g.
+				// Green-Flame Blade's secondary damage, "{{spellcasting_mod}}" at level 1) has none -
+				// it *gains* a die at a later level rather than incrementing one, which this Upcasting
+				// integrant shape has no way to express, so scaling it here would be a guess.
+				const mUpcastEntries = isFlatOnly ? [] : cantripLevels.filter(lvl => lvl > baseLevel).map(lvl => {
 					const {id, base} = spellCtx.makeIntegrantBase("Upcasting", pos++);
 					return {id, base, level: lvl};
 				});
@@ -457,12 +487,17 @@ function d20plus2024SpellImport() {
 					};
 				}
 
-				store.integrants.integrants[mDmgId] = {
+				// This entry adds the spellcasting modifier if any of its own scaling values carry
+				// the "{{spellcasting_mod}}" template token (e.g. Green-Flame Blade's secondary-target
+				// entry, at every level, not just the flat level-1 case) - "auto" is the value Roll20's
+				// own compendium uses for this, confirmed against a live Flame Blade ground-truth dump.
+				const entryHasCastingMod = Object.values(sldEntry.scaling).some(v => typeof v === "string" && v.includes("spellcasting_mod"));
+
+				const mDmgIntegrant = {
 					...mDmgBase,
 					name: dmgName,
 					recordName: dmgName,
-					ability: "none",
-					_diceCount: baseDiceCount,
+					ability: entryHasCastingMod ? "auto" : "none",
 					diceSize: baseDiceSize,
 					damageType,
 					overrideCrit: false,
@@ -471,6 +506,8 @@ function d20plus2024SpellImport() {
 					childIDs: JSON.stringify(mUpcastEntries.map(e => e.id)),
 					relations: {},
 				};
+				if (!isFlatOnly) mDmgIntegrant._diceCount = baseDiceCount;
+				store.integrants.integrants[mDmgId] = mDmgIntegrant;
 
 				const mAtkIntegrant = {
 					...mAtkBase,
@@ -487,7 +524,7 @@ function d20plus2024SpellImport() {
 				if (hasSave) {
 					mAtkIntegrant.save = {
 						saveAbility: cap(vc.savingThrow[0]),
-						onFail: `Takes ${baseDiceStr} ${damageType} damage.`,
+						onFail: isFlatOnly ? `Takes ${sldEntry.label}.` : `Takes ${baseDiceStr} ${damageType} damage.`,
 					};
 					if (onSucceedHalf) mAtkIntegrant.save.onSucceed = "Half as much damage.";
 				}
@@ -522,12 +559,16 @@ function d20plus2024SpellImport() {
 				};
 			}
 			const healIsFlatOnly = healParsed.diceCount === undefined;
+			// Same "auto" convention as damage - confirmed against a live Cure Wounds ground-truth
+			// dump ("A creature you touch regains ... 2d8 plus your spellcasting ability modifier",
+			// Healing integrant has "ability": "auto").
+			const hasCastingModHealing = (vc.entries || []).some(e => typeof e === "string" && e.includes("spellcasting ability modifier"));
 			const healIntegrant = {
 				...healBase,
 				name: `${spellData.name} ${healLabel}`,
 				recordName: `${spellData.name} ${healLabel}`,
 				_bonus: healParsed.bonus || 0,
-				ability: "none",
+				ability: hasCastingModHealing ? "auto" : "none",
 				diceSize: healIsFlatOnly ? "" : healParsed.diceSize,
 				overrideCrit: false,
 				critDiceSize: "",
