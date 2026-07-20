@@ -578,12 +578,18 @@ function d20plus2024MonsterImport() {
 					console.warn(`betterR20: Error fetching spell "${name}" from ${source}:`, err);
 					return null;
 				});
-			})).then(spellDataList => {
+			})).then(async spellDataList => {
+				// Force-load attribs before reading the store - Roll20 may not have finished
+				// hydrating charModel.attribs yet, which previously made getStore() silently miss the
+				// real store attribute (the actual cause of the race, not just a symptom to bail out
+				// on). Same helper base-chat.js already relies on for this exact class of problem.
+				await d20plus.ut.fetchCharAttribs(charModel);
 				const {attr: storeAttr, store: rawStore} = monsterCtx.getStore(charModel);
-				const store = rawStore ? JSON.parse(JSON.stringify(rawStore)) : {
-					integrants: {integrants: {}},
-					spells: {displayOrder: ["[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"]},
-				};
+				// Bail rather than fabricate a blank scaffold when the store attribute still isn't
+				// found after the fetch above - saving a scaffold here would overwrite the monster
+				// character's entire real data.
+				if (!rawStore) return;
+				const store = JSON.parse(JSON.stringify(rawStore));
 
 				const abilityMap = {str:"Strength",dex:"Dexterity",con:"Constitution",int:"Intelligence",wis:"Wisdom",cha:"Charisma"};
 				const monsterName = monsterData._displayName || monsterData.name;

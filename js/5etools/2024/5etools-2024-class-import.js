@@ -9,6 +9,10 @@ function d20plus2024ClassImport() {
         if (levelInput === null) return;
         const maxLevel = Math.min(20, Math.max(1, parseInt(levelInput, 10) || 1));
 
+        // Force-load attribs before reading the store - on a freshly-opened character sheet, Roll20
+        // may not have finished hydrating charModel.attribs yet, which could make getStore() silently
+        // miss the real store attribute and no-op this import for no visible reason.
+        await d20plus.ut.fetchCharAttribs(charModel);
         const {attr: storeAttr, store} = classCtx.getStore(charModel);
         if (!store) return;
 

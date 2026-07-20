@@ -1,7 +1,11 @@
 function d20plus2024FeatImport() {
     const featCtx = d20plus.import2024;
 
-    d20plus.importer.import2024Feat = function (charModel, data) {
+    d20plus.importer.import2024Feat = async function (charModel, data) {
+        // Force-load attribs before reading the store - on a freshly-opened character sheet, Roll20
+        // may not have finished hydrating charModel.attribs yet, which could make getStore() silently
+        // miss the real store attribute and no-op this import for no visible reason.
+        await d20plus.ut.fetchCharAttribs(charModel);
         const {attr: storeAttr, store} = featCtx.getStore(charModel);
         if (!store) return;
 
