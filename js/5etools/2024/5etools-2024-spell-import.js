@@ -92,7 +92,7 @@ function d20plus2024SpellImport() {
 	}
 
 	// _batchStore: if provided, mutate it in place and skip the read/save (batch mode for monster import).
-	d20plus.importer.import2024Spell = function (charModel, spellData, _batchStore) {
+	d20plus.importer.import2024Spell = async function (charModel, spellData, _batchStore) {
 		const d = spellData.data;
 		const vc = spellData.Vetoolscontent || null;
 
@@ -101,12 +101,18 @@ function d20plus2024SpellImport() {
 			storeAttr = null;
 			store = _batchStore;
 		} else {
+			// Force-load attribs before reading the store - on a freshly-opened character sheet,
+			// Roll20 may not have finished hydrating charModel.attribs yet, which previously made
+			// getStore() silently miss the real store attribute (the actual cause of the race, not
+			// just a symptom to bail out on). Same helper base-chat.js already relies on for this.
+			await d20plus.ut.fetchCharAttribs(charModel);
 			const s = spellCtx.getStore(charModel);
+			// Bail rather than fabricate a blank scaffold when the store attribute still isn't found
+			// after the fetch above (e.g. a genuinely new character with no store yet) - saving a
+			// scaffold here would overwrite the character's entire real data with just this one spell.
+			if (!s.store) return;
 			storeAttr = s.attr;
-			store = s.store ? JSON.parse(JSON.stringify(s.store)) : {
-				integrants: {integrants: {}},
-				spells: {displayOrder: ["[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"]},
-			};
+			store = JSON.parse(JSON.stringify(s.store));
 		}
 		if (!store.integrants) store.integrants = {integrants: {}};
 		if (!store.integrants.integrants) store.integrants.integrants = {};
