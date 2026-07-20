@@ -23,46 +23,46 @@ function makeData (name, vetoolscontent) {
 // import2024Feat
 // ---------------------------------------------------------------------------
 describe('import2024Feat', () => {
-	test('creates a Features integrant with the feat name', () => {
+	test('creates a Features integrant with the feat name', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, makeData('Alert', 'You are always on the lookout.'));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Alert', 'You are always on the lookout.'));
 		const feats = intsByType(model.getStore(), 'Features');
 		expect(feats).toHaveLength(1);
 		expect(feats[0].name).toBe('Alert');
 	});
 
-	test('sets description from Vetoolscontent', () => {
+	test('sets description from Vetoolscontent', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, makeData('Alert', 'You are always on the lookout.'));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Alert', 'You are always on the lookout.'));
 		const feat = intsByType(model.getStore(), 'Features')[0];
 		expect(feat.description).toBe('You are always on the lookout.');
 	});
 
-	test('sets empty description when Vetoolscontent is absent', () => {
+	test('sets empty description when Vetoolscontent is absent', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, { name: 'Lucky' });
+		await ctx.d20plus.importer.import2024Feat(model, { name: 'Lucky' });
 		const feat = intsByType(model.getStore(), 'Features')[0];
 		expect(feat.description).toBe('');
 	});
 
-	test('sets source to "Feat"', () => {
+	test('sets source to "Feat"', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, makeData('Tough', ''));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Tough', ''));
 		const feat = intsByType(model.getStore(), 'Features')[0];
 		expect(feat.source).toBe('Feat');
 	});
 
-	test('integrant has _enabled=true and empty parentID', () => {
+	test('integrant has _enabled=true and empty parentID', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, makeData('Resilient', ''));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Resilient', ''));
 		const feat = intsByType(model.getStore(), 'Features')[0];
 		expect(feat._enabled).toBe(true);
 		expect(feat.parentID).toBe('');
 	});
 
-	test('feat ID appears in featsDisplayOrder', () => {
+	test('feat ID appears in featsDisplayOrder', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, makeData('Athlete', 'Climb faster.'));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Athlete', 'Climb faster.'));
 		const store     = model.getStore();
 		const order     = JSON.parse(store.features.featsDisplayOrder);
 		const featId    = Object.keys(store.integrants.integrants)[0];
@@ -70,10 +70,10 @@ describe('import2024Feat', () => {
 		expect(order[0]).toBe(featId);
 	});
 
-	test('importing two feats accumulates both in featsDisplayOrder', () => {
+	test('importing two feats accumulates both in featsDisplayOrder', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, makeData('Alert', ''));
-		ctx.d20plus.importer.import2024Feat(model, makeData('Lucky', ''));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Alert', ''));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Lucky', ''));
 		const store = model.getStore();
 		const order = JSON.parse(store.features.featsDisplayOrder);
 		const feats = intsByType(store, 'Features');
@@ -81,18 +81,18 @@ describe('import2024Feat', () => {
 		expect(order).toHaveLength(2);
 	});
 
-	test('second feat name is correct after two imports', () => {
+	test('second feat name is correct after two imports', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, makeData('Observant', ''));
-		ctx.d20plus.importer.import2024Feat(model, makeData('War Caster', ''));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Observant', ''));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('War Caster', ''));
 		const feats = intsByType(model.getStore(), 'Features');
 		const names = feats.map(f => f.name).sort();
 		expect(names).toEqual(['Observant', 'War Caster']);
 	});
 
-	test('recordName matches name', () => {
+	test('recordName matches name', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, makeData('Sharpshooter', ''));
+		await ctx.d20plus.importer.import2024Feat(model, makeData('Sharpshooter', ''));
 		const feat = intsByType(model.getStore(), 'Features')[0];
 		expect(feat.recordName).toBe('Sharpshooter');
 	});
