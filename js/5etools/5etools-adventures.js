@@ -770,9 +770,15 @@ function d20plusAdventure () {
 			// "mapPlayer" entries carry their own title as the generic literal "Player Version"
 			// (5etools schema), so they can't be keyed into `foundryMaps` directly - resolve
 			// via `mapParent.id`, which points back at the sibling "map" entry's real title.
+			// They also carry no `mapRegions` of their own (only the sibling "map" entry does),
+			// so token-placement centroids need the same mapParent fallback.
 			const idToTitle = {};
+			const idToMapRegions = {};
 			mapEntries.forEach(e => {
-				if (e.imageType === "map" && e.id) idToTitle[e.id] = e.title || e.name;
+				if (e.imageType === "map" && e.id) {
+					idToTitle[e.id] = e.title || e.name;
+					if (e.mapRegions?.length) idToMapRegions[e.id] = e.mapRegions;
+				}
 			});
 			const mapObjects = [];
 			for (const e of mapEntries) {
@@ -786,6 +792,9 @@ function d20plusAdventure () {
 				const wallLookupTitle = e.imageType === "mapPlayer" && e.mapParent?.id
 					? idToTitle[e.mapParent.id]
 					: null;
+				if (e.imageType === "mapPlayer" && !e.mapRegions?.length && e.mapParent?.id) {
+					e.mapRegions = idToMapRegions[e.mapParent.id];
+				}
 				mapObjects.push(buildMapObject(e, foundryMaps, paintedGridSize, wallLookupTitle));
 			}
 			if (mapObjects.length) savedMaps = await importMaps(mapObjects);
