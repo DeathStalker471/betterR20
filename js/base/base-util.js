@@ -68,12 +68,22 @@ function baseUtil () {
 
 		const isStreamer = !!d20plus.cfg.get("chat", "streamerChatTag");
 		const scriptName = isStreamer ? "Script" : "betteR20";
+
+		// GitHub's "releases/latest/download/<asset>" URL 302s to an objects.githubusercontent.com
+		// asset that doesn't send Access-Control-Allow-Origin, so the browser blocks it as CORS.
+		// The releases API on api.github.com always sends permissive CORS, so use that instead
+		// whenever B20_REPO_URL points at a GitHub releases download URL.
+		const releaseMatch = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/latest\/download\/$/i.exec(B20_REPO_URL);
+		const versionUrl = releaseMatch
+			? `https://api.github.com/repos/${releaseMatch[1]}/${releaseMatch[2]}/releases/latest`
+			: `${B20_REPO_URL}betteR20-version`;
+
 		$.ajax({
-			url: `${B20_REPO_URL}betteR20-version`,
+			url: versionUrl,
 			success: (data) => {
-				if (data) {
+				const avail = releaseMatch ? data?.tag_name?.replace(/^v/i, "") : data;
+				if (avail) {
 					const curr = d20plus.version;
-					const avail = data;
 					const cmp = d20plus.ut.cmpVersions(curr, avail);
 					if (cmp < 0) {
 						setTimeout(() => {
