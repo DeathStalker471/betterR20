@@ -65,6 +65,23 @@ ${analyticsBlocking}
 `;
 }
 
+function getCharmanHeader () {
+	return `// ==UserScript==
+// @name         betteR20-beta-charactermancer-death-jumpagate-import
+// @namespace    https://5e.tools/
+// @license      MIT (https://opensource.org/licenses/MIT)
+// @version      ${SCRIPT_VERSION}
+// @updateURL    ${SCRIPT_REPO}betteR20-charactermancer.meta.js
+// @downloadURL  ${SCRIPT_REPO}betteR20-charactermancer.user.js
+// @description  Charactermancer for betteR20 (can be disabled independently in Tampermonkey)
+// @author       ${AUTHORS_5ETOOLS}
+${matchString}
+// @grant        unsafeWindow
+// @run-at       document-start
+// ==/UserScript==
+`;
+}
+
 const JS_DIR = "./js/";
 const LIB_DIR = "./lib/";
 const BUILD_DIR = "./dist";
@@ -446,6 +463,31 @@ Object.entries(BUILDS).forEach(([name, data]) => {
 	fs.writeFileSync(filename, fullScript);
 	fs.writeFileSync(metaFilename, header);
 });
+
+// ── Standalone Charactermancer script ────────────────────────────────────────
+// Separate, independently-toggleable userscript (not part of core/5etools/5et2014) -
+// intercepts Roll20's Charactermancer GraphQL API once the main script has loaded.
+// Strip the SCRIPT_EXTENSIONS.push() line - the bootstrap handles injection instead.
+const charmanSrc = fs.readFileSync(`${JS_DIR}5etools/2024/5etools-2024-charactermancer.js`, "utf-8")
+	.replace(/\nSCRIPT_EXTENSIONS\.push\(\w+\);\s*$/, "");
+
+const charmanBootstrap = [
+	"",
+	"(function tryInjectCharactermancer() {",
+	"  if (typeof unsafeWindow.d20plus === \"undefined\" || typeof unsafeWindow.d20plus.spellParsers === \"undefined\") {",
+	"    setTimeout(tryInjectCharactermancer, 100);",
+	"    return;",
+	"  }",
+	"  const strip = (str) => str.replace(/use strict/, \"\").substring(str.indexOf(\"\\n\") + 1, str.lastIndexOf(\"\\n\")) + \"\\n\";",
+	"  unsafeWindow.eval(\"(function() {\\n\" + strip(d20plus2024Charactermancer.toString()) + \"\\n})()\");",
+	`  unsafeWindow.d20plus.charactermancerLoaded = true;`,
+	`  unsafeWindow.d20plus.charactermancerVersion = "${SCRIPT_VERSION}";`,
+	"})();",
+].join("\n");
+
+const charmanHeader = getCharmanHeader();
+fs.writeFileSync(`${BUILD_DIR}/betteR20-charactermancer.user.js`, joinParts(charmanHeader, charmanSrc, charmanBootstrap));
+fs.writeFileSync(`${BUILD_DIR}/betteR20-charactermancer.meta.js`, charmanHeader);
 
 fs.writeFileSync(`${BUILD_DIR}/betteR20-version`, `${SCRIPT_VERSION}`);
 

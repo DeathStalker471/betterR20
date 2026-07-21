@@ -69,9 +69,13 @@ function createRoll20Env () {
 		spRangeToFull: (range) => {
 			if (!range) return 'Self';
 			if (range.type === 'self') return 'Self';
-			if (range.type === 'point' && range.distance) return `${range.distance.amount} ${range.distance.type}`;
+			if (range.type === 'point' && range.distance) {
+				return range.distance.type === 'touch' ? 'Touch' : `${range.distance.amount} ${range.distance.type}`;
+			}
 			return 'Self';
 		},
+		spSchoolAbvToFull: (s) => ({A:'Abjuration',C:'Conjuration',D:'Divination',E:'Enchantment',I:'Illusion',N:'Necromancy',T:'Transmutation',V:'Evocation'}[s] || s),
+		sourceJsonToFull: (s) => s,
 	};
 
 	const Renderer = {
@@ -111,6 +115,9 @@ function createRoll20Env () {
 		Parser,
 		Renderer,
 		DataUtil,
+		DataLoader: { pCacheAndGetAllSite: () => Promise.resolve([]) },
+		window: { fetch: () => Promise.reject(new Error('not stubbed in tests')) },
+		unsafeWindow: {},
 		spellDataUrls: {},
 		LINK_BASE_URL: 'https://5e.tools/',
 		console,
@@ -202,4 +209,26 @@ function loadSectionFromDist (context, startMarker, endMarker) {
 	for (const fn of context.SCRIPT_EXTENSIONS) fn();
 }
 
-module.exports = { createRoll20Env, load2024FromDist, loadSectionFromDist, makeCharModel, makeBatchStore };
+// Loads the standalone Charactermancer script (a separate dist output, not part of
+// betteR20-5etools.user.js) and invokes its top-level function directly - skips the real
+// eval()-based Tampermonkey bootstrap (unsafeWindow polling, etc.), which isn't meaningful in a
+// sandboxed test context. Requires d20plus.spellParsers/d20plus.import2024.spellPlan to already be
+// set up (i.e. load2024FromDist must run first), matching real load order.
+function loadCharactermancerFromDist (context) {
+	const distPath = path.resolve(__dirname, '../../dist/betteR20-charactermancer.user.js');
+	if (!fs.existsSync(distPath)) {
+		throw new Error(`Dist not found at ${distPath}\nRun 'npm run build' first.`);
+	}
+	const dist = fs.readFileSync(distPath, 'utf8');
+	const startMarker = 'function d20plus2024Charactermancer';
+	const start = dist.indexOf(startMarker);
+	if (start === -1) throw new Error('d20plus2024Charactermancer not found in charactermancer dist');
+	// Stop right before the real bootstrap IIFE (the eval()-based Tampermonkey injector) - we only
+	// want the function declaration itself, invoked directly.
+	const bootstrapMarker = '(function tryInjectCharactermancer';
+	const bootstrapIdx = dist.indexOf(bootstrapMarker, start);
+	const code = dist.slice(start, bootstrapIdx);
+	vm.runInContext(`${code}\nd20plus2024Charactermancer();`, context, { filename: 'betteR20-charactermancer.user.js' });
+}
+
+module.exports = { createRoll20Env, load2024FromDist, loadSectionFromDist, loadCharactermancerFromDist, makeCharModel, makeBatchStore };
