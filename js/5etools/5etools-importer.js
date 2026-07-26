@@ -177,7 +177,10 @@ function d20plusImporter () {
 		else if (character.size[0] === "H") tokensize = 3;
 		else if (character.size[0] === "G") tokensize = 4;
 		let lightradius = null;
-		if (character.senses && character.senses.toLowerCase().match(/(darkvision|blindsight|tremorsense|truesight)/)) lightradius = Math.max(...character.senses.match(/\d+/g));
+		if (character.senses && character.senses.toLowerCase().match(/(darkvision|blindsight|tremorsense|truesight)/)) {
+			const senseNums = character.senses.match(/\d+/g);
+			if (senseNums) lightradius = Math.max(...senseNums);
+		}
 		let lightmin = 0;
 		if (character.senses && character.senses.toLowerCase().match(/(blindsight|tremorsense|truesight)/)) lightmin = lightradius;
 		const nameSuffix = d20plus.cfg.get("import", "namesuffix");

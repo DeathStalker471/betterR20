@@ -136,13 +136,21 @@ function d20plusAdventure () {
 	}
 
 	// Fetch item data using the same pipeline as the normal item button (loads mastery/property refs).
-	// `homebrewItems`, if given, is checked first for names not resolved from the official CDN.
-	async function fetchItemData (itemNames, homebrewItems) {
+	// `homebrewData`, if given, is checked first for names not resolved from the official CDN.
+	// Its itemProperty/itemType/itemEntry/itemMastery arrays (if present) must be registered via
+	// addPrereleaseBrewPropertiesAndTypesFrom before any homebrew item gets rendered/enhanced -
+	// otherwise a homebrew item referencing its own book's custom mastery (e.g. a 2024-style
+	// weapon mastery unique to that sourcebook, "{@itemMastery Piercing Shot|SomeBrewSource}")
+	// throws "not found" from Renderer.item._getMastery, since that mastery only exists in the
+	// brew's own data, never on the official CDN. Safe to call even when nothing in the brew
+	// actually needs it - _addMastery/_addProperty/etc. no-op on already-registered entries.
+	async function fetchItemData (itemNames, homebrewData) {
 		if (!itemNames.length) return [];
 		const nameSet = new Set(itemNames);
 		const result = [];
-		if (homebrewItems?.length) {
-			homebrewItems.forEach(it => {
+		if (homebrewData?.item?.length) {
+			Renderer.item.addPrereleaseBrewPropertiesAndTypesFrom({data: homebrewData});
+			homebrewData.item.forEach(it => {
 				const nameLower = it.name.toLowerCase();
 				if (nameSet.has(nameLower)) {
 					result.push(it);
@@ -816,7 +824,7 @@ function d20plusAdventure () {
 					.catch(e => { d20plus.ut.log("Creature fetch error: " + e); return []; })
 				: Promise.resolve([]),
 			(toImport.includes("Items") && hasItems)
-				? fetchItemData(extractItemRefs(sections), opts.homebrewData?.item)
+				? fetchItemData(extractItemRefs(sections), opts.homebrewData)
 					.catch(e => { d20plus.ut.log("Item fetch error: " + e); return []; })
 				: Promise.resolve([]),
 		]);
@@ -982,7 +990,15 @@ function d20plusAdventure () {
 			useType = hasAdventure ? "Adventure" : "Book";
 		}
 
-		const homebrewData = {monster: data.monster, item: data.item};
+		const homebrewData = {
+			monster: data.monster,
+			item: data.item,
+			itemProperty: data.itemProperty,
+			itemType: data.itemType,
+			itemEntry: data.itemEntry,
+			itemTypeAdditionalEntries: data.itemTypeAdditionalEntries,
+			itemMastery: data.itemMastery,
+		};
 
 		if (useType === "Adventure") {
 			await loadContent(null, {
