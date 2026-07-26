@@ -45,6 +45,24 @@ function d20plus2024Utils() {
 		return max + 1;
 	};
 
+	// Per-character mutex: import2024Item/Spell/Class/Race/Feat each do their own
+	// getStore -> modify -> saveStore cycle, and saveStore destroys+recreates the whole
+	// attribute rather than patching it in place. Two of these overlapping for the same
+	// character (e.g. dragging several items in quick succession) means the second one reads
+	// a stale snapshot and its save wipes out whatever the first one just added - including
+	// unrelated data like ability scores, since it's all one JSON blob. Callers must acquire
+	// this before reading the store and release it (via the returned function) after saving.
+	ctx2024._storeLocks = new Map();
+	ctx2024.pAcquireStoreLock = async function (charModel) {
+		const charId = charModel.id;
+		const prevRelease = ctx2024._storeLocks.get(charId) || Promise.resolve();
+		let releaseThis;
+		const thisRelease = new Promise(resolve => { releaseThis = resolve; });
+		ctx2024._storeLocks.set(charId, thisRelease);
+		await prevRelease;
+		return releaseThis;
+	};
+
 	ctx2024.getStore = function (charModel) {
 		const storeAttr = charModel.attribs.find(a => a.get("name") === "store");
 		if (!storeAttr) return {attr: null, store: null};

@@ -4,6 +4,8 @@ function d20plus2024ItemImport() {
 	d20plus.importer.import2024Item = async function (charModel, itemData) {
 		const d = itemData.data || {};
 		const vc = itemData.Vetoolscontent || {};
+		const releaseLock = await itemCtx.pAcquireStoreLock(charModel);
+		try {
 		// Force-load attribs before reading the store - on a freshly-opened character sheet, Roll20
 		// may not have finished hydrating charModel.attribs yet, which previously made getStore()
 		// silently miss the real store attribute (the actual cause of the race, not just a symptom
@@ -213,6 +215,9 @@ function d20plus2024ItemImport() {
 		store.integrants.integrants[itemId] = itemIntegrant;
 
 		itemCtx.saveStore(charModel, storeAttr, store);
+		} finally {
+			releaseLock();
+		}
 	};
 }
 SCRIPT_EXTENSIONS.push(d20plus2024ItemImport);
