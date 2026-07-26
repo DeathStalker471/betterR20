@@ -579,6 +579,8 @@ function d20plus2024MonsterImport() {
 					return null;
 				});
 			})).then(async spellDataList => {
+				const releaseLock = await monsterCtx.pAcquireStoreLock(charModel);
+				try {
 				// Force-load attribs before reading the store - Roll20 may not have finished
 				// hydrating charModel.attribs yet, which previously made getStore() silently miss the
 				// real store attribute (the actual cause of the race, not just a symptom to bail out
@@ -661,6 +663,9 @@ function d20plus2024MonsterImport() {
 				});
 
 				monsterCtx.saveStore(charModel, storeAttr, store);
+				} finally {
+					releaseLock();
+				}
 			});
 		}, 500);
 	};

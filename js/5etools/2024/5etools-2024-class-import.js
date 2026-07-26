@@ -12,6 +12,8 @@ function d20plus2024ClassImport() {
         // Force-load attribs before reading the store - on a freshly-opened character sheet, Roll20
         // may not have finished hydrating charModel.attribs yet, which could make getStore() silently
         // miss the real store attribute and no-op this import for no visible reason.
+        const releaseLock = await classCtx.pAcquireStoreLock(charModel);
+        try {
         await d20plus.ut.fetchCharAttribs(charModel);
         const {attr: storeAttr, store} = classCtx.getStore(charModel);
         if (!store) return;
@@ -220,6 +222,9 @@ function d20plus2024ClassImport() {
         classCtx.pushDisplayOrder(store, "features", "classFeatureDisplayOrder", classFeatureIds);
 
         classCtx.saveStore(charModel, storeAttr, store);
+        } finally {
+            releaseLock();
+        }
     };
 }
 

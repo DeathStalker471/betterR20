@@ -2,6 +2,8 @@ function d20plus2024FeatImport() {
     const featCtx = d20plus.import2024;
 
     d20plus.importer.import2024Feat = async function (charModel, data) {
+        const releaseLock = await featCtx.pAcquireStoreLock(charModel);
+        try {
         // Force-load attribs before reading the store - on a freshly-opened character sheet, Roll20
         // may not have finished hydrating charModel.attribs yet, which could make getStore() silently
         // miss the real store attribute and no-op this import for no visible reason.
@@ -28,6 +30,9 @@ function d20plus2024FeatImport() {
         featCtx.pushDisplayOrder(store, "features", "featsDisplayOrder", [id]);
 
         featCtx.saveStore(charModel, storeAttr, store);
+        } finally {
+            releaseLock();
+        }
     };
 }
 

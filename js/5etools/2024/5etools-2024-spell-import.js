@@ -96,6 +96,11 @@ function d20plus2024SpellImport() {
 		const d = spellData.data;
 		const vc = spellData.Vetoolscontent || null;
 
+		// Batch mode (called from monster import) mutates the caller's own in-progress store and
+		// doesn't do its own getStore/saveStore, so it doesn't need the lock - the caller already
+		// holds it for the whole batch.
+		const releaseLock = _batchStore ? null : await spellCtx.pAcquireStoreLock(charModel);
+		try {
 		let storeAttr, store;
 		if (_batchStore) {
 			storeAttr = null;
@@ -623,6 +628,9 @@ function d20plus2024SpellImport() {
 		store.spells.displayOrder[levelIdx] = JSON.stringify(order);
 
 		if (!_batchStore) spellCtx.saveStore(charModel, storeAttr, store);
+		} finally {
+			if (releaseLock) releaseLock();
+		}
 	};
 }
 SCRIPT_EXTENSIONS.push(d20plus2024SpellImport);
