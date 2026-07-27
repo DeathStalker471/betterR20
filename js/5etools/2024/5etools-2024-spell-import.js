@@ -91,6 +91,94 @@ function d20plus2024SpellImport() {
 		return null;
 	}
 
+	// Build duration/casting-time from JSON rather than Parser.spDurationToFull/spTimeListToFull -
+	// those return raw HTML anchor tags, unsuitable for a plain-text sheet field.
+	function parseDuration2024 (durArr) {
+		if (!durArr || !durArr.length) return "Instantaneous";
+		const du = durArr[0];
+		if (du.type === "instantaneous") return "Instantaneous";
+		if (du.type === "permanent") return "Until Dispelled";
+		if (du.type === "special") return "Special";
+		if (du.type === "timed" && du.duration) {
+			const amt = du.duration.amount;
+			const unit = du.duration.type;
+			const plural = amt !== 1 ? "s" : "";
+			if (du.concentration) return `Concentration, up to ${amt} ${unit}${plural}`;
+			return `${amt} ${unit}${plural}`;
+		}
+		return "Instantaneous";
+	}
+
+	function parseCastingTime2024 (timeArr) {
+		if (!timeArr || !timeArr.length) return "Action";
+		const t = timeArr[0];
+		if (t.unit === "action") return "Action";
+		if (t.unit === "bonus") return "Bonus Action";
+		if (t.unit === "reaction") return "Reaction";
+		if (t.unit === "minute") return t.number === 1 ? "1 Minute" : `${t.number} Minutes`;
+		if (t.unit === "hour") return t.number === 1 ? "1 Hour" : `${t.number} Hours`;
+		if (t.unit === "day") return t.number === 1 ? "1 Day" : `${t.number} Days`;
+		return "Action";
+	}
+
+	// "auto" (not "Strength"/"Dexterity"/"none") is the value Roll20's own compendium uses to add
+	// the caster's spellcasting modifier to damage/healing - confirmed against live ground-truth
+	// dumps of native Flame Blade ("...plus your spellcasting ability modifier") and Cure Wounds
+	// imports this session. Shared by the main damage/heal chain and the multi-damage-entry chain
+	// below, and by the Charactermancer spell builder via d20plus.import2024.spellPlan.
+	function hasCastingModDamage (entries) {
+		return (entries || []).some(e => typeof e === "string" && e.includes("spellcasting ability modifier"));
+	}
+
+	// Returns {isAutoHit, rawRepeat, repeatCount, rayRepeat, isMultiRay, isRepeatUpcast} - the
+	// "does this spell auto-hit / repeat as multiple projectiles" shape (Magic Missile's 3 darts,
+	// Armor of Agathys' reactive proc, Scorching Ray's multiple rays). Extracted so the
+	// Charactermancer spell builder gets the same repeat/projectile handling as regular import
+	// instead of having none at all.
+	function parseSpellAttackShape (vc, isCantripScaling) {
+		const hasSave = vc && vc.savingThrow && vc.savingThrow.length;
+		const hasSpellAtk = vc && vc.spellAttack && vc.spellAttack.length;
+		const hasDamage = vc && vc.damageInflict && vc.damageInflict.length;
+		const isAutoHit = !!(hasDamage && !hasSave && !hasSpellAtk);
+		const rawRepeat = isAutoHit ? sp.parseRepeatCount(vc.entries) : null;
+		const repeatCount = rawRepeat || 1;
+		const rayRepeat = (!isCantripScaling && hasSpellAtk) ? sp.parseRepeatCount(vc.entries) : null;
+		const isMultiRay = rayRepeat !== null;
+		const isRepeatUpcast = !isCantripScaling && (isAutoHit || isMultiRay) && sp.parseRepeatUpcast(vc.entriesHigherLevel);
+		return {isAutoHit, rawRepeat, repeatCount, rayRepeat, isMultiRay, isRepeatUpcast};
+	}
+
+	// Parses each `scalingLevelDice` array entry (e.g. Booming Blade's "on moving"/"on hit" pair,
+	// Green-Flame Blade's "on hit"/"secondary creature" pair) into the data needed to build one
+	// Attack+Damage(+Upcasting) chain per entry - one call site for both import2024Spell (below)
+	// and the Charactermancer spell builder, so multi-instance cantrips get identical handling in
+	// both places instead of the Charactermancer builder's own (pre-fix, buggy) re-parsing.
+	function parseMultiDamageEntries (scalingLevelDice, cantripLevels, damageType) {
+		return (scalingLevelDice || []).map(sldEntry => {
+			// The base value isn't always keyed at level 1 - e.g. Booming Blade's "on hit" bonus
+			// damage only starts at level 5, so `scaling` has no "1" key at all. Use whichever level
+			// is actually the first one present instead of assuming "1".
+			const scalingLevelKeys = Object.keys(sldEntry.scaling).map(Number).sort((a, b) => a - b);
+			const baseLevel = scalingLevelKeys[0] ?? 1;
+			const baseDiceStr = sldEntry.scaling[String(baseLevel)];
+			// Some scaling entries aren't dice at all - e.g. Green-Flame Blade's secondary-target
+			// damage at level 1 is "{{spellcasting_mod}}" (5etools' literal template placeholder for
+			// a flat "+ your spellcasting modifier" value, not a dice string).
+			const baseDiceM = baseDiceStr && baseDiceStr.match(/(\d+)d(\d+)/i);
+			const isFlatOnly = !baseDiceM;
+			const diceCount = baseDiceM ? parseInt(baseDiceM[1], 10) : undefined;
+			const diceSize = baseDiceM ? "d" + baseDiceM[2] : "";
+			const ability = Object.values(sldEntry.scaling).some(v => typeof v === "string" && v.includes("spellcasting_mod")) ? "auto" : "none";
+			// Levels at or below this entry's own base level are already baked into baseDiceStr -
+			// re-applying them as Upcasting bumps would double-count. Skipped entirely when flat:
+			// Upcasting's "$._diceCount" target assumes an existing die to increment, but a flat
+			// entry *gains* a die at a later level rather than incrementing one.
+			const upcastLevels = isFlatOnly ? [] : cantripLevels.filter(lvl => lvl > baseLevel);
+			const onFailText = isFlatOnly ? `Takes ${sldEntry.label}.` : `Takes ${baseDiceStr} ${damageType} damage.`;
+			return {label: sldEntry.label, baseLevel, isFlatOnly, diceCount, diceSize, damageType, ability, upcastLevels, onFailText};
+		});
+	}
+
 	// _batchStore: if provided, mutate it in place and skip the read/save (batch mode for monster import).
 	d20plus.importer.import2024Spell = async function (charModel, spellData, _batchStore) {
 		const d = spellData.data;
@@ -145,35 +233,7 @@ function d20plus2024SpellImport() {
 
 		// Range and duration as full strings
 		const range = vc ? Parser.spRangeToFull(vc.range) : (d["Range"] || "");
-
-		function parseDuration2024 (durArr) {
-			if (!durArr || !durArr.length) return "Instantaneous";
-			const du = durArr[0];
-			if (du.type === "instantaneous") return "Instantaneous";
-			if (du.type === "permanent") return "Until Dispelled";
-			if (du.type === "special") return "Special";
-			if (du.type === "timed" && du.duration) {
-				const amt = du.duration.amount;
-				const unit = du.duration.type;
-				const plural = amt !== 1 ? "s" : "";
-				if (du.concentration) return `Concentration, up to ${amt} ${unit}${plural}`;
-				return `${amt} ${unit}${plural}`;
-			}
-			return "Instantaneous";
-		}
 		const duration = vc ? parseDuration2024(vc.duration) : (d["Duration"] || "");
-
-		function parseCastingTime2024 (timeArr) {
-			if (!timeArr || !timeArr.length) return "Action";
-			const t = timeArr[0];
-			if (t.unit === "action") return "Action";
-			if (t.unit === "bonus") return "Bonus Action";
-			if (t.unit === "reaction") return "Reaction";
-			if (t.unit === "minute") return t.number === 1 ? "1 Minute" : `${t.number} Minutes`;
-			if (t.unit === "hour") return t.number === 1 ? "1 Hour" : `${t.number} Hours`;
-			if (t.unit === "day") return t.number === 1 ? "1 Day" : `${t.number} Days`;
-			return "Action";
-		}
 		const castingTimeBase = vc ? parseCastingTime2024(vc.time) : (d["Casting Time"] || "Action");
 		const isRitual = vc ? !!(vc.meta && vc.meta.ritual) : (d["Ritual"] || "") === "Yes";
 		const castingTime = isRitual ? `${castingTimeBase} or Ritual` : castingTimeBase;
@@ -193,17 +253,11 @@ function d20plus2024SpellImport() {
 		// reactive/automatic damage spells (Armor of Agathys), not just ones with a projectile word
 		// in their text. Confirmed against Roll20's own compendium output: Armor of Agathys' Attack
 		// integrant has autoHit:true despite never mentioning darts/rays/beams.
-		const isAutoHit = !!(hasDamage && !hasSave && !hasSpellAtk);
-		const rawRepeat = isAutoHit ? sp.parseRepeatCount(vc.entries) : null;
-		const repeatCount = rawRepeat || 1;
-
-		const rayRepeat = (!isCantripScaling && hasSpellAtk) ? sp.parseRepeatCount(vc.entries) : null;
-		const isMultiRay = rayRepeat !== null;
+		const {isAutoHit, rawRepeat, repeatCount, rayRepeat, isMultiRay, isRepeatUpcast} = parseSpellAttackShape(vc, isCantripScaling);
 
 		const buildChain = hasSave || hasSpellAtk || isAutoHit;
 
 		const parsed = (buildChain && hasDamage) ? getDamageDiceOrFlat(vc.entries) : null;
-		const isRepeatUpcast = !isCantripScaling && (isAutoHit || isMultiRay) && sp.parseRepeatUpcast(vc.entriesHigherLevel);
 		const upcast = (!isCantripScaling && buildChain && !isRepeatUpcast) ? getDamageUpcastData(vc.entriesHigherLevel) : null;
 		const scalingLevelDice = vc ? vc.scalingLevelDice : undefined;
 		const isDiceScaling = isCantripScaling && !!scalingLevelDice;
@@ -283,18 +337,11 @@ function d20plus2024SpellImport() {
 				? JSON.stringify([upcastId])
 				: dmgUpcastChildIds.length ? JSON.stringify(dmgUpcastChildIds) : "[]";
 
-			// "auto" (not "Strength"/"Dexterity"/"none") is the value Roll20's own compendium uses
-			// to add the caster's spellcasting modifier to damage - confirmed against a live
-			// ground-truth dump of a native Flame Blade import (2024 XPHB text: "3d6 plus your
-			// spellcasting ability modifier"). Mirrors the same phrase check get-data-roll20.js
-			// already uses for the OGL sheet's "Add Casting Modifier" flag.
-			const hasCastingModDamage = (vc.entries || []).some(e => typeof e === "string" && e.includes("spellcasting ability modifier"));
-
 			const dmgIntegrant = {
 				...dmgBase,
 				name: dmgName,
 				recordName: dmgName,
-				ability: hasCastingModDamage ? "auto" : "none",
+				ability: hasCastingModDamage(vc.entries) ? "auto" : "none",
 				diceSize,
 				damageType: dmgType,
 				overrideCrit: false,
@@ -439,44 +486,22 @@ function d20plus2024SpellImport() {
 		const multiDamageAtkIds = [];
 		if (isMultiDamage) {
 			const damageType = cap(vc.damageInflict[0]);
+			const multiDamageEntries = parseMultiDamageEntries(scalingLevelDice, cantripLevels, damageType);
 
-			for (const sldEntry of scalingLevelDice) {
-				// The base value isn't always keyed at level 1 - e.g. Booming Blade's "on hit" bonus
-				// damage only starts at level 5, so `scaling` has no "1" key at all. Use whichever
-				// level is actually the first one present instead of assuming "1" (which previously
-				// fell back to a hardcoded "1d8" guess for any entry missing that key).
-				const scalingLevelKeys = Object.keys(sldEntry.scaling).map(Number).sort((a, b) => a - b);
-				const baseLevel = scalingLevelKeys[0] ?? 1;
-				const baseDiceStr = sldEntry.scaling[String(baseLevel)];
-				// Some scaling entries aren't dice at all - e.g. Green-Flame Blade's secondary-target
-				// damage at level 1 is "{{spellcasting_mod}}" (a flat "+ your spellcasting modifier"
-				// value 5etools represents as a literal template placeholder, not a dice string).
-				// Matching the `isFlatOnly` convention used for the main damage chain above rather
-				// than forcing a fabricated "1d8" onto it.
-				const baseDiceM = baseDiceStr && baseDiceStr.match(/(\d+)d(\d+)/i);
-				const isFlatOnly = !baseDiceM;
-				const baseDiceCount = baseDiceM ? parseInt(baseDiceM[1], 10) : undefined;
-				const baseDiceSize = baseDiceM ? "d" + baseDiceM[2] : "";
+			for (const parsedEntry of multiDamageEntries) {
+				const {label, isFlatOnly, diceCount, diceSize, ability, upcastLevels, onFailText} = parsedEntry;
 
 				// Use 5etools' own human-readable label (e.g. "fire damage to secondary creature")
 				// rather than the raw scaling value - the value is meant for level lookups, not
 				// display, and using it directly is what let "{{spellcasting_mod}}" leak into names.
-				const suffix = `(${sldEntry.label})`;
+				const suffix = `(${label})`;
 				const dmgName = `${spellData.name} ${suffix} Damage`;
 				const atkName = `${spellData.name} ${suffix}`;
 				const atkRecordName = `${spellData.name} ${suffix} Attack`;
 
 				const {id: mAtkId, base: mAtkBase} = spellCtx.makeIntegrantBase("Attack", pos++);
 				const {id: mDmgId, base: mDmgBase} = spellCtx.makeIntegrantBase("Damage", pos++);
-				// `cantripLevels` is derived from scalingLevelDice[0] and shared across every entry in
-				// this loop, so it can include this entry's own base level (e.g. 5, for Booming Blade's
-				// "on hit" entry) - excluding levels at or below `baseLevel` avoids double-counting a
-				// bump that's already baked into `baseDiceStr`. Skipped entirely when flat: Upcasting's
-				// "$._diceCount" target assumes an existing die to increment, but a flat entry (e.g.
-				// Green-Flame Blade's secondary damage, "{{spellcasting_mod}}" at level 1) has none -
-				// it *gains* a die at a later level rather than incrementing one, which this Upcasting
-				// integrant shape has no way to express, so scaling it here would be a guess.
-				const mUpcastEntries = isFlatOnly ? [] : cantripLevels.filter(lvl => lvl > baseLevel).map(lvl => {
+				const mUpcastEntries = upcastLevels.map(lvl => {
 					const {id, base} = spellCtx.makeIntegrantBase("Upcasting", pos++);
 					return {id, base, level: lvl};
 				});
@@ -498,18 +523,12 @@ function d20plus2024SpellImport() {
 					};
 				}
 
-				// This entry adds the spellcasting modifier if any of its own scaling values carry
-				// the "{{spellcasting_mod}}" template token (e.g. Green-Flame Blade's secondary-target
-				// entry, at every level, not just the flat level-1 case) - "auto" is the value Roll20's
-				// own compendium uses for this, confirmed against a live Flame Blade ground-truth dump.
-				const entryHasCastingMod = Object.values(sldEntry.scaling).some(v => typeof v === "string" && v.includes("spellcasting_mod"));
-
 				const mDmgIntegrant = {
 					...mDmgBase,
 					name: dmgName,
 					recordName: dmgName,
-					ability: entryHasCastingMod ? "auto" : "none",
-					diceSize: baseDiceSize,
+					ability,
+					diceSize,
 					damageType,
 					overrideCrit: false,
 					critDiceSize: "",
@@ -517,7 +536,7 @@ function d20plus2024SpellImport() {
 					childIDs: JSON.stringify(mUpcastEntries.map(e => e.id)),
 					relations: {},
 				};
-				if (!isFlatOnly) mDmgIntegrant._diceCount = baseDiceCount;
+				if (!isFlatOnly) mDmgIntegrant._diceCount = diceCount;
 				store.integrants.integrants[mDmgId] = mDmgIntegrant;
 
 				const mAtkIntegrant = {
@@ -535,7 +554,7 @@ function d20plus2024SpellImport() {
 				if (hasSave) {
 					mAtkIntegrant.save = {
 						saveAbility: cap(vc.savingThrow[0]),
-						onFail: isFlatOnly ? `Takes ${sldEntry.label}.` : `Takes ${baseDiceStr} ${damageType} damage.`,
+						onFail: onFailText,
 					};
 					if (onSucceedHalf) mAtkIntegrant.save.onSucceed = "Half as much damage.";
 				}
@@ -570,16 +589,12 @@ function d20plus2024SpellImport() {
 				};
 			}
 			const healIsFlatOnly = healParsed.diceCount === undefined;
-			// Same "auto" convention as damage - confirmed against a live Cure Wounds ground-truth
-			// dump ("A creature you touch regains ... 2d8 plus your spellcasting ability modifier",
-			// Healing integrant has "ability": "auto").
-			const hasCastingModHealing = (vc.entries || []).some(e => typeof e === "string" && e.includes("spellcasting ability modifier"));
 			const healIntegrant = {
 				...healBase,
 				name: `${spellData.name} ${healLabel}`,
 				recordName: `${spellData.name} ${healLabel}`,
 				_bonus: healParsed.bonus || 0,
-				ability: hasCastingModHealing ? "auto" : "none",
+				ability: hasCastingModDamage(vc.entries) ? "auto" : "none",
 				diceSize: healIsFlatOnly ? "" : healParsed.diceSize,
 				overrideCrit: false,
 				critDiceSize: "",
@@ -631,6 +646,22 @@ function d20plus2024SpellImport() {
 		} finally {
 			if (releaseLock) releaseLock();
 		}
+	};
+
+	// Shared 2024-sheet spell-parsing primitives, reused by the standalone Charactermancer script
+	// (js/5etools/2024/5etools-2024-charactermancer.js) so both consumers build spell
+	// integrants/records from identical logic instead of maintaining a second implementation.
+	d20plus.import2024.spellPlan = {
+		parseDamage: getDamageDiceOrFlat,
+		parseHeal: getHealDiceOrFlat,
+		parseDamageUpcast: getDamageUpcastData,
+		parseHealUpcast: getHealUpcastData,
+		parseCantripLevels: parseSpell2024CantripLevels,
+		parseDuration: parseDuration2024,
+		parseCastingTime: parseCastingTime2024,
+		parseAttackShape: parseSpellAttackShape,
+		parseMultiDamageEntries,
+		hasCastingModDamage,
 	};
 }
 SCRIPT_EXTENSIONS.push(d20plus2024SpellImport);
