@@ -178,7 +178,14 @@ function tools5eTool () {
 				const $lst = $win.find(`.list`);
 				let tokenList;
 
-				const dataStack = (await Promise.all(toLoad.map(url => DataUtil.loadJSON(url)))).flat();
+				const dataStack = (await Promise.all(toLoad.map(async url => {
+					try {
+						return await DataUtil.loadJSON(url);
+					} catch (e) {
+						console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
+						return [];
+					}
+				}))).flat();
 
 				$lst.empty();
 				let toShow = [];
@@ -325,7 +332,14 @@ function tools5eTool () {
 
 				const toLoad = Object.keys(monsterDataUrls).map(src => d20plus.monsters.formMonsterUrl(monsterDataUrls[src]));
 
-				const dataStack = (await Promise.all(toLoad.map(async url => DataUtil.loadJSON(url)))).flat();
+				const dataStack = (await Promise.all(toLoad.map(async url => {
+					try {
+						return await DataUtil.loadJSON(url);
+					} catch (e) {
+						console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
+						return [];
+					}
+				}))).flat();
 
 				$lst.empty();
 				let toShow = [];
