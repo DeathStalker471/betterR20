@@ -9,10 +9,14 @@ function d20plus2024Router() {
 			d20plus.importer.import2024Item(charModel, data);
 		} else if (category === "Classes") {
 			d20plus.importer.import2024Class(charModel, data);
+		} else if (category === "Subclasses") {
+			d20plus.importer.import2024Subclass(charModel, data);
 		} else if (category === "Races") {
 			d20plus.importer.import2024Race(charModel, data);
 		} else if (category === "Feats") {
 			d20plus.importer.import2024Feat(charModel, data);
+		} else if (category === "Backgrounds") {
+			d20plus.importer.import2024Background(charModel, data);
 		} else {
 			importDataFallback(charView, data, event);
 		}
