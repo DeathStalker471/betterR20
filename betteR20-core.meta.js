@@ -14,6 +14,7 @@
 // @match        https://app.roll20.net/editor/
 // @match        https://app.roll20.net/editor/#*
 // @match        https://app.roll20.net/editor/?*
+// @match        https://*.roll20preflight.net/*
 
 // @grant        unsafeWindow
 // @run-at       document-start
