@@ -154,7 +154,6 @@ function initHTMLroll20EditorsMisc () {
 							</input>
 						</div>
 					</div>
-					<$ if(!window.ADVANCED_SHEET) { $>
 					<div class='row-fluid'>
 						<div class='span12'>
 							<hr>
@@ -172,7 +171,6 @@ function initHTMLroll20EditorsMisc () {
 							<$ } $>
 						</div>
 					</div>
-					<$ } $>
 				</div>
 			</div>
 		</div>

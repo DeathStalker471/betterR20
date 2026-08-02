@@ -111,4 +111,85 @@ if (window.top === window.self) {
 
 	stack += "\n}";
 	unsafeWindow.eval(`(${stack})('${GM_info.script.version}')`);
+} else if (/^https:\/\/[\w-]+(\.[\w-]+)*\.roll20(preflight)?\.net$/.test(window.location.origin)) {
+	// Not the top frame, but this IS the 2024 sheet's own cross-origin iframe
+	// (advanced-sheets*.roll20preflight.net) - the top frame's script has zero DOM access to
+	// it (browser Same-Origin Policy), and this origin has zero access to d20plus/d20.Campaign
+	// in return, so this only unlocks/intercepts Roll20's native "Level Up" button (disabled
+	// whenever it thinks the class/species was set manually, which is true of anything
+	// imported by the top-frame script) and relays clicks back via postMessage - the receiving
+	// end lives in 5etools-2024-levelup-hijack.js.
+	(function () {
+		const BTN_SELECTOR = "button[aria-label=\"Level Up\"]";
+
+		// Roll20 names this iframe "iframe_<characterId>" - readable from inside via
+		// window.name, the one piece of character identity this origin has access to at all.
+		function getCharacterId () {
+			const m = /^iframe_(.+)$/.exec(window.name || "");
+			return m ? m[1] : null;
+		}
+
+		function unlock (btn) {
+			if (btn.hasAttribute("disabled")) btn.removeAttribute("disabled");
+		}
+
+		function scan (root) {
+			if (root.matches && root.matches(BTN_SELECTOR)) unlock(root);
+			if (root.querySelectorAll) root.querySelectorAll(BTN_SELECTOR).forEach(unlock);
+		}
+
+		function rewriteTooltip (header) {
+			header.textContent = "This class was imported by BetteR20 - click to add more levels to it.";
+		}
+
+		function scanTooltips (root) {
+			if (root.matches && root.matches(".poly-tooltip__header")) rewriteTooltip(root);
+			if (root.querySelectorAll) root.querySelectorAll(".poly-tooltip__header").forEach(rewriteTooltip);
+		}
+
+		function init () {
+			if (!document.body) {
+				document.addEventListener("DOMContentLoaded", init, {once: true});
+				return;
+			}
+
+			scan(document.body);
+			scanTooltips(document.body);
+
+			new MutationObserver(mutations => {
+				mutations.forEach(m => {
+					if (m.type === "attributes" && m.target.matches && m.target.matches(BTN_SELECTOR)) {
+						unlock(m.target);
+					}
+					(m.addedNodes || []).forEach(node => {
+						if (node.nodeType !== 1) return;
+						scan(node);
+						scanTooltips(node);
+					});
+				});
+			}).observe(document.body, {
+				childList: true,
+				subtree: true,
+				attributes: true,
+				attributeFilter: ["disabled"],
+			});
+
+			// Capturing-phase so this runs before Roll20's own click handler and can fully
+			// suppress it (stopImmediatePropagation during capture blocks the entire
+			// remaining dispatch).
+			document.addEventListener("click", event => {
+				const btn = event.target.closest && event.target.closest(BTN_SELECTOR);
+				if (!btn) return;
+
+				const characterId = getCharacterId();
+				if (!characterId) return;
+
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				window.parent.postMessage({source: "betterR20-levelup-bridge", characterId}, "https://app.roll20.net");
+			}, true);
+		}
+
+		init();
+	})();
 }

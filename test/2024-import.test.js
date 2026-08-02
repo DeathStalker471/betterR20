@@ -1130,7 +1130,7 @@ describe('Import router (import2024Data)', () => {
 	});
 
 	test('calls importDataFallback for unhandled categories', async () => {
-		const { fallback } = route('Backgrounds');
+		const { fallback } = route('Psionics');
 		expect(fallback).toHaveBeenCalledTimes(1);
 	});
 });

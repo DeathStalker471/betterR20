@@ -29,6 +29,12 @@ const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 const AUTHORS_CORE = `TheGiddyLimit/Redweller`;
 const AUTHORS_5ETOOLS = `5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller/DeathStalker`;
 
+// The 2024 sheet renders in a genuinely cross-origin iframe (browser Same-Origin Policy blocks
+// the main app.roll20.net script from reaching its DOM at all) - matching this origin too lets
+// the SAME userscript also run its non-top-frame branch (see js/base/base.js) directly inside
+// that iframe. "roll20preflight.net" looks like Roll20's staging/beta domain for the new sheet
+// rather than a guaranteed-stable name, so this may need an additional @match entry added if
+// Roll20 promotes it to a differently-named production domain later.
 const matchString = `
 // @match        https://app.roll20.net/editor
 // @match        https://app.roll20.net/editor#*
@@ -36,6 +42,7 @@ const matchString = `
 // @match        https://app.roll20.net/editor/
 // @match        https://app.roll20.net/editor/#*
 // @match        https://app.roll20.net/editor/?*
+// @match        https://*.roll20preflight.net/*
 `;
 
 // We have to block certain analytics scripts from running. Whenever they and betteR20 are
@@ -288,6 +295,9 @@ const SCRIPTS = {
 		"5etools/2024/5etools-2024-feat-import",
 		"5etools/2024/5etools-2024-race-import",
 		"5etools/2024/5etools-2024-class-import",
+		"5etools/2024/5etools-2024-subclass-import",
+		"5etools/2024/5etools-2024-background-import",
+		"5etools/2024/5etools-2024-levelup-hijack",
 		"5etools/2024/5etools-2024-router",
 		"5etools/5etools-spells",
 		"5etools/5etools-backgrounds",
@@ -372,6 +382,9 @@ const SCRIPTS = {
 		"5etools/2024/5etools-2024-feat-import",
 		"5etools/2024/5etools-2024-race-import",
 		"5etools/2024/5etools-2024-class-import",
+		"5etools/2024/5etools-2024-subclass-import",
+		"5etools/2024/5etools-2024-background-import",
+		"5etools/2024/5etools-2024-levelup-hijack",
 		"5etools/2024/5etools-2024-router",
 		"5etools/5etools-spells",
 		"5etools/5etools-backgrounds",
