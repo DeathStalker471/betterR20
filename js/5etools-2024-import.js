@@ -385,6 +385,7 @@ function d20plus2024Import() {
 			name: "",
 			valueFormula: { flatValue: ac },
 		};
+		store.npc.acNotes = attrMap["npc_actype"] || "";
 
 		// NPC Type, Size, Alignment
 		const npcTypeStr = attrMap["npc_type"] || "";
@@ -523,6 +524,9 @@ function d20plus2024Import() {
 			}
 		}
 
+		// Defenses - match native 2024 sheet fields
+		const cap = v => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+
 		// Defenses - Resistances
 		const resistancesStr = attrMap["npc_resistances"] || "";
 		if (resistancesStr) {
@@ -531,9 +535,11 @@ function d20plus2024Import() {
 				const { id, base } = createIntegrantBase("Defense");
 				integrants[id] = {
 					...base,
-					name: res,
+					name: `Resistance: ${cap(res)}`,
 					defense: "Resistance",
-					damageType: res.charAt(0).toUpperCase() + res.slice(1).toLowerCase(),
+					damage: cap(res),
+					cascades: {},
+					relations: {},
 				};
 			}
 		}
@@ -546,9 +552,11 @@ function d20plus2024Import() {
 				const { id, base } = createIntegrantBase("Defense");
 				integrants[id] = {
 					...base,
-					name: imm,
+					name: `Immunity: ${cap(imm)}`,
 					defense: "Immunity",
-					damageType: imm.charAt(0).toUpperCase() + imm.slice(1).toLowerCase(),
+					damage: cap(imm),
+					cascades: {},
+					relations: {},
 				};
 			}
 		}
@@ -561,9 +569,11 @@ function d20plus2024Import() {
 				const { id, base } = createIntegrantBase("Defense");
 				integrants[id] = {
 					...base,
-					name: vuln,
+					name: `Vulnerability: ${cap(vuln)}`,
 					defense: "Vulnerability",
-					damageType: vuln.charAt(0).toUpperCase() + vuln.slice(1).toLowerCase(),
+					damage: cap(vuln),
+					cascades: {},
+					relations: {},
 				};
 			}
 		}
@@ -576,9 +586,11 @@ function d20plus2024Import() {
 				const { id, base } = createIntegrantBase("Defense");
 				integrants[id] = {
 					...base,
-					name: cond,
+					name: `Condition Immunity: ${cap(cond)}`,
 					defense: "Condition Immunity",
-					conditionType: cond.charAt(0).toUpperCase() + cond.slice(1).toLowerCase(),
+					condition: cap(cond),
+					cascades: {},
+					relations: {},
 				};
 			}
 		}
