@@ -139,7 +139,7 @@ function d20plus2024Import() {
 	 * Parse speed string into array of {type, value} objects
 	 */
 	function parseSpeeds(speedStr) {
-		if (!speedStr) return [{ type: "Walking", value: 30 }];
+		if (!speedStr) return [{ type: "Walk", value: 30 }];
 
 		const speeds = [];
 		const parts = speedStr.split(",").map(s => s.trim());
@@ -151,20 +151,20 @@ function d20plus2024Import() {
 				const value = parseInt(match[2], 10);
 
 				const typeMap = {
-					"walk": "Walking",
+					"walk": "Walk",
 					"fly": "Flying",
 					"swim": "Swimming",
 					"climb": "Climbing",
 					"burrow": "Burrowing",
 					"hover": "Flying",
 				};
-				type = typeMap[type] || "Walking";
+				type = typeMap[type] || "Walk";
 
 				speeds.push({ type, value });
 			}
 		}
 
-		return speeds.length > 0 ? speeds : [{ type: "Walking", value: 30 }];
+		return speeds.length > 0 ? speeds : [{ type: "Walk", value: 30 }];
 	}
 
 	/**
@@ -777,11 +777,11 @@ function d20plus2024Import() {
 	 * Parse speed object into array of {type, value} objects
 	 */
 	function parse2024MonsterSpeeds(speedObj) {
-		if (!speedObj) return [{ type: "Walking", value: 30 }];
+		if (!speedObj) return [{ type: "Walk", value: 30 }];
 
 		const speeds = [];
 		const typeMap = {
-			"walk": "Walking",
+			"walk": "Walk",
 			"fly": "Flying",
 			"swim": "Swimming",
 			"climb": "Climbing",
@@ -790,12 +790,12 @@ function d20plus2024Import() {
 
 		for (const [key, val] of Object.entries(speedObj)) {
 			if (key === "canHover") continue;
-			const type = typeMap[key] || "Walking";
+			const type = typeMap[key] || "Walk";
 			const value = typeof val === "number" ? val : (val.number || 30);
 			speeds.push({ type, value });
 		}
 
-		return speeds.length > 0 ? speeds : [{ type: "Walking", value: 30 }];
+		return speeds.length > 0 ? speeds : [{ type: "Walk", value: 30 }];
 	}
 
 	/**
