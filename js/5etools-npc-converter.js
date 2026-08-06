@@ -100,6 +100,18 @@ function d20plusNpcConverter () {
 			return `${name} (2024)`;
 		}
 
+		function cloneForDebug (value) {
+			try {
+				return JSON.parse(JSON.stringify(value));
+			} catch (e) {
+				return {error: e?.message || String(e)};
+			}
+		}
+
+		function logDebugJson (label, value) {
+			console.log(`${label}\n${JSON.stringify(value, null, 2)}`);
+		}
+
 		function save2024NpcState (character, store) {
 			const toSave = [
 				{ name: "appState", current: "npc" },
@@ -116,8 +128,10 @@ function d20plusNpcConverter () {
 			if (!d20plus.importer?.translateOGLTo2024Store) throw new Error("2024 import support is not available.");
 
 			const store = d20plus.importer.translateOGLTo2024Store(character.attribs.toJSON());
-			console.log("betterR20 NPC converter source attribs", character.attribs.toJSON());
-			console.log("betterR20 NPC converter translated 2024 store", store);
+			window.__npcConverterLastSourceAttribs = cloneForDebug(character.attribs.toJSON());
+			window.__npcConverterLastStore = cloneForDebug(store);
+			logDebugJson("betterR20 NPC converter source attribs", window.__npcConverterLastSourceAttribs);
+			logDebugJson("betterR20 NPC converter translated 2024 store", window.__npcConverterLastStore);
 			const sourceAttrMap = getConverterAttrMap(character);
 			const sourceAttributes = {...character.attributes};
 			delete sourceAttributes.id;
@@ -146,7 +160,8 @@ function d20plusNpcConverter () {
 							}
 
 							save2024NpcState(newCharacter, store);
-							console.log("betterR20 NPC converter created character", newCharacter);
+							window.__npcConverterLastCharacter = cloneForDebug(newCharacter?.attributes || newCharacter);
+							logDebugJson("betterR20 NPC converter created character", window.__npcConverterLastCharacter);
 
 							await copyBioAndNotes(character, newCharacter);
 
