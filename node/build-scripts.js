@@ -54,6 +54,8 @@ function getHeader (name, info) {
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
 // @version      ${SCRIPT_VERSION}
+// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-convert-5e-npc-sheets
+// @supportURL   https://github.com/TheOctonaut/betterR20/pull/1
 // @updateURL    ${SCRIPT_REPO}betteR20-${name}.meta.js
 // @downloadURL  ${SCRIPT_REPO}betteR20-${name}.user.js
 // @description  Enhance your Roll20 experience
