@@ -3,7 +3,8 @@ function d20plusNpcConverter () {
 
 	(() => {
 		const SHEET_2024 = new Set(["dnd_2024", "DnD2024_Character_Sheet", "dnd2024", "dnd2024byroll20"]);
-		const ATTRIBUTES_2014_REQUIRED = ["npc", "npc_name", "npc_type", "npc_ac", "npc_hpbase", "npc_challenge"];
+		const ATTRIBUTES_2014_CORE = ["npc"];
+		const ATTRIBUTES_2014_EXPECTED = ["npc_name", "npc_type", "npc_ac", "npc_hpbase", "npc_challenge"];
 
 		function getConverterCharacterFromEvent (event) {
 			const $target = $(event.target);
@@ -28,8 +29,22 @@ function d20plusNpcConverter () {
 
 		function isNpc2014Sheet (character) {
 			const attrMap = getConverterAttrMap(character);
-			if (`${attrMap.npc || ""}` !== "1") return false;
-			return ATTRIBUTES_2014_REQUIRED.every(name => attrMap[name] !== undefined);
+			if (!ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1")) return false;
+
+			const expectedCount = ATTRIBUTES_2014_EXPECTED
+				.map(name => attrMap[name] !== undefined)
+				.filter(Boolean)
+				.length;
+
+			const hasNpcRepeatingContent = Object.keys(attrMap).some(name =>
+				name.startsWith("repeating_npcaction_")
+				|| name.startsWith("repeating_npctrait_")
+				|| name.startsWith("repeating_npcreaction_")
+				|| name.startsWith("repeating_npcaction-l_")
+				|| name.startsWith("repeating_npcaction-m_"),
+			);
+
+			return expectedCount >= 3 || hasNpcRepeatingContent;
 		}
 
 		function isNpc2024Sheet (character) {
