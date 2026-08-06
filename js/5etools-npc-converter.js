@@ -55,7 +55,7 @@ function d20plusNpcConverter () {
 		}
 
 		function getTargetFolderId (character) {
-			const root = d20.journal && d20.journal.folder_structure;
+			const root = d20plus.ut.getJournalFolderObj();
 			const findFolderPath = (items, path = []) => {
 				for (const item of (items || [])) {
 					if (item.i === character.id) return path;
@@ -100,25 +100,12 @@ function d20plusNpcConverter () {
 			return `${name} (2024)`;
 		}
 
-		function ensure2024NpcAttributes (character, sourceAttrMap) {
-			const fixedAttributes = {
-				npc: 1,
-				npc_toggle: 1,
-				"npc_options-flag": 0,
-				mancer_confirm_flag: "",
-				mancer_cancel: "on",
-				l1mancer_status: "completed",
-				rpg_sheet: "dnd_2024",
-				sheet_type: "dnd_2024",
-				charactersheet_type: "npc",
-				name: sourceAttrMap.npc_name || sourceAttrMap.character_name || character.get("name") || "",
-				npc_name: sourceAttrMap.npc_name || sourceAttrMap.character_name || character.get("name") || "",
-				avatar: sourceAttrMap.avatar || "",
-			};
-
-			Object.entries(fixedAttributes).forEach(([name, current]) => {
-				character.attribs.create({name, current}).save();
-			});
+		function save2024NpcState (character, store) {
+			const toSave = [
+				{ name: "appState", current: "npc" },
+				{ name: "store", current: store },
+			].map(a => character.attribs.push(a));
+			toSave.forEach(s => s.syncedSave());
 		}
 
 		async function convertCharacter (character) {
@@ -143,8 +130,6 @@ function d20plusNpcConverter () {
 				}, {
 					success: async (newCharacter) => {
 						try {
-							ensure2024NpcAttributes(newCharacter, sourceAttrMap);
-
 							if (d20plus.importer._setDefaultTokenImage) {
 								await d20plus.importer._setDefaultTokenImage(
 									newCharacter,
@@ -157,9 +142,7 @@ function d20plusNpcConverter () {
 								);
 							}
 
-							const storeAttr = newCharacter.attribs.find(a => a.get("name") === "store");
-							if (storeAttr) storeAttr.destroy();
-							newCharacter.attribs.push({name: "store", current: store}).syncedSave();
+							save2024NpcState(newCharacter, store);
 
 							await copyBioAndNotes(character, newCharacter);
 
