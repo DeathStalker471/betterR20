@@ -153,14 +153,14 @@ function d20plus2024Import() {
 
 				const typeMap = {
 					"walk": "Walk",
-					"fly": "Flying",
-					"swim": "Swimming",
-					"climb": "Climbing",
-					"burrow": "Burrowing",
-					"hover": "Flying",
+					"fly": "Fly",
+					"swim": "Swim",
+					"climb": "Climb",
+					"burrow": "Burrow",
+					"hover": "Fly",
 				};
 				type = typeMap[type] || "Walk";
-				if (type === "Flying" && note.toLowerCase() === "hover") type = "Fly (Hover)";
+				if (type === "Fly" && note.toLowerCase() === "hover") type = "Fly (Hover)";
 
 				speeds.push({ type, value });
 			}
@@ -790,10 +790,10 @@ function d20plus2024Import() {
 		const speeds = [];
 		const typeMap = {
 			"walk": "Walk",
-			"fly": "Flying",
-			"swim": "Swimming",
-			"climb": "Climbing",
-			"burrow": "Burrowing",
+			"fly": "Fly",
+			"swim": "Swim",
+			"climb": "Climb",
+			"burrow": "Burrow",
 		};
 
 		for (const [key, val] of Object.entries(speedObj)) {
