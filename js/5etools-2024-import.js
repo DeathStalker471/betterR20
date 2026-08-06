@@ -405,9 +405,9 @@ function d20plus2024Import() {
 			const perceptionBonus = parseInt(attrMap["npc_perception"] || attrMap["perception_bonus"] || "0", 10);
 			if (!Number.isNaN(perceptionBonus)) store.npc.passivePerceptionOverride = 10 + perceptionBonus;
 		}
-		store.npc.gear = store.npc.gear || "Unknown";
-		store.npc.habitat = store.npc.habitat || "Unknown";
-		store.npc.treasure = store.npc.treasure || "Unknown";
+		store.npc.gear = store.npc.gear || "Any";
+		store.npc.habitat = store.npc.habitat || "Any";
+		store.npc.treasure = store.npc.treasure || "Any";
 
 		// Speeds
 		const speedStr = attrMap["npc_speed"] || "30 ft.";
@@ -457,6 +457,49 @@ function d20plus2024Import() {
 				category: "Saving Throw",
 				proficiency: abilityName,
 				proficiencyLevel: "Proficient",
+				increaseIfAlreadyAt: false,
+				rollAbility: "Query Attribute",
+				notes: "",
+				cascades: {},
+				relations: {},
+			};
+		});
+
+		// Skills
+		const skillAbilityMap = {
+			acrobatics: "Dexterity",
+			"animal_handling": "Wisdom",
+			arcana: "Intelligence",
+			athletics: "Strength",
+			deception: "Charisma",
+			history: "Intelligence",
+			insight: "Wisdom",
+			intimidation: "Charisma",
+			investigation: "Intelligence",
+			medicine: "Wisdom",
+			nature: "Intelligence",
+			perception: "Wisdom",
+			performance: "Charisma",
+			persuasion: "Charisma",
+			religion: "Intelligence",
+			"sleight_of_hand": "Dexterity",
+			stealth: "Dexterity",
+			survival: "Wisdom",
+		};
+		Object.entries(skillAbilityMap).forEach(([skillKey, skillName]) => {
+			const skillValRaw = attrMap[`npc_${skillKey}`];
+			const skillFlagRaw = attrMap[`npc_${skillKey}_flag`];
+			const skillVal = parseInt(skillValRaw || "0", 10);
+			const skillFlag = parseInt(skillFlagRaw || "0", 10);
+			if ((!skillValRaw && !skillFlagRaw) || Number.isNaN(skillVal) || skillFlag <= 0) return;
+
+			const { id, base } = createIntegrantBase("Proficiency");
+			integrants[id] = {
+				...base,
+				name: "Skill Proficiency",
+				category: "Skill",
+				proficiency: skillName.replace(/_/g, " ").replace(/\b\w/g, m => m.toUpperCase()),
+				proficiencyLevel: skillFlag >= 2 ? "Expertise" : "Proficient",
 				increaseIfAlreadyAt: false,
 				rollAbility: "Query Attribute",
 				notes: "",
