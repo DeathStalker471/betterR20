@@ -121,10 +121,11 @@ function d20plusNpcConverter () {
 		}
 
 		function save2024NpcNames (character, sourceAttrMap) {
+			const npcDisplayName = sourceAttrMap.npc_name || character.get("name") || "Unnamed character";
 			const toSave = [
-				{ name: "npc_name", current: "TEST_NPC_NAME" },
-				{ name: "name", current: "TEST_NAME" },
-				{ name: "character_name", current: "TEST_CHARACTER_NAME" },
+				{ name: "npc_name", current: npcDisplayName },
+				{ name: "name", current: npcDisplayName },
+				{ name: "character_name", current: npcDisplayName },
 			].map(a => character.attribs.push(a));
 			toSave.forEach(s => s.syncedSave());
 		}

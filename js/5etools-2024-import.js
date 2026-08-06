@@ -390,6 +390,8 @@ function d20plus2024Import() {
 		const npcTypeStr = attrMap["npc_type"] || "";
 		const { size, creatureType, alignment } = parseNpcType(npcTypeStr);
 		store.about.characteristics = { size, creatureType, alignment };
+		const npcDisplayName = (attrMap["npc_name"] || "").trim();
+		if (npcDisplayName) store.about.characteristics.species = npcDisplayName;
 		store.character.creatureType = creatureType;
 
 		// Challenge Rating
