@@ -120,6 +120,16 @@ function d20plusNpcConverter () {
 			toSave.forEach(s => s.syncedSave());
 		}
 
+		function save2024NpcNames (character, sourceAttrMap) {
+			const npcDisplayName = sourceAttrMap.npc_name || character.get("name") || "Unnamed character";
+			const toSave = [
+				{ name: "npc_name", current: npcDisplayName },
+				{ name: "name", current: npcDisplayName },
+				{ name: "character_name", current: npcDisplayName },
+			].map(a => character.attribs.push(a));
+			toSave.forEach(s => s.syncedSave());
+		}
+
 		async function convertCharacter (character) {
 			character.attribs.fetch(character.attribs);
 
@@ -160,6 +170,7 @@ function d20plusNpcConverter () {
 							}
 
 							save2024NpcState(newCharacter, store);
+							save2024NpcNames(newCharacter, sourceAttrMap);
 							window.__npcConverterLastCharacter = cloneForDebug(newCharacter?.attributes || newCharacter);
 							logDebugJson("betterR20 NPC converter created character", window.__npcConverterLastCharacter);
 
