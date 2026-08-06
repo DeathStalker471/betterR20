@@ -177,6 +177,7 @@ function d20plus2024Import() {
 		const parts = sensesStr.split(",").map(s => s.trim());
 
 		for (const part of parts) {
+			if (/^passive perception\b/i.test(part)) continue;
 			const match = part.match(/(\w+)\s+(\d+)\s*(?:ft\.?)?/i);
 			if (match) {
 				let type = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
@@ -392,8 +393,21 @@ function d20plus2024Import() {
 		// Challenge Rating
 		const cr = attrMap["npc_challenge"] || "0";
 		store.npc.challengeRating = cr;
-		const passivePerception = parseInt(attrMap["passive"] || "0", 10);
+		const passivePerception = parseInt(
+			attrMap["passive"]
+			|| attrMap["npc_passive"]
+			|| attrMap["passive_wisdom"]
+			|| "0",
+			10,
+		);
 		if (passivePerception > 0) store.npc.passivePerceptionOverride = passivePerception;
+		else {
+			const perceptionBonus = parseInt(attrMap["npc_perception"] || attrMap["perception_bonus"] || "0", 10);
+			if (!Number.isNaN(perceptionBonus)) store.npc.passivePerceptionOverride = 10 + perceptionBonus;
+		}
+		store.npc.gear = store.npc.gear || "Unknown";
+		store.npc.habitat = store.npc.habitat || "Unknown";
+		store.npc.treasure = store.npc.treasure || "Unknown";
 
 		// Speeds
 		const speedStr = attrMap["npc_speed"] || "30 ft.";
