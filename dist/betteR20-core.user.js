@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name         betteR20-beta-core-death-jumpagate-import
+// @name         betteR20-theoctonaut-test-core
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.1jj
-// @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/betteR20-core.meta.js
-// @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/betteR20-core.user.js
+// @version      1.36.1.1jj-theoctonaut-test
+// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/betteR20-core.meta.js
+// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
 // @author       TheGiddyLimit/Redweller
 
@@ -30,8 +30,8 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.36.1.1jj`;
-B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/`;
+B20_VERSION = `1.36.1.1jj-theoctonaut-test`;
+B20_REPO_URL = `https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";

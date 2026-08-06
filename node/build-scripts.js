@@ -1,7 +1,8 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.36.1.1jj";
-const SCRIPT_REPO = "https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/";
+const SCRIPT_VERSION = "1.36.1.1jj-theoctonaut-test";
+const SCRIPT_REPO = "https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/";
+const SCRIPT_NAME_PREFIX = "betteR20-theoctonaut-test";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
 1.36.1.1jj - Weather Configuration
@@ -49,7 +50,7 @@ const analyticsBlocking = `
 
 function getHeader (name, info) {
 	return `// ==UserScript==
-// @name         betteR20-beta-${name}-death-jumpagate-import
+// @name         ${SCRIPT_NAME_PREFIX}-${name}
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
 // @version      ${SCRIPT_VERSION}
