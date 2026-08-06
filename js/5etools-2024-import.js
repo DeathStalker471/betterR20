@@ -400,11 +400,9 @@ function d20plus2024Import() {
 			|| "0",
 			10,
 		);
+		const perceptionBonus = parseInt(attrMap["npc_perception"] || attrMap["perception_bonus"] || "0", 10);
 		if (passivePerception > 0) store.npc.passivePerceptionOverride = passivePerception;
-		else {
-			const perceptionBonus = parseInt(attrMap["npc_perception"] || attrMap["perception_bonus"] || "0", 10);
-			if (!Number.isNaN(perceptionBonus)) store.npc.passivePerceptionOverride = 10 + perceptionBonus;
-		}
+		else if (!Number.isNaN(perceptionBonus)) store.npc.passivePerceptionOverride = 10 + perceptionBonus;
 		store.npc.gear = store.npc.gear || "Any";
 		store.npc.habitat = store.npc.habitat || "Any";
 		store.npc.treasure = store.npc.treasure || "Any";
@@ -466,27 +464,27 @@ function d20plus2024Import() {
 		});
 
 		// Skills
-		const skillAbilityMap = {
-			acrobatics: "Dexterity",
-			"animal_handling": "Wisdom",
-			arcana: "Intelligence",
-			athletics: "Strength",
-			deception: "Charisma",
-			history: "Intelligence",
-			insight: "Wisdom",
-			intimidation: "Charisma",
-			investigation: "Intelligence",
-			medicine: "Wisdom",
-			nature: "Intelligence",
-			perception: "Wisdom",
-			performance: "Charisma",
-			persuasion: "Charisma",
-			religion: "Intelligence",
-			"sleight_of_hand": "Dexterity",
-			stealth: "Dexterity",
-			survival: "Wisdom",
+		const skillNameMap = {
+			acrobatics: "Acrobatics",
+			"animal_handling": "Animal Handling",
+			arcana: "Arcana",
+			athletics: "Athletics",
+			deception: "Deception",
+			history: "History",
+			insight: "Insight",
+			intimidation: "Intimidation",
+			investigation: "Investigation",
+			medicine: "Medicine",
+			nature: "Nature",
+			perception: "Perception",
+			performance: "Performance",
+			persuasion: "Persuasion",
+			religion: "Religion",
+			"sleight_of_hand": "Sleight of Hand",
+			stealth: "Stealth",
+			survival: "Survival",
 		};
-		Object.entries(skillAbilityMap).forEach(([skillKey, skillName]) => {
+		Object.entries(skillNameMap).forEach(([skillKey, skillName]) => {
 			const skillValRaw = attrMap[`npc_${skillKey}`];
 			const skillFlagRaw = attrMap[`npc_${skillKey}_flag`];
 			const skillVal = parseInt(skillValRaw || "0", 10);
@@ -498,7 +496,7 @@ function d20plus2024Import() {
 				...base,
 				name: "Skill Proficiency",
 				category: "Skill",
-				proficiency: skillName.replace(/_/g, " ").replace(/\b\w/g, m => m.toUpperCase()),
+				proficiency: skillName,
 				proficiencyLevel: skillFlag >= 2 ? "Expertise" : "Proficient",
 				increaseIfAlreadyAt: false,
 				rollAbility: "Query Attribute",
