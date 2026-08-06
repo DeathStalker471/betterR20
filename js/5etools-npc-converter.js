@@ -197,6 +197,29 @@ function d20plusNpcConverter () {
 			$(document)
 				.off("click", ".character-npc-convert-2024")
 				.on("click", ".character-npc-convert-2024", d20plus.npcConverter.convertSelectedCharacter);
+
+			const injectExportOverwriteButton = () => {
+				$(".character-npc-convert-2024-vttes").remove();
+
+				const $overwriteButton = $("button").filter((_, ele) => $(ele).text().trim() === "Overwrite").first();
+				if (!$overwriteButton.length) return;
+
+				const $column = $overwriteButton.closest("div");
+				if (!$column.length) return;
+
+				const $container = $(`
+					<div class="character-npc-convert-2024-vttes" style="margin-top: 16px;">
+						<h3>Convert to 2024</h3>
+						<p>Create a new 2024 NPC Journal copy from this 2014 NPC sheet.</p>
+						<button class="btn character-npc-convert-2024">Convert 2014 NPC to 2024 Copy</button>
+					</div>
+				`);
+
+				$column.after($container);
+			};
+
+			injectExportOverwriteButton();
+			setTimeout(injectExportOverwriteButton, 1000);
 		};
 	})();
 }
