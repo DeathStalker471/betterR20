@@ -4,7 +4,7 @@ function d20plusNpcConverter () {
 	const SHEET_2024 = new Set(["dnd_2024", "DnD2024_Character_Sheet", "dnd2024", "dnd2024byroll20"]);
 	const ATTRIBUTES_2014_REQUIRED = ["npc", "npc_name", "npc_type", "npc_ac", "npc_hpbase", "npc_challenge"];
 
-	function getCharacterFromEvent (event) {
+	function getConverterCharacterFromEvent (event) {
 		const $target = $(event.target);
 		const $characterRoot = $target.closest(`[data-characterid]`);
 		const $fallbackRoot = $characterRoot.length ? $characterRoot : $(event.currentTarget).closest(`[data-characterid]`);
@@ -162,7 +162,7 @@ function d20plusNpcConverter () {
 	}
 
 	d20plus.npcConverter.convertSelectedCharacter = async (event) => {
-		const character = getCharacterFromEvent(event);
+		const character = getConverterCharacterFromEvent(event);
 		if (!character) return alert("No character found.");
 
 		const charName = character.get("name") || "Unnamed character";
