@@ -35,11 +35,6 @@ B20_NAME = `core`;
 B20_VERSION = `1.36.1.1jj-theoctonaut-test`;
 B20_REPO_URL = `https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/`;
 
-if (unsafeWindow.__betteR20ScriptLoaded) {
-	throw new Error(`betteR20-${B20_NAME} already loaded`);
-}
-unsafeWindow.__betteR20ScriptLoaded = true;
-
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";
 
@@ -95,17 +90,12 @@ FINAL_CANVAS_MOUSEDOWN = null;
 FINAL_CANVAS_MOUSEMOVE = null;
 EventTarget.prototype.addEventListenerBase = EventTarget.prototype.addEventListener;
 EventTarget.prototype.addEventListener = function (type, listener, options, ...others) {
-	try {
-		if (!listener) return this.addEventListenerBase(type, listener, options, ...others);
-		if (typeof d20 !== "undefined") {
-			if (type === "mousedown" && d20.engine && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEDOWN = listener;
-			if (type === "mousemove" && d20.engine && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEMOVE = listener;
-		} else {
-			if (type === "mousedown") FINAL_CANVAS_MOUSEDOWN_LIST.push({listener, on: this});
-			if (type === "mousemove") FINAL_CANVAS_MOUSEMOVE_LIST.push({listener, on: this});
-		}
-	} catch (e) {
-		console.warn("betteR20 addEventListener hook skipped a listener", e);
+	if (typeof d20 !== "undefined") {
+		if (type === "mousedown" && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEDOWN = listener;
+		if (type === "mousemove" && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEMOVE = listener;
+	} else {
+		if (type === "mousedown") FINAL_CANVAS_MOUSEDOWN_LIST.push({listener, on: this});
+		if (type === "mousemove") FINAL_CANVAS_MOUSEMOVE_LIST.push({listener, on: this});
 	}
 	this.addEventListenerBase(type, listener, options, ...others);
 };
