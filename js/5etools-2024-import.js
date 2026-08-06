@@ -145,10 +145,11 @@ function d20plus2024Import() {
 		const parts = speedStr.split(",").map(s => s.trim());
 
 		for (const part of parts) {
-			const match = part.match(/(?:(\w+)\s+)?(\d+)\s*(?:ft\.?)?/i);
+			const match = part.match(/(?:(\w+)\s+)?(\d+)\s*(?:ft\.?)?\s*(\(([^)]+)\))?/i);
 			if (match) {
 				let type = match[1] ? match[1].toLowerCase() : "walk";
 				const value = parseInt(match[2], 10);
+				const note = match[4] ? match[4].trim() : "";
 
 				const typeMap = {
 					"walk": "Walk",
@@ -159,6 +160,7 @@ function d20plus2024Import() {
 					"hover": "Flying",
 				};
 				type = typeMap[type] || "Walk";
+				if (type === "Flying" && note.toLowerCase() === "hover") type = "Fly (Hover)";
 
 				speeds.push({ type, value });
 			}
@@ -580,15 +582,21 @@ function d20plus2024Import() {
 		}
 
 		// Traits (as Features)
+		const traitDisplayOrder = [];
 		for (const [traitId, trait] of Object.entries(repeatingTraits)) {
 			if (!trait.name) continue;
-			const { id, base } = createIntegrantBase("Feature");
+			const { id, base } = createIntegrantBase("Features");
 			integrants[id] = {
 				...base,
 				name: trait.name,
 				description: trait.description || trait.desc || "",
+				source: "Species",
+				cascades: {},
+				relations: {},
 			};
+			traitDisplayOrder.push(id);
 		}
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(traitDisplayOrder);
 
 		// Actions/Attacks
 		const actionDisplayOrder = [];
