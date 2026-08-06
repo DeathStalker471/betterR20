@@ -183,7 +183,7 @@ function d20plus2024Import() {
 				const value = parseInt(match[2], 10);
 
 				const validSenses = ["Darkvision", "Blindsight", "Tremorsense", "Truesight"];
-				if (validSenses.includes(type)) {
+				if (validSenses.includes(type) && value > 0) {
 					senses.push({ type, value });
 				}
 			}
@@ -370,6 +370,7 @@ function d20plus2024Import() {
 			valueFormula: { flatValue: hpMax },
 		};
 		store.hitpoints.currentHP = hpMax;
+		if (attrMap["npc_hpformula"]) store.npc.rollHP = String(attrMap["npc_hpformula"]).replace(/\s/g, "");
 
 		// Armor Class
 		const ac = parseInt(attrMap["npc_ac"] || attrMap["ac"] || "10", 10);
@@ -391,6 +392,8 @@ function d20plus2024Import() {
 		// Challenge Rating
 		const cr = attrMap["npc_challenge"] || "0";
 		store.npc.challengeRating = cr;
+		const passivePerception = parseInt(attrMap["passive"] || "0", 10);
+		if (passivePerception > 0) store.npc.passivePerceptionOverride = passivePerception;
 
 		// Speeds
 		const speedStr = attrMap["npc_speed"] || "30 ft.";
@@ -418,6 +421,35 @@ function d20plus2024Import() {
 				valueFormula: { flatValue: sense.value },
 			};
 		}
+
+		// Saving Throws
+		const saveAbilityMap = {
+			str: "Strength",
+			dex: "Dexterity",
+			con: "Constitution",
+			int: "Intelligence",
+			wis: "Wisdom",
+			cha: "Charisma",
+		};
+		Object.entries(saveAbilityMap).forEach(([key, abilityName]) => {
+			const saveVal = attrMap[`npc_${key}_save`];
+			const saveFlag = attrMap[`npc_${key}_save_flag`];
+			if (saveVal === undefined && `${saveFlag || ""}` !== "1") return;
+
+			const { id, base } = createIntegrantBase("Proficiency");
+			integrants[id] = {
+				...base,
+				name: "Saving Throw Proficiency",
+				category: "Saving Throw",
+				proficiency: abilityName,
+				proficiencyLevel: "Proficient",
+				increaseIfAlreadyAt: false,
+				rollAbility: "Query Attribute",
+				notes: "",
+				cascades: {},
+				relations: {},
+			};
+		});
 
 		// Languages
 		const languagesStr = attrMap["npc_languages"] || "";
@@ -662,6 +694,8 @@ function d20plus2024Import() {
 		store.actions.mythicActionDisplayOrder = JSON.stringify(mythicActionDisplayOrder);
 		store.attacks.attackDisplayOrder = JSON.stringify(attackDisplayOrder);
 		store.spells.displayOrder = spellDisplayOrder.map(arr => JSON.stringify(arr));
+		store.spells.generalSpellSettings = store.spells.generalSpellSettings || {};
+		store.spells.generalSpellSettings.showPreparedBar = Object.values(repeatingSpells).some(sp => sp.spellname);
 
 		// Debug: log final store
 		return store;
