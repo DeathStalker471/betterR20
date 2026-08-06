@@ -497,7 +497,7 @@ function d20plus2024Import() {
 				name: "Skill Proficiency",
 				category: "Skill",
 				proficiency: skillName,
-				proficiencyLevel: skillFlag >= 2 ? "Expertise" : "Proficient",
+				proficiencyLevel: "Proficient",
 				increaseIfAlreadyAt: false,
 				rollAbility: "Query Attribute",
 				notes: "",
