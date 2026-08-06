@@ -5,6 +5,11 @@ B20_NAME = `%B20_NAME%`;
 B20_VERSION = `%B20_VERSION%`;
 B20_REPO_URL = `%B20_REPO_URL%`;
 
+if (unsafeWindow.__betteR20ScriptLoaded) {
+	throw new Error(`betteR20-${B20_NAME} already loaded`);
+}
+unsafeWindow.__betteR20ScriptLoaded = true;
+
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `%B20_BASE_URL%`; // "https://5e.tools/";
 

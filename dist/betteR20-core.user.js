@@ -35,6 +35,11 @@ B20_NAME = `core`;
 B20_VERSION = `1.36.1.1jj-theoctonaut-test`;
 B20_REPO_URL = `https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/`;
 
+if (unsafeWindow.__betteR20ScriptLoaded) {
+	throw new Error(`betteR20-${B20_NAME} already loaded`);
+}
+unsafeWindow.__betteR20ScriptLoaded = true;
+
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";
 
