@@ -95,13 +95,17 @@ FINAL_CANVAS_MOUSEDOWN = null;
 FINAL_CANVAS_MOUSEMOVE = null;
 EventTarget.prototype.addEventListenerBase = EventTarget.prototype.addEventListener;
 EventTarget.prototype.addEventListener = function (type, listener, options, ...others) {
-	if (!listener) return this.addEventListenerBase(type, listener, options, ...others);
-	if (typeof d20 !== "undefined") {
-		if (type === "mousedown" && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEDOWN = listener;
-		if (type === "mousemove" && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEMOVE = listener;
-	} else {
-		if (type === "mousedown") FINAL_CANVAS_MOUSEDOWN_LIST.push({listener, on: this});
-		if (type === "mousemove") FINAL_CANVAS_MOUSEMOVE_LIST.push({listener, on: this});
+	try {
+		if (!listener) return this.addEventListenerBase(type, listener, options, ...others);
+		if (typeof d20 !== "undefined") {
+			if (type === "mousedown" && d20.engine && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEDOWN = listener;
+			if (type === "mousemove" && d20.engine && this === d20.engine.final_canvas) FINAL_CANVAS_MOUSEMOVE = listener;
+		} else {
+			if (type === "mousedown") FINAL_CANVAS_MOUSEDOWN_LIST.push({listener, on: this});
+			if (type === "mousemove") FINAL_CANVAS_MOUSEMOVE_LIST.push({listener, on: this});
+		}
+	} catch (e) {
+		console.warn("betteR20 addEventListener hook skipped a listener", e);
 	}
 	this.addEventListenerBase(type, listener, options, ...others);
 };
