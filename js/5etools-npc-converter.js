@@ -116,6 +116,8 @@ function d20plusNpcConverter () {
 			if (!d20plus.importer?.translateOGLTo2024Store) throw new Error("2024 import support is not available.");
 
 			const store = d20plus.importer.translateOGLTo2024Store(character.attribs.toJSON());
+			console.log("betterR20 NPC converter source attribs", character.attribs.toJSON());
+			console.log("betterR20 NPC converter translated 2024 store", store);
 			const sourceAttrMap = getConverterAttrMap(character);
 			const sourceAttributes = {...character.attributes};
 			delete sourceAttributes.id;
@@ -144,6 +146,7 @@ function d20plusNpcConverter () {
 							}
 
 							save2024NpcState(newCharacter, store);
+							console.log("betterR20 NPC converter created character", newCharacter);
 
 							await copyBioAndNotes(character, newCharacter);
 
