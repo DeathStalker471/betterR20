@@ -124,6 +124,7 @@ function d20plusNpcConverter () {
 				d20.Campaign.characters.create({
 					...sourceAttributes,
 					name: getConvertedName(character),
+					charactersheetname: d20plus.cfg.getOrDefault("import", "importSheetFormat"),
 					inplayerjournals: sourceAttributes.inplayerjournals || "",
 					controlledby: sourceAttributes.controlledby || "",
 					tags: sourceAttributes.tags || "",
