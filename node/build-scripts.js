@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 const SCRIPT_VERSION = "1.36.1.1jj-theoctonaut-test";
-const SCRIPT_REPO = "https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/";
+const SCRIPT_REPO = "https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-npc-level-up-support/dist/";
 const SCRIPT_NAME_PREFIX = "betteR20-theoctonaut-test";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
@@ -54,8 +54,8 @@ function getHeader (name, info) {
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
 // @version      ${SCRIPT_VERSION}
-// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-convert-5e-npc-sheets
-// @supportURL   https://github.com/TheOctonaut/betterR20/pull/1
+// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-npc-level-up-support
+// @supportURL   https://github.com/TheOctonaut/betterR20/pull/2
 // @updateURL    ${SCRIPT_REPO}betteR20-${name}.meta.js
 // @downloadURL  ${SCRIPT_REPO}betteR20-${name}.user.js
 // @description  Enhance your Roll20 experience
@@ -251,8 +251,10 @@ const SCRIPTS = {
 		"5etools-main",
 		"5etools-importer",
 		"5etools-monsters",
+		"5etools-2024-store",
 		"5etools-2024-import",
 		"5etools-npc-converter",
+		"5etools-npc-level-up",
 		"5etools-spells",
 		"5etools-backgrounds",
 		"5etools-classes",
@@ -319,8 +321,10 @@ const SCRIPTS = {
 		"5etools-main",
 		"5etools-importer",
 		"5etools-monsters",
+		"5etools-2024-store",
 		"5etools-2024-import",
 		"5etools-npc-converter",
+		"5etools-npc-level-up",
 		"5etools-spells",
 		"5etools-backgrounds",
 		"5etools-classes",

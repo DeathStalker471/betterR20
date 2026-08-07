@@ -1520,67 +1520,11 @@ function d20plus2024Import() {
 	// 2024 Drag-Drop Import Support
 	// ========================================
 
-	function make2024Id () {
-		// Keep IDs short (8 chars) so shortID === full ID — the 2024 sheet indexes by shortID
-		const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-		let id = "";
-		for (let i = 0; i < 8; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
-		return id;
-	}
-
-	function make2024IntegrantBase (type, arrayPosition) {
-		const id = make2024Id();
-		return {
-			id,
-			base: {
-				_enabled: true,
-				_label: "",
-				type,
-				childIDs: "[]",
-				parentID: "",
-				parentDisabled: false,
-				overwriteDisabled: false,
-				builderDisplayName: "",
-				createdTime: Date.now(),
-				arrayPosition: arrayPosition !== undefined ? arrayPosition : 0,
-				shortID: id, // must equal the full ID — sheet indexes by shortID
-				source: "",
-			},
-		};
-	}
-
-	// Returns next safe arrayPosition — one above the current max in the store.
-	// All new integrants in the same save MUST use distinct positions to avoid
-	// Roll20 deduplicating them when multiple are written at once.
-	function getNextArrayPos (store) {
-		const ints = (store.integrants && store.integrants.integrants) || {};
-		let max = 0;
-		Object.values(ints).forEach(function (i) {
-			if ((i.arrayPosition || 0) > max) max = i.arrayPosition;
-		});
-		return max + 1;
-	}
-
-	function get2024Store (charModel) {
-		const storeAttr = charModel.attribs.find(a => a.get("name") === "store");
-		if (!storeAttr) return {attr: null, store: null};
-		let store = storeAttr.get("current");
-		if (typeof store === "string") store = JSON.parse(store);
-		return {attr: storeAttr, store};
-	}
-
-	function save2024Store (charModel, storeAttr, store) {
-		const storeClone = JSON.parse(JSON.stringify(store));
-		try {
-			if (storeAttr) storeAttr.destroy();
-			charModel.attribs.push({name: "store", current: storeClone}).syncedSave();
-			if (charModel.view && typeof charModel.view.showNewVueFrame === "function") {
-				charModel.view.showNewVueFrame();
-			}
-		} catch (e) {
-			console.error("betterR20 save2024Store error:", e);
-		}
-	}
+	// Delegate to shared 2024 store helpers (js/5etools-2024-store.js)
+	function make2024IntegrantBase (type, arrayPosition) { return d20plus.store2024.makeIntegrantBase(type, arrayPosition); }
+	function getNextArrayPos (store) { return d20plus.store2024.getNextArrayPos(store); }
+	function get2024Store (charModel) { return d20plus.store2024.getStore(charModel); }
+	function save2024Store (charModel, storeAttr, store) { return d20plus.store2024.saveStore(charModel, storeAttr, store); }
 
 	// Returns the first {@damage XdY} (with optional flat bonus) found in a 5etools entries array, or null.
 	function parseSpell2024Damage (entries) {
@@ -2475,12 +2419,8 @@ function d20plus2024Import() {
 		save2024Store(charModel, storeAttr, store);
 	};
 
-	// Helper: append IDs to a JSON-stringified display order array in the store.
-	function push2024DisplayOrder (store, section, key, ids) {
-		if (!store[section]) store[section] = {};
-		const current = JSON.parse(store[section][key] || "[]");
-		store[section][key] = JSON.stringify([...current, ...ids]);
-	}
+	// Delegate to shared 2024 store helper
+	function push2024DisplayOrder (store, section, key, ids) { return d20plus.store2024.pushDisplayOrder(store, section, key, ids); }
 
 	/**
 	 * Import a 5etools feat onto a 2024 Jumpgate character.
