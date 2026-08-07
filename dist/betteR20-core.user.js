@@ -1,10 +1,12 @@
 // ==UserScript==
-// @name         betteR20-beta-core-death-jumpagate-import
+// @name         betteR20-theoctonaut-test-core
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.1jj
-// @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/betteR20-core.meta.js
-// @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/betteR20-core.user.js
+// @version      1.36.1.1jj-theoctonaut-test
+// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-convert-5e-npc-sheets
+// @supportURL   https://github.com/TheOctonaut/betterR20/pull/1
+// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/betteR20-core.meta.js
+// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
 // @author       TheGiddyLimit/Redweller
 
@@ -30,8 +32,8 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.36.1.1jj`;
-B20_REPO_URL = `https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/`;
+B20_VERSION = `1.36.1.1jj-theoctonaut-test`;
+B20_REPO_URL = `https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";
@@ -13813,6 +13815,10 @@ function initHTMLroll20EditorsMisc () {
 								<button class='btn character-json-export'>Export JSON</button>
 								<button class='btn character-json-import'>Overwrite JSON</button>
 								<a class='showtip pictos' title='Export or overwrite this character as JSON. Overwriting will replace this sheet&#39;s data.'>?</a>
+							</div>
+							<div style="margin-top: 8px;">
+								<button class='btn character-npc-convert-2024'>Convert 2014 NPC to 2024 Copy</button>
+								<a class='showtip pictos' title='Create a new Journal character using the 2024 NPC sheet store format, reusing this 2014 NPC&#39;s available data.'>?</a>
 							</div>
 							<div class='clear'></div>
 							<hr>

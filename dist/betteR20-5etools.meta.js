@@ -1,10 +1,12 @@
 // ==UserScript==
-// @name         betteR20-beta-5etools-death-jumpagate-import
+// @name         betteR20-theoctonaut-test-5etools
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.1jj
-// @updateURL    https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/betteR20-5etools.meta.js
-// @downloadURL  https://raw.githubusercontent.com/DeathStalker471/betterR20/refs/heads/Jumpgate-Importer/dist/betteR20-5etools.user.js
+// @version      1.36.1.1jj-theoctonaut-test
+// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-convert-5e-npc-sheets
+// @supportURL   https://github.com/TheOctonaut/betterR20/pull/1
+// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/betteR20-5etools.meta.js
+// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/betteR20-5etools.user.js
 // @description  Enhance your Roll20 experience
 // @author       5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller/DeathStalker
 
