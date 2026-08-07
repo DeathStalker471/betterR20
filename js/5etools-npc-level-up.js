@@ -13,6 +13,31 @@ function d20plusNpcLevelUp () {
 	d20plus.npcLevelUp = {};
 
 	// ─────────────────────────────────────────────────────────────────────────
+	// Logging helpers
+	// ─────────────────────────────────────────────────────────────────────────
+
+	const LOG_TAG = "%cbetterR20 NPC Level-Up%c";
+	const LOG_STYLE = "color:#b48ead;font-weight:bold";
+	const LOG_RESET = "color:inherit;font-weight:normal";
+
+	function log (msg, ...args) {
+		console.log(`${LOG_TAG} ${msg}`, LOG_STYLE, LOG_RESET, ...args);
+	}
+
+	function logWarn (msg, ...args) {
+		console.warn(`${LOG_TAG} ${msg}`, LOG_STYLE, LOG_RESET, ...args);
+	}
+
+	function logError (msg, ...args) {
+		console.error(`${LOG_TAG} ${msg}`, LOG_STYLE, LOG_RESET, ...args);
+	}
+
+	function logGroup (label, fn) {
+		console.groupCollapsed(`${LOG_TAG} ${label}`, LOG_STYLE, LOG_RESET);
+		try { fn(); } finally { console.groupEnd(); }
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
 	// Sidekick progression tables (TCE p.142)
 	// Level is the "sidekick level" that maps a CR range to a virtual level.
 	//
@@ -294,31 +319,6 @@ function d20plusNpcLevelUp () {
 	async function levelUpCharacter (character, options = {}) {
 		character.attribs.fetch(character.attribs);
 
-		const attrMap = {};
-		(character.attribs?.toJSON?.() || []).forEach(a => { attrMap[a.name] = a.current; });
-		const rawStoreAttr = character.attribs.find(a => a.get("name") === "store");
-		const rawStoreValue = rawStoreAttr ? rawStoreAttr.get("current") : null;
-		let parsedStore = null;
-		if (rawStoreValue) {
-			try {
-				parsedStore = typeof rawStoreValue === "string" ? JSON.parse(rawStoreValue) : rawStoreValue;
-			} catch (e) {
-				parsedStore = {error: e.message || String(e)};
-			}
-		}
-
-		console.log("betterR20 NPC level-up detection snapshot", {
-			name: character.get("name"),
-			sheet: attrMap.rpg_sheet || attrMap.sheet_type || attrMap.charactersheet_type,
-			appState: attrMap.appState,
-			npcFlag: attrMap.npc,
-			hasStore: !!rawStoreValue,
-			storeKeys: parsedStore ? Object.keys(parsedStore) : [],
-			hasNpc: !!(parsedStore && parsedStore.npc),
-			hasHitpoints: !!(parsedStore && parsedStore.hitpoints),
-			hasIntegrants: !!(parsedStore && parsedStore.integrants),
-		});
-
 		if (!d20plus.store2024.isNpc2024Sheet(character)) {
 			throw new Error("The selected character is not a 2024 NPC sheet.");
 		}
@@ -329,17 +329,16 @@ function d20plusNpcLevelUp () {
 		// Transform the store
 		const {store: upgradedStore, summary} = upgrade2024NpcStore(sourceStore, options);
 
-		// Debug logging
-		const dbg = d20plus.store2024;
-		window.__npcLevelUpLastSourceStore = dbg.cloneForDebug(sourceStore);
-		window.__npcLevelUpLastUpgradedStore = dbg.cloneForDebug(upgradedStore);
-		window.__npcLevelUpLastSummary = dbg.cloneForDebug(summary);
-		dbg.logDebugJson("betterR20 NPC level-up source store", window.__npcLevelUpLastSourceStore);
-		dbg.logDebugJson("betterR20 NPC level-up upgraded store", window.__npcLevelUpLastUpgradedStore);
-		dbg.logDebugJson("betterR20 NPC level-up summary", window.__npcLevelUpLastSummary);
+		logGroup(`Upgrade summary for "${character.get("name")}"`, () => {
+			log(`Level: ${summary.sourceLevel} → ${summary.newLevel}`);
+			log(`PB: +${summary.sourcePb} → +${summary.newPb}${summary.pbChanged ? " (changed)" : ""}`);
+			log(`HP: +${summary.hpAdded} (new max ${summary.newHpMax}), roll formula: ${summary.newRollHP}`);
+			log(`Hit dice added: ${summary.hitDiceAdded}, proficiencies present: ${summary.proficienciesUpdated}`);
+			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
+		});
 
 		if (summary.errors.length) {
-			console.warn("betterR20 NPC level-up warnings:", summary.errors);
+			logWarn("Upgrade completed with warnings:", summary.errors);
 		}
 
 		const sourceName = character.get("name") || "Unnamed character";
@@ -431,12 +430,8 @@ function d20plusNpcLevelUp () {
 	/** Journal context-menu handler. */
 	d20plus.npcLevelUp.levelUpFromJournalContext = async function (event) {
 		const character = getCharacterFromJournalContext(event);
+		log(`Handler invoked — resolved character: "${character?.get?.("name") || "(none)"}" (id: ${character?.id || d20plus.journal?.lastClickedJournalItemId || "?"})`);
 		if (!character) return alert("No character found.");
-		console.log("betterR20 NPC level-up handler invoked", {
-			lastClickedJournalItemId: d20plus.journal?.lastClickedJournalItemId || null,
-			characterId: character?.id || null,
-			characterName: character?.get?.("name") || null,
-		});
 		if (!canLevelUp(character)) return alert("The selected character is not a 2024 NPC sheet.");
 
 		const charName = character.get("name") || "Unnamed character";
@@ -451,9 +446,10 @@ function d20plusNpcLevelUp () {
 
 		try {
 			const {character: newChar, summary} = await levelUpCharacter(character, {levels: 1});
+			log(`Done — created "${newChar.get("name")}"`);
 			alert(`Created "${newChar.get("name")}".\n\n${buildSummaryMessage(summary)}`);
 		} catch (e) {
-			console.error("betterR20 NPC level-up error:", e);
+			logError(`Failed to level up "${charName}":`, e);
 			alert(`Failed to level up "${charName}". See the console for details.`);
 		}
 	};
@@ -462,7 +458,7 @@ function d20plusNpcLevelUp () {
 	d20plus.npcLevelUp.initJournalContextButton = () => {
 		const injectButton = () => {
 			const $menu = $("#journalitemmenu ul");
-			if (!$menu.length) return;
+			if (!$menu.length) { logWarn("initJournalContextButton: #journalitemmenu not found"); return; }
 			$menu.find(".Vetools-npc-level-up").remove();
 
 			const $duplicate = $menu.find(`li:contains("Duplicate File")`).first();
@@ -479,6 +475,7 @@ function d20plusNpcLevelUp () {
 			});
 
 		injectButton();
+		log("initJournalContextButton: menu button registered");
 	};
 
 	// ─────────────────────────────────────────────────────────────────────────
