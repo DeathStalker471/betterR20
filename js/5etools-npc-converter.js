@@ -55,66 +55,20 @@ function d20plusNpcConverter () {
 		}
 
 		function getCharacterFolderContext (character) {
-			const root = d20plus.ut.getJournalFolderObj();
-			const findFolderPath = (items, path = []) => {
-				for (const item of (items || [])) {
-					if (item === character.id) return { path, siblings: items, index: items.indexOf(item) };
-					if (item.n && item.i) {
-						const found = findFolderPath(item.i, [...path, item.n]);
-						if (found) return found;
-					}
-				}
-				return null;
-			};
-
-			const found = findFolderPath(root);
-			if (!found) return null;
-			const { path } = found;
-
 			try {
-				const folder = d20plus.journal.makeDirTree(path);
+				const journal = d20plus.journal.getExportableJournal();
+				const found = journal.find(it => it.id === character.id);
+				if (!found) return null;
+				const path = (found.path || []).slice(1);
+				const folder = path.length ? d20plus.journal.makeDirTree(...path) : null;
 				return {
 					path,
-					folderId: folder && folder.id ? folder.id : null,
-					index: found.index,
+					folderId: folder?.id || null,
 				};
 			} catch (e) {
 				console.warn("betterR20 NPC converter: Failed to resolve folder path", e);
 				return null;
 			}
-		}
-
-		function insertCharacterNextToSource (sourceCharacter, newCharacter) {
-			const journalFolderRaw = d20.Campaign.get("journalfolder");
-			if (!journalFolderRaw) return false;
-
-			let journalFolder;
-			try {
-				journalFolder = JSON.parse(journalFolderRaw);
-			} catch (e) {
-				console.warn("betterR20 NPC converter: Failed to parse journal folder tree", e);
-				return false;
-			}
-
-			const insertInto = (items) => {
-				if (!items?.length) return false;
-				for (let i = 0; i < items.length; i++) {
-					const item = items[i];
-					if (item === sourceCharacter.id) {
-						items.splice(i + 1, 0, newCharacter.id);
-						return true;
-					}
-					if (item?.n && item?.i instanceof Array && insertInto(item.i)) return true;
-				}
-				return false;
-			};
-
-			if (!insertInto(journalFolder)) return false;
-
-			d20.Campaign.save({ journalfolder: JSON.stringify(journalFolder) });
-			d20.journal.refreshJournalList();
-			$("#journalfolderroot").trigger("change");
-			return true;
 		}
 
 		function copyBioAndNotes (sourceCharacter, targetCharacter) {
@@ -215,8 +169,7 @@ function d20plusNpcConverter () {
 							await copyBioAndNotes(character, newCharacter);
 
 							const folderContext = getCharacterFolderContext(character);
-							const placedNextToSource = insertCharacterNextToSource(character, newCharacter);
-							if (!placedNextToSource && folderContext?.folderId) d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
+							if (folderContext?.folderId) d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
 
 							if (newCharacter.view && typeof newCharacter.view.showNewVueFrame === "function") newCharacter.view.showNewVueFrame();
 							resolve(newCharacter);
