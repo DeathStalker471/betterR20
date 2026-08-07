@@ -734,7 +734,7 @@ function d20plusNpcLevelUp () {
 		});
 	}
 
-		/** Journal context-menu handler. */
+	/** Journal context-menu handler — detects Make Sidekick vs Level Up flow. */
 	d20plus.npcLevelUp.levelUpFromJournalContext = async function (event) {
 		const character = getCharacterFromJournalContext(event);
 		log(`Handler invoked — resolved character: "${character?.get?.("name") || "(none)"}" (id: ${character?.id || d20plus.journal?.lastClickedJournalItemId || "?"})`);
@@ -747,17 +747,36 @@ function d20plusNpcLevelUp () {
 		const {attr, store} = d20plus.store2024.getStore(character);
 		if (!store) return alert("Could not read the 2024 store from this character.");
 
-		const {confirmed, currentLevel} = await showLevelUpDialog(character, store);
-		if (!confirmed) return;
+		// Only go to Level Up if _npcSidekickType is already set.
+		// _npcLevelUpLevel alone (from old flow) is not enough — use Make Sidekick.
+		const hasSidekickType = !!(store.npc && store.npc._npcSidekickType);
+
+		let dialogResult;
+		if (hasSidekickType) {
+			log(`Existing sidekick (type: ${store.npc._npcSidekickType}, level: ${store.npc._npcLevelUpLevel || "?"}) — level-up dialog`);
+			dialogResult = await showLevelUpDialog(character, store);
+		} else {
+			log("No sidekick type set — Make Sidekick dialog");
+			dialogResult = await showMakeSidekickDialog(character, store);
+		}
+
+		if (!dialogResult.confirmed) return;
+		const {currentLevel, sidekickType} = dialogResult;
 
 		try {
-			const {character: newChar, summary} = await levelUpCharacter(character, {levels: 1, currentLevel});
+			const {character: newChar, summary} = await levelUpCharacter(character, {levels: 1, currentLevel, sidekickType});
 			log(`Done — created "${newChar.get("name")}"`);
-			alert(`Created "${newChar.get("name")}".\n\nLevel: ${summary.sourceLevel} → ${summary.newLevel}\nHP: +${summary.hpAdded} (new max ${summary.newHpMax})\nRoll formula: ${summary.newRollHP}`);
+			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
+			alert(`Created "${newChar.get("name")}".
+
+Level: ${summary.sourceLevel} → ${summary.newLevel}
+HP: +${summary.hpAdded} (new max ${summary.newHpMax})
+Roll formula: ${summary.newRollHP}${featMsg}`);
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
 			alert(`Failed to level up "${charName}". See the console for details.`);
 		}
+	};
 	};
 
 	/** Initialise the journal context-menu button. */
