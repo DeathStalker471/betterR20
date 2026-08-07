@@ -11,6 +11,7 @@ function d20plusNpcConverter () {
 			const $characterRoot = $target.closest(`[data-characterid]`);
 			const $fallbackRoot = $characterRoot.length ? $characterRoot : $(event.currentTarget).closest(`[data-characterid]`);
 			const cId = $fallbackRoot.attr("data-characterid");
+			if (!cId && d20plus.journal?.lastClickedJournalItemId) return d20.Campaign.characters.get(d20plus.journal.lastClickedJournalItemId);
 			if (!cId) return null;
 			return d20.Campaign.characters.get(cId);
 		}
@@ -203,6 +204,19 @@ function d20plusNpcConverter () {
 				.off("click", ".character-npc-convert-2024")
 				.on("click", ".character-npc-convert-2024", d20plus.npcConverter.convertSelectedCharacter);
 
+			const injectHeaderButton = () => {
+				$(".character-npc-convert-2024-header").remove();
+
+				const $editButton = $("button").filter((_, ele) => $(ele).text().trim() === "Edit").first();
+				if (!$editButton.length) return;
+
+				const $headerGroup = $editButton.parent();
+				if (!$headerGroup.length) return;
+
+				const $button = $(`<button class="btn character-npc-convert-2024 character-npc-convert-2024-header" style="margin-left: 8px;">Convert to 2024</button>`);
+				$editButton.after($button);
+			};
+
 			const injectExportOverwriteButton = () => {
 				$(".character-npc-convert-2024-vttes").remove();
 
@@ -223,8 +237,32 @@ function d20plusNpcConverter () {
 				$column.after($container);
 			};
 
+			const injectJournalContextButton = () => {
+				const $menu = $("#journalitemmenu ul");
+				if (!$menu.length) return;
+				$menu.find(".Vetools-convert-npc-2024").remove();
+
+				const $duplicate = $menu.find(`li:contains("Duplicate File")`).first();
+				const $entry = $(`<li class="Vetools-convert-npc-2024" data-action-type="convertnpc2024">Convert to 2024 Copy</li>`);
+				if ($duplicate.length) $duplicate.after($entry);
+				else $menu.append($entry);
+			};
+
+			$("#journalitemmenu ul")
+				.off(window.mousedowntype, "li[data-action-type=convertnpc2024]")
+				.on(window.mousedowntype, "li[data-action-type=convertnpc2024]", function (evt) {
+					$("#journalitemmenu").hide();
+					d20plus.npcConverter.convertSelectedCharacter(evt);
+				});
+
+			injectHeaderButton();
 			injectExportOverwriteButton();
-			setTimeout(injectExportOverwriteButton, 1000);
+			injectJournalContextButton();
+			setTimeout(() => {
+				injectHeaderButton();
+				injectExportOverwriteButton();
+				injectJournalContextButton();
+			}, 1000);
 		};
 	})();
 }
