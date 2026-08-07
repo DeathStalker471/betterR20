@@ -432,6 +432,7 @@ function d20plusNpcLevelUp () {
 		const character = getCharacterFromJournalContext(event);
 		log(`Handler invoked — resolved character: "${character?.get?.("name") || "(none)"}" (id: ${character?.id || d20plus.journal?.lastClickedJournalItemId || "?"})`);
 		if (!character) return alert("No character found.");
+		character.attribs.fetch(character.attribs);
 		if (!canLevelUp(character)) return alert("The selected character is not a 2024 NPC sheet.");
 
 		const charName = character.get("name") || "Unnamed character";
