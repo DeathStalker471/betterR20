@@ -212,3 +212,159 @@ Possible future work:
 - better spell/action fidelity in the translated 2024 `store`;
 - support for richer token/bar migration behavior;
 - optional post-conversion validation helpers.
+
+## Session Learnings
+
+The following points were learned or confirmed while building and testing the converter against live Roll20 data.
+
+### 1. The safest architecture is to reuse the existing 2024 store translator
+
+The converter works best as a thin orchestration layer around:
+
+- `d20plus.importer.translateOGLTo2024Store(...)`
+
+Trying to build a separate 2024 NPC writer would have duplicated logic and made it harder to keep behavior aligned with the rest of the 2024 import path.
+
+### 2. A valid 2024 NPC must be created as a 2024 sheet from the start
+
+It is not enough to create a new character and then copy 2014 NPC attributes onto it.
+
+The working path is:
+
+- create the new character with `charactersheetname` set to the selected 2024 sheet;
+- write `appState = "npc"`;
+- write the translated `store` object;
+- avoid restoring conflicting 2014 NPC sheet state onto the new character.
+
+When this was not done, Roll20 rendered the new character as the wrong sheet type or opened an incorrect builder flow.
+
+### 3. The 2024 sheet is much more dependent on hidden store structure than the 2014 sheet
+
+Many fields only appear correctly when the generated integrants match the exact shape the 2024 sheet expects.
+
+Important examples from this work:
+
+- traits needed to be added as `Features` integrants and also listed in `speciesTraitsDisplayOrder`;
+- OGL NPC skills needed to use actual skill names like `Perception`, not ability names like `Wisdom`;
+- defenses needed to use the same field names as native 2024 imports (`damage`, `condition`, etc.), not approximate field names like `damageType` or `conditionType`.
+
+### 4. OGL NPC skill flags should not be treated as expertise
+
+For Roll20 2014 NPCs, values like `npc_perception_flag = "2"` are not reliable evidence of expertise.
+
+Treating those flags as expertise caused incorrect doubled skill bonuses on converted NPCs.
+
+The safer behavior for this converter is:
+
+- if the 2014 NPC skill exists and is flagged, import it as `Proficient`.
+
+### 5. Passive Perception is best handled by making the Perception skill import correctly
+
+Trying to treat passive perception as a standalone override helped only partially.
+
+The more correct fix was:
+
+- import the Perception skill in a form the 2024 sheet actually understands;
+- let the 2024 sheet derive Passive Perception from that imported skill where possible;
+- keep explicit passive overrides only as fallback behavior.
+
+### 6. The 2024 sheet uses short movement labels
+
+The 2024 sheet expects short speed labels such as:
+
+- `Walk`
+- `Fly`
+- `Climb`
+- `Swim`
+- `Burrow`
+
+and a special case for:
+
+- `Fly (Hover)`
+
+Using longer labels like `Walking`, `Flying`, or `Climbing` produced incorrect or awkward speed rows.
+
+### 7. Roll20 2024 appears to force several name attributes back to the journal name
+
+Live testing showed that setting these attributes on converted 2024 NPCs:
+
+- `name`
+- `character_name`
+- `npc_name`
+
+did not preserve an independent on-sheet creature name. Roll20 rewrote them to match the journal character name.
+
+This means the split behavior familiar from 2014 NPCs:
+
+- journal/token name separate from the visible NPC statblock name
+
+does not currently behave the same way on the 2024 sheet, at least through the tested attribute-writing path.
+
+### 8. The Species field is a practical fallback for preserving the original 2014 in-sheet NPC name
+
+Because the 2024 sheet appears to collapse multiple name fields back to the journal name, a useful fallback is:
+
+- keep the journal character name as the copied journal/token name;
+- write the original 2014 `npc_name` into the 2024 `Species` field.
+
+This does not recreate the old split-name behavior exactly, but it preserves the original displayed creature identity somewhere visible on the converted sheet.
+
+### 9. Same-folder placement is possible, but sibling ordering remains unresolved
+
+Folder placement turned out to be achievable by resolving the source path through:
+
+- `d20plus.journal.getExportableJournal()`
+
+and then using:
+
+- `d20plus.journal.makeDirTree(...)`
+- `d20.journal.addItemToFolderStructure(...)`
+
+However:
+
+- placing the converted character immediately next to the original in the folder list was not solved reliably in this session;
+- experimental attempts to rewrite the journal tree ordering caused regressions and were removed.
+
+So the current state is:
+
+- same folder: working;
+- same relative position in that folder: not yet solved.
+
+### 10. Some UI surfaces are easy to support, others are fragile
+
+The existing edit-character modal integration is stable.
+
+The journal context menu integration also works and is a practical extra entry point.
+
+By contrast, attempts to inject the converter into:
+
+- the top title bar;
+- the VTTES Export & Overwrite tab
+
+were unreliable and caused performance or usability regressions. Those injections were removed.
+
+The practical conclusion is:
+
+- keep working UI entry points that are stable and discoverable;
+- avoid fragile late-mount UI injections unless there is a very strong reason to support them.
+
+### 11. The build concatenation model makes name collisions easy to introduce
+
+Because the project build concatenates many source files into large userscript bundles, top-level helper names can collide across files.
+
+This happened during early iterations and was solved by:
+
+- using converter-specific helper names;
+- keeping converter internals isolated in a closure.
+
+Future additions to this feature should continue to assume bundle-scope collision risk.
+
+### 12. Temporary debug hooks were very useful for reverse engineering the 2024 sheet
+
+The most effective debugging path was to log and inspect:
+
+- source 2014 attribs;
+- translated 2024 `store`;
+- created character metadata.
+
+This made it possible to compare converter output against live working 2024 sheets and identify mistakes in hidden store structure that were not obvious from static code inspection alone.
