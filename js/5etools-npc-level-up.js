@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 2024 NPC Level-Up Support
  *
  * Provides sidekick-style progression for 2024 (Jumpgate) NPC sheets.
@@ -57,31 +57,41 @@ function d20plusNpcLevelUp () {
 	//   CR 20+    → level 13
 	// ─────────────────────────────────────────────────────────────────────────
 
+	// CR 0–1/2 → level 1 (Tasha's sidekick eligibility threshold).
+	// CR 1–18 map 1:1 to levels 2–19. CR 19+ → level 20.
 	const CR_TO_SIDEKICK_LEVEL = [
 		// [maxCrNum, sidekickLevel]
-		[0.125, 1],
-		[0.25,  2],
-		[0.5,   3],
-		[1,     4],
-		[2,     5],
-		[4,     6],
-		[6,     7],
-		[8,     8],
-		[10,    9],
-		[12,    10],
-		[15,    11],
-		[19,    12],
-		[Infinity, 13],
+		[0.5,  1],
+		[1,    2],
+		[2,    3],
+		[3,    4],
+		[4,    5],
+		[5,    6],
+		[6,    7],
+		[7,    8],
+		[8,    9],
+		[9,    10],
+		[10,   11],
+		[11,   12],
+		[12,   13],
+		[13,   14],
+		[14,   15],
+		[15,   16],
+		[16,   17],
+		[17,   18],
+		[18,   19],
+		[Infinity, 20],
 	];
 
-	/** Proficiency bonus by sidekick level (same schedule as character PB). */
+	/** Proficiency bonus by sidekick level (standard character PB schedule, levels 1–20). */
 	const SIDEKICK_LEVEL_TO_PB = [
-		// index 0 unused; index 1..13
+		// index 0 unused; index 1..20
 		0,
 		2, 2, 2, 2,   // levels 1–4
 		3, 3, 3, 3,   // levels 5–8
 		4, 4, 4, 4,   // levels 9–12
-		5,            // level 13
+		5, 5, 5, 5,   // levels 13–16
+		6, 6, 6, 6,   // levels 17–20
 	];
 
 	/**
@@ -105,7 +115,7 @@ function d20plusNpcLevelUp () {
 		for (const [max, level] of CR_TO_SIDEKICK_LEVEL) {
 			if (cr <= max) return level;
 		}
-		return 13;
+		return 20;
 	}
 
 	/**
@@ -213,9 +223,9 @@ function d20plusNpcLevelUp () {
 		// Priority: explicit override from options > stored _npcLevelUpLevel > CR mapping
 		const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : "0";
 		const currentSidekickLevel = options.currentLevel != null
-			? Math.max(1, Math.min(options.currentLevel, 13))
+			? Math.max(1, Math.min(options.currentLevel, 20))
 			: (store.npc && store.npc._npcLevelUpLevel) || crToSidekickLevel(crStr);
-		const targetSidekickLevel = Math.min(currentSidekickLevel + levels, 13);
+		const targetSidekickLevel = Math.min(currentSidekickLevel + levels, 20);
 		const sourcePb = SIDEKICK_LEVEL_TO_PB[currentSidekickLevel] || 2;
 		const newPb = SIDEKICK_LEVEL_TO_PB[targetSidekickLevel] || 2;
 		const pbChanged = newPb !== sourcePb;
@@ -425,7 +435,7 @@ function d20plusNpcLevelUp () {
 		const formula = store.npc && store.npc.rollHP ? store.npc.rollHP : null;
 		const parsed = parseHpFormula(formula);
 		if (!parsed || parsed.count < 1) return null;
-		return Math.max(1, Math.min(parsed.count, 13));
+		return Math.max(1, Math.min(parsed.count, 20));
 	}
 
 	/** Derive sidekick level from stored _npcLevelUpLevel if present. */
@@ -513,8 +523,8 @@ function d20plusNpcLevelUp () {
 						${radioInputs}
 					</div>
 					<div class="b20-custom-level-row" style="display:none;margin-bottom:12px;align-items:center;gap:8px">
-						<label>Current level (1–13):
-							<input type="number" class="b20-custom-level-input" min="1" max="13" value="1" style="width:60px;margin-left:6px">
+						<label>Current level (1–20):
+							<input type="number" class="b20-custom-level-input" min="1" max="20" value="1" style="width:60px;margin-left:6px">
 						</label>
 					</div>
 					<hr style="margin:8px 0">
@@ -527,7 +537,7 @@ function d20plusNpcLevelUp () {
 				const chosen = $dialog.find("input[name=levelBasis]:checked").val();
 				if (chosen === "custom") {
 					const v = parseInt($dialog.find(".b20-custom-level-input").val(), 10);
-					return (v >= 1 && v <= 13) ? v : 1;
+					return (v >= 1 && v <= 20) ? v : 1;
 				}
 				const opt = options.find(o => o.id === chosen);
 				return opt ? opt.level : 1;
