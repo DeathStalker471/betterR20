@@ -71,6 +71,43 @@ function d20plusNpcConverter () {
 			}
 		}
 
+		function placeCharacterAfterSource (sourceCharacter, newCharacter) {
+			const journalFolderRaw = d20.Campaign.get("journalfolder");
+			if (!journalFolderRaw) return false;
+
+			let journalFolder;
+			try {
+				journalFolder = JSON.parse(journalFolderRaw);
+			} catch (e) {
+				console.warn("betterR20 NPC converter: Failed to parse journal tree for ordering", e);
+				return false;
+			}
+
+			const reorderWithin = (items) => {
+				if (!items?.length) return false;
+
+				const sourceIx = items.findIndex(it => it === sourceCharacter.id);
+				const newIx = items.findIndex(it => it === newCharacter.id);
+				if (~sourceIx && ~newIx) {
+					const [moved] = items.splice(newIx, 1);
+					items.splice(sourceIx + 1, 0, moved);
+					return true;
+				}
+
+				for (const item of items) {
+					if (item?.n && item?.i instanceof Array && reorderWithin(item.i)) return true;
+				}
+				return false;
+			};
+
+			if (!reorderWithin(journalFolder)) return false;
+
+			d20.Campaign.save({ journalfolder: JSON.stringify(journalFolder) });
+			d20.journal.refreshJournalList();
+			$("#journalfolderroot").trigger("change");
+			return true;
+		}
+
 		function copyBioAndNotes (sourceCharacter, targetCharacter) {
 			return Promise.all([
 				getConverterBlobData(sourceCharacter, "bio"),
@@ -169,7 +206,10 @@ function d20plusNpcConverter () {
 							await copyBioAndNotes(character, newCharacter);
 
 							const folderContext = getCharacterFolderContext(character);
-							if (folderContext?.folderId) d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
+							if (folderContext?.folderId) {
+								d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
+								placeCharacterAfterSource(character, newCharacter);
+							}
 
 							if (newCharacter.view && typeof newCharacter.view.showNewVueFrame === "function") newCharacter.view.showNewVueFrame();
 							resolve(newCharacter);
