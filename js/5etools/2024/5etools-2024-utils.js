@@ -89,5 +89,18 @@ function d20plus2024Utils() {
 		const current = JSON.parse(store[section][key] || "[]");
 		store[section][key] = JSON.stringify([...current, ...ids]);
 	};
+
+	// The Charactermancer bakes a " (SOURCE)" suffix into a page's own name whenever more than
+	// one source offers something with that name (see the `inject()` dedup logic in
+	// 5etools-2024-charactermancer.js) - real 5etools data has no such suffix, so anything
+	// matching a Charactermancer-built integrant's name against real data (by class/subclass
+	// name) needs this split back out first, on both the class and subclass import paths.
+	// Returns lower-cased parts for direct use in case-insensitive comparisons.
+	ctx2024.splitDisplayName = function (name) {
+		const m = /^(.*?)\s*\(([^()]+)\)$/.exec(name || "");
+		return m
+			? {bareName: m[1].toLowerCase(), sourceHint: m[2].toLowerCase()}
+			: {bareName: (name || "").toLowerCase(), sourceHint: null};
+	};
 }
 SCRIPT_EXTENSIONS.push(d20plus2024Utils);

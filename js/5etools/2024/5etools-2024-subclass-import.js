@@ -52,11 +52,16 @@ function d20plus2024SubclassImport() {
 			}
 
 			const ints = store.integrants.integrants;
-			const classInt = Object.values(ints).find(i => i.type === "Class" && (i.name || "").toLowerCase() === (sc.className || "").toLowerCase());
-			if (!classInt) {
+			// A Charactermancer-built class integrant may be named e.g. "Monk (XPHB)" while
+			// sc.className (real subclass data) is always the bare "Monk" - strip the suffix
+			// back off before comparing (see splitDisplayName), or this false-negatives and
+			// tells the player to import a class that's already on the character.
+			const classEntry = Object.entries(ints).find(([, i]) => i.type === "Class" && subclassCtx.splitDisplayName(i.name).bareName === (sc.className || "").toLowerCase());
+			if (!classEntry) {
 				alert(`Import the ${sc.className} class onto this character before adding ${displayName}.`);
 				return;
 			}
+			const [classKey, classInt] = classEntry;
 
 			let pos = subclassCtx.getNextArrayPos(store);
 			const renderer = Renderer.get().setBaseUrl(LINK_BASE_URL);
@@ -66,7 +71,14 @@ function d20plus2024SubclassImport() {
 			// instead of creating a duplicate one, same as import2024Class does for the class
 			// itself. A different-named subclass already present is left alone rather than
 			// silently merged into - flag it instead.
-			let subclassInt = Object.values(ints).find(i => i.type === "Subclass" && i.parentID === classInt.shortID);
+			// Ground-truthed against a real Charactermancer-built character (see import2024Class):
+			// a native integrant's parentID/sourceID references its parent's dictionary key, not
+			// its shortID - those only coincide for integrants we build ourselves. classKey/
+			// subclassKey below are dictionary keys, used for every parentID/sourceID write;
+			// classInt.shortID/subclassInt.shortID are never used for linking purposes here.
+			let subclassKey, subclassInt;
+			const existingSubclassEntry = Object.entries(ints).find(([, i]) => i.type === "Subclass" && i.parentID === classKey);
+			if (existingSubclassEntry) [subclassKey, subclassInt] = existingSubclassEntry;
 			if (subclassInt && subclassInt.name.toLowerCase() !== displayName.toLowerCase()) {
 				alert(`${classInt.name} already has a different subclass ("${subclassInt.name}") on this character - remove it before adding ${displayName}.`);
 				return;
@@ -76,27 +88,27 @@ function d20plus2024SubclassImport() {
 			if (subclassInt) {
 				subclassChildren = JSON.parse(subclassInt.childIDs || "[]");
 			} else {
-				const {id: subclassId, base: subclassBase} = subclassCtx.makeIntegrantBase("Subclass", pos++);
+				const {id: newSubclassId, base: subclassBase} = subclassCtx.makeIntegrantBase("Subclass", pos++);
 				subclassBase.source = "Class";
-				ints[subclassId] = {
+				ints[newSubclassId] = {
 					...subclassBase,
 					name: displayName,
 					recordName: displayName,
-					parentID: classInt.shortID,
-					sourceID: classInt.shortID,
+					parentID: classKey,
+					sourceID: classKey,
 					childIDs: "[]",
 					cascades: {},
 					relations: {},
 				};
-				subclassInt = ints[subclassId];
+				subclassInt = ints[newSubclassId];
+				subclassKey = newSubclassId; // dict key === shortID for integrants we build ourselves
 
 				const classChildren = JSON.parse(classInt.childIDs || "[]");
-				classChildren.push(subclassId);
+				classChildren.push(newSubclassId);
 				classInt.childIDs = JSON.stringify(classChildren);
 
 				subclassChildren = [];
 			}
-			const subclassId = subclassInt.shortID;
 
 			// Feature names already attached, so a re-import doesn't duplicate features
 			// already granted from an earlier, lower-level import.
@@ -132,8 +144,8 @@ function d20plus2024SubclassImport() {
 					name: feature.name,
 					recordName: feature.name,
 					description,
-					parentID: subclassId,
-					sourceID: subclassId,
+					parentID: subclassKey,
+					sourceID: subclassKey,
 					childIDs: "[]",
 					cascades: {},
 					relations: {},
