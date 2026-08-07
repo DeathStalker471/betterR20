@@ -222,8 +222,6 @@ function d20plusNpcConverter () {
 
 				const $editButton = $(".ui-dialog-titlebar .editcharacter").first();
 				if (!$editButton.length) return;
-				const character = d20.Campaign.characters.get($editButton.closest(".ui-dialog").find("[data-characterid]").first().attr("data-characterid"));
-				if (!canConvertCharacter(character)) return;
 
 				const $headerGroup = $editButton.parent();
 				if (!$headerGroup.length) return;
@@ -237,8 +235,6 @@ function d20plusNpcConverter () {
 
 				const $overwriteButton = $(`input[type="button"][value="Overwrite"][data-characterid]`).first();
 				if (!$overwriteButton.length) return;
-				const character = d20.Campaign.characters.get($overwriteButton.attr("data-characterid"));
-				if (!canConvertCharacter(character)) return;
 
 				const $column = $overwriteButton.closest("div");
 				if (!$column.length) return;
@@ -259,9 +255,6 @@ function d20plusNpcConverter () {
 				if (!$menu.length) return;
 				$menu.find(".Vetools-convert-npc-2024").remove();
 
-				const character = getConverterCharacterFromJournalContext();
-				if (!canConvertCharacter(character)) return;
-
 				const $duplicate = $menu.find(`li:contains("Duplicate File")`).first();
 				const $entry = $(`<li class="Vetools-convert-npc-2024" data-action-type="convertnpc2024">Convert to 2024 Copy</li>`);
 				if ($duplicate.length) $duplicate.after($entry);
@@ -274,6 +267,7 @@ function d20plusNpcConverter () {
 					$("#journalitemmenu").hide();
 					const character = getConverterCharacterFromJournalContext();
 					if (!character) return alert("No character found.");
+					if (!canConvertCharacter(character)) return alert("The selected character is not a compatible 2014 NPC sheet.");
 
 					const charName = character.get("name") || "Unnamed character";
 					if (!window.confirm(`Create a new 2024 NPC copy of "${charName}"?`)) return;
