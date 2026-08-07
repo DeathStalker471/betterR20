@@ -779,17 +779,39 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 	};
 	};
 
+	/** Remove stored sidekick metadata from a character (in-place, no copy). */
+	d20plus.npcLevelUp.resetSidekickDataFromJournalContext = async function (event) {
+		const character = getCharacterFromJournalContext(event);
+		if (!character) return alert("No character found.");
+		await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
+		const {attr, store} = d20plus.store2024.getStore(character);
+		if (!store || !store.npc) return alert("No sidekick data found on this character.");
+		const hadType = store.npc._npcSidekickType;
+		const hadLevel = store.npc._npcLevelUpLevel;
+		if (!hadType && !hadLevel) return alert("No sidekick data to reset on this character.");
+		if (!window.confirm(`Remove sidekick data from "${character.get("name")}"?
+
+This will clear:${hadType ? "\n• Sidekick type: " + hadType : ""}.${hadLevel ? "\n• Stored level: " + hadLevel : ""}\n\nThe character sheet is NOT modified — only the stored metadata.`)) return;
+		delete store.npc._npcSidekickType;
+		delete store.npc._npcLevelUpLevel;
+		d20plus.store2024.saveStore(character, attr, store);
+		log(`Reset sidekick data on "${character.get("name")}"`);
+		alert(`Sidekick data cleared from "${character.get("name")}".`);
+	};
+
 	/** Initialise the journal context-menu button. */
 	d20plus.npcLevelUp.initJournalContextButton = () => {
 		const injectButton = () => {
 			const $menu = $("#journalitemmenu ul");
 			if (!$menu.length) { logWarn("initJournalContextButton: #journalitemmenu not found"); return; }
 			$menu.find(".Vetools-npc-level-up").remove();
+			$menu.find(".Vetools-npc-sidekick-reset").remove();
 
 			const $duplicate = $menu.find(`li:contains("Duplicate File")`).first();
 			const $entry = $(`<li class="Vetools-npc-level-up" data-action-type="npcLevelUp">Sidekick…</li>`);
-			if ($duplicate.length) $duplicate.after($entry);
-			else $menu.append($entry);
+			const $reset = $(`<li class="Vetools-npc-sidekick-reset" data-action-type="npcSidekickReset" style="color:#c0392b">Reset Sidekick Data</li>`);
+			if ($duplicate.length) { $duplicate.after($entry); $entry.after($reset); }
+			else { $menu.append($entry); $menu.append($reset); }
 		};
 
 		$("#journalitemmenu ul")
@@ -797,6 +819,11 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 			.on(window.mousedowntype, "li[data-action-type=npcLevelUp]", async function (evt) {
 				$("#journalitemmenu").hide();
 				await d20plus.npcLevelUp.levelUpFromJournalContext(evt);
+			})
+			.off(window.mousedowntype, "li[data-action-type=npcSidekickReset]")
+			.on(window.mousedowntype, "li[data-action-type=npcSidekickReset]", async function (evt) {
+				$("#journalitemmenu").hide();
+				await d20plus.npcLevelUp.resetSidekickDataFromJournalContext(evt);
 			});
 
 		injectButton();
