@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 
 const SCRIPT_VERSION = "1.36.1.1jj-theoctonaut-test";
 const SCRIPT_REPO = "https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-npc-level-up-support-ff0/dist/";
@@ -254,6 +254,7 @@ const SCRIPTS = {
 		"5etools-2024-store",
 		"5etools-2024-import",
 		"5etools-npc-converter",
+		"5etools-npc-sidekick-data",
 		"5etools-npc-level-up",
 		"5etools-spells",
 		"5etools-backgrounds",
@@ -324,6 +325,7 @@ const SCRIPTS = {
 		"5etools-2024-store",
 		"5etools-2024-import",
 		"5etools-npc-converter",
+		"5etools-npc-sidekick-data",
 		"5etools-npc-level-up",
 		"5etools-spells",
 		"5etools-backgrounds",
