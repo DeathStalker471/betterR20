@@ -2617,6 +2617,17 @@ function d20plus2024Charactermancer () {
 
 			const pages = data?.data?.ruleSystem?.category?.filterAndSortPages;
 			if (Array.isArray(pages)) {
+				// These queries all set showUnownedContent:true (confirmed live), so Roll20's own
+				// response already includes locked/unowned pages (e.g. Artificer for an account
+				// that doesn't own its book) alongside owned ones - "the name is already in
+				// `pages`" does NOT mean "the player already has full access to it". Strip those
+				// locked placeholders out before computing `existing` below, so our own fully-
+				// unlocked (isOwned:true) synthetic version can take their place instead of being
+				// silently skipped as a "duplicate" of content the player can't actually use.
+				for (let i = pages.length - 1; i >= 0; i--) {
+					if (!pages[i]?.book?.isOwned) pages.splice(i, 1);
+				}
+
 				// Deduplicate and label: when multiple entries share a name (e.g. PHB vs XPHB),
 				// append "(SOURCE)" so players can tell them apart.
 				const existing = new Set(pages.map(p => p.name.toLowerCase()));
