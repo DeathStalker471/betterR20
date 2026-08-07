@@ -372,8 +372,7 @@ function d20plusNpcLevelUp () {
 						d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
 						d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
 
-						window.__npcLevelUpLastCharacter = dbg.cloneForDebug(newCharacter?.attributes || newCharacter);
-						dbg.logDebugJson("betterR20 NPC level-up created character", window.__npcLevelUpLastCharacter);
+						log(`Created "${upgradedName}" (id: ${newCharacter.id})`);
 
 						// Copy bio / gmnotes blobs
 						await d20plus.store2024.copyBioAndNotes(character, newCharacter);
