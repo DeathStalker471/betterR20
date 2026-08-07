@@ -209,9 +209,12 @@ function d20plusNpcLevelUp () {
 			errors: [],
 		};
 
-		// ── Resolve current CR and levels ────────────────────────────────────
+		// ── Resolve current sidekick level ────────────────────────────────────
+		// Priority: explicit override from options > stored _npcLevelUpLevel > CR mapping
 		const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : "0";
-		const currentSidekickLevel = crToSidekickLevel(crStr);
+		const currentSidekickLevel = options.currentLevel != null
+			? Math.max(1, Math.min(options.currentLevel, 13))
+			: (store.npc && store.npc._npcLevelUpLevel) || crToSidekickLevel(crStr);
 		const targetSidekickLevel = Math.min(currentSidekickLevel + levels, 13);
 		const sourcePb = SIDEKICK_LEVEL_TO_PB[currentSidekickLevel] || 2;
 		const newPb = SIDEKICK_LEVEL_TO_PB[targetSidekickLevel] || 2;
@@ -317,8 +320,6 @@ function d20plusNpcLevelUp () {
 	 * @returns {Promise<object>} - The newly created character model
 	 */
 	async function levelUpCharacter (character, options = {}) {
-		character.attribs.fetch(character.attribs);
-
 		if (!d20plus.store2024.isNpc2024Sheet(character)) {
 			throw new Error("The selected character is not a 2024 NPC sheet.");
 		}
@@ -415,15 +416,166 @@ function d20plusNpcLevelUp () {
 		return !!character && d20plus.store2024.isNpc2024Sheet(character);
 	}
 
-	function buildSummaryMessage (summary) {
-		const lines = [`Level ${summary.sourceLevel} → ${summary.newLevel}`];
-		if (summary.pbChanged) lines.push(`PB: +${summary.sourcePb} → +${summary.newPb}`);
-		if (summary.hpAdded) lines.push(`HP: +${summary.hpAdded} (new max ${summary.newHpMax})`);
-		if (summary.hitDiceAdded) lines.push(`Hit dice added: ${summary.hitDiceAdded}`);
-		if (summary.newRollHP) lines.push(`Roll formula: ${summary.newRollHP}`);
-		if (summary.proficienciesUpdated) lines.push(`Proficiencies present: ${summary.proficienciesUpdated}`);
-		if (summary.errors.length) lines.push(`Warnings: ${summary.errors.join("; ")}`);
-		return lines.join("\n");
+	// ─────────────────────────────────────────────────────────────────────────
+	// Level basis helpers
+	// ─────────────────────────────────────────────────────────────────────────
+
+	/** Derive sidekick level from hit-die count (1:1). Clamped 1–13. */
+	function hitDiceToSidekickLevel (store) {
+		const formula = store.npc && store.npc.rollHP ? store.npc.rollHP : null;
+		const parsed = parseHpFormula(formula);
+		if (!parsed || parsed.count < 1) return null;
+		return Math.max(1, Math.min(parsed.count, 13));
+	}
+
+	/** Derive sidekick level from stored _npcLevelUpLevel if present. */
+	function storedLevel (store) {
+		return (store.npc && store.npc._npcLevelUpLevel) || null;
+	}
+
+	/**
+	 * Build a preview of what a level-up would produce for a given currentLevel.
+	 * Returns the same summary shape as upgrade2024NpcStore.
+	 */
+	function previewUpgrade (store, currentLevel) {
+		const overridden = JSON.parse(JSON.stringify(store));
+		if (!overridden.npc) overridden.npc = {};
+		overridden.npc._npcLevelUpLevel = currentLevel;
+		// Temporarily clear challengeRating so CR path is not used
+		const {summary} = upgrade2024NpcStore(overridden, {levels: 1});
+		return summary;
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Level-up modal dialog
+	// ─────────────────────────────────────────────────────────────────────────
+
+	/**
+	 * Show the interactive level-up dialog.
+	 * Returns a Promise that resolves with { confirmed: true, currentLevel } or { confirmed: false }.
+	 */
+	function showLevelUpDialog (character, store) {
+		return new Promise((resolve) => {
+			const charName = character.get("name") || "Unnamed character";
+			const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : null;
+
+			const levelFromStored = storedLevel(store);
+			const levelFromHD = hitDiceToSidekickLevel(store);
+			const levelFromCR = crStr ? crToSidekickLevel(crStr) : null;
+
+			function makeSummaryHtml (summary) {
+				if (!summary) return `<em>Unable to calculate preview.</em>`;
+				const rows = [
+					["Level", `${summary.sourceLevel} → ${summary.newLevel}`],
+					["Proficiency Bonus", summary.pbChanged ? `+${summary.sourcePb} → +${summary.newPb}` : `+${summary.sourcePb} (unchanged)`],
+					["HP Max", summary.newHpMax != null ? `+${summary.hpAdded} (new max: ${summary.newHpMax})` : "—"],
+					["Roll Formula", summary.newRollHP || "—"],
+					["Hit Dice Added", summary.hitDiceAdded || 0],
+					["Proficiencies Present", summary.proficienciesUpdated || 0],
+				];
+				const rowsHtml = rows.map(([label, val]) =>
+					`<tr><td style="padding:2px 8px 2px 0;color:#888;white-space:nowrap">${label}</td><td style="padding:2px 0"><strong>${val}</strong></td></tr>`
+				).join("");
+				const warnings = summary.errors && summary.errors.length
+					? `<p style="color:#c0392b;margin:6px 0 0">⚠ ${summary.errors.join("; ")}</p>`
+					: "";
+				return `<table style="border-collapse:collapse;width:100%">${rowsHtml}</table>${warnings}`;
+			}
+
+			const options = [];
+			if (levelFromStored != null) {
+				options.push({id: "stored", label: `Previously stored level (${levelFromStored})`, level: levelFromStored});
+			}
+			if (levelFromHD != null) {
+				options.push({id: "hd", label: `Hit dice count (${levelFromHD} HD → level ${levelFromHD})`, level: levelFromHD});
+			}
+			if (levelFromCR != null) {
+				options.push({id: "cr", label: `CR mapping (CR ${crStr} → level ${levelFromCR})`, level: levelFromCR});
+			}
+			options.push({id: "custom", label: "Custom level…", level: null});
+
+			const defaultOption = options[0];
+
+			const radioInputs = options.map((opt, i) => `
+				<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer">
+					<input type="radio" name="levelBasis" value="${opt.id}" ${i === 0 ? "checked" : ""}>
+					${opt.label}
+				</label>
+			`).join("");
+
+			const $dialog = $(`
+				<div class="dialog largedialog b20-npc-level-up-dialog" style="padding:4px">
+					<p style="margin:0 0 10px">
+						Creating a levelled-up copy of <strong>${charName}</strong>.<br>
+						<span style="color:#888;font-size:0.92em">Select how to determine the current sidekick level:</span>
+					</p>
+					<div class="b20-level-basis-radios" style="margin-bottom:12px">
+						${radioInputs}
+					</div>
+					<div class="b20-custom-level-row" style="display:none;margin-bottom:12px;align-items:center;gap:8px">
+						<label>Current level (1–13):
+							<input type="number" class="b20-custom-level-input" min="1" max="13" value="1" style="width:60px;margin-left:6px">
+						</label>
+					</div>
+					<hr style="margin:8px 0">
+					<p style="margin:4px 0 4px;font-weight:bold;font-size:0.92em">Preview</p>
+					<div class="b20-upgrade-preview" style="min-height:80px"></div>
+				</div>
+			`);
+
+			function getSelectedLevel () {
+				const chosen = $dialog.find("input[name=levelBasis]:checked").val();
+				if (chosen === "custom") {
+					const v = parseInt($dialog.find(".b20-custom-level-input").val(), 10);
+					return (v >= 1 && v <= 13) ? v : 1;
+				}
+				const opt = options.find(o => o.id === chosen);
+				return opt ? opt.level : 1;
+			}
+
+			function refreshPreview () {
+				const level = getSelectedLevel();
+				const summary = (level != null) ? previewUpgrade(store, level) : null;
+				$dialog.find(".b20-upgrade-preview").html(makeSummaryHtml(summary));
+			}
+
+			$dialog.on("change", "input[name=levelBasis]", function () {
+				const chosen = $(this).val();
+				if (chosen === "custom") {
+					$dialog.find(".b20-custom-level-row").css("display", "flex");
+				} else {
+					$dialog.find(".b20-custom-level-row").css("display", "none");
+				}
+				refreshPreview();
+			});
+
+			$dialog.on("input", ".b20-custom-level-input", refreshPreview);
+
+			$dialog.dialog({
+				resizable: false,
+				autoOpen: true,
+				width: 420,
+				title: "Level Up NPC — Create Copy",
+				open: () => refreshPreview(),
+				close: () => {
+					$dialog.dialog("destroy").remove();
+					resolve({confirmed: false});
+				},
+				buttons: {
+					"Create Copy": () => {
+						const currentLevel = getSelectedLevel();
+						$dialog.off();
+						$dialog.dialog("destroy").remove();
+						resolve({confirmed: true, currentLevel});
+					},
+					Cancel: () => {
+						$dialog.off();
+						$dialog.dialog("destroy").remove();
+						resolve({confirmed: false});
+					},
+				},
+			});
+		});
 	}
 
 	/** Journal context-menu handler. */
@@ -439,16 +591,13 @@ function d20plusNpcLevelUp () {
 		const {attr, store} = d20plus.store2024.getStore(character);
 		if (!store) return alert("Could not read the 2024 store from this character.");
 
-		const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : "0";
-		const currentLevel = store.npc._npcLevelUpLevel || crToSidekickLevel(crStr);
-		const nextLevel = Math.min(currentLevel + 1, 13);
-
-		if (!window.confirm(`Level up "${charName}" from level ${currentLevel} to ${nextLevel}?\n\nA new copy will be created.`)) return;
+		const {confirmed, currentLevel} = await showLevelUpDialog(character, store);
+		if (!confirmed) return;
 
 		try {
-			const {character: newChar, summary} = await levelUpCharacter(character, {levels: 1});
+			const {character: newChar, summary} = await levelUpCharacter(character, {levels: 1, currentLevel});
 			log(`Done — created "${newChar.get("name")}"`);
-			alert(`Created "${newChar.get("name")}".\n\n${buildSummaryMessage(summary)}`);
+			alert(`Created "${newChar.get("name")}".\n\nLevel: ${summary.sourceLevel} → ${summary.newLevel}\nHP: +${summary.hpAdded} (new max ${summary.newHpMax})\nRoll formula: ${summary.newRollHP}`);
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
 			alert(`Failed to level up "${charName}". See the console for details.`);
