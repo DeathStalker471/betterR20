@@ -31,12 +31,32 @@ function d20plus2024ClassImport() {
         // Dragging a class that's already on this character re-levels it instead of creating a
         // duplicate Class block - Roll20's own native "Level Up" button refuses to touch a
         // manually-imported (non-compendium-linked) class, so this is the only way to level one up.
-        const existingClassInt = Object.values(ints).find(i => i.type === "Class" && (i.name || "").toLowerCase() === clss.name.toLowerCase());
+        // A Charactermancer-built class integrant may be named e.g. "Monk (XPHB)" (see
+        // splitDisplayName) while `clss.name` - real class data - is always the bare "Monk", so
+        // strip any such suffix back off the integrant's name before comparing; otherwise this
+        // silently treats an already-present class as brand new and duplicates it.
+        const existingClassEntry = Object.entries(ints).find(([, i]) => i.type === "Class" && classCtx.splitDisplayName(i.name).bareName === clss.name.toLowerCase());
+        const existingClassInt = existingClassEntry ? existingClassEntry[1] : null;
 
-        let startLevel, maxLevel, classId, classChildren;
+        // Ground-truthed against a real Charactermancer-built character: a native Class Level's
+        // parentID/sourceID/classID reference its Class parent's own DICTIONARY KEY, not its
+        // shortID. Those only look interchangeable for integrants we build ourselves, because we
+        // always set shortID === key by construction (see "Native ID Format" in project memory) -
+        // for a native class (dict key is a full UUID, shortID a separate short value), shortID
+        // is simply the wrong value here. `classId` below is therefore the dictionary key, used
+        // for every parentID/sourceID/classID we write on this class's children; `classShortID`
+        // is kept separately, only for our own `_betterR20ClassData` cache bookkeeping (which
+        // import2024ClassLevelUp reads back by shortID, independent of Roll20's own linking).
+        let startLevel, maxLevel, classId, classShortID, classInt, classChildren;
         if (existingClassInt) {
-            classId = existingClassInt.shortID;
-            const existingLevels = Object.values(ints).filter(i => i.type === "Class Level" && i.classID === classId);
+            classId = existingClassEntry[0];
+            classShortID = existingClassInt.shortID;
+            classInt = existingClassInt;
+            // `classID` is our own field name for integrants we build by hand - a Class Level
+            // integrant Roll20's native builder created (from a Charactermancer-picked class)
+            // only ever sets the universal `parentID` every integrant type in this schema uses.
+            // Check both so this works regardless of which path built the level.
+            const existingLevels = Object.values(ints).filter(i => i.type === "Class Level" && (i.parentID === classId || i.classID === classId));
             const currentMax = existingLevels.length ? Math.max(...existingLevels.map(l => l.level)) : 0;
 
             const levelInput = prompt(`${clss.name} is already on this character at level ${currentMax}. Level up to what level? (${currentMax + 1}-20)`, String(Math.min(20, currentMax + 1)));
@@ -87,6 +107,7 @@ function d20plus2024ClassImport() {
         if (!existingClassInt) {
             const {id: newClassId, base: classBase} = makeBase("Class");
             classId = newClassId;
+            classShortID = newClassId; // dict key === shortID for integrants we build ourselves
             ints[classId] = {
                 ...classBase,
                 name: clss.name,
@@ -98,6 +119,7 @@ function d20plus2024ClassImport() {
                 cascades: {},
                 relations: {},
             };
+            classInt = ints[classId];
         }
 
         const avgHP = Math.ceil((clss.hd.faces + 1) / 2);
@@ -236,7 +258,7 @@ function d20plus2024ClassImport() {
             ints[lvlId].childIDs = JSON.stringify(lvlChildren);
         }
 
-        ints[classId].childIDs = JSON.stringify(classChildren);
+        classInt.childIDs = JSON.stringify(classChildren);
 
         // Cache the raw class JSON so a later level-up (e.g. via the hijacked native Level Up
         // button, which has no drag payload to work from) can re-run this same import logic
@@ -250,7 +272,7 @@ function d20plus2024ClassImport() {
         if (cacheAttr) {
             try { cacheData = JSON.parse(cacheAttr.get("current") || "{}"); } catch (e) { cacheData = {}; }
         }
-        cacheData[classId] = clss;
+        cacheData[classShortID] = clss;
         if (cacheAttr) {
             cacheAttr.set("current", JSON.stringify(cacheData));
             cacheAttr.save();
@@ -319,8 +341,8 @@ function d20plus2024ClassImport() {
         if (!store) return;
 
         const ints = store.integrants.integrants;
-        const classInts = Object.values(ints).filter(i => i.type === "Class");
-        if (!classInts.length) {
+        const classEntries = Object.entries(ints).filter(([, i]) => i.type === "Class");
+        if (!classEntries.length) {
             alert("No BetteR20-imported class found on this character.");
             return;
         }
@@ -331,42 +353,77 @@ function d20plus2024ClassImport() {
             try { rawData = JSON.parse(cacheAttr.get("current") || "{}"); } catch (e) { rawData = {}; }
         }
 
-        let chosen = classInts[0];
-        if (classInts.length > 1) {
-            const names = classInts.map(c => c.name).join(", ");
-            const input = prompt(`Multiple classes found (${names}). Which one do you want to level up?`, classInts[0].name);
+        let [chosenKey, chosen] = classEntries[0];
+        if (classEntries.length > 1) {
+            const names = classEntries.map(([, c]) => c.name).join(", ");
+            const input = prompt(`Multiple classes found (${names}). Which one do you want to level up?`, chosen.name);
             if (input === null) return;
-            const match = classInts.find(c => c.name.toLowerCase() === input.trim().toLowerCase());
+            const match = classEntries.find(([, c]) => c.name.toLowerCase() === input.trim().toLowerCase());
             if (!match) {
                 alert(`No class named "${input}" found on this character.`);
                 return;
             }
-            chosen = match;
+            [chosenKey, chosen] = match;
         }
 
-        const cachedClss = rawData[chosen.shortID];
+        // The Charactermancer disambiguates same-named classes from different sources by baking
+        // " (SOURCE)" straight into the page's own name (e.g. "Monk (XPHB)") whenever more than
+        // one source offers a class with that name - real class/subclass data has no such
+        // suffix (source is its own field), so a raw name match against it would never hit.
+        // Strip the suffix back off before matching, and prefer whichever candidate's own
+        // .source matches the extracted hint when more than one class shares the bare name.
+        const {bareName, sourceHint} = classCtx.splitDisplayName(chosen.name);
+
+        let cachedClss = rawData[chosen.shortID];
         if (!cachedClss) {
-            alert(`"${chosen.name}" wasn't imported via BetteR20 (or its data wasn't cached) - drag the class card onto this character again to level it up instead.`);
+            // Characters built via the Charactermancer never went through import2024Class, so
+            // nothing was ever cached for them (there's no drag-and-drop payload to cache from
+            // in that flow) - fall back to the site's own already-loaded class data instead of
+            // just giving up. This is the same data the Charactermancer's own class picker is
+            // built from, so it's a reliable source for anything the player could have picked.
+            try {
+                const allClasses = await DataLoader.pCacheAndGetAllSite("class");
+                const candidates = (allClasses || []).filter(c => (c.name || "").toLowerCase() === bareName);
+                cachedClss = (sourceHint && candidates.find(c => (c.source || "").toLowerCase() === sourceHint)) || candidates[0];
+            } catch (e) { /* ignore - handled by the null check below */ }
+        }
+        if (!cachedClss) {
+            alert(`Couldn't find data for "${chosen.name}" to level it up - it may be from a source that's no longer loaded.`);
             return;
         }
 
         await d20plus.importer.import2024Class(charModel, {Vetoolscontent: cachedClss}, store);
 
         // Also bring a cached subclass up to the class's new level, so leveling up the class
-        // is a single action instead of two separate re-drags.
-        const newLevels = Object.values(ints).filter(i => i.type === "Class Level" && i.classID === chosen.shortID);
+        // is a single action instead of two separate re-drags. As with import2024Class, this
+        // needs the class's dictionary key (chosenKey), not its shortID, to match a native
+        // Class Level's parentID/classID.
+        const newLevels = Object.values(ints).filter(i => i.type === "Class Level" && (i.parentID === chosenKey || i.classID === chosenKey));
         const newMax = newLevels.length ? Math.max(...newLevels.map(l => l.level)) : 0;
 
         if (newMax) {
             const subclassCacheAttr = charModel.attribs.find(a => a.get("name") === "_betterR20SubclassData");
+            let subclassRawData = {};
             if (subclassCacheAttr) {
-                let subclassRawData = {};
                 try { subclassRawData = JSON.parse(subclassCacheAttr.get("current") || "{}"); } catch (e) { subclassRawData = {}; }
+            }
 
-                const cachedSc = subclassRawData[chosen.shortID];
-                if (cachedSc) {
-                    await d20plus.importer.import2024Subclass(charModel, {Vetoolscontent: cachedSc}, newMax, store);
+            let cachedSc = subclassRawData[chosen.shortID];
+            if (!cachedSc) {
+                // Same reasoning as the class fallback above - match the character's existing
+                // Subclass integrant (whichever way it got there) against the site's own data.
+                const subclassInt = Object.values(ints).find(i => i.type === "Subclass" && i.parentID === chosenKey);
+                if (subclassInt) {
+                    try {
+                        const allSubclasses = await DataLoader.pCacheAndGetAllSite("subclass");
+                        cachedSc = (allSubclasses || []).find(sc => (sc.className || "").toLowerCase() === bareName
+                            && (sc.shortName || sc.name || "").toLowerCase() === subclassInt.name.toLowerCase());
+                    } catch (e) { /* ignore - subclass level-up is best-effort */ }
                 }
+            }
+
+            if (cachedSc) {
+                await d20plus.importer.import2024Subclass(charModel, {Vetoolscontent: cachedSc}, newMax, store);
             }
         }
 
