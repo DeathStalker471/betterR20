@@ -403,8 +403,12 @@ function d20plusNpcLevelUp () {
 	// UI entry points
 	// ─────────────────────────────────────────────────────────────────────────
 
-	function getCharacterFromJournalContext () {
-		const cId = d20plus.journal?.lastClickedJournalItemId;
+	function getCharacterFromJournalContext (event) {
+		const $target = event ? $(event.target) : $();
+		const $characterRoot = $target.closest(`[data-characterid]`);
+		const $fallbackRoot = $characterRoot.length ? $characterRoot : (event ? $(event.currentTarget).closest(`[data-characterid]`) : $());
+		const cId = $fallbackRoot.attr("data-characterid");
+		if (!cId && d20plus.journal?.lastClickedJournalItemId) return d20.Campaign.characters.get(d20plus.journal.lastClickedJournalItemId);
 		if (!cId) return null;
 		return d20.Campaign.characters.get(cId);
 	}
@@ -425,8 +429,8 @@ function d20plusNpcLevelUp () {
 	}
 
 	/** Journal context-menu handler. */
-	d20plus.npcLevelUp.levelUpFromJournalContext = async function () {
-		const character = getCharacterFromJournalContext();
+	d20plus.npcLevelUp.levelUpFromJournalContext = async function (event) {
+		const character = getCharacterFromJournalContext(event);
 		if (!character) return alert("No character found.");
 		console.log("betterR20 NPC level-up handler invoked", {
 			lastClickedJournalItemId: d20plus.journal?.lastClickedJournalItemId || null,
@@ -469,9 +473,9 @@ function d20plusNpcLevelUp () {
 
 		$("#journalitemmenu ul")
 			.off(window.mousedowntype, "li[data-action-type=npcLevelUp]")
-			.on(window.mousedowntype, "li[data-action-type=npcLevelUp]", async function () {
+			.on(window.mousedowntype, "li[data-action-type=npcLevelUp]", async function (evt) {
 				$("#journalitemmenu").hide();
-				await d20plus.npcLevelUp.levelUpFromJournalContext();
+				await d20plus.npcLevelUp.levelUpFromJournalContext(evt);
 			});
 
 		injectButton();
