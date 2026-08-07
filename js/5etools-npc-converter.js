@@ -22,6 +22,13 @@ function d20plusNpcConverter () {
 			return d20.Campaign.characters.get(cId);
 		}
 
+		function canConvertCharacter (character) {
+			if (!character) return false;
+			if (!isNpc2014Sheet(character)) return false;
+			if (isNpc2024Sheet(character)) return false;
+			return !!d20plus.importer?.translateOGLTo2024Store;
+		}
+
 		function getConverterBlobData (character, key) {
 			return new Promise(resolve => character._getLatestBlob(key, data => resolve(data)));
 		}
@@ -213,8 +220,10 @@ function d20plusNpcConverter () {
 			const injectHeaderButton = () => {
 				$(".character-npc-convert-2024-header").remove();
 
-				const $editButton = $(".dialog-character, .ui-dialog-content, [role='dialog']").find("button").filter((_, ele) => $(ele).text().trim() === "Edit").first();
+				const $editButton = $(".ui-dialog-titlebar .editcharacter").first();
 				if (!$editButton.length) return;
+				const character = d20.Campaign.characters.get($editButton.closest(".ui-dialog").find("[data-characterid]").first().attr("data-characterid"));
+				if (!canConvertCharacter(character)) return;
 
 				const $headerGroup = $editButton.parent();
 				if (!$headerGroup.length) return;
@@ -226,8 +235,10 @@ function d20plusNpcConverter () {
 			const injectExportOverwriteButton = () => {
 				$(".character-npc-convert-2024-vttes").remove();
 
-				const $overwriteButton = $(".dialog-character, .ui-dialog-content, [role='dialog']").find("button").filter((_, ele) => $(ele).text().trim() === "Overwrite").first();
+				const $overwriteButton = $(`input[type="button"][value="Overwrite"][data-characterid]`).first();
 				if (!$overwriteButton.length) return;
+				const character = d20.Campaign.characters.get($overwriteButton.attr("data-characterid"));
+				if (!canConvertCharacter(character)) return;
 
 				const $column = $overwriteButton.closest("div");
 				if (!$column.length) return;
@@ -236,7 +247,7 @@ function d20plusNpcConverter () {
 					<div class="character-npc-convert-2024-vttes" style="margin-top: 16px;">
 						<h3>Convert to 2024</h3>
 						<p>Create a new 2024 NPC Journal copy from this 2014 NPC sheet.</p>
-						<button class="btn character-npc-convert-2024">Convert 2014 NPC to 2024 Copy</button>
+						<input type="button" class="button character-npc-convert-2024" style="width: auto;" data-characterid="${$overwriteButton.attr("data-characterid")}" value="Convert 2014 NPC to 2024 Copy">
 					</div>
 				`);
 
@@ -247,6 +258,9 @@ function d20plusNpcConverter () {
 				const $menu = $("#journalitemmenu ul");
 				if (!$menu.length) return;
 				$menu.find(".Vetools-convert-npc-2024").remove();
+
+				const character = getConverterCharacterFromJournalContext();
+				if (!canConvertCharacter(character)) return;
 
 				const $duplicate = $menu.find(`li:contains("Duplicate File")`).first();
 				const $entry = $(`<li class="Vetools-convert-npc-2024" data-action-type="convertnpc2024">Convert to 2024 Copy</li>`);
