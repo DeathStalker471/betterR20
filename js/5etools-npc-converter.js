@@ -58,7 +58,7 @@ function d20plusNpcConverter () {
 			const root = d20plus.ut.getJournalFolderObj();
 			const findFolderPath = (items, path = []) => {
 				for (const item of (items || [])) {
-					if (item.i === character.id) return { path, siblings: items, index: items.indexOf(item) };
+					if (item === character.id) return { path, siblings: items, index: items.indexOf(item) };
 					if (item.n && item.i) {
 						const found = findFolderPath(item.i, [...path, item.n]);
 						if (found) return found;
@@ -100,8 +100,8 @@ function d20plusNpcConverter () {
 				if (!items?.length) return false;
 				for (let i = 0; i < items.length; i++) {
 					const item = items[i];
-					if (item?.i === sourceCharacter.id) {
-						items.splice(i + 1, 0, { i: newCharacter.id });
+					if (item === sourceCharacter.id) {
+						items.splice(i + 1, 0, newCharacter.id);
 						return true;
 					}
 					if (item?.n && item?.i instanceof Array && insertInto(item.i)) return true;
