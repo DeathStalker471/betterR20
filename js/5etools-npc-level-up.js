@@ -428,6 +428,11 @@ function d20plusNpcLevelUp () {
 	d20plus.npcLevelUp.levelUpFromJournalContext = async function () {
 		const character = getCharacterFromJournalContext();
 		if (!character) return alert("No character found.");
+		console.log("betterR20 NPC level-up handler invoked", {
+			lastClickedJournalItemId: d20plus.journal?.lastClickedJournalItemId || null,
+			characterId: character?.id || null,
+			characterName: character?.get?.("name") || null,
+		});
 		if (!canLevelUp(character)) return alert("The selected character is not a 2024 NPC sheet.");
 
 		const charName = character.get("name") || "Unnamed character";
