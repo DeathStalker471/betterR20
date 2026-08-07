@@ -217,39 +217,6 @@ function d20plusNpcConverter () {
 				.off("click", ".character-npc-convert-2024")
 				.on("click", ".character-npc-convert-2024", d20plus.npcConverter.convertSelectedCharacter);
 
-			const injectHeaderButton = () => {
-				$(".character-npc-convert-2024-header").remove();
-
-				const $editButton = $(".ui-dialog-titlebar .editcharacter").first();
-				if (!$editButton.length) return;
-
-				const $headerGroup = $editButton.parent();
-				if (!$headerGroup.length) return;
-
-				const $button = $(`<button class="btn character-npc-convert-2024 character-npc-convert-2024-header" style="margin-left: 8px;">Convert to 2024</button>`);
-				$editButton.after($button);
-			};
-
-			const injectExportOverwriteButton = () => {
-				$(".character-npc-convert-2024-vttes").remove();
-
-				const $overwriteButton = $(`input[type="button"][value="Overwrite"][data-characterid]`).first();
-				if (!$overwriteButton.length) return;
-
-				const $column = $overwriteButton.closest("div");
-				if (!$column.length) return;
-
-				const $container = $(`
-					<div class="character-npc-convert-2024-vttes" style="margin-top: 16px;">
-						<h3>Convert to 2024</h3>
-						<p>Create a new 2024 NPC Journal copy from this 2014 NPC sheet.</p>
-						<input type="button" class="button character-npc-convert-2024" style="width: auto;" data-characterid="${$overwriteButton.attr("data-characterid")}" value="Convert 2014 NPC to 2024 Copy">
-					</div>
-				`);
-
-				$column.after($container);
-			};
-
 			const injectJournalContextButton = () => {
 				const $menu = $("#journalitemmenu ul");
 				if (!$menu.length) return;
@@ -259,20 +226,6 @@ function d20plusNpcConverter () {
 				const $entry = $(`<li class="Vetools-convert-npc-2024" data-action-type="convertnpc2024">Convert to 2024 Copy</li>`);
 				if ($duplicate.length) $duplicate.after($entry);
 				else $menu.append($entry);
-			};
-
-			let injectAttempts = 0;
-			const runDeferredInjections = () => {
-				injectHeaderButton();
-				injectExportOverwriteButton();
-				injectJournalContextButton();
-
-				injectAttempts++;
-				const hasHeaderButton = $(".character-npc-convert-2024-header").length > 0;
-				const hasVttesButton = $(".character-npc-convert-2024-vttes").length > 0;
-				if (injectAttempts < 20 && (!hasHeaderButton || !hasVttesButton)) {
-					setTimeout(runDeferredInjections, 500);
-				}
 			};
 
 			$("#journalitemmenu ul")
@@ -295,7 +248,7 @@ function d20plusNpcConverter () {
 					}
 				});
 
-			runDeferredInjections();
+			injectJournalContextButton();
 		};
 	})();
 }
