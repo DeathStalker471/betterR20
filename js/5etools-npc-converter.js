@@ -261,6 +261,20 @@ function d20plusNpcConverter () {
 				else $menu.append($entry);
 			};
 
+			let injectAttempts = 0;
+			const runDeferredInjections = () => {
+				injectHeaderButton();
+				injectExportOverwriteButton();
+				injectJournalContextButton();
+
+				injectAttempts++;
+				const hasHeaderButton = $(".character-npc-convert-2024-header").length > 0;
+				const hasVttesButton = $(".character-npc-convert-2024-vttes").length > 0;
+				if (injectAttempts < 20 && (!hasHeaderButton || !hasVttesButton)) {
+					setTimeout(runDeferredInjections, 500);
+				}
+			};
+
 			$("#journalitemmenu ul")
 				.off(window.mousedowntype, "li[data-action-type=convertnpc2024]")
 				.on(window.mousedowntype, "li[data-action-type=convertnpc2024]", async function () {
@@ -281,14 +295,7 @@ function d20plusNpcConverter () {
 					}
 				});
 
-			injectHeaderButton();
-			injectExportOverwriteButton();
-			injectJournalContextButton();
-			setTimeout(() => {
-				injectHeaderButton();
-				injectExportOverwriteButton();
-				injectJournalContextButton();
-			}, 1000);
+			runDeferredInjections();
 		};
 	})();
 }
