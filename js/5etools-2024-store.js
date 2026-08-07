@@ -203,9 +203,30 @@ function d20plus2024Store () {
 	d20plus.store2024.isNpc2024Sheet = function (character) {
 		const attrMap = {};
 		(character.attribs?.toJSON?.() || []).forEach(a => { attrMap[a.name] = a.current; });
-		if (`${attrMap.npc || ""}` !== "1") return false;
-		return SHEET_2024_KEYS.has(attrMap.rpg_sheet || attrMap.sheet_type || attrMap.charactersheet_type)
-			|| !!attrMap.store;
+
+		const sheetKey = attrMap.rpg_sheet || attrMap.sheet_type || attrMap.charactersheet_type;
+		const is2024SheetKey = SHEET_2024_KEYS.has(sheetKey);
+		const isLegacyNpcFlag = `${attrMap.npc || ""}` === "1";
+		const isNpcAppState = `${attrMap.appState || ""}` === "npc";
+
+		let parsedStore = null;
+		if (attrMap.store) {
+			try {
+				parsedStore = typeof attrMap.store === "string" ? JSON.parse(attrMap.store) : attrMap.store;
+			} catch (e) {
+				parsedStore = null;
+			}
+		}
+
+		const isNpcStoreShape = !!(
+			parsedStore
+			&& parsedStore.npc
+			&& parsedStore.hitpoints
+			&& parsedStore.integrants
+		);
+
+		return (is2024SheetKey && (isNpcAppState || isNpcStoreShape || isLegacyNpcFlag))
+			|| isNpcStoreShape;
 	};
 }
 
