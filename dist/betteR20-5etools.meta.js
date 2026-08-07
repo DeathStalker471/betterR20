@@ -3,10 +3,10 @@
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
 // @version      1.36.1.1jj-theoctonaut-test
-// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-convert-5e-npc-sheets
-// @supportURL   https://github.com/TheOctonaut/betterR20/pull/1
-// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/betteR20-5etools.meta.js
-// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-convert-5e-npc-sheets/dist/betteR20-5etools.user.js
+// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-npc-level-up-support
+// @supportURL   https://github.com/TheOctonaut/betterR20/pull/2
+// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-npc-level-up-support/dist/betteR20-5etools.meta.js
+// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-npc-level-up-support/dist/betteR20-5etools.user.js
 // @description  Enhance your Roll20 experience
 // @author       5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller/DeathStalker
 

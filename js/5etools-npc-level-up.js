@@ -294,6 +294,31 @@ function d20plusNpcLevelUp () {
 	async function levelUpCharacter (character, options = {}) {
 		character.attribs.fetch(character.attribs);
 
+		const attrMap = {};
+		(character.attribs?.toJSON?.() || []).forEach(a => { attrMap[a.name] = a.current; });
+		const rawStoreAttr = character.attribs.find(a => a.get("name") === "store");
+		const rawStoreValue = rawStoreAttr ? rawStoreAttr.get("current") : null;
+		let parsedStore = null;
+		if (rawStoreValue) {
+			try {
+				parsedStore = typeof rawStoreValue === "string" ? JSON.parse(rawStoreValue) : rawStoreValue;
+			} catch (e) {
+				parsedStore = {error: e.message || String(e)};
+			}
+		}
+
+		console.log("betterR20 NPC level-up detection snapshot", {
+			name: character.get("name"),
+			sheet: attrMap.rpg_sheet || attrMap.sheet_type || attrMap.charactersheet_type,
+			appState: attrMap.appState,
+			npcFlag: attrMap.npc,
+			hasStore: !!rawStoreValue,
+			storeKeys: parsedStore ? Object.keys(parsedStore) : [],
+			hasNpc: !!(parsedStore && parsedStore.npc),
+			hasHitpoints: !!(parsedStore && parsedStore.hitpoints),
+			hasIntegrants: !!(parsedStore && parsedStore.integrants),
+		});
+
 		if (!d20plus.store2024.isNpc2024Sheet(character)) {
 			throw new Error("The selected character is not a 2024 NPC sheet.");
 		}
