@@ -50,6 +50,7 @@ const betteR205etools = function () {
 			d20plus.art.initArtFromUrlButtons();
 			if (d20plus.characterIo && d20plus.characterIo.initCharacterJsonButtons) d20plus.characterIo.initCharacterJsonButtons();
 			if (d20plus.npcConverter && d20plus.npcConverter.initCharacterConverterButtons) d20plus.npcConverter.initCharacterConverterButtons();
+			if (d20plus.npcLevelUp && d20plus.npcLevelUp.initJournalContextButton) d20plus.npcLevelUp.initJournalContextButton();
 			if (window.is_gm) {
 				d20plus.journal.addJournalCommands();
 				d20plus.menu.addSelectedTokenCommands();

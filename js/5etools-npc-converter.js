@@ -2,7 +2,6 @@ function d20plusNpcConverter () {
 	d20plus.npcConverter = {};
 
 	(() => {
-		const SHEET_2024 = new Set(["dnd_2024", "DnD2024_Character_Sheet", "dnd2024", "dnd2024byroll20"]);
 		const ATTRIBUTES_2014_CORE = ["npc"];
 		const ATTRIBUTES_2014_EXPECTED = ["npc_name", "npc_type", "npc_ac", "npc_hpbase", "npc_challenge"];
 
@@ -25,12 +24,8 @@ function d20plusNpcConverter () {
 		function canConvertCharacter (character) {
 			if (!character) return false;
 			if (!isNpc2014Sheet(character)) return false;
-			if (isNpc2024Sheet(character)) return false;
+			if (d20plus.store2024.isNpc2024Sheet(character)) return false;
 			return !!d20plus.importer?.translateOGLTo2024Store;
-		}
-
-		function getConverterBlobData (character, key) {
-			return new Promise(resolve => character._getLatestBlob(key, data => resolve(data)));
 		}
 
 		function getConverterAttrMap (character) {
@@ -61,44 +56,12 @@ function d20plusNpcConverter () {
 			return expectedCount >= 3 || hasNpcRepeatingContent;
 		}
 
-		function isNpc2024Sheet (character) {
-			const attrMap = getConverterAttrMap(character);
-			if (`${attrMap.npc || ""}` !== "1") return false;
-			return SHEET_2024.has(attrMap.rpg_sheet || attrMap.sheet_type || attrMap.charactersheet_type)
-				|| !!attrMap.store;
-		}
-
 		function getCharacterFolderContext (character) {
-			try {
-				const journal = d20plus.journal.getExportableJournal();
-				const found = journal.find(it => it.id === character.id);
-				if (!found) return null;
-				const path = (found.path || []).slice(1);
-				const folder = path.length ? d20plus.journal.makeDirTree(...path) : null;
-				return {
-					path,
-					folderId: folder?.id || null,
-				};
-			} catch (e) {
-				console.warn("betterR20 NPC converter: Failed to resolve folder path", e);
-				return null;
-			}
+			return d20plus.store2024.getCharacterFolderContext(character);
 		}
 
 		function copyBioAndNotes (sourceCharacter, targetCharacter) {
-			return Promise.all([
-				getConverterBlobData(sourceCharacter, "bio"),
-				getConverterBlobData(sourceCharacter, "gmnotes"),
-			]).then(([bio, gmnotes]) => {
-				targetCharacter.updateBlobs({
-					bio: bio || "",
-					gmnotes: gmnotes || "",
-				});
-				targetCharacter.save({
-					bio: (new Date()).getTime(),
-					gmnotes: (new Date()).getTime(),
-				});
-			});
+			return d20plus.store2024.copyBioAndNotes(sourceCharacter, targetCharacter);
 		}
 
 		function getConvertedName (character) {
@@ -106,34 +69,16 @@ function d20plusNpcConverter () {
 			return `${name} (2024)`;
 		}
 
-		function cloneForDebug (value) {
-			try {
-				return JSON.parse(JSON.stringify(value));
-			} catch (e) {
-				return {error: e?.message || String(e)};
-			}
-		}
-
-		function logDebugJson (label, value) {
-			console.log(`${label}\n${JSON.stringify(value, null, 2)}`);
-		}
+		function cloneForDebug (value) { return d20plus.store2024.cloneForDebug(value); }
+		function logDebugJson (label, value) { return d20plus.store2024.logDebugJson(label, value); }
 
 		function save2024NpcState (character, store) {
-			const toSave = [
-				{ name: "appState", current: "npc" },
-				{ name: "store", current: store },
-			].map(a => character.attribs.push(a));
-			toSave.forEach(s => s.syncedSave());
+			return d20plus.store2024.saveNewNpcState(character, store);
 		}
 
 		function save2024NpcNames (character, sourceAttrMap) {
 			const npcDisplayName = sourceAttrMap.npc_name || character.get("name") || "Unnamed character";
-			const toSave = [
-				{ name: "npc_name", current: npcDisplayName },
-				{ name: "name", current: npcDisplayName },
-				{ name: "character_name", current: npcDisplayName },
-			].map(a => character.attribs.push(a));
-			toSave.forEach(s => s.syncedSave());
+			return d20plus.store2024.saveNpcNames(character, npcDisplayName);
 		}
 
 		async function convertCharacter (character) {
