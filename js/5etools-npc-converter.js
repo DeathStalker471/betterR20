@@ -16,6 +16,12 @@ function d20plusNpcConverter () {
 			return d20.Campaign.characters.get(cId);
 		}
 
+		function getConverterCharacterFromJournalContext () {
+			const cId = d20plus.journal?.lastClickedJournalItemId;
+			if (!cId) return null;
+			return d20.Campaign.characters.get(cId);
+		}
+
 		function getConverterBlobData (character, key) {
 			return new Promise(resolve => character._getLatestBlob(key, data => resolve(data)));
 		}
@@ -207,7 +213,7 @@ function d20plusNpcConverter () {
 			const injectHeaderButton = () => {
 				$(".character-npc-convert-2024-header").remove();
 
-				const $editButton = $("button").filter((_, ele) => $(ele).text().trim() === "Edit").first();
+				const $editButton = $(".dialog-character, .ui-dialog-content, [role='dialog']").find("button").filter((_, ele) => $(ele).text().trim() === "Edit").first();
 				if (!$editButton.length) return;
 
 				const $headerGroup = $editButton.parent();
@@ -220,7 +226,7 @@ function d20plusNpcConverter () {
 			const injectExportOverwriteButton = () => {
 				$(".character-npc-convert-2024-vttes").remove();
 
-				const $overwriteButton = $("button").filter((_, ele) => $(ele).text().trim() === "Overwrite").first();
+				const $overwriteButton = $(".dialog-character, .ui-dialog-content, [role='dialog']").find("button").filter((_, ele) => $(ele).text().trim() === "Overwrite").first();
 				if (!$overwriteButton.length) return;
 
 				const $column = $overwriteButton.closest("div");
@@ -250,9 +256,21 @@ function d20plusNpcConverter () {
 
 			$("#journalitemmenu ul")
 				.off(window.mousedowntype, "li[data-action-type=convertnpc2024]")
-				.on(window.mousedowntype, "li[data-action-type=convertnpc2024]", function (evt) {
+				.on(window.mousedowntype, "li[data-action-type=convertnpc2024]", async function () {
 					$("#journalitemmenu").hide();
-					d20plus.npcConverter.convertSelectedCharacter(evt);
+					const character = getConverterCharacterFromJournalContext();
+					if (!character) return alert("No character found.");
+
+					const charName = character.get("name") || "Unnamed character";
+					if (!window.confirm(`Create a new 2024 NPC copy of "${charName}"?`)) return;
+
+					try {
+						const converted = await convertCharacter(character);
+						alert(`Created "${converted.get("name")}" as a new 2024 NPC.`);
+					} catch (e) {
+						console.error("betterR20 NPC converter error:", e);
+						alert(`Failed to convert "${charName}" to a 2024 NPC. See the console for details.`);
+					}
 				});
 
 			injectHeaderButton();
