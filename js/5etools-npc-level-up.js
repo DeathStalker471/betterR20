@@ -542,6 +542,46 @@ function d20plusNpcLevelUp () {
 		return opt ? opt.level : 1;
 	}
 
+	function makeStartingStateHtml (store, sidekickType, targetLevel) {
+		const pb = SIDEKICK_LEVEL_TO_PB[targetLevel] || 2;
+		const rollHPStr = store.npc && store.npc.rollHP ? store.npc.rollHP : null;
+		const parsedHP = parseHpFormula(rollHPStr);
+		const conMod = getConModFromStore(store);
+		const currentHpMax = store.hitpoints && store.hitpoints.maxHP != null ? store.hitpoints.maxHP : null;
+		let hpLine = "—", rollLine = "—", hdLine = "—";
+		if (parsedHP && currentHpMax != null) {
+			const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : "0";
+			const baseLevel = crToSidekickLevel(crStr);
+			const levelsToAdd = Math.max(0, targetLevel - baseLevel);
+			const avgPerDie = avgHpPerDie(parsedHP.faces);
+			const totalHpGain = levelsToAdd * (avgPerDie + conMod);
+			const newHpMax = currentHpMax + totalHpGain;
+			const newDice = parsedHP.count + levelsToAdd;
+			hpLine = totalHpGain > 0 ? `${currentHpMax} + ${totalHpGain} = ${newHpMax}` : String(currentHpMax);
+			rollLine = formatHpFormula({count: newDice, faces: parsedHP.faces, mod: conMod * newDice});
+			hdLine = String(newDice);
+		}
+		const rows = [
+			["Starting level", String(targetLevel)],
+			["Proficiency Bonus", `+${pb}`],
+			["HP Max", hpLine],
+			["Roll Formula", rollLine],
+			["Hit Dice", hdLine],
+		];
+		const rowsHtml = rows.map(([label, val]) =>
+			`<tr><td style="padding:2px 8px 2px 0;color:#888;white-space:nowrap">${label}</td><td style="padding:2px 0"><strong>${val}</strong></td></tr>`
+		).join("");
+		const features = d20plus.sidekickData.getFeaturesGained(sidekickType, 0, targetLevel);
+		const featuresHtml = features.length
+			? `<p style="margin:8px 0 4px"><strong>Features gained (levels 1–${targetLevel})</strong></p><ul style="margin:0;padding-left:1.2em">${
+				features.map(f => `<li><span style="color:${f.isTodo ? "#c0392b" : "#27ae60"};font-weight:bold">${f.isTodo ? "TODO" : "AUTO"} ${f.name}</span> <span style="color:#888">(lv${f.level})</span><br><span style="font-size:0.9em">${f.description.slice(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`
+				).join("")
+			}</ul>`
+			: `<em>No features for this type/level combination.</em>`;
+		return `<table style="border-collapse:collapse;margin-bottom:6px">${rowsHtml}</table>${featuresHtml}`;
+	}
+
+
 	function makeStatPreviewHtml (summary, sidekickType, fromLevel, toLevel) {
 		if (!summary) return `<em>Unable to calculate preview.</em>`;
 		const rows = [
@@ -627,8 +667,7 @@ function d20plusNpcLevelUp () {
 			function refresh () {
 				const type = getType();
 				const level = getLevel();
-				const summary = previewUpgrade(store, level, type);
-				$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, 0, level));
+				$dialog.find(".b20-upgrade-preview").html(makeStartingStateHtml(store, type, level));
 			}
 
 			$dialog.on("change", "input[name=sidekickType], input[name=levelBasis]", function () {
@@ -783,11 +822,10 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 		const character = getCharacterFromJournalContext(event);
 		if (!character) return alert("No character found.");
 		await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
-		const {attr, store} = d20plus.store2024.getStore(character);
-		if (!store || !store.npc) return alert("No sidekick data found on this character.");
-		const hadType = store.npc._npcSidekickType;
-		const hadLevel = store.npc._npcLevelUpLevel;
-		if (!hadType && !hadLevel) return alert("No sidekick data to reset on this character.");
+		const {attr, store} = d20plus.store2024.getStore(character) || {};
+		const hadType = store && store.npc && store.npc._npcSidekickType;
+		const hadLevel = store && store.npc && store.npc._npcLevelUpLevel;
+		if (!hadType && !hadLevel) return alert(`No sidekick data to reset on "${character.get("name")}".\n\n(Neither _npcSidekickType nor _npcLevelUpLevel found in the 2024 store.)`);
 		const clearMsg = [`Remove sidekick data from "${character.get("name")}"?`, ``, `This will clear:${hadType ? "\n\u2022 Sidekick type: " + hadType : ""}${hadLevel ? "\n\u2022 Stored level: " + hadLevel : ""}`, ``, `The character sheet is NOT modified \u2014 only the stored metadata.`].join("\n");
 		if (!window.confirm(clearMsg)) return;
 		delete store.npc._npcSidekickType;
