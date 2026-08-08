@@ -155,7 +155,7 @@ function d20plus2024Store () {
 	};
 
 	/**
-	 * Copy bio and gmnotes blobs from one character to another.
+	 * Copy bio, gmnotes, and defaulttoken blobs from one character to another.
 	 * @returns {Promise<void>}
 	 */
 	d20plus.store2024.copyBioAndNotes = function (sourceCharacter, targetCharacter) {
@@ -165,15 +165,22 @@ function d20plus2024Store () {
 		return Promise.all([
 			getBlobData(sourceCharacter, "bio"),
 			getBlobData(sourceCharacter, "gmnotes"),
-		]).then(([bio, gmnotes]) => {
-			targetCharacter.updateBlobs({
+			getBlobData(sourceCharacter, "defaulttoken"),
+		]).then(([bio, gmnotes, defaulttoken]) => {
+			const blobs = {
 				bio: bio || "",
 				gmnotes: gmnotes || "",
-			});
-			targetCharacter.save({
+			};
+			const saveAttrs = {
 				bio: Date.now(),
 				gmnotes: Date.now(),
-			});
+			};
+			if (defaulttoken) {
+				blobs.defaulttoken = defaulttoken;
+				saveAttrs.defaulttoken = Date.now();
+			}
+			targetCharacter.updateBlobs(blobs);
+			targetCharacter.save(saveAttrs);
 		});
 	};
 

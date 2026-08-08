@@ -316,16 +316,19 @@ function d20plusNpcLevelUp () {
 		store.npc._npcLevelUpLevel = targetSidekickLevel;
 		if (options.sidekickType) store.npc._npcSidekickType = options.sidekickType;
 
-		// Write sidekick class features for levels gained
+		// Write sidekick class features for levels gained.
+		// For Make Sidekick (options.featureFromLevel = 0), write all features from 0 up to
+		// targetSidekickLevel so a level-4 sidekick gets levels 1–4 features at creation.
 		const sidekickType = options.sidekickType || (store.npc && store.npc._npcSidekickType) || null;
-		const shouldHandleBonusProficiencies = shouldApplyBonusProficiencies(currentSidekickLevel, targetSidekickLevel);
+		const featureFromLevel = options.featureFromLevel != null ? options.featureFromLevel : currentSidekickLevel;
+		const shouldHandleBonusProficiencies = shouldApplyBonusProficiencies(featureFromLevel, targetSidekickLevel);
 		const bonusProficienciesAdded = shouldHandleBonusProficiencies
 			? applyBonusProficiencies(store, options.bonusProficiencies)
 			: 0;
 		const featuresWritten = writeSidekickFeatures(
 			store,
 			sidekickType,
-			currentSidekickLevel,
+			featureFromLevel,
 			targetSidekickLevel,
 			{ skipBonusProficienciesTodo: shouldHandleBonusProficiencies },
 		);
@@ -1194,7 +1197,9 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 
 		try {
 			const applyLevels = isMakeSidekick ? 0 : 1;
-			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, sidekickType, bonusProficiencies});
+			// For Make Sidekick, featureFromLevel=0 so all features up to the chosen level are written.
+			const featureFromLevel = isMakeSidekick ? 0 : undefined;
+			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, featureFromLevel, sidekickType, bonusProficiencies});
 			log(`Done — created "${newChar.get("name")}"`);
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
