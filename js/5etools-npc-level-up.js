@@ -547,20 +547,36 @@ function d20plusNpcLevelUp () {
 		const rollHPStr = store.npc && store.npc.rollHP ? store.npc.rollHP : null;
 		const parsedHP = parseHpFormula(rollHPStr);
 		const conMod = getConModFromStore(store);
-		const currentHpMax = store.hitpoints && store.hitpoints.maxHP != null ? store.hitpoints.maxHP : null;
-		let hpLine = "—", rollLine = "—", hdLine = "—";
-		if (parsedHP && currentHpMax != null) {
+
+		// Read current HP using the same logic as upgrade2024NpcStore
+		const hpIntegrant = findIntegrantByType(store, "Hit Points");
+		const currentHpMax = hpIntegrant && hpIntegrant.valueFormula
+			? (hpIntegrant.valueFormula.flatValue || 0)
+			: (store.hitpoints && store.hitpoints.currentHP) || null;
+
+		let hpLine, rollLine, hdLine;
+
+		if (parsedHP) {
 			const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : "0";
 			const baseLevel = crToSidekickLevel(crStr);
 			const levelsToAdd = Math.max(0, targetLevel - baseLevel);
 			const avgPerDie = avgHpPerDie(parsedHP.faces);
 			const totalHpGain = levelsToAdd * (avgPerDie + conMod);
-			const newHpMax = currentHpMax + totalHpGain;
 			const newDice = parsedHP.count + levelsToAdd;
-			hpLine = totalHpGain > 0 ? `${currentHpMax} + ${totalHpGain} = ${newHpMax}` : String(currentHpMax);
 			rollLine = formatHpFormula({count: newDice, faces: parsedHP.faces, mod: conMod * newDice});
-			hdLine = String(newDice);
+			hdLine = `${newDice}d${parsedHP.faces}`;
+			if (currentHpMax != null) {
+				const newHpMax = currentHpMax + totalHpGain;
+				hpLine = totalHpGain > 0 ? `${currentHpMax} + ${totalHpGain} = ${newHpMax}` : String(currentHpMax);
+			} else {
+				hpLine = totalHpGain > 0 ? `current + ${totalHpGain}` : "unchanged";
+			}
+		} else {
+			hpLine = currentHpMax != null ? String(currentHpMax) : "unknown";
+			rollLine = rollHPStr || "unknown";
+			hdLine = parsedHP ? String(parsedHP.count) : "unknown";
 		}
+
 		const rows = [
 			["Starting level", String(targetLevel)],
 			["Proficiency Bonus", `+${pb}`],
