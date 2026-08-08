@@ -466,11 +466,15 @@ function d20plusNpcLevelUp () {
 		const shouldDisableUnchecked = checkedCount >= maxChoices;
 		$inputs.each((_, el) => {
 			const $el = $(el);
+			const $label = $el.closest(".b20-sidekick-checkbox");
 			if ($el.is("[data-native=true]")) {
 				$el.prop("disabled", true);
+				$label.addClass("b20-sidekick-checkbox-locked");
 				return;
 			}
-			$el.prop("disabled", shouldDisableUnchecked && !$el.is(":checked"));
+			const isVisuallyLocked = shouldDisableUnchecked && !$el.is(":checked");
+			$el.prop("disabled", isVisuallyLocked);
+			$label.toggleClass("b20-sidekick-checkbox-locked", isVisuallyLocked);
 		});
 	}
 
