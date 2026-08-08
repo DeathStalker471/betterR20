@@ -268,8 +268,10 @@ function d20plusNpcLevelUp () {
 		if (parsedHP) {
 			const levelsGained = targetSidekickLevel - currentSidekickLevel;
 			const avgPerDie = avgHpPerDie(parsedHP.faces);
-			const hpGainPerLevel = avgPerDie + conMod;
-			const totalHpGain = levelsGained * hpGainPerLevel;
+			const perLevelHpGain = options.hpIncreaseMode === "roll" && parsedHP.faces
+				? Math.max(1, (options.hpRollTotal != null ? options.hpRollTotal : avgPerDie) + conMod)
+				: Math.max(1, avgPerDie + conMod);
+			const totalHpGain = levelsGained * perLevelHpGain;
 			const totalNewDice = parsedHP.count + levelsGained;
 			const totalNewBonus = parsedHP.count + levelsGained > 0
 				? conMod * totalNewDice
@@ -944,11 +946,11 @@ function d20plusNpcLevelUp () {
 	 * Build a preview of what a level-up would produce for a given currentLevel.
 	 * Returns the same summary shape as upgrade2024NpcStore.
 	 */
-	function previewUpgrade (store, currentLevel, sidekickType) {
+	function previewUpgrade (store, currentLevel, sidekickType, options = {}) {
 		const overridden = JSON.parse(JSON.stringify(store));
 		if (!overridden.npc) overridden.npc = {};
 		overridden.npc._npcLevelUpLevel = currentLevel;
-		const {summary} = upgrade2024NpcStore(overridden, {levels: 1, sidekickType});
+		const {summary} = upgrade2024NpcStore(overridden, {levels: 1, currentLevel, sidekickType, ...options});
 		return summary;
 	}
 
@@ -1186,7 +1188,12 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			`);
 
 			function getType () { return $dialog.find("input[name=sidekickType]:checked").val() || "expert"; }
-			function getLevel () { return getSelectedLevel($dialog, levelOptions); }
+			function getLevel () { return storedLevel(store) || hitDiceToSidekickLevel(store) || 1; }
+		function getHpMode () { return $dialog.find('input[name=hpMode]:checked').val() || "average"; }
+		function getHpRollTotal () {
+			const v = Number($dialog.find('.b20-hp-roll-input').val());
+			return Number.isFinite(v) ? v : null;
+		}
 
 			function renderBonusSection () {
 				const choiceState = makeBonusProfChoiceState(store, getType());
@@ -1272,10 +1279,13 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 	function showLevelUpDialog (character, store, knownSidekickType) {
 		return new Promise((resolve) => {
 			const charName = character.get("name") || "Unnamed character";
-			const levelOptions = makeLevelBasisOptions(store);
 			const sidekickType = knownSidekickType || (store.npc && store.npc._npcSidekickType) || null;
+			const currentStoredLevel = storedLevel(store) || hitDiceToSidekickLevel(store) || 1;
+			const parsedHP = parseHpFormula(store.npc && store.npc.rollHP ? store.npc.rollHP : null);
+			const dieFaces = parsedHP ? parsedHP.faces : 8;
+			const avgHp = parsedHP ? avgHpPerDie(parsedHP.faces) : 5;
+			const conMod = getConModFromStore(store);
 
-			// If type is unknown, show a type selector
 			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior","mage","healer","prodigy"];
 			const typeNote = !sidekickType
 				? `<div style="margin-bottom:10px">
@@ -1300,107 +1310,79 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 							<div class="b20-sidekick-sub">Create a leveled-up sidekick copy</div>
 						</div>
 					</div>
-					<div class="b20-sidekick-grid" style="grid-template-columns:1fr">
+					<div class="b20-sidekick-grid" style="grid-template-columns:1fr 1fr">
 						<div class="b20-sidekick-card b20-sidekick-row">
 							${typeNote}
 							<h4 style="margin-top:0">Current Level</h4>
-							${makeLevelBasisHtml(levelOptions)}
-							<div class="b20-custom-level-row" style="display:none;margin-top:6px">
-								<label>Level (1–20): <input type="number" class="b20-custom-level-input" min="1" max="20" value="1" style="width:64px;margin-left:6px"></label>
+							<p style="margin:0;color:#475569">This sidekick is currently level <strong>${currentStoredLevel}</strong>. Creating this copy will level it up to <strong>${currentStoredLevel + 1}</strong>.</p>
+						</div>
+						<div class="b20-sidekick-card b20-sidekick-row">
+							<h4 style="margin-top:0">Hit Point Increase</h4>
+							<p style="margin:0 0 8px;color:#64748b;font-size:12px">Gain one Hit Die and increase maximum HP by the die result plus Constitution modifier (minimum 1).</p>
+							<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer"><input type="radio" name="hpMode" value="average" checked>Average (${avgHp} + ${conMod >= 0 ? "+" : ""}${conMod})</label>
+							<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer"><input type="radio" name="hpMode" value="roll">Roll 1d${dieFaces} + ${conMod >= 0 ? "+" : ""}${conMod}</label>
+							<div class="b20-hp-roll-row" style="display:none;margin-top:6px">
+								<label>Roll result: <input type="number" class="b20-hp-roll-input" min="1" max="99" value="${avgHp}" style="width:64px;margin-left:6px"></label>
 							</div>
 						</div>
-						<div class="b20-sidekick-card">
-							<h4>Preview</h4>
-							<div class="b20-upgrade-preview b20-sidekick-preview" style="min-height:90px"></div>
-						</div>
 					</div>
-					<div class="b20-bonus-prof-container"></div>
-				<div class="b20-asi-container"></div>
-			</div>
-		`);
-
-		function getType () {
-			if (sidekickType) return sidekickType;
-			return $dialog.find("input[name=sidekickType]:checked").val() || "expert";
-		}
-		function getLevel () { return getSelectedLevel($dialog, levelOptions); }
-
-		function renderBonusSection () {
-			const choiceState = makeBonusProfChoiceState(store, getType());
-			if (!choiceState) {
-				$dialog.find(".b20-bonus-prof-container").html("");
-				return;
-			}
-			$dialog.find(".b20-bonus-prof-container").html(`
-				<div class="b20-sidekick-card">
-					<h4>Bonus Proficiencies</h4>
-					<p style="margin:0 0 10px;color:#475569;font-size:12px">${getBonusProficiencyRequirementText(getType())}</p>
-					<div class="b20-sidekick-check-grid">
-						<div class="b20-sidekick-check-group-save">
-							<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
-							${renderBonusProfCheckboxes(choiceState.saves.items, "bonusProfSaves")}
-						</div>
-						<div class="b20-sidekick-check-group-skill">
-							<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
-							${renderBonusProfCheckboxes(choiceState.skills.items, "bonusProfSkills")}
-						</div>
+					<div class="b20-asi-container"></div>
+					<div class="b20-sidekick-card">
+						<h4>Preview</h4>
+						<div class="b20-upgrade-preview b20-sidekick-preview" style="min-height:140px"></div>
 					</div>
 				</div>
 			`);
-			enforceCheckboxLimit($dialog, "bonusProfSaves", choiceState.saves.maxChoices);
-			enforceCheckboxLimit($dialog, "bonusProfSkills", choiceState.skills.maxChoices);
-		}
 
-		function refresh () {
-			const type = getType();
-			const level = getLevel();
-			renderBonusSection();
-			renderAsiSection($dialog.find(".b20-asi-container"), store, type, level, level + 1);
-			const summary = previewUpgrade(store, level, type);
-			$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, level, level + 1));
-		}
+			function getType () {
+				if (sidekickType) return sidekickType;
+				return $dialog.find("input[name=sidekickType]:checked").val() || "expert";
+			}
+			function getLevel () { return currentStoredLevel; }
+			function getHpMode () { return $dialog.find('input[name=hpMode]:checked').val() || "average"; }
+			function getHpRollTotal () {
+				const v = Number($dialog.find('.b20-hp-roll-input').val());
+				return Number.isFinite(v) ? v : null;
+			}
 
-		$dialog.on("change", "input[name=sidekickType], input[name=levelBasis]", function () {
-			const chosen = $dialog.find("input[name=levelBasis]:checked").val();
-			$dialog.find(".b20-custom-level-row").css("display", chosen === "custom" ? "block" : "none");
-			refresh();
-		});
-		$dialog.on("input", ".b20-custom-level-input", refresh);
-		$dialog.on("change", "input[name=bonusProfSaves]", () => {
-			const cfg = getSidekickBonusProficiencyConfig(getType());
-			if (cfg) enforceCheckboxLimit($dialog, "bonusProfSaves", cfg.saves.maxChoices);
-		});
-		$dialog.on("change", "input[name=bonusProfSkills]", () => {
-			const cfg = getSidekickBonusProficiencyConfig(getType());
-			if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
-		});
-		const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
+			function refresh () {
+				const type = getType();
+				const level = getLevel();
+				const hpMode = getHpMode();
+				const hpRollTotal = getHpRollTotal();
+				$dialog.find('.b20-hp-roll-row').css('display', hpMode === 'roll' ? 'block' : 'none');
+				renderAsiSection($dialog.find(".b20-asi-container"), store, type, level, level + 1);
+				const summary = previewUpgrade(store, level, type, { hpIncreaseMode: hpMode, hpRollTotal });
+				$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, level, level + 1));
+			}
 
-		$dialog.dialog({
-			resizable: true, autoOpen: true, width: 1000, dialogClass: "b20-sidekick-dialog",
-			position: {my: "center top+30", at: "center top", of: $mapViewport},
-			maxHeight: Math.floor(window.innerHeight * 0.92),
-			title: "Level Up Sidekick — Create Copy",
-			open: () => {
-				refresh();
-				$dialog.dialog("widget").css("max-height", `${Math.floor(window.innerHeight * 0.92)}px`);
-			},
-			close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
-			buttons: {
-				"Create Copy": () => {
-					const currentLevel = getLevel();
-					const resolvedType = getType();
-					const profValidation = validateBonusProfChoices($dialog, resolvedType);
-					if (!profValidation.ok) return alert(profValidation.message);
-					const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
-					if (!asiValidation.ok) return alert(asiValidation.message);
-					$dialog.off(); $dialog.dialog("destroy").remove();
-					resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: profValidation.selections, asiChoices: asiValidation.asiChoices});
+			$dialog.on("change", "input[name=sidekickType], input[name=hpMode]", refresh);
+			$dialog.on("input", ".b20-hp-roll-input", refresh);
+			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
+
+			$dialog.dialog({
+				resizable: true, autoOpen: true, width: 1000, minHeight: 700, dialogClass: "b20-sidekick-dialog",
+				position: {my: "center top+30", at: "center top", of: $mapViewport},
+				maxHeight: Math.floor(window.innerHeight * 0.92),
+				title: "Level Up Sidekick — Create Copy",
+				open: () => {
+					refresh();
+					$dialog.dialog("widget").css("max-height", `${Math.floor(window.innerHeight * 0.92)}px`);
 				},
-				Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
-			},
+				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
+				buttons: {
+					"Create Copy": () => {
+						const currentLevel = getLevel();
+						const resolvedType = getType();
+						const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
+						if (!asiValidation.ok) return alert(asiValidation.message);
+						$dialog.off(); $dialog.dialog("destroy").remove();
+						resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, asiChoices: asiValidation.asiChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
+					},
+					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
+				},
+			});
 		});
-	});
 	}
 
 	/** Journal context-menu handler — detects Make Sidekick vs Level Up flow. */
@@ -1431,14 +1413,14 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType, bonusProficiencies, asiChoices} = dialogResult;
+		const {currentLevel, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
 		const isMakeSidekick = !hasSidekickType;
 
 		try {
 			const applyLevels = isMakeSidekick ? 0 : 1;
 			// For Make Sidekick, featureFromLevel=0 so all features up to the chosen level are written.
 			const featureFromLevel = isMakeSidekick ? 0 : undefined;
-			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, featureFromLevel, sidekickType, bonusProficiencies, asiChoices});
+			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, featureFromLevel, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal});
 			log(`Done — created "${newChar.get("name")}"`);
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
