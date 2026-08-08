@@ -542,7 +542,22 @@ function d20plusNpcLevelUp () {
 		return opt ? opt.level : 1;
 	}
 
-	function makeStartingStateHtml (store, sidekickType, targetLevel) {
+		function makeSplitPreviewHtml (rowsHtml, featuresTitle, featureItemsHtml, warningsHtml) {
+		return `
+			<div class="b20-preview-split">
+				<div class="b20-preview-pane b20-preview-pane-stats">
+					<div class="b20-preview-pane-title">Summary</div>
+					<table class="b20-preview-table">${rowsHtml}</table>
+					${warningsHtml || ""}
+				</div>
+				<div class="b20-preview-pane b20-preview-pane-features">
+					<div class="b20-preview-pane-title">${featuresTitle}</div>
+					<div class="b20-preview-features-scroll">${featureItemsHtml}</div>
+				</div>
+			</div>
+		`;
+	}
+function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		const pb = SIDEKICK_LEVEL_TO_PB[targetLevel] || 2;
 		const rollHPStr = store.npc && store.npc.rollHP ? store.npc.rollHP : null;
 		const parsedHP = parseHpFormula(rollHPStr);
@@ -585,13 +600,13 @@ function d20plusNpcLevelUp () {
 			`<tr><td style="padding:2px 8px 2px 0;color:#888;white-space:nowrap">${label}</td><td style="padding:2px 0"><strong>${val}</strong></td></tr>`
 		).join("");
 		const features = d20plus.sidekickData.getFeaturesGained(sidekickType, 0, targetLevel);
-		const featuresHtml = features.length
-			? `<p style="margin:8px 0 4px"><strong>Features gained (levels 1–${targetLevel})</strong></p><ul style="margin:0;padding-left:1.2em">${
+		const featureItemsHtml = features.length
+			? `<ul class="b20-preview-feature-list">${
 				features.map(f => `<li><span style="color:${f.isTodo ? "#c0392b" : "#27ae60"};font-weight:bold">${f.isTodo ? "TODO" : "AUTO"} ${f.name}</span> <span style="color:#888">(lv${f.level})</span><br><span style="font-size:0.9em">${f.description.slice(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`
 				).join("")
 			}</ul>`
-			: `<em>No features for this type/level combination.</em>`;
-		return `<table style="border-collapse:collapse;margin-bottom:6px">${rowsHtml}</table>${featuresHtml}`;
+			: `<p style="color:#64748b;margin:0">No features for this type/level combination.</p>`;
+		return makeSplitPreviewHtml(rowsHtml, `Features gained (levels 1–${targetLevel})`, featureItemsHtml, "");
 	}
 
 
@@ -611,7 +626,7 @@ function d20plusNpcLevelUp () {
 			? `<p style="color:#c0392b;margin:6px 0 0">⚠ ${summary.errors.join("; ")}</p>`
 			: "";
 
-		let featuresHtml = "";
+		let featureItemsHtml = `<p style="color:#64748b;margin:0">No class features gained at this level.</p>`;
 		if (sidekickType && d20plus.sidekickData) {
 			const features = d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel);
 			if (features.length) {
@@ -619,19 +634,13 @@ function d20plusNpcLevelUp () {
 					const tag = f.isTodo
 						? `<span style="color:#c0392b;font-size:0.85em;font-weight:bold">TODO</span>`
 						: `<span style="color:#27ae60;font-size:0.85em;font-weight:bold">AUTO</span>`;
-					return `<li style="margin:3px 0">${tag} <strong>${f.name}</strong> <span style="color:#888;font-size:0.88em">(lv${f.level})</span><br><span style="color:#555;font-size:0.88em">${f.description.substring(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
+					return `<li>${tag} <strong>${f.name}</strong> <span style="color:#888;font-size:0.88em">(lv${f.level})</span><br><span style="color:#555;font-size:0.88em">${f.description.substring(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
 				}).join("");
-				featuresHtml = `
-					<hr style="margin:8px 0">
-					<p style="margin:4px 0 4px;font-weight:bold;font-size:0.92em">Features gained</p>
-					<ul style="margin:0;padding-left:16px;max-height:180px;overflow-y:auto">${featureItems}</ul>
-				`;
-			} else {
-				featuresHtml = `<hr style="margin:8px 0"><p style="color:#888;font-size:0.9em;margin:4px 0">No class features gained at this level.</p>`;
+				featureItemsHtml = `<ul class="b20-preview-feature-list">${featureItems}</ul>`;
 			}
 		}
 
-		return `<table style="border-collapse:collapse;width:100%">${rowsHtml}</table>${warnings}${featuresHtml}`;
+		return makeSplitPreviewHtml(rowsHtml, "Features gained", featureItemsHtml, warnings);
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
@@ -654,6 +663,16 @@ function d20plusNpcLevelUp () {
 			.b20-sidekick-card{border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#fff}
 			.b20-sidekick-card h4{margin:0 0 8px;font-size:12px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.02em}
 			.b20-sidekick-preview{border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#fff;min-height:100px}
+			.b20-preview-split{display:grid;grid-template-columns:260px minmax(0,1fr);gap:10px;align-items:start}
+			.b20-preview-pane{border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:8px}
+			.b20-preview-pane-title{font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.02em;margin:0 0 6px}
+			.b20-preview-table{border-collapse:collapse;width:100%}
+			.b20-preview-table td{padding:2px 6px 2px 0;vertical-align:top}
+			.b20-preview-table td:first-child{color:#64748b;white-space:nowrap}
+			.b20-preview-features-scroll{max-height:220px;overflow-y:auto;padding-right:2px}
+			.b20-preview-feature-list{margin:0;padding-left:16px}
+			.b20-preview-feature-list li{margin:4px 0}
+			@media (max-width: 760px){.b20-preview-split{grid-template-columns:1fr}}
 			.b20-sidekick-row label{display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer}
 			.b20-sidekick-dialog .ui-dialog-buttonpane{padding:.5em .8em}
 			.b20-sidekick-dialog .ui-dialog-buttonset button{border-radius:8px;padding:.45em .9em}
@@ -943,6 +962,7 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcLevelUp);
+
 
 
 
