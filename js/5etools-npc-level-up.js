@@ -1179,6 +1179,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						</div>
 					</div>
 					<div class="b20-bonus-prof-container"></div>
+					<div class="b20-asi-container"></div>
 					<div class="b20-sidekick-card">
 						<h4>Preview</h4>
 						<div class="b20-upgrade-preview b20-sidekick-preview"></div>
