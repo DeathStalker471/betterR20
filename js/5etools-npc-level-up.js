@@ -777,7 +777,6 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 			alert(`Failed to level up "${charName}". See the console for details.`);
 		}
 	};
-	};
 
 	/** Remove stored sidekick metadata from a character (in-place, no copy). */
 	d20plus.npcLevelUp.resetSidekickDataFromJournalContext = async function (event) {
@@ -789,9 +788,8 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 		const hadType = store.npc._npcSidekickType;
 		const hadLevel = store.npc._npcLevelUpLevel;
 		if (!hadType && !hadLevel) return alert("No sidekick data to reset on this character.");
-		if (!window.confirm(`Remove sidekick data from "${character.get("name")}"?
-
-This will clear:${hadType ? "\n• Sidekick type: " + hadType : ""}.${hadLevel ? "\n• Stored level: " + hadLevel : ""}\n\nThe character sheet is NOT modified — only the stored metadata.`)) return;
+		const clearMsg = [`Remove sidekick data from "${character.get("name")}"?`, ``, `This will clear:${hadType ? "\n\u2022 Sidekick type: " + hadType : ""}${hadLevel ? "\n\u2022 Stored level: " + hadLevel : ""}`, ``, `The character sheet is NOT modified \u2014 only the stored metadata.`].join("\n");
+		if (!window.confirm(clearMsg)) return;
 		delete store.npc._npcSidekickType;
 		delete store.npc._npcLevelUpLevel;
 		d20plus.store2024.saveStore(character, attr, store);
