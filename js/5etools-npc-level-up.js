@@ -887,10 +887,9 @@ function d20plusNpcLevelUp () {
 							d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
 						}
 
-						// Trigger sheet frame — may cause the sheet to initialise and write attrs
-						if (newCharacter.view && typeof newCharacter.view.showNewVueFrame === "function") {
-							newCharacter.view.showNewVueFrame();
-						}
+						// Wait for the sheet to finish its own async initialisation (which may push a
+						// blank store attr). We then overwrite it. 500ms is enough in practice.
+						await new Promise(r => setTimeout(r, 500));
 
 						// Write upgraded store LAST so it wins over any blank store the sheet wrote on init
 						d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
