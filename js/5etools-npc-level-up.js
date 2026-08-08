@@ -1401,7 +1401,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 			},
 		});
-	})
+	});
+	}
 
 	/** Journal context-menu handler — detects Make Sidekick vs Level Up flow. */
 	d20plus.npcLevelUp.levelUpFromJournalContext = async function (event) {
