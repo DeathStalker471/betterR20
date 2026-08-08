@@ -1327,6 +1327,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 							<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer"><input type="radio" name="hpMode" value="roll">Roll 1d${dieFaces}${formatSignedConText(conMod)}</label>
 							<div class="b20-hp-roll-row" style="display:none;margin-top:6px">
 								<label>Roll result: <input type="number" class="b20-hp-roll-input" min="1" max="99" value="${avgHp}" style="width:64px;margin-left:6px"></label>
+								<button type="button" class="btn b20-hp-roll-chat" style="margin-left:8px">Roll in chat</button>
+								<span style="margin-left:8px;color:#64748b;font-size:12px">Uses Roll20 chat; copy the die result here.</span>
 							</div>
 						</div>
 					</div>
