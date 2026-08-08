@@ -101,6 +101,7 @@ function d20plus2024Store () {
 		const toDestroy = character.attribs.filter(a =>
 			a.get("name") === "store" || a.get("name") === "appState"
 		);
+		console.log(`betterR20 saveNewNpcState: destroying ${toDestroy.length} existing attr(s), writing upgraded store with _npcSidekickType=${store?.npc?._npcSidekickType}, _npcLevelUpLevel=${store?.npc?._npcLevelUpLevel}`);
 		toDestroy.forEach(a => a.destroy());
 
 		const toSave = [

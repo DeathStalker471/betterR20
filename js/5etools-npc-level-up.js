@@ -1420,6 +1420,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		// Only go to Level Up if _npcSidekickType is already set.
 		// _npcLevelUpLevel alone (from old flow) is not enough — use Make Sidekick.
 		const hasSidekickType = !!(store.npc && store.npc._npcSidekickType);
+		log(`Store read — _npcSidekickType: ${store.npc?._npcSidekickType || "(none)"}, _npcLevelUpLevel: ${store.npc?._npcLevelUpLevel || "(none)"}, store attr id: ${attr?.id || "(no attr)"}, total store attrs: ${character.attribs.filter(a => a.get("name") === "store").length}`);
 
 		let dialogResult;
 		if (hasSidekickType) {
