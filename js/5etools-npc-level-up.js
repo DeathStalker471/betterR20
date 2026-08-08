@@ -997,10 +997,11 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const cfg = getSidekickBonusProficiencyConfig(getType());
 				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
 			});
+			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
 			$dialog.dialog({
 				resizable: true, autoOpen: true, width: 1000, dialogClass: "b20-sidekick-dialog",
-				position: {my: "center", at: "center", of: window},
+				position: {my: "center top+30", at: "center top", of: $mapViewport},
 				maxHeight: Math.floor(window.innerHeight * 0.92),
 				title: "Make Sidekick — Create Copy",
 				open: () => {
@@ -1130,10 +1131,11 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const cfg = getSidekickBonusProficiencyConfig(getType());
 				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
 			});
+			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
 			$dialog.dialog({
 				resizable: true, autoOpen: true, width: 1000, dialogClass: "b20-sidekick-dialog",
-				position: {my: "center", at: "center", of: window},
+				position: {my: "center top+30", at: "center top", of: $mapViewport},
 				maxHeight: Math.floor(window.innerHeight * 0.92),
 				title: "Level Up Sidekick — Create Copy",
 				open: () => {
