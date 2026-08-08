@@ -423,7 +423,7 @@ function d20plusNpcLevelUp () {
 		const existing = getExistingProficiencies(store);
 		const makeItems = (configKey, existingSet) => config[configKey].options.map(option => ({
 			value: option,
-			locked: existingSet.has(option),
+			isNative: existingSet.has(option),
 		}));
 		return {
 			saves: {
@@ -449,9 +449,9 @@ function d20plusNpcLevelUp () {
 
 	function renderBonusProfCheckboxes (items, inputName) {
 		return items.map(item => `
-			<label class="b20-sidekick-checkbox ${item.locked ? "b20-sidekick-checkbox-locked" : ""}">
-				<input type="checkbox" name="${inputName}" value="${item.value}" ${item.locked ? 'checked disabled data-locked="true"' : ""}>
-				<span>${item.value}${item.locked ? ' <span class="b20-sidekick-note">(already proficient)</span>' : ""}</span>
+			<label class="b20-sidekick-checkbox ${item.isNative ? "b20-sidekick-checkbox-locked" : ""}">
+				<input type="checkbox" name="${inputName}" value="${item.value}" ${item.isNative ? 'checked disabled data-native="true"' : ""}>
+				<span>${item.value}${item.isNative ? ' <span class="b20-sidekick-note">(native proficiency)</span>' : ""}</span>
 			</label>
 		`).join("");
 	}
@@ -462,11 +462,11 @@ function d20plusNpcLevelUp () {
 
 	function enforceCheckboxLimit ($dialog, inputName, maxChoices) {
 		const $inputs = $dialog.find(`input[name="${inputName}"]`);
-		const checkedCount = $inputs.filter(":checked").length;
+		const checkedCount = $inputs.filter(":checked").filter((_, el) => !$(el).is("[data-native=true]")).length;
 		const shouldDisableUnchecked = checkedCount >= maxChoices;
 		$inputs.each((_, el) => {
 			const $el = $(el);
-			if ($el.is("[data-locked=true]")) {
+			if ($el.is("[data-native=true]")) {
 				$el.prop("disabled", true);
 				return;
 			}
@@ -478,8 +478,8 @@ function d20plusNpcLevelUp () {
 		const config = getSidekickBonusProficiencyConfig(sidekickType);
 		if (!config) return { ok: true, selections: { saves: [], skills: [] } };
 		const selections = {
-			saves: readSelectedValues($dialog, "bonusProfSaves"),
-			skills: readSelectedValues($dialog, "bonusProfSkills"),
+			saves: readSelectedValues($dialog, "bonusProfSaves").filter(value => !$dialog.find(`input[name="bonusProfSaves"][value="${value}"]`).is("[data-native=true]")),
+			skills: readSelectedValues($dialog, "bonusProfSkills").filter(value => !$dialog.find(`input[name="bonusProfSkills"][value="${value}"]`).is("[data-native=true]")),
 		};
 		if (selections.saves.length < config.saves.maxChoices) {
 			return { ok: false, message: `Select ${config.saves.maxChoices} saving throw proficiency${config.saves.maxChoices === 1 ? "" : "ies"} before continuing.` };
