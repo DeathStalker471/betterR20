@@ -223,7 +223,7 @@ function d20plusNpcLevelUp () {
 	 * @returns {{ store: object, summary: object }} - Transformed store and a human-readable diff summary
 	 */
 	function upgrade2024NpcStore (sourceStore, options = {}) {
-		const levels = Math.max(1, Math.min(options.levels || 1, 10));
+		const levels = Math.max(0, Math.min(options.levels != null ? options.levels : 1, 10));
 
 		// Deep clone — never mutate the source
 		const store = JSON.parse(JSON.stringify(sourceStore));
