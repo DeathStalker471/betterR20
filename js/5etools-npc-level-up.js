@@ -322,18 +322,27 @@ function d20plusNpcLevelUp () {
 		const sidekickType = options.sidekickType || (store.npc && store.npc._npcSidekickType) || null;
 		const featureFromLevel = options.featureFromLevel != null ? options.featureFromLevel : currentSidekickLevel;
 		const shouldHandleBonusProficiencies = shouldApplyBonusProficiencies(featureFromLevel, targetSidekickLevel);
+		const asiHasFeatures = shouldApplyAsi(sidekickType, featureFromLevel, targetSidekickLevel);
+
 		const bonusProficienciesAdded = shouldHandleBonusProficiencies
 			? applyBonusProficiencies(store, options.bonusProficiencies)
+			: 0;
+		// Apply ASI score bumps before writing features (so store scores are updated)
+		const asiApplied = asiHasFeatures
+			? applyAsiToStore(store, options.asiChoices)
 			: 0;
 		const featuresWritten = writeSidekickFeatures(
 			store,
 			sidekickType,
 			featureFromLevel,
 			targetSidekickLevel,
-			{ skipBonusProficienciesTodo: shouldHandleBonusProficiencies },
+			{ skipBonusProficienciesTodo: shouldHandleBonusProficiencies, skipAsiTodo: asiHasFeatures },
 		);
 		const bonusProficiencyFeatureWritten = shouldHandleBonusProficiencies
 			? writeBonusProficiencyFeature(store, sidekickType, options.bonusProficiencies)
+			: 0;
+		const asiTraitsWritten = asiHasFeatures
+			? writeAsiFeatures(store, sidekickType, featureFromLevel, targetSidekickLevel, options.asiChoices)
 			: 0;
 
 		// Count how many Proficiency integrants exist (informational for the summary)
@@ -342,7 +351,8 @@ function d20plusNpcLevelUp () {
 			.filter(i => i.type === "Proficiency")
 			.length;
 		summary.bonusProficienciesAdded = bonusProficienciesAdded;
-		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten;
+		summary.asiApplied = asiApplied;
+		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten;
 
 		return { store, summary };
 	}
@@ -359,7 +369,7 @@ function d20plusNpcLevelUp () {
 		if (!d20plus.sidekickData || !sidekickType) return 0;
 		const features = d20plus.sidekickData
 			.getFeaturesGained(sidekickType, fromLevel, toLevel)
-			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies"));
+			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement"));
 		if (!features.length) return 0;
 
 		if (!store.integrants) store.integrants = { integrants: {} };
@@ -583,6 +593,225 @@ function d20plusNpcLevelUp () {
 
 	function shouldApplyBonusProficiencies (currentLevel, targetLevel) {
 		return currentLevel <= 1 && targetLevel >= 1;
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Ability Score Improvement (ASI) helpers
+	// ─────────────────────────────────────────────────────────────────────────
+
+	const ASI_ABILITIES = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
+
+	/**
+	 * Return the current ability scores from the store as a map { Strength: 10, ... }.
+	 */
+	function getAbilityScoresFromStore (store) {
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		const scores = {};
+		for (const int of Object.values(ints)) {
+			if (int.type === "Ability Score" && ASI_ABILITIES.includes(int.ability)) {
+				scores[int.ability] = (int.valueFormula && int.valueFormula.flatValue != null)
+					? int.valueFormula.flatValue
+					: 10;
+			}
+		}
+		// Fill missing abilities with 10
+		for (const ab of ASI_ABILITIES) { if (scores[ab] == null) scores[ab] = 10; }
+		return scores;
+	}
+
+	/**
+	 * Return the list of ASI features gained between featureFromLevel+1 and targetLevel.
+	 * Each ASI instance in the sidekick data is a separate feature entry.
+	 */
+	function getAsiFeatures (sidekickType, featureFromLevel, targetSidekickLevel) {
+		if (!d20plus.sidekickData || !sidekickType) return [];
+		return d20plus.sidekickData.getFeaturesGained(sidekickType, featureFromLevel, targetSidekickLevel)
+			.filter(f => f.name === "Ability Score Improvement");
+	}
+
+	/**
+	 * True when a feature is an ASI that betterR20 is automating.
+	 */
+	function isAutomatedAsiFeature (feature) {
+		return feature && feature.name === "Ability Score Improvement";
+	}
+
+	/**
+	 * Returns true when at least one ASI needs to be chosen in the given level range.
+	 */
+	function shouldApplyAsi (sidekickType, featureFromLevel, targetSidekickLevel) {
+		return getAsiFeatures(sidekickType, featureFromLevel, targetSidekickLevel).length > 0;
+	}
+
+	/**
+	 * Render the ASI picker for one ASI instance.
+	 * instanceIndex: 0-based index used for input names (asiMode-0, asiAbility1-0, asiAbility2-0)
+	 */
+	function renderAsiPicker (scores, instanceIndex, asiLevel) {
+		const i = instanceIndex;
+		const abilityOptions = ASI_ABILITIES.map(ab =>
+			`<option value="${ab}">${ab} (${scores[ab] ?? 10})</option>`
+		).join("");
+		return `
+			<div class="b20-asi-instance" data-asi-index="${i}">
+				<p style="margin:0 0 6px;font-weight:600;font-size:12px;color:#334155">ASI gained at level ${asiLevel}</p>
+				<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+					<label class="b20-asi-mode-label">
+						<input type="radio" name="asiMode${i}" value="one" checked>
+						<span>+2 to one score:</span>
+						<select name="asiAbility1-${i}" style="margin-left:6px">
+							${abilityOptions}
+						</select>
+					</label>
+					<label class="b20-asi-mode-label">
+						<input type="radio" name="asiMode${i}" value="two">
+						<span>+1 to two scores:</span>
+						<select name="asiAbilityA-${i}" style="margin-left:6px">
+							${abilityOptions}
+						</select>
+						<span style="margin:0 6px">and</span>
+						<select name="asiAbilityB-${i}" style="margin-left:0">
+							${abilityOptions.replace(/<option value="Strength"/, '<option value="Strength" selected')}
+						</select>
+					</label>
+				</div>
+			</div>
+		`;
+	}
+
+	/**
+	 * Render all ASI pickers for the given level range.
+	 * Returns HTML string, or "" if no ASIs in range.
+	 */
+	function renderAsiSection ($container, store, sidekickType, featureFromLevel, targetSidekickLevel) {
+		const asiFeatures = getAsiFeatures(sidekickType, featureFromLevel, targetSidekickLevel);
+		if (!asiFeatures.length) { $container.html(""); return; }
+		const scores = getAbilityScoresFromStore(store);
+		const pickersHtml = asiFeatures.map((f, idx) => renderAsiPicker(scores, idx, f.level)).join('<hr style="border:none;border-top:1px solid #e2e8f0;margin:10px 0">');
+		$container.html(`
+			<div class="b20-sidekick-card">
+				<h4>Ability Score Improvement${asiFeatures.length > 1 ? "s" : ""}</h4>
+				<p style="margin:0 0 10px;color:#475569;font-size:12px">Increase one ability score by 2, or two ability scores by 1 each (max 20).</p>
+				${pickersHtml}
+			</div>
+		`);
+		// Wire mode radio to enable/disable the correct selects
+		$container.find("input[type=radio]").on("change", function () {
+			updateAsiSelectState($container);
+		});
+		updateAsiSelectState($container);
+	}
+
+	function updateAsiSelectState ($container) {
+		$container.find(".b20-asi-instance").each((_, el) => {
+			const $inst = $(el);
+			const idx = $inst.data("asi-index");
+			const mode = $inst.find(`input[name="asiMode${idx}"]:checked`).val() || "one";
+			$inst.find(`select[name="asiAbility1-${idx}"]`).prop("disabled", mode !== "one");
+			$inst.find(`select[name="asiAbilityA-${idx}"], select[name="asiAbilityB-${idx}"]`).prop("disabled", mode !== "two");
+		});
+	}
+
+	/**
+	 * Read and validate ASI choices from the dialog.
+	 * Returns { ok, message, asiChoices: [{ability, bonus}, ...] } flat list.
+	 */
+	function validateAsiChoices ($dialog, sidekickType, featureFromLevel, targetSidekickLevel) {
+		const asiFeatures = getAsiFeatures(sidekickType, featureFromLevel, targetSidekickLevel);
+		if (!asiFeatures.length) return { ok: true, asiChoices: [] };
+		const asiChoices = [];
+		for (let i = 0; i < asiFeatures.length; i++) {
+			const mode = $dialog.find(`input[name="asiMode${i}"]:checked`).val() || "one";
+			if (mode === "one") {
+				const ability = $dialog.find(`select[name="asiAbility1-${i}"]`).val();
+				if (!ability) return { ok: false, message: `Select an ability score for ASI ${i + 1}.` };
+				asiChoices.push({ ability, bonus: 2 });
+			} else {
+				const abilityA = $dialog.find(`select[name="asiAbilityA-${i}"]`).val();
+				const abilityB = $dialog.find(`select[name="asiAbilityB-${i}"]`).val();
+				if (!abilityA || !abilityB) return { ok: false, message: `Select both ability scores for ASI ${i + 1}.` };
+				if (abilityA === abilityB) return { ok: false, message: `ASI ${i + 1}: choose two different ability scores for the +1/+1 option.` };
+				asiChoices.push({ ability: abilityA, bonus: 1 }, { ability: abilityB, bonus: 1 });
+			}
+		}
+		return { ok: true, asiChoices };
+	}
+
+	/**
+	 * Apply ASI choices to the store: bump the flatValue of each Ability Score integrant.
+	 * Returns number of integrant score bumps applied.
+	 */
+	function applyAsiToStore (store, asiChoices) {
+		if (!asiChoices || !asiChoices.length) return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		let applied = 0;
+		// Accumulate total bonus per ability (multiple ASIs can target same ability)
+		const bonusByAbility = {};
+		for (const { ability, bonus } of asiChoices) {
+			bonusByAbility[ability] = (bonusByAbility[ability] || 0) + bonus;
+		}
+		for (const int of Object.values(ints)) {
+			if (int.type === "Ability Score" && bonusByAbility[int.ability] != null) {
+				const current = (int.valueFormula && int.valueFormula.flatValue != null) ? int.valueFormula.flatValue : 10;
+				const newScore = Math.min(20, current + bonusByAbility[int.ability]);
+				if (!int.valueFormula) int.valueFormula = {};
+				int.valueFormula.flatValue = newScore;
+				applied++;
+			}
+		}
+		return applied;
+	}
+
+	/**
+	 * Write the ASI feature trait(s) to the store, one trait per ASI instance.
+	 * Returns number of traits written.
+	 */
+	function writeAsiFeatures (store, sidekickType, featureFromLevel, targetSidekickLevel, asiChoices) {
+		const asiFeatures = getAsiFeatures(sidekickType, featureFromLevel, targetSidekickLevel);
+		if (!asiFeatures.length || !asiChoices) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const integrants = store.integrants.integrants;
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		let pos = d20plus.store2024.getNextArrayPos(store);
+		// Group choices by ASI instance (two +1s are one ASI, one +2 is one ASI)
+		// We reconstruct per-ASI choice text by tracking consumption across instances
+		let choiceOffset = 0;
+		let written = 0;
+		for (const f of asiFeatures) {
+			// Read the choices that belong to this ASI
+			// Each ASI consumes 1 choice (for +2 mode) or 2 choices (for +1+1 mode)
+			// Detect mode: if next choice has bonus=2, it's one; otherwise two +1s
+			const firstChoice = asiChoices[choiceOffset];
+			let choiceDesc;
+			if (!firstChoice) {
+				choiceDesc = "(no selection recorded)";
+			} else if (firstChoice.bonus === 2) {
+				choiceDesc = `+2 ${firstChoice.ability}`;
+				choiceOffset += 1;
+			} else {
+				// Two +1 choices
+				const secondChoice = asiChoices[choiceOffset + 1];
+				choiceDesc = secondChoice
+					? `+1 ${firstChoice.ability}, +1 ${secondChoice.ability}`
+					: `+1 ${firstChoice.ability}`;
+				choiceOffset += secondChoice ? 2 : 1;
+			}
+			const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos++);
+			integrants[id] = {
+				...base,
+				name: "Ability Score Improvement",
+				description: `${f.description}\n\nChosen: ${choiceDesc}\n\n(Added by betterR20 sidekick level-up, ${f.source})`,
+				source: "Species",
+				cascades: {},
+				relations: {},
+			};
+			displayOrder.push(id);
+			written++;
+		}
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return written;
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
@@ -822,7 +1051,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		const featureItemsHtml = features.length
 			? `<ul class="b20-preview-feature-list">${
 				features.map(f => {
-					const isTodo = f.isTodo && !isAutomatedBonusProficienciesFeature(f);
+					const isTodo = f.isTodo && !isAutomatedBonusProficienciesFeature(f) && !isAutomatedAsiFeature(f);
 					return `<li><span style="color:${isTodo ? "#c0392b" : "#27ae60"};font-weight:bold">${isTodo ? "TODO" : "AUTO"} ${f.name}</span> <span style="color:#888">(lv${f.level})</span><br><span style="font-size:0.9em">${f.description.slice(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
 				}).join("")
 			}</ul>`
@@ -852,7 +1081,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const features = d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel);
 			if (features.length) {
 				const featureItems = features.map(f => {
-					const tag = (f.isTodo && !isAutomatedBonusProficienciesFeature(f))
+					const tag = (f.isTodo && !isAutomatedBonusProficienciesFeature(f) && !isAutomatedAsiFeature(f))
 						? `<span style="color:#c0392b;font-size:0.85em;font-weight:bold">TODO</span>`
 						: `<span style="color:#27ae60;font-size:0.85em;font-weight:bold">AUTO</span>`;
 					return `<li>${tag} <strong>${f.name}</strong> <span style="color:#888;font-size:0.88em">(lv${f.level})</span><br><span style="color:#555;font-size:0.88em">${f.description.substring(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
@@ -905,7 +1134,10 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			.b20-sidekick-checkbox{display:flex;align-items:flex-start;gap:8px;margin:4px 0;cursor:pointer}
 			.b20-sidekick-checkbox input{margin-top:2px}
 			.b20-sidekick-checkbox-locked{color:#64748b}
-			.b20-sidekick-note{color:#64748b;font-size:.92em}
+			.b20-asi-instance{padding:8px 0}
+			.b20-asi-mode-label{display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer;font-size:13px}
+			.b20-asi-mode-label select{font-size:13px;padding:2px 4px}
+			.b20-asi-mode-label input[type=radio]{margin:0}
 			@media (max-width: 980px){.b20-sidekick-check-grid{grid-template-columns:1fr}.b20-sidekick-check-group-save,.b20-sidekick-check-group-skill{grid-column:auto}.b20-sidekick-check-group-skill{grid-template-columns:1fr}}
 		</style>`;
 	}
@@ -987,6 +1219,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const type = getType();
 				const level = getLevel();
 				renderBonusSection();
+				renderAsiSection($dialog.find(".b20-asi-container"), store, type, 0, level);
 				$dialog.find(".b20-upgrade-preview").html(makeStartingStateHtml(store, type, level));
 			}
 
@@ -1020,10 +1253,12 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 					"Create Sidekick Copy": () => {
 						const currentLevel = getLevel();
 						const sidekickType = getType();
-						const validation = validateBonusProfChoices($dialog, sidekickType);
-						if (!validation.ok) return alert(validation.message);
+						const profValidation = validateBonusProfChoices($dialog, sidekickType);
+						if (!profValidation.ok) return alert(profValidation.message);
+						const asiValidation = validateAsiChoices($dialog, sidekickType, 0, currentLevel);
+						if (!asiValidation.ok) return alert(asiValidation.message);
 						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: validation.selections});
+						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, asiChoices: asiValidation.asiChoices});
 					},
 					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				},
@@ -1081,89 +1316,92 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						</div>
 					</div>
 					<div class="b20-bonus-prof-container"></div>
-				</div>
-			`);
+				<div class="b20-asi-container"></div>
+			</div>
+		`);
 
-			function getType () {
-				if (sidekickType) return sidekickType;
-				return $dialog.find("input[name=sidekickType]:checked").val() || "expert";
+		function getType () {
+			if (sidekickType) return sidekickType;
+			return $dialog.find("input[name=sidekickType]:checked").val() || "expert";
+		}
+		function getLevel () { return getSelectedLevel($dialog, levelOptions); }
+
+		function renderBonusSection () {
+			const choiceState = makeBonusProfChoiceState(store, getType());
+			if (!choiceState) {
+				$dialog.find(".b20-bonus-prof-container").html("");
+				return;
 			}
-			function getLevel () { return getSelectedLevel($dialog, levelOptions); }
-
-			function renderBonusSection () {
-				const choiceState = makeBonusProfChoiceState(store, getType());
-				if (!choiceState) {
-					$dialog.find(".b20-bonus-prof-container").html("");
-					return;
-				}
-				$dialog.find(".b20-bonus-prof-container").html(`
-					<div class="b20-sidekick-card">
-						<h4>Bonus Proficiencies</h4>
-						<p style="margin:0 0 10px;color:#475569;font-size:12px">${getBonusProficiencyRequirementText(getType())}</p>
-						<div class="b20-sidekick-check-grid">
-							<div class="b20-sidekick-check-group-save">
-								<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
-								${renderBonusProfCheckboxes(choiceState.saves.items, "bonusProfSaves")}
-							</div>
-							<div class="b20-sidekick-check-group-skill">
-								<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
-								${renderBonusProfCheckboxes(choiceState.skills.items, "bonusProfSkills")}
-							</div>
+			$dialog.find(".b20-bonus-prof-container").html(`
+				<div class="b20-sidekick-card">
+					<h4>Bonus Proficiencies</h4>
+					<p style="margin:0 0 10px;color:#475569;font-size:12px">${getBonusProficiencyRequirementText(getType())}</p>
+					<div class="b20-sidekick-check-grid">
+						<div class="b20-sidekick-check-group-save">
+							<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
+							${renderBonusProfCheckboxes(choiceState.saves.items, "bonusProfSaves")}
+						</div>
+						<div class="b20-sidekick-check-group-skill">
+							<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
+							${renderBonusProfCheckboxes(choiceState.skills.items, "bonusProfSkills")}
 						</div>
 					</div>
-				`);
-				enforceCheckboxLimit($dialog, "bonusProfSaves", choiceState.saves.maxChoices);
-				enforceCheckboxLimit($dialog, "bonusProfSkills", choiceState.skills.maxChoices);
-			}
+				</div>
+			`);
+			enforceCheckboxLimit($dialog, "bonusProfSaves", choiceState.saves.maxChoices);
+			enforceCheckboxLimit($dialog, "bonusProfSkills", choiceState.skills.maxChoices);
+		}
 
-			function refresh () {
-				const type = getType();
-				const level = getLevel();
-				renderBonusSection();
-				const summary = previewUpgrade(store, level, type);
-				$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, level, level + 1));
-			}
+		function refresh () {
+			const type = getType();
+			const level = getLevel();
+			renderBonusSection();
+			renderAsiSection($dialog.find(".b20-asi-container"), store, type, level, level + 1);
+			const summary = previewUpgrade(store, level, type);
+			$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, level, level + 1));
+		}
 
-			$dialog.on("change", "input[name=sidekickType], input[name=levelBasis]", function () {
-				const chosen = $dialog.find("input[name=levelBasis]:checked").val();
-				$dialog.find(".b20-custom-level-row").css("display", chosen === "custom" ? "block" : "none");
-				refresh();
-			});
-			$dialog.on("input", ".b20-custom-level-input", refresh);
-			$dialog.on("change", "input[name=bonusProfSaves]", () => {
-				const cfg = getSidekickBonusProficiencyConfig(getType());
-				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSaves", cfg.saves.maxChoices);
-			});
-			$dialog.on("change", "input[name=bonusProfSkills]", () => {
-				const cfg = getSidekickBonusProficiencyConfig(getType());
-				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
-			});
-			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
-
-			$dialog.dialog({
-				resizable: true, autoOpen: true, width: 1000, dialogClass: "b20-sidekick-dialog",
-				position: {my: "center top+30", at: "center top", of: $mapViewport},
-				maxHeight: Math.floor(window.innerHeight * 0.92),
-				title: "Level Up Sidekick — Create Copy",
-				open: () => {
-					refresh();
-					$dialog.dialog("widget").css("max-height", `${Math.floor(window.innerHeight * 0.92)}px`);
-				},
-				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
-				buttons: {
-					"Create Copy": () => {
-						const currentLevel = getLevel();
-						const resolvedType = getType();
-						const validation = validateBonusProfChoices($dialog, resolvedType);
-						if (!validation.ok) return alert(validation.message);
-						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: validation.selections});
-					},
-					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
-				},
-			});
+		$dialog.on("change", "input[name=sidekickType], input[name=levelBasis]", function () {
+			const chosen = $dialog.find("input[name=levelBasis]:checked").val();
+			$dialog.find(".b20-custom-level-row").css("display", chosen === "custom" ? "block" : "none");
+			refresh();
 		});
-	}
+		$dialog.on("input", ".b20-custom-level-input", refresh);
+		$dialog.on("change", "input[name=bonusProfSaves]", () => {
+			const cfg = getSidekickBonusProficiencyConfig(getType());
+			if (cfg) enforceCheckboxLimit($dialog, "bonusProfSaves", cfg.saves.maxChoices);
+		});
+		$dialog.on("change", "input[name=bonusProfSkills]", () => {
+			const cfg = getSidekickBonusProficiencyConfig(getType());
+			if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
+		});
+		const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
+
+		$dialog.dialog({
+			resizable: true, autoOpen: true, width: 1000, dialogClass: "b20-sidekick-dialog",
+			position: {my: "center top+30", at: "center top", of: $mapViewport},
+			maxHeight: Math.floor(window.innerHeight * 0.92),
+			title: "Level Up Sidekick — Create Copy",
+			open: () => {
+				refresh();
+				$dialog.dialog("widget").css("max-height", `${Math.floor(window.innerHeight * 0.92)}px`);
+			},
+			close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
+			buttons: {
+				"Create Copy": () => {
+					const currentLevel = getLevel();
+					const resolvedType = getType();
+					const profValidation = validateBonusProfChoices($dialog, resolvedType);
+					if (!profValidation.ok) return alert(profValidation.message);
+					const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
+					if (!asiValidation.ok) return alert(asiValidation.message);
+					$dialog.off(); $dialog.dialog("destroy").remove();
+					resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: profValidation.selections, asiChoices: asiValidation.asiChoices});
+				},
+				Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
+			},
+		});
+	})
 
 	/** Journal context-menu handler — detects Make Sidekick vs Level Up flow. */
 	d20plus.npcLevelUp.levelUpFromJournalContext = async function (event) {
@@ -1192,29 +1430,30 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType, bonusProficiencies} = dialogResult;
+		const {currentLevel, sidekickType, bonusProficiencies, asiChoices} = dialogResult;
 		const isMakeSidekick = !hasSidekickType;
 
 		try {
 			const applyLevels = isMakeSidekick ? 0 : 1;
 			// For Make Sidekick, featureFromLevel=0 so all features up to the chosen level are written.
 			const featureFromLevel = isMakeSidekick ? 0 : undefined;
-			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, featureFromLevel, sidekickType, bonusProficiencies});
+			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, featureFromLevel, sidekickType, bonusProficiencies, asiChoices});
 			log(`Done — created "${newChar.get("name")}"`);
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
+			const asiMsg = summary.asiApplied ? `\nAbility scores improved: ${summary.asiApplied}` : "";
 			if (isMakeSidekick) {
 				alert(`Created "${newChar.get("name")}" as a sidekick.
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}`);
 			} else {
 				alert(`Created "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
