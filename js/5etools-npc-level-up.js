@@ -557,12 +557,9 @@ function d20plusNpcLevelUp () {
 		let hpLine, rollLine, hdLine;
 
 		if (parsedHP) {
-			const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : "0";
-			const baseLevel = crToSidekickLevel(crStr);
-			const levelsToAdd = Math.max(0, targetLevel - baseLevel);
 			const avgPerDie = avgHpPerDie(parsedHP.faces);
-			const totalHpGain = levelsToAdd * (avgPerDie + conMod);
-			const newDice = parsedHP.count + levelsToAdd;
+			const totalHpGain = 0;
+			const newDice = parsedHP.count;
 			rollLine = formatHpFormula({count: newDice, faces: parsedHP.faces, mod: conMod * newDice});
 			hdLine = `${newDice}d${parsedHP.faces}`;
 			if (currentHpMax != null) {
@@ -894,4 +891,5 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcLevelUp);
+
 
