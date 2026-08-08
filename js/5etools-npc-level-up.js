@@ -813,17 +813,27 @@ function d20plusNpcLevelUp () {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType} = dialogResult;`r`n`t`tconst isMakeSidekick = !hasSidekickType;
+		const {currentLevel, sidekickType} = dialogResult;
+		const isMakeSidekick = !hasSidekickType;
 
 		try {
-			const applyLevels = isMakeSidekick ? 0 : 1;\n\t\t\tconst {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, sidekickType});
+			const applyLevels = isMakeSidekick ? 0 : 1;
+			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, sidekickType});
 			log(`Done — created "${newChar.get("name")}"`);
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
-			alert(`Created "${newChar.get("name")}".
+			if (isMakeSidekick) {
+				alert(`Created "${newChar.get("name")}" as a sidekick.
+
+Starting level: ${summary.newLevel}
+HP max: ${summary.newHpMax}
+Roll formula: ${summary.newRollHP}${featMsg}`);
+			} else {
+				alert(`Created "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
 Roll formula: ${summary.newRollHP}${featMsg}`);
+			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
 			alert(`Failed to level up "${charName}". See the console for details.`);
@@ -891,6 +901,7 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcLevelUp);
+
 
 
 
