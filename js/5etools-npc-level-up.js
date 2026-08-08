@@ -318,7 +318,8 @@ function d20plusNpcLevelUp () {
 
 		// Write sidekick class features for levels gained
 		const sidekickType = options.sidekickType || (store.npc && store.npc._npcSidekickType) || null;
-		const bonusProficienciesAdded = shouldApplyBonusProficiencies(currentSidekickLevel, targetSidekickLevel)
+		const shouldHandleBonusProficiencies = shouldApplyBonusProficiencies(currentSidekickLevel, targetSidekickLevel);
+		const bonusProficienciesAdded = shouldHandleBonusProficiencies
 			? applyBonusProficiencies(store, options.bonusProficiencies)
 			: 0;
 		const featuresWritten = writeSidekickFeatures(
@@ -326,8 +327,11 @@ function d20plusNpcLevelUp () {
 			sidekickType,
 			currentSidekickLevel,
 			targetSidekickLevel,
-			{ skipBonusProficienciesTodo: shouldApplyBonusProficiencies(currentSidekickLevel, targetSidekickLevel) },
+			{ skipBonusProficienciesTodo: shouldHandleBonusProficiencies },
 		);
+		const bonusProficiencyFeatureWritten = shouldHandleBonusProficiencies
+			? writeBonusProficiencyFeature(store, sidekickType, options.bonusProficiencies)
+			: 0;
 
 		// Count how many Proficiency integrants exist (informational for the summary)
 		const allInts = (store.integrants && store.integrants.integrants) || {};
@@ -335,7 +339,7 @@ function d20plusNpcLevelUp () {
 			.filter(i => i.type === "Proficiency")
 			.length;
 		summary.bonusProficienciesAdded = bonusProficienciesAdded;
-		summary.featuresWritten = featuresWritten;
+		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten;
 
 		return { store, summary };
 	}
@@ -433,6 +437,16 @@ function d20plusNpcLevelUp () {
 		};
 	}
 
+	function getBonusProficiencyRequirementText (sidekickType) {
+		const config = getSidekickBonusProficiencyConfig(sidekickType);
+		if (!config) return "Choose the level 1 sidekick Bonus Proficiencies for this class feature.";
+		return `Choose the level 1 sidekick Bonus Proficiencies for this class feature: ${config.saves.maxChoices} saving throw${config.saves.maxChoices === 1 ? "" : "s"} and ${config.skills.maxChoices} skill proficienc${config.skills.maxChoices === 1 ? "y" : "ies"}.`;
+	}
+
+	function isAutomatedBonusProficienciesFeature (feature) {
+		return feature && feature.name === "Bonus Proficiencies" && feature.level === 1;
+	}
+
 	function renderBonusProfCheckboxes (items, inputName) {
 		return items.map(item => `
 			<label class="b20-sidekick-checkbox ${item.locked ? "b20-sidekick-checkbox-locked" : ""}">
@@ -517,6 +531,42 @@ function d20plusNpcLevelUp () {
 			added++;
 		});
 		return added;
+	}
+
+	function formatChosenBonusProficiencies (selections) {
+		const saves = selections?.saves?.length ? selections.saves.join(", ") : "None";
+		const skills = selections?.skills?.length ? selections.skills.join(", ") : "None";
+		return { saves, skills };
+	}
+
+	function getBonusProficiencyFeatureDescription (sidekickType, selections) {
+		const sidekickFeatures = d20plus.sidekickData && d20plus.sidekickData[sidekickType];
+		const baseFeature = sidekickFeatures && sidekickFeatures.find(feature => feature.name === "Bonus Proficiencies" && feature.level === 1);
+		const { saves, skills } = formatChosenBonusProficiencies(selections);
+		const baseDescription = baseFeature ? baseFeature.description : "The sidekick gains its level 1 Bonus Proficiencies feature.";
+		return `${baseDescription}\n\nChosen saving throw proficiencies: ${saves}\nChosen skill proficiencies: ${skills}`;
+	}
+
+	function writeBonusProficiencyFeature (store, sidekickType, selections) {
+		if (!sidekickType || !selections) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const integrants = store.integrants.integrants;
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+		integrants[id] = {
+			...base,
+			name: "Bonus Proficiencies",
+			description: `${getBonusProficiencyFeatureDescription(sidekickType, selections)}\n\n(Added by betterR20 sidekick level-up, recorded from level 1 sidekick feature choices.)`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
 	}
 
 	/** Build a copy name for the upgraded character. */
@@ -764,8 +814,10 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		const features = d20plus.sidekickData.getFeaturesGained(sidekickType, 0, targetLevel);
 		const featureItemsHtml = features.length
 			? `<ul class="b20-preview-feature-list">${
-				features.map(f => `<li><span style="color:${f.isTodo ? "#c0392b" : "#27ae60"};font-weight:bold">${f.isTodo ? "TODO" : "AUTO"} ${f.name}</span> <span style="color:#888">(lv${f.level})</span><br><span style="font-size:0.9em">${f.description.slice(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`
-				).join("")
+				features.map(f => {
+					const isTodo = f.isTodo && !isAutomatedBonusProficienciesFeature(f);
+					return `<li><span style="color:${isTodo ? "#c0392b" : "#27ae60"};font-weight:bold">${isTodo ? "TODO" : "AUTO"} ${f.name}</span> <span style="color:#888">(lv${f.level})</span><br><span style="font-size:0.9em">${f.description.slice(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
+				}).join("")
 			}</ul>`
 			: `<p style="color:#64748b;margin:0">No features for this type/level combination.</p>`;
 		return makeSplitPreviewHtml(rowsHtml, `Features gained (levels 1–${targetLevel})`, featureItemsHtml, "");
@@ -793,7 +845,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const features = d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel);
 			if (features.length) {
 				const featureItems = features.map(f => {
-					const tag = f.isTodo
+					const tag = (f.isTodo && !isAutomatedBonusProficienciesFeature(f))
 						? `<span style="color:#c0392b;font-size:0.85em;font-weight:bold">TODO</span>`
 						: `<span style="color:#27ae60;font-size:0.85em;font-weight:bold">AUTO</span>`;
 					return `<li>${tag} <strong>${f.name}</strong> <span style="color:#888;font-size:0.88em">(lv${f.level})</span><br><span style="color:#555;font-size:0.88em">${f.description.substring(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
@@ -904,6 +956,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				$dialog.find(".b20-bonus-prof-container").html(`
 					<div class="b20-sidekick-card">
 						<h4>Bonus Proficiencies</h4>
+						<p style="margin:0 0 10px;color:#475569;font-size:12px">${getBonusProficiencyRequirementText(getType())}</p>
 						<div class="b20-sidekick-check-grid">
 							<div>
 								<p style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
@@ -1030,6 +1083,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				$dialog.find(".b20-bonus-prof-container").html(`
 					<div class="b20-sidekick-card">
 						<h4>Bonus Proficiencies</h4>
+						<p style="margin:0 0 10px;color:#475569;font-size:12px">${getBonusProficiencyRequirementText(getType())}</p>
 						<div class="b20-sidekick-check-grid">
 							<div>
 								<p style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
