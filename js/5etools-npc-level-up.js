@@ -94,6 +94,29 @@ function d20plusNpcLevelUp () {
 		6, 6, 6, 6,   // levels 17–20
 	];
 
+	const SIDEKICK_BONUS_PROFICIENCY_CONFIG = {
+		expert: {
+			saves: { maxChoices: 1, options: ["Dexterity", "Intelligence", "Charisma"] },
+			skills: { maxChoices: 5, options: ["Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion", "Sleight of Hand", "Stealth", "Survival"] },
+		},
+		warrior: {
+			saves: { maxChoices: 1, options: ["Strength", "Dexterity", "Constitution"] },
+			skills: { maxChoices: 2, options: ["Acrobatics", "Animal Handling", "Athletics", "Intimidation", "Nature", "Perception", "Survival"] },
+		},
+		mage: {
+			saves: { maxChoices: 1, options: ["Wisdom", "Intelligence", "Charisma"] },
+			skills: { maxChoices: 2, options: ["Arcana", "History", "Insight", "Investigation", "Medicine", "Performance", "Persuasion", "Religion"] },
+		},
+		healer: {
+			saves: { maxChoices: 1, options: ["Wisdom", "Intelligence", "Charisma"] },
+			skills: { maxChoices: 2, options: ["Arcana", "History", "Insight", "Investigation", "Medicine", "Performance", "Persuasion", "Religion"] },
+		},
+		prodigy: {
+			saves: { maxChoices: 1, options: ["Wisdom", "Intelligence", "Charisma"] },
+			skills: { maxChoices: 2, options: ["Arcana", "History", "Insight", "Investigation", "Medicine", "Performance", "Persuasion", "Religion"] },
+		},
+	};
+
 	/**
 	 * Parse a CR string ("1/8", "1/4", "1/2", "1", "20", etc.) to a number.
 	 */
@@ -295,13 +318,23 @@ function d20plusNpcLevelUp () {
 
 		// Write sidekick class features for levels gained
 		const sidekickType = options.sidekickType || (store.npc && store.npc._npcSidekickType) || null;
-		const featuresWritten = writeSidekickFeatures(store, sidekickType, currentSidekickLevel, targetSidekickLevel);
+		const bonusProficienciesAdded = shouldApplyBonusProficiencies(currentSidekickLevel, targetSidekickLevel)
+			? applyBonusProficiencies(store, options.bonusProficiencies)
+			: 0;
+		const featuresWritten = writeSidekickFeatures(
+			store,
+			sidekickType,
+			currentSidekickLevel,
+			targetSidekickLevel,
+			{ skipBonusProficienciesTodo: shouldApplyBonusProficiencies(currentSidekickLevel, targetSidekickLevel) },
+		);
 
 		// Count how many Proficiency integrants exist (informational for the summary)
 		const allInts = (store.integrants && store.integrants.integrants) || {};
 		summary.proficienciesUpdated = Object.values(allInts)
 			.filter(i => i.type === "Proficiency")
 			.length;
+		summary.bonusProficienciesAdded = bonusProficienciesAdded;
 		summary.featuresWritten = featuresWritten;
 
 		return { store, summary };
@@ -315,9 +348,11 @@ function d20plusNpcLevelUp () {
 	 * Write sidekick features gained between fromLevel+1 and toLevel into the store.
 	 * Returns the number of features written.
 	 */
-	function writeSidekickFeatures (store, sidekickType, fromLevel, toLevel) {
+	function writeSidekickFeatures (store, sidekickType, fromLevel, toLevel, options = {}) {
 		if (!d20plus.sidekickData || !sidekickType) return 0;
-		const features = d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel);
+		const features = d20plus.sidekickData
+			.getFeaturesGained(sidekickType, fromLevel, toLevel)
+			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies"));
 		if (!features.length) return 0;
 
 		if (!store.integrants) store.integrants = { integrants: {} };
@@ -362,9 +397,135 @@ function d20plusNpcLevelUp () {
 		return Object.values(ints).find(i => i.type === type) || null;
 	}
 
+	function getProficiencyIntegrants (store, category) {
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		return Object.values(ints).filter(i => i.type === "Proficiency" && i.category === category);
+	}
+
+	function getExistingProficiencies (store) {
+		return {
+			saves: new Set(getProficiencyIntegrants(store, "Saving Throw").map(i => i.proficiency).filter(Boolean)),
+			skills: new Set(getProficiencyIntegrants(store, "Skill").map(i => i.proficiency).filter(Boolean)),
+		};
+	}
+
+	function getSidekickBonusProficiencyConfig (sidekickType) {
+		return sidekickType ? SIDEKICK_BONUS_PROFICIENCY_CONFIG[sidekickType] || null : null;
+	}
+
+	function makeBonusProfChoiceState (store, sidekickType) {
+		const config = getSidekickBonusProficiencyConfig(sidekickType);
+		if (!config) return null;
+		const existing = getExistingProficiencies(store);
+		const makeItems = (configKey, existingSet) => config[configKey].options.map(option => ({
+			value: option,
+			locked: existingSet.has(option),
+		}));
+		return {
+			saves: {
+				maxChoices: config.saves.maxChoices,
+				items: makeItems("saves", existing.saves),
+			},
+			skills: {
+				maxChoices: config.skills.maxChoices,
+				items: makeItems("skills", existing.skills),
+			},
+		};
+	}
+
+	function renderBonusProfCheckboxes (items, inputName) {
+		return items.map(item => `
+			<label class="b20-sidekick-checkbox ${item.locked ? "b20-sidekick-checkbox-locked" : ""}">
+				<input type="checkbox" name="${inputName}" value="${item.value}" ${item.locked ? 'checked disabled data-locked="true"' : ""}>
+				<span>${item.value}${item.locked ? ' <span class="b20-sidekick-note">(already proficient)</span>' : ""}</span>
+			</label>
+		`).join("");
+	}
+
+	function readSelectedValues ($dialog, inputName) {
+		return $dialog.find(`input[name="${inputName}"]:checked`).map((_, el) => $(el).val()).get();
+	}
+
+	function enforceCheckboxLimit ($dialog, inputName, maxChoices) {
+		const $inputs = $dialog.find(`input[name="${inputName}"]`);
+		const checkedCount = $inputs.filter(":checked").length;
+		const shouldDisableUnchecked = checkedCount >= maxChoices;
+		$inputs.each((_, el) => {
+			const $el = $(el);
+			if ($el.is("[data-locked=true]")) {
+				$el.prop("disabled", true);
+				return;
+			}
+			$el.prop("disabled", shouldDisableUnchecked && !$el.is(":checked"));
+		});
+	}
+
+	function validateBonusProfChoices ($dialog, sidekickType) {
+		const config = getSidekickBonusProficiencyConfig(sidekickType);
+		if (!config) return { ok: true, selections: { saves: [], skills: [] } };
+		const selections = {
+			saves: readSelectedValues($dialog, "bonusProfSaves"),
+			skills: readSelectedValues($dialog, "bonusProfSkills"),
+		};
+		if (selections.saves.length < config.saves.maxChoices) {
+			return { ok: false, message: `Select ${config.saves.maxChoices} saving throw proficiency${config.saves.maxChoices === 1 ? "" : "ies"} before continuing.` };
+		}
+		if (selections.skills.length < config.skills.maxChoices) {
+			return { ok: false, message: `Select ${config.skills.maxChoices} skill proficienc${config.skills.maxChoices === 1 ? "y" : "ies"} before continuing.` };
+		}
+		return { ok: true, selections };
+	}
+
+	function makeProficiencyIntegrant (category, proficiency, pos) {
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Proficiency", pos);
+		return {
+			id,
+			integrant: {
+				...base,
+				name: category === "Saving Throw" ? "Saving Throw Proficiency" : "Skill Proficiency",
+				category,
+				proficiency,
+				proficiencyLevel: "Proficient",
+				increaseIfAlreadyAt: false,
+				rollAbility: "Query Attribute",
+				notes: "",
+				cascades: {},
+				relations: {},
+			},
+		};
+	}
+
+	function applyBonusProficiencies (store, selections) {
+		if (!selections || (!selections.saves?.length && !selections.skills?.length)) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		const existing = getExistingProficiencies(store);
+		let pos = d20plus.store2024.getNextArrayPos(store);
+		let added = 0;
+		(selections.saves || []).forEach(proficiency => {
+			if (existing.saves.has(proficiency)) return;
+			const { id, integrant } = makeProficiencyIntegrant("Saving Throw", proficiency, pos++);
+			store.integrants.integrants[id] = integrant;
+			existing.saves.add(proficiency);
+			added++;
+		});
+		(selections.skills || []).forEach(proficiency => {
+			if (existing.skills.has(proficiency)) return;
+			const { id, integrant } = makeProficiencyIntegrant("Skill", proficiency, pos++);
+			store.integrants.integrants[id] = integrant;
+			existing.skills.add(proficiency);
+			added++;
+		});
+		return added;
+	}
+
 	/** Build a copy name for the upgraded character. */
 	function getLevelUpName (sourceName, targetLevel) {
 		return `${sourceName || "Unnamed"} (Level ${targetLevel})`;
+	}
+
+	function shouldApplyBonusProficiencies (currentLevel, targetLevel) {
+		return currentLevel <= 1 && targetLevel >= 1;
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
@@ -396,6 +557,7 @@ function d20plusNpcLevelUp () {
 			log(`PB: +${summary.sourcePb} → +${summary.newPb}${summary.pbChanged ? " (changed)" : ""}`);
 			log(`HP: +${summary.hpAdded} (new max ${summary.newHpMax}), roll formula: ${summary.newRollHP}`);
 			log(`Hit dice added: ${summary.hitDiceAdded}, proficiencies present: ${summary.proficienciesUpdated}`);
+			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}`);
 			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
 		});
 
@@ -677,6 +839,12 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			.b20-sidekick-dialog .ui-dialog-buttonpane{padding:.5em .8em}
 			.b20-sidekick-dialog .ui-dialog-buttonset button{border-radius:8px;padding:.45em .9em}
 			.b20-sidekick-dialog .ui-dialog-buttonset button:first-child{background:#2563eb;color:#fff;border-color:#1d4ed8}
+			.b20-sidekick-check-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+			.b20-sidekick-checkbox{display:flex;align-items:flex-start;gap:8px;margin:4px 0;cursor:pointer}
+			.b20-sidekick-checkbox input{margin-top:2px}
+			.b20-sidekick-checkbox-locked{color:#64748b}
+			.b20-sidekick-note{color:#64748b;font-size:.92em}
+			@media (max-width: 760px){.b20-sidekick-check-grid{grid-template-columns:1fr}}
 		</style>`;
 	}
 	function showMakeSidekickDialog (character, store) {
@@ -716,6 +884,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 							</div>
 						</div>
 					</div>
+					<div class="b20-bonus-prof-container"></div>
 					<div class="b20-sidekick-card">
 						<h4>Preview</h4>
 						<div class="b20-upgrade-preview b20-sidekick-preview"></div>
@@ -726,9 +895,35 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			function getType () { return $dialog.find("input[name=sidekickType]:checked").val() || "expert"; }
 			function getLevel () { return getSelectedLevel($dialog, levelOptions); }
 
+			function renderBonusSection () {
+				const choiceState = makeBonusProfChoiceState(store, getType());
+				if (!choiceState) {
+					$dialog.find(".b20-bonus-prof-container").html("");
+					return;
+				}
+				$dialog.find(".b20-bonus-prof-container").html(`
+					<div class="b20-sidekick-card">
+						<h4>Bonus Proficiencies</h4>
+						<div class="b20-sidekick-check-grid">
+							<div>
+								<p style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
+								${renderBonusProfCheckboxes(choiceState.saves.items, "bonusProfSaves")}
+							</div>
+							<div>
+								<p style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
+								${renderBonusProfCheckboxes(choiceState.skills.items, "bonusProfSkills")}
+							</div>
+						</div>
+					</div>
+				`);
+				enforceCheckboxLimit($dialog, "bonusProfSaves", choiceState.saves.maxChoices);
+				enforceCheckboxLimit($dialog, "bonusProfSkills", choiceState.skills.maxChoices);
+			}
+
 			function refresh () {
 				const type = getType();
 				const level = getLevel();
+				renderBonusSection();
 				$dialog.find(".b20-upgrade-preview").html(makeStartingStateHtml(store, type, level));
 			}
 
@@ -738,6 +933,14 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				refresh();
 			});
 			$dialog.on("input", ".b20-custom-level-input", refresh);
+			$dialog.on("change", "input[name=bonusProfSaves]", () => {
+				const cfg = getSidekickBonusProficiencyConfig(getType());
+				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSaves", cfg.saves.maxChoices);
+			});
+			$dialog.on("change", "input[name=bonusProfSkills]", () => {
+				const cfg = getSidekickBonusProficiencyConfig(getType());
+				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
+			});
 
 			$dialog.dialog({
 				resizable: true, autoOpen: true, width: 620, dialogClass: "b20-sidekick-dialog",
@@ -748,8 +951,10 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 					"Create Sidekick Copy": () => {
 						const currentLevel = getLevel();
 						const sidekickType = getType();
+						const validation = validateBonusProfChoices($dialog, sidekickType);
+						if (!validation.ok) return alert(validation.message);
 						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType});
+						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: validation.selections});
 					},
 					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				},
@@ -806,6 +1011,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 							<div class="b20-upgrade-preview b20-sidekick-preview" style="min-height:90px"></div>
 						</div>
 					</div>
+					<div class="b20-bonus-prof-container"></div>
 				</div>
 			`);
 
@@ -815,9 +1021,35 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			}
 			function getLevel () { return getSelectedLevel($dialog, levelOptions); }
 
+			function renderBonusSection () {
+				const choiceState = makeBonusProfChoiceState(store, getType());
+				if (!choiceState) {
+					$dialog.find(".b20-bonus-prof-container").html("");
+					return;
+				}
+				$dialog.find(".b20-bonus-prof-container").html(`
+					<div class="b20-sidekick-card">
+						<h4>Bonus Proficiencies</h4>
+						<div class="b20-sidekick-check-grid">
+							<div>
+								<p style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
+								${renderBonusProfCheckboxes(choiceState.saves.items, "bonusProfSaves")}
+							</div>
+							<div>
+								<p style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
+								${renderBonusProfCheckboxes(choiceState.skills.items, "bonusProfSkills")}
+							</div>
+						</div>
+					</div>
+				`);
+				enforceCheckboxLimit($dialog, "bonusProfSaves", choiceState.saves.maxChoices);
+				enforceCheckboxLimit($dialog, "bonusProfSkills", choiceState.skills.maxChoices);
+			}
+
 			function refresh () {
 				const type = getType();
 				const level = getLevel();
+				renderBonusSection();
 				const summary = previewUpgrade(store, level, type);
 				$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, level, level + 1));
 			}
@@ -828,6 +1060,14 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				refresh();
 			});
 			$dialog.on("input", ".b20-custom-level-input", refresh);
+			$dialog.on("change", "input[name=bonusProfSaves]", () => {
+				const cfg = getSidekickBonusProficiencyConfig(getType());
+				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSaves", cfg.saves.maxChoices);
+			});
+			$dialog.on("change", "input[name=bonusProfSkills]", () => {
+				const cfg = getSidekickBonusProficiencyConfig(getType());
+				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
+			});
 
 			$dialog.dialog({
 				resizable: true, autoOpen: true, width: 620, dialogClass: "b20-sidekick-dialog",
@@ -838,8 +1078,10 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 					"Create Copy": () => {
 						const currentLevel = getLevel();
 						const resolvedType = getType();
+						const validation = validateBonusProfChoices($dialog, resolvedType);
+						if (!validation.ok) return alert(validation.message);
 						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType: resolvedType});
+						resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: validation.selections});
 					},
 					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				},
@@ -874,26 +1116,27 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType} = dialogResult;
+		const {currentLevel, sidekickType, bonusProficiencies} = dialogResult;
 		const isMakeSidekick = !hasSidekickType;
 
 		try {
 			const applyLevels = isMakeSidekick ? 0 : 1;
-			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, sidekickType});
+			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, sidekickType, bonusProficiencies});
 			log(`Done — created "${newChar.get("name")}"`);
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
+			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
 			if (isMakeSidekick) {
 				alert(`Created "${newChar.get("name")}" as a sidekick.
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}`);
 			} else {
 				alert(`Created "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
@@ -962,10 +1205,3 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcLevelUp);
-
-
-
-
-
-
-
