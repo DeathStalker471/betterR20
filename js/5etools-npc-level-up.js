@@ -891,12 +891,15 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			.b20-sidekick-dialog .ui-dialog-buttonpane{padding:.5em .8em}
 			.b20-sidekick-dialog .ui-dialog-buttonset button{border-radius:8px;padding:.45em .9em}
 			.b20-sidekick-dialog .ui-dialog-buttonset button:first-child{background:#2563eb;color:#fff;border-color:#1d4ed8}
-			.b20-sidekick-check-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+			.b20-sidekick-check-grid{display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:12px}
+			.b20-sidekick-check-group-save{grid-column:1}
+			.b20-sidekick-check-group-skill{grid-column:2 / span 3;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 14px}
+			.b20-sidekick-check-group-skill .b20-sidekick-check-title{grid-column:1 / -1}
 			.b20-sidekick-checkbox{display:flex;align-items:flex-start;gap:8px;margin:4px 0;cursor:pointer}
 			.b20-sidekick-checkbox input{margin-top:2px}
 			.b20-sidekick-checkbox-locked{color:#64748b}
 			.b20-sidekick-note{color:#64748b;font-size:.92em}
-			@media (max-width: 760px){.b20-sidekick-check-grid{grid-template-columns:1fr}}
+			@media (max-width: 980px){.b20-sidekick-check-grid{grid-template-columns:1fr}.b20-sidekick-check-group-save,.b20-sidekick-check-group-skill{grid-column:auto}.b20-sidekick-check-group-skill{grid-template-columns:1fr}}
 		</style>`;
 	}
 	function showMakeSidekickDialog (character, store) {
@@ -958,12 +961,12 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						<h4>Bonus Proficiencies</h4>
 						<p style="margin:0 0 10px;color:#475569;font-size:12px">${getBonusProficiencyRequirementText(getType())}</p>
 						<div class="b20-sidekick-check-grid">
-							<div>
-								<p style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
+							<div class="b20-sidekick-check-group-save">
+								<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
 								${renderBonusProfCheckboxes(choiceState.saves.items, "bonusProfSaves")}
 							</div>
-							<div>
-								<p style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
+							<div class="b20-sidekick-check-group-skill">
+								<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
 								${renderBonusProfCheckboxes(choiceState.skills.items, "bonusProfSkills")}
 							</div>
 						</div>
@@ -996,7 +999,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			});
 
 			$dialog.dialog({
-				resizable: true, autoOpen: true, width: 620, dialogClass: "b20-sidekick-dialog",
+				resizable: true, autoOpen: true, width: 1240, dialogClass: "b20-sidekick-dialog",
 				title: "Make Sidekick — Create Copy",
 				open: () => refresh(),
 				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
@@ -1085,12 +1088,12 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						<h4>Bonus Proficiencies</h4>
 						<p style="margin:0 0 10px;color:#475569;font-size:12px">${getBonusProficiencyRequirementText(getType())}</p>
 						<div class="b20-sidekick-check-grid">
-							<div>
-								<p style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
+							<div class="b20-sidekick-check-group-save">
+								<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Saving Throws (${choiceState.saves.maxChoices} required)</p>
 								${renderBonusProfCheckboxes(choiceState.saves.items, "bonusProfSaves")}
 							</div>
-							<div>
-								<p style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
+							<div class="b20-sidekick-check-group-skill">
+								<p class="b20-sidekick-check-title" style="margin:0 0 6px;color:#475569;font-size:12px">Skills (${choiceState.skills.maxChoices} required)</p>
 								${renderBonusProfCheckboxes(choiceState.skills.items, "bonusProfSkills")}
 							</div>
 						</div>
@@ -1124,7 +1127,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			});
 
 			$dialog.dialog({
-				resizable: true, autoOpen: true, width: 620, dialogClass: "b20-sidekick-dialog",
+				resizable: true, autoOpen: true, width: 1240, dialogClass: "b20-sidekick-dialog",
 				title: "Level Up Sidekick — Create Copy",
 				open: () => refresh(),
 				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
