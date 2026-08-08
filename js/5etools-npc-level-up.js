@@ -813,7 +813,7 @@ function d20plusNpcLevelUp () {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType} = dialogResult;\n\t\tconst isMakeSidekick = !hasSidekickType;
+		const {currentLevel, sidekickType} = dialogResult;`r`n`t`tconst isMakeSidekick = !hasSidekickType;
 
 		try {
 			const applyLevels = isMakeSidekick ? 0 : 1;\n\t\t\tconst {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, sidekickType});
@@ -891,6 +891,7 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcLevelUp);
+
 
 
 
