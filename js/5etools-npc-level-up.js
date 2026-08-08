@@ -942,6 +942,10 @@ function d20plusNpcLevelUp () {
 		return (store.npc && store.npc._npcLevelUpLevel) || null;
 	}
 
+	function formatSignedConText (conMod) {
+		return `${conMod >= 0 ? "+" : ""}${conMod} (CON)`;
+	}
+
 	/**
 	 * Build a preview of what a level-up would produce for a given currentLevel.
 	 * Returns the same summary shape as upgrade2024NpcStore.
@@ -1319,8 +1323,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						<div class="b20-sidekick-card b20-sidekick-row">
 							<h4 style="margin-top:0">Hit Point Increase</h4>
 							<p style="margin:0 0 8px;color:#64748b;font-size:12px">Gain one Hit Die and increase maximum HP by the die result plus Constitution modifier (minimum 1).</p>
-							<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer"><input type="radio" name="hpMode" value="average" checked>Average (${avgHp} + ${conMod >= 0 ? "+" : ""}${conMod})</label>
-							<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer"><input type="radio" name="hpMode" value="roll">Roll 1d${dieFaces} + ${conMod >= 0 ? "+" : ""}${conMod}</label>
+							<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer"><input type="radio" name="hpMode" value="average" checked>Average (${avgHp}${formatSignedConText(conMod)})</label>
+							<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer"><input type="radio" name="hpMode" value="roll">Roll 1d${dieFaces}${formatSignedConText(conMod)}</label>
 							<div class="b20-hp-roll-row" style="display:none;margin-top:6px">
 								<label>Roll result: <input type="number" class="b20-hp-roll-input" min="1" max="99" value="${avgHp}" style="width:64px;margin-left:6px"></label>
 							</div>
@@ -1358,6 +1362,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 
 			$dialog.on("change", "input[name=sidekickType], input[name=hpMode]", refresh);
 			$dialog.on("input", ".b20-hp-roll-input", refresh);
+			$dialog.on("click", ".b20-hp-roll-chat", () => { d20.textchat.doChatInput(`/r 1d${dieFaces}`); });
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
 			$dialog.dialog({
