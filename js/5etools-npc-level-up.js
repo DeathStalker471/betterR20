@@ -878,12 +878,6 @@ function d20plusNpcLevelUp () {
 							);
 						}
 
-						// Write upgraded store and names
-						d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
-						d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
-
-						log(`Created "${upgradedName}" (id: ${newCharacter.id})`);
-
 						// Copy bio / gmnotes blobs
 						await d20plus.store2024.copyBioAndNotes(character, newCharacter);
 
@@ -893,11 +887,16 @@ function d20plusNpcLevelUp () {
 							d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
 						}
 
+						// Trigger sheet frame — may cause the sheet to initialise and write attrs
 						if (newCharacter.view && typeof newCharacter.view.showNewVueFrame === "function") {
 							newCharacter.view.showNewVueFrame();
 						}
 
-						resolve({character: newCharacter, summary});
+						// Write upgraded store LAST so it wins over any blank store the sheet wrote on init
+						d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
+						d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
+
+						log(`Created "${upgradedName}" (id: ${newCharacter.id})`);
 					} catch (e) {
 						reject(e);
 					}

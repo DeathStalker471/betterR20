@@ -93,9 +93,16 @@ function d20plus2024Store () {
 
 	/**
 	 * Write the store and appState="npc" attrs for a freshly-created 2024 NPC.
-	 * Use this instead of saveStore when creating a new character (no existing storeAttr to destroy).
+	 * Destroys any pre-existing store/appState attrs first so there is exactly one
+	 * of each — prevents the sheet from finding a stale blank copy first.
 	 */
 	d20plus.store2024.saveNewNpcState = function (character, store) {
+		// Destroy any existing store/appState attrs the sheet may have already written
+		const toDestroy = character.attribs.filter(a =>
+			a.get("name") === "store" || a.get("name") === "appState"
+		);
+		toDestroy.forEach(a => a.destroy());
+
 		const toSave = [
 			{name: "appState", current: "npc"},
 			{name: "store", current: store},
