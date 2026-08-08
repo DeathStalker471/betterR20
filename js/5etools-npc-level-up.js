@@ -1405,9 +1405,9 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		const {attr, store} = d20plus.store2024.getStore(character);
 		if (!store) return alert("Could not read the 2024 store from this character.");
 
-		// Only go to Level Up if _npcSidekickType is already set.
-		// _npcLevelUpLevel alone (from old flow) is not enough — use Make Sidekick.
-		const hasSidekickType = !!(store.npc && store.npc._npcSidekickType);
+		// Treat the character as an existing sidekick if either the sidekick type or the
+		// stored sidekick level is present. Some earlier copies may have one without the other.
+		const hasSidekickType = !!(store.npc && (store.npc._npcSidekickType || store.npc._npcLevelUpLevel));
 		log(`Store read — _npcSidekickType: ${store.npc?._npcSidekickType || "(none)"}, _npcLevelUpLevel: ${store.npc?._npcLevelUpLevel || "(none)"}, store attr id: ${attr?.id || "(no attr)"}, total store attrs: ${character.attribs.filter(a => a.get("name") === "store").length}`);
 
 		let dialogResult;
