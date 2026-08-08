@@ -638,6 +638,28 @@ function d20plusNpcLevelUp () {
 	// "Make Sidekick" modal
 	// ─────────────────────────────────────────────────────────────────────────
 
+		function getCharacterAvatarUrl (character) {
+		const avatar = character && character.get ? character.get("avatar") : null;
+		return avatar || "https://raw.githubusercontent.com/TheOctonaut/betterR20/refs/heads/Jumpgate-Importer/img/icon32.png";
+	}
+
+	function makeDialogChromeCss () {
+		return `<style class="b20-sidekick-dialog-style">
+			.b20-sidekick-shell{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2937}
+			.b20-sidekick-hero{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #d5d9e0;border-radius:10px;background:#f8fafc;margin-bottom:12px}
+			.b20-sidekick-avatar{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #cbd5e1;background:#fff}
+			.b20-sidekick-title{font-weight:700;font-size:14px;line-height:1.2}
+			.b20-sidekick-sub{color:#64748b;font-size:12px;margin-top:2px}
+			.b20-sidekick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+			.b20-sidekick-card{border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#fff}
+			.b20-sidekick-card h4{margin:0 0 8px;font-size:12px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.02em}
+			.b20-sidekick-preview{border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#fff;min-height:100px}
+			.b20-sidekick-row label{display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer}
+			.b20-sidekick-dialog .ui-dialog-buttonpane{padding:.5em .8em}
+			.b20-sidekick-dialog .ui-dialog-buttonset button{border-radius:8px;padding:.45em .9em}
+			.b20-sidekick-dialog .ui-dialog-buttonset button:first-child{background:#2563eb;color:#fff;border-color:#1d4ed8}
+		</style>`;
+	}
 	function showMakeSidekickDialog (character, store) {
 		return new Promise((resolve) => {
 			const charName = character.get("name") || "Unnamed character";
@@ -651,26 +673,34 @@ function d20plusNpcLevelUp () {
 				</label>`;
 			}).join("");
 
+			const avatarUrl = getCharacterAvatarUrl(character);
 			const $dialog = $(`
-				<div class="dialog largedialog b20-npc-sidekick-dialog" style="padding:4px">
-					<p style="margin:0 0 10px">Making <strong>${charName}</strong> into a sidekick.<br>
-						<span style="color:#888;font-size:0.92em">A new copy will be created with sidekick class features added.</span></p>
-					<div style="display:flex;gap:24px;margin-bottom:12px">
-						<div style="flex:1">
-							<p style="margin:0 0 4px;font-weight:bold;font-size:0.92em">Sidekick Type</p>
+				<div class="dialog largedialog b20-npc-sidekick-dialog b20-sidekick-shell" style="padding:6px 8px">
+					${makeDialogChromeCss()}
+					<div class="b20-sidekick-hero">
+						<img class="b20-sidekick-avatar" src="${avatarUrl}" alt="${charName}">
+						<div>
+							<div class="b20-sidekick-title">${charName}</div>
+							<div class="b20-sidekick-sub">Create a sidekick copy with class features applied</div>
+						</div>
+					</div>
+					<div class="b20-sidekick-grid">
+						<div class="b20-sidekick-card b20-sidekick-row">
+							<h4>Sidekick Type</h4>
 							${typeButtons}
 						</div>
-						<div style="flex:1">
-							<p style="margin:0 0 4px;font-weight:bold;font-size:0.92em">Starting Level</p>
+						<div class="b20-sidekick-card b20-sidekick-row">
+							<h4>Starting Level</h4>
 							${makeLevelBasisHtml(levelOptions)}
-							<div class="b20-custom-level-row" style="display:none;margin-top:4px">
-								<label>Level (1–20): <input type="number" class="b20-custom-level-input" min="1" max="20" value="1" style="width:60px;margin-left:6px"></label>
+							<div class="b20-custom-level-row" style="display:none;margin-top:6px">
+								<label>Level (1–20): <input type="number" class="b20-custom-level-input" min="1" max="20" value="1" style="width:64px;margin-left:6px"></label>
 							</div>
 						</div>
 					</div>
-					<hr style="margin:8px 0">
-					<p style="margin:4px 0 4px;font-weight:bold;font-size:0.92em">Preview</p>
-					<div class="b20-upgrade-preview" style="min-height:100px"></div>
+					<div class="b20-sidekick-card">
+						<h4>Preview</h4>
+						<div class="b20-upgrade-preview b20-sidekick-preview"></div>
+					</div>
 				</div>
 			`);
 
@@ -691,7 +721,7 @@ function d20plusNpcLevelUp () {
 			$dialog.on("input", ".b20-custom-level-input", refresh);
 
 			$dialog.dialog({
-				resizable: true, autoOpen: true, width: 540,
+				resizable: true, autoOpen: true, width: 620, dialogClass: "b20-sidekick-dialog",
 				title: "Make Sidekick — Create Copy",
 				open: () => refresh(),
 				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
@@ -732,19 +762,31 @@ function d20plusNpcLevelUp () {
 				</div>`
 				: `<p style="margin:0 0 10px;color:#555">Sidekick type: <strong>${d20plus.sidekickData ? d20plus.sidekickData.typeLabel(sidekickType) : sidekickType}</strong></p>`;
 
+			const avatarUrl = getCharacterAvatarUrl(character);
 			const $dialog = $(`
-				<div class="dialog largedialog b20-npc-level-up-dialog" style="padding:4px">
-					<p style="margin:0 0 10px">Levelling up <strong>${charName}</strong>.<br>
-						<span style="color:#888;font-size:0.92em">A new copy will be created.</span></p>
-					${typeNote}
-					<p style="margin:0 0 4px;font-weight:bold;font-size:0.92em">Current Level</p>
-					${makeLevelBasisHtml(levelOptions)}
-					<div class="b20-custom-level-row" style="display:none;margin-top:4px;margin-bottom:8px">
-						<label>Level (1–20): <input type="number" class="b20-custom-level-input" min="1" max="20" value="1" style="width:60px;margin-left:6px"></label>
+				<div class="dialog largedialog b20-npc-level-up-dialog b20-sidekick-dialog b20-sidekick-shell" style="padding:6px 8px">
+					${makeDialogChromeCss()}
+					<div class="b20-sidekick-hero">
+						<img class="b20-sidekick-avatar" src="${avatarUrl}" alt="${charName}">
+						<div>
+							<div class="b20-sidekick-title">${charName}</div>
+							<div class="b20-sidekick-sub">Create a leveled-up sidekick copy</div>
+						</div>
 					</div>
-					<hr style="margin:8px 0">
-					<p style="margin:4px 0 4px;font-weight:bold;font-size:0.92em">Preview</p>
-					<div class="b20-upgrade-preview" style="min-height:80px"></div>
+					<div class="b20-sidekick-grid" style="grid-template-columns:1fr">
+						<div class="b20-sidekick-card b20-sidekick-row">
+							${typeNote}
+							<h4 style="margin-top:0">Current Level</h4>
+							${makeLevelBasisHtml(levelOptions)}
+							<div class="b20-custom-level-row" style="display:none;margin-top:6px">
+								<label>Level (1–20): <input type="number" class="b20-custom-level-input" min="1" max="20" value="1" style="width:64px;margin-left:6px"></label>
+							</div>
+						</div>
+						<div class="b20-sidekick-card">
+							<h4>Preview</h4>
+							<div class="b20-upgrade-preview b20-sidekick-preview" style="min-height:90px"></div>
+						</div>
+					</div>
 				</div>
 			`);
 
@@ -769,7 +811,7 @@ function d20plusNpcLevelUp () {
 			$dialog.on("input", ".b20-custom-level-input", refresh);
 
 			$dialog.dialog({
-				resizable: true, autoOpen: true, width: 480,
+				resizable: true, autoOpen: true, width: 620, dialogClass: "b20-sidekick-dialog",
 				title: "Level Up Sidekick — Create Copy",
 				open: () => refresh(),
 				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
@@ -901,6 +943,7 @@ Roll formula: ${summary.newRollHP}${featMsg}`);
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcLevelUp);
+
 
 
 
