@@ -13,6 +13,31 @@ function d20plusNpcLevelUp () {
 	d20plus.npcLevelUp = {};
 
 	// ─────────────────────────────────────────────────────────────────────────
+	// Logging helpers
+	// ─────────────────────────────────────────────────────────────────────────
+
+	const LOG_TAG = "%cbetterR20 NPC Level-Up%c";
+	const LOG_STYLE = "color:#b48ead;font-weight:bold";
+	const LOG_RESET = "color:inherit;font-weight:normal";
+
+	function log (msg, ...args) {
+		console.log(`${LOG_TAG} ${msg}`, LOG_STYLE, LOG_RESET, ...args);
+	}
+
+	function logWarn (msg, ...args) {
+		console.warn(`${LOG_TAG} ${msg}`, LOG_STYLE, LOG_RESET, ...args);
+	}
+
+	function logError (msg, ...args) {
+		console.error(`${LOG_TAG} ${msg}`, LOG_STYLE, LOG_RESET, ...args);
+	}
+
+	function logGroup (label, fn) {
+		console.groupCollapsed(`${LOG_TAG} ${label}`, LOG_STYLE, LOG_RESET);
+		try { fn(); } finally { console.groupEnd(); }
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
 	// Sidekick progression tables (TCE p.142)
 	// Level is the "sidekick level" that maps a CR range to a virtual level.
 	//
@@ -32,31 +57,41 @@ function d20plusNpcLevelUp () {
 	//   CR 20+    → level 13
 	// ─────────────────────────────────────────────────────────────────────────
 
+	// CR 0–1/2 → level 1 (Tasha's sidekick eligibility threshold).
+	// CR 1–18 map 1:1 to levels 2–19. CR 19+ → level 20.
 	const CR_TO_SIDEKICK_LEVEL = [
 		// [maxCrNum, sidekickLevel]
-		[0.125, 1],
-		[0.25,  2],
-		[0.5,   3],
-		[1,     4],
-		[2,     5],
-		[4,     6],
-		[6,     7],
-		[8,     8],
-		[10,    9],
-		[12,    10],
-		[15,    11],
-		[19,    12],
-		[Infinity, 13],
+		[0.5,  1],
+		[1,    2],
+		[2,    3],
+		[3,    4],
+		[4,    5],
+		[5,    6],
+		[6,    7],
+		[7,    8],
+		[8,    9],
+		[9,    10],
+		[10,   11],
+		[11,   12],
+		[12,   13],
+		[13,   14],
+		[14,   15],
+		[15,   16],
+		[16,   17],
+		[17,   18],
+		[18,   19],
+		[Infinity, 20],
 	];
 
-	/** Proficiency bonus by sidekick level (same schedule as character PB). */
+	/** Proficiency bonus by sidekick level (standard character PB schedule, levels 1–20). */
 	const SIDEKICK_LEVEL_TO_PB = [
-		// index 0 unused; index 1..13
+		// index 0 unused; index 1..20
 		0,
 		2, 2, 2, 2,   // levels 1–4
 		3, 3, 3, 3,   // levels 5–8
 		4, 4, 4, 4,   // levels 9–12
-		5,            // level 13
+		5, 5, 5, 5,   // levels 13–16
+		6, 6, 6, 6,   // levels 17–20
 	];
 
 	/**
@@ -80,7 +115,7 @@ function d20plusNpcLevelUp () {
 		for (const [max, level] of CR_TO_SIDEKICK_LEVEL) {
 			if (cr <= max) return level;
 		}
-		return 13;
+		return 20;
 	}
 
 	/**
@@ -184,10 +219,13 @@ function d20plusNpcLevelUp () {
 			errors: [],
 		};
 
-		// ── Resolve current CR and levels ────────────────────────────────────
+		// ── Resolve current sidekick level ────────────────────────────────────
+		// Priority: explicit override from options > stored _npcLevelUpLevel > CR mapping
 		const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : "0";
-		const currentSidekickLevel = crToSidekickLevel(crStr);
-		const targetSidekickLevel = Math.min(currentSidekickLevel + levels, 13);
+		const currentSidekickLevel = options.currentLevel != null
+			? Math.max(1, Math.min(options.currentLevel, 20))
+			: (store.npc && store.npc._npcLevelUpLevel) || crToSidekickLevel(crStr);
+		const targetSidekickLevel = Math.min(currentSidekickLevel + levels, 20);
 		const sourcePb = SIDEKICK_LEVEL_TO_PB[currentSidekickLevel] || 2;
 		const newPb = SIDEKICK_LEVEL_TO_PB[targetSidekickLevel] || 2;
 		const pbChanged = newPb !== sourcePb;
@@ -253,14 +291,65 @@ function d20plusNpcLevelUp () {
 		// the current level on future upgrades without re-deriving from CR.
 		if (!store.npc) store.npc = {};
 		store.npc._npcLevelUpLevel = targetSidekickLevel;
+		if (options.sidekickType) store.npc._npcSidekickType = options.sidekickType;
+
+		// Write sidekick class features for levels gained
+		const sidekickType = options.sidekickType || (store.npc && store.npc._npcSidekickType) || null;
+		const featuresWritten = writeSidekickFeatures(store, sidekickType, currentSidekickLevel, targetSidekickLevel);
 
 		// Count how many Proficiency integrants exist (informational for the summary)
 		const allInts = (store.integrants && store.integrants.integrants) || {};
 		summary.proficienciesUpdated = Object.values(allInts)
 			.filter(i => i.type === "Proficiency")
 			.length;
+		summary.featuresWritten = featuresWritten;
 
 		return { store, summary };
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Sidekick feature writing
+	// ─────────────────────────────────────────────────────────────────────────
+
+	/**
+	 * Write sidekick features gained between fromLevel+1 and toLevel into the store.
+	 * Returns the number of features written.
+	 */
+	function writeSidekickFeatures (store, sidekickType, fromLevel, toLevel) {
+		if (!d20plus.sidekickData || !sidekickType) return 0;
+		const features = d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel);
+		if (!features.length) return 0;
+
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+
+		const integrants = store.integrants.integrants;
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		let pos = d20plus.store2024.getNextArrayPos(store);
+
+		for (const feature of features) {
+			const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos++);
+			const name = feature.isTodo
+				? `TODO: ${feature.name}`
+				: feature.name;
+			const description = feature.isTodo
+				? `${feature.description}\n\n(Delete this trait once resolved — added by betterR20 sidekick level-up, ${feature.source})`
+				: `${feature.description}\n\n(Added by betterR20 sidekick level-up, ${feature.source})`;
+
+			integrants[id] = {
+				...base,
+				name,
+				description,
+				source: "Species",
+				cascades: {},
+				relations: {},
+			};
+			displayOrder.push(id);
+		}
+
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return features.length;
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
@@ -292,33 +381,6 @@ function d20plusNpcLevelUp () {
 	 * @returns {Promise<object>} - The newly created character model
 	 */
 	async function levelUpCharacter (character, options = {}) {
-		character.attribs.fetch(character.attribs);
-
-		const attrMap = {};
-		(character.attribs?.toJSON?.() || []).forEach(a => { attrMap[a.name] = a.current; });
-		const rawStoreAttr = character.attribs.find(a => a.get("name") === "store");
-		const rawStoreValue = rawStoreAttr ? rawStoreAttr.get("current") : null;
-		let parsedStore = null;
-		if (rawStoreValue) {
-			try {
-				parsedStore = typeof rawStoreValue === "string" ? JSON.parse(rawStoreValue) : rawStoreValue;
-			} catch (e) {
-				parsedStore = {error: e.message || String(e)};
-			}
-		}
-
-		console.log("betterR20 NPC level-up detection snapshot", {
-			name: character.get("name"),
-			sheet: attrMap.rpg_sheet || attrMap.sheet_type || attrMap.charactersheet_type,
-			appState: attrMap.appState,
-			npcFlag: attrMap.npc,
-			hasStore: !!rawStoreValue,
-			storeKeys: parsedStore ? Object.keys(parsedStore) : [],
-			hasNpc: !!(parsedStore && parsedStore.npc),
-			hasHitpoints: !!(parsedStore && parsedStore.hitpoints),
-			hasIntegrants: !!(parsedStore && parsedStore.integrants),
-		});
-
 		if (!d20plus.store2024.isNpc2024Sheet(character)) {
 			throw new Error("The selected character is not a 2024 NPC sheet.");
 		}
@@ -329,17 +391,16 @@ function d20plusNpcLevelUp () {
 		// Transform the store
 		const {store: upgradedStore, summary} = upgrade2024NpcStore(sourceStore, options);
 
-		// Debug logging
-		const dbg = d20plus.store2024;
-		window.__npcLevelUpLastSourceStore = dbg.cloneForDebug(sourceStore);
-		window.__npcLevelUpLastUpgradedStore = dbg.cloneForDebug(upgradedStore);
-		window.__npcLevelUpLastSummary = dbg.cloneForDebug(summary);
-		dbg.logDebugJson("betterR20 NPC level-up source store", window.__npcLevelUpLastSourceStore);
-		dbg.logDebugJson("betterR20 NPC level-up upgraded store", window.__npcLevelUpLastUpgradedStore);
-		dbg.logDebugJson("betterR20 NPC level-up summary", window.__npcLevelUpLastSummary);
+		logGroup(`Upgrade summary for "${character.get("name")}"`, () => {
+			log(`Level: ${summary.sourceLevel} → ${summary.newLevel}`);
+			log(`PB: +${summary.sourcePb} → +${summary.newPb}${summary.pbChanged ? " (changed)" : ""}`);
+			log(`HP: +${summary.hpAdded} (new max ${summary.newHpMax}), roll formula: ${summary.newRollHP}`);
+			log(`Hit dice added: ${summary.hitDiceAdded}, proficiencies present: ${summary.proficienciesUpdated}`);
+			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
+		});
 
 		if (summary.errors.length) {
-			console.warn("betterR20 NPC level-up warnings:", summary.errors);
+			logWarn("Upgrade completed with warnings:", summary.errors);
 		}
 
 		const sourceName = character.get("name") || "Unnamed character";
@@ -373,8 +434,7 @@ function d20plusNpcLevelUp () {
 						d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
 						d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
 
-						window.__npcLevelUpLastCharacter = dbg.cloneForDebug(newCharacter?.attributes || newCharacter);
-						dbg.logDebugJson("betterR20 NPC level-up created character", window.__npcLevelUpLastCharacter);
+						log(`Created "${upgradedName}" (id: ${newCharacter.id})`);
 
 						// Copy bio / gmnotes blobs
 						await d20plus.store2024.copyBioAndNotes(character, newCharacter);
@@ -417,58 +477,461 @@ function d20plusNpcLevelUp () {
 		return !!character && d20plus.store2024.isNpc2024Sheet(character);
 	}
 
-	function buildSummaryMessage (summary) {
-		const lines = [`Level ${summary.sourceLevel} → ${summary.newLevel}`];
-		if (summary.pbChanged) lines.push(`PB: +${summary.sourcePb} → +${summary.newPb}`);
-		if (summary.hpAdded) lines.push(`HP: +${summary.hpAdded} (new max ${summary.newHpMax})`);
-		if (summary.hitDiceAdded) lines.push(`Hit dice added: ${summary.hitDiceAdded}`);
-		if (summary.newRollHP) lines.push(`Roll formula: ${summary.newRollHP}`);
-		if (summary.proficienciesUpdated) lines.push(`Proficiencies present: ${summary.proficienciesUpdated}`);
-		if (summary.errors.length) lines.push(`Warnings: ${summary.errors.join("; ")}`);
-		return lines.join("\n");
+	// ─────────────────────────────────────────────────────────────────────────
+	// Level basis helpers
+	// ─────────────────────────────────────────────────────────────────────────
+
+	/** Derive sidekick level from hit-die count (1:1). Clamped 1–13. */
+	function hitDiceToSidekickLevel (store) {
+		const formula = store.npc && store.npc.rollHP ? store.npc.rollHP : null;
+		const parsed = parseHpFormula(formula);
+		if (!parsed || parsed.count < 1) return null;
+		return Math.max(1, Math.min(parsed.count, 20));
 	}
 
-	/** Journal context-menu handler. */
+	/** Derive sidekick level from stored _npcLevelUpLevel if present. */
+	function storedLevel (store) {
+		return (store.npc && store.npc._npcLevelUpLevel) || null;
+	}
+
+	/**
+	 * Build a preview of what a level-up would produce for a given currentLevel.
+	 * Returns the same summary shape as upgrade2024NpcStore.
+	 */
+	function previewUpgrade (store, currentLevel, sidekickType) {
+		const overridden = JSON.parse(JSON.stringify(store));
+		if (!overridden.npc) overridden.npc = {};
+		overridden.npc._npcLevelUpLevel = currentLevel;
+		const {summary} = upgrade2024NpcStore(overridden, {levels: 1, sidekickType});
+		return summary;
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Shared modal helpers
+	// ─────────────────────────────────────────────────────────────────────────
+
+	function makeLevelBasisOptions (store) {
+		const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : null;
+		const levelFromStored = storedLevel(store);
+		const levelFromHD = hitDiceToSidekickLevel(store);
+		const levelFromCR = crStr ? crToSidekickLevel(crStr) : null;
+		const options = [];
+		if (levelFromStored != null) options.push({id: "stored", label: `Previously stored level (${levelFromStored})`, level: levelFromStored});
+		if (levelFromHD != null) options.push({id: "hd", label: `Hit dice count (${levelFromHD} HD → level ${levelFromHD})`, level: levelFromHD});
+		if (levelFromCR != null) options.push({id: "cr", label: `CR mapping (CR ${crStr} → level ${levelFromCR})`, level: levelFromCR});
+		options.push({id: "custom", label: "Custom level…", level: null});
+		return options;
+	}
+
+	function makeLevelBasisHtml (options) {
+		return options.map((opt, i) => `
+			<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer">
+				<input type="radio" name="levelBasis" value="${opt.id}" ${i === 0 ? "checked" : ""}>
+				${opt.label}
+			</label>
+		`).join("");
+	}
+
+	function getSelectedLevel ($dialog, options) {
+		const chosen = $dialog.find("input[name=levelBasis]:checked").val();
+		if (chosen === "custom") {
+			const v = parseInt($dialog.find(".b20-custom-level-input").val(), 10);
+			return (v >= 1 && v <= 20) ? v : 1;
+		}
+		const opt = options.find(o => o.id === chosen);
+		return opt ? opt.level : 1;
+	}
+
+		function makeSplitPreviewHtml (rowsHtml, featuresTitle, featureItemsHtml, warningsHtml) {
+		return `
+			<div class="b20-preview-split">
+				<div class="b20-preview-pane b20-preview-pane-stats">
+					<div class="b20-preview-pane-title">Summary</div>
+					<table class="b20-preview-table">${rowsHtml}</table>
+					${warningsHtml || ""}
+				</div>
+				<div class="b20-preview-pane b20-preview-pane-features">
+					<div class="b20-preview-pane-title">${featuresTitle}</div>
+					<div class="b20-preview-features-scroll">${featureItemsHtml}</div>
+				</div>
+			</div>
+		`;
+	}
+function makeStartingStateHtml (store, sidekickType, targetLevel) {
+		const pb = SIDEKICK_LEVEL_TO_PB[targetLevel] || 2;
+		const rollHPStr = store.npc && store.npc.rollHP ? store.npc.rollHP : null;
+		const parsedHP = parseHpFormula(rollHPStr);
+		const conMod = getConModFromStore(store);
+
+		// Read current HP using the same logic as upgrade2024NpcStore
+		const hpIntegrant = findIntegrantByType(store, "Hit Points");
+		const currentHpMax = hpIntegrant && hpIntegrant.valueFormula
+			? (hpIntegrant.valueFormula.flatValue || 0)
+			: (store.hitpoints && store.hitpoints.currentHP) || null;
+
+		let hpLine, rollLine, hdLine;
+
+		if (parsedHP) {
+			const avgPerDie = avgHpPerDie(parsedHP.faces);
+			const totalHpGain = 0;
+			const newDice = parsedHP.count;
+			rollLine = formatHpFormula({count: newDice, faces: parsedHP.faces, mod: conMod * newDice});
+			hdLine = `${newDice}d${parsedHP.faces}`;
+			if (currentHpMax != null) {
+				const newHpMax = currentHpMax + totalHpGain;
+				hpLine = totalHpGain > 0 ? `${currentHpMax} + ${totalHpGain} = ${newHpMax}` : String(currentHpMax);
+			} else {
+				hpLine = totalHpGain > 0 ? `current + ${totalHpGain}` : "unchanged";
+			}
+		} else {
+			hpLine = currentHpMax != null ? String(currentHpMax) : "unknown";
+			rollLine = rollHPStr || "unknown";
+			hdLine = parsedHP ? String(parsedHP.count) : "unknown";
+		}
+
+		const rows = [
+			["Starting level", String(targetLevel)],
+			["Proficiency Bonus", `+${pb}`],
+			["HP Max", hpLine],
+			["Roll Formula", rollLine],
+			["Hit Dice", hdLine],
+		];
+		const rowsHtml = rows.map(([label, val]) =>
+			`<tr><td style="padding:2px 8px 2px 0;color:#888;white-space:nowrap">${label}</td><td style="padding:2px 0"><strong>${val}</strong></td></tr>`
+		).join("");
+		const features = d20plus.sidekickData.getFeaturesGained(sidekickType, 0, targetLevel);
+		const featureItemsHtml = features.length
+			? `<ul class="b20-preview-feature-list">${
+				features.map(f => `<li><span style="color:${f.isTodo ? "#c0392b" : "#27ae60"};font-weight:bold">${f.isTodo ? "TODO" : "AUTO"} ${f.name}</span> <span style="color:#888">(lv${f.level})</span><br><span style="font-size:0.9em">${f.description.slice(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`
+				).join("")
+			}</ul>`
+			: `<p style="color:#64748b;margin:0">No features for this type/level combination.</p>`;
+		return makeSplitPreviewHtml(rowsHtml, `Features gained (levels 1–${targetLevel})`, featureItemsHtml, "");
+	}
+
+
+	function makeStatPreviewHtml (summary, sidekickType, fromLevel, toLevel) {
+		if (!summary) return `<em>Unable to calculate preview.</em>`;
+		const rows = [
+			["Level", `${summary.sourceLevel} → ${summary.newLevel}`],
+			["Proficiency Bonus", summary.pbChanged ? `+${summary.sourcePb} → +${summary.newPb}` : `+${summary.sourcePb} (unchanged)`],
+			["HP Max", summary.newHpMax != null ? `+${summary.hpAdded} (new max: ${summary.newHpMax})` : "—"],
+			["Roll Formula", summary.newRollHP || "—"],
+			["Hit Dice Added", summary.hitDiceAdded || 0],
+		];
+		const rowsHtml = rows.map(([label, val]) =>
+			`<tr><td style="padding:2px 8px 2px 0;color:#888;white-space:nowrap">${label}</td><td style="padding:2px 0"><strong>${val}</strong></td></tr>`
+		).join("");
+		const warnings = summary.errors && summary.errors.length
+			? `<p style="color:#c0392b;margin:6px 0 0">⚠ ${summary.errors.join("; ")}</p>`
+			: "";
+
+		let featureItemsHtml = `<p style="color:#64748b;margin:0">No class features gained at this level.</p>`;
+		if (sidekickType && d20plus.sidekickData) {
+			const features = d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel);
+			if (features.length) {
+				const featureItems = features.map(f => {
+					const tag = f.isTodo
+						? `<span style="color:#c0392b;font-size:0.85em;font-weight:bold">TODO</span>`
+						: `<span style="color:#27ae60;font-size:0.85em;font-weight:bold">AUTO</span>`;
+					return `<li>${tag} <strong>${f.name}</strong> <span style="color:#888;font-size:0.88em">(lv${f.level})</span><br><span style="color:#555;font-size:0.88em">${f.description.substring(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
+				}).join("");
+				featureItemsHtml = `<ul class="b20-preview-feature-list">${featureItems}</ul>`;
+			}
+		}
+
+		return makeSplitPreviewHtml(rowsHtml, "Features gained", featureItemsHtml, warnings);
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// "Make Sidekick" modal
+	// ─────────────────────────────────────────────────────────────────────────
+
+		function getCharacterAvatarUrl (character) {
+		const avatar = character && character.get ? character.get("avatar") : null;
+		return avatar || "https://raw.githubusercontent.com/TheOctonaut/betterR20/refs/heads/Jumpgate-Importer/img/icon32.png";
+	}
+
+	function makeDialogChromeCss () {
+		return `<style class="b20-sidekick-dialog-style">
+			.b20-sidekick-shell{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1f2937}
+			.b20-sidekick-hero{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #d5d9e0;border-radius:10px;background:#f8fafc;margin-bottom:12px}
+			.b20-sidekick-avatar{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #cbd5e1;background:#fff}
+			.b20-sidekick-title{font-weight:700;font-size:14px;line-height:1.2}
+			.b20-sidekick-sub{color:#64748b;font-size:12px;margin-top:2px}
+			.b20-sidekick-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+			.b20-sidekick-card{border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#fff}
+			.b20-sidekick-card h4{margin:0 0 8px;font-size:12px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.02em}
+			.b20-sidekick-preview{border:1px solid #e2e8f0;border-radius:10px;padding:10px;background:#fff;min-height:100px}
+			.b20-preview-split{display:grid;grid-template-columns:260px minmax(0,1fr);gap:10px;align-items:start}
+			.b20-preview-pane{border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:8px}
+			.b20-preview-pane-title{font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:.02em;margin:0 0 6px}
+			.b20-preview-table{border-collapse:collapse;width:100%}
+			.b20-preview-table td{padding:2px 6px 2px 0;vertical-align:top}
+			.b20-preview-table td:first-child{color:#64748b;white-space:nowrap}
+			.b20-preview-features-scroll{max-height:220px;overflow-y:auto;padding-right:2px}
+			.b20-preview-feature-list{margin:0;padding-left:16px}
+			.b20-preview-feature-list li{margin:4px 0}
+			@media (max-width: 760px){.b20-preview-split{grid-template-columns:1fr}}
+			.b20-sidekick-row label{display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer}
+			.b20-sidekick-dialog .ui-dialog-buttonpane{padding:.5em .8em}
+			.b20-sidekick-dialog .ui-dialog-buttonset button{border-radius:8px;padding:.45em .9em}
+			.b20-sidekick-dialog .ui-dialog-buttonset button:first-child{background:#2563eb;color:#fff;border-color:#1d4ed8}
+		</style>`;
+	}
+	function showMakeSidekickDialog (character, store) {
+		return new Promise((resolve) => {
+			const charName = character.get("name") || "Unnamed character";
+			const levelOptions = makeLevelBasisOptions(store);
+
+			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior","mage","healer","prodigy"];
+			const typeButtons = allTypes.map((type, i) => {
+				const label = d20plus.sidekickData ? d20plus.sidekickData.typeLabel(type) : type;
+				return `<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer">
+					<input type="radio" name="sidekickType" value="${type}" ${i === 0 ? "checked" : ""}>${label}
+				</label>`;
+			}).join("");
+
+			const avatarUrl = getCharacterAvatarUrl(character);
+			const $dialog = $(`
+				<div class="dialog largedialog b20-npc-sidekick-dialog b20-sidekick-shell" style="padding:6px 8px">
+					${makeDialogChromeCss()}
+					<div class="b20-sidekick-hero">
+						<img class="b20-sidekick-avatar" src="${avatarUrl}" alt="${charName}">
+						<div>
+							<div class="b20-sidekick-title">${charName}</div>
+							<div class="b20-sidekick-sub">Create a sidekick copy with class features applied</div>
+						</div>
+					</div>
+					<div class="b20-sidekick-grid">
+						<div class="b20-sidekick-card b20-sidekick-row">
+							<h4>Sidekick Type</h4>
+							${typeButtons}
+						</div>
+						<div class="b20-sidekick-card b20-sidekick-row">
+							<h4>Starting Level</h4>
+							${makeLevelBasisHtml(levelOptions)}
+							<div class="b20-custom-level-row" style="display:none;margin-top:6px">
+								<label>Level (1–20): <input type="number" class="b20-custom-level-input" min="1" max="20" value="1" style="width:64px;margin-left:6px"></label>
+							</div>
+						</div>
+					</div>
+					<div class="b20-sidekick-card">
+						<h4>Preview</h4>
+						<div class="b20-upgrade-preview b20-sidekick-preview"></div>
+					</div>
+				</div>
+			`);
+
+			function getType () { return $dialog.find("input[name=sidekickType]:checked").val() || "expert"; }
+			function getLevel () { return getSelectedLevel($dialog, levelOptions); }
+
+			function refresh () {
+				const type = getType();
+				const level = getLevel();
+				$dialog.find(".b20-upgrade-preview").html(makeStartingStateHtml(store, type, level));
+			}
+
+			$dialog.on("change", "input[name=sidekickType], input[name=levelBasis]", function () {
+				const chosen = $dialog.find("input[name=levelBasis]:checked").val();
+				$dialog.find(".b20-custom-level-row").css("display", chosen === "custom" ? "block" : "none");
+				refresh();
+			});
+			$dialog.on("input", ".b20-custom-level-input", refresh);
+
+			$dialog.dialog({
+				resizable: true, autoOpen: true, width: 620, dialogClass: "b20-sidekick-dialog",
+				title: "Make Sidekick — Create Copy",
+				open: () => refresh(),
+				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
+				buttons: {
+					"Create Sidekick Copy": () => {
+						const currentLevel = getLevel();
+						const sidekickType = getType();
+						$dialog.off(); $dialog.dialog("destroy").remove();
+						resolve({confirmed: true, currentLevel, sidekickType});
+					},
+					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
+				},
+			});
+		});
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// "Level Up Sidekick" modal
+	// ─────────────────────────────────────────────────────────────────────────
+
+	function showLevelUpDialog (character, store, knownSidekickType) {
+		return new Promise((resolve) => {
+			const charName = character.get("name") || "Unnamed character";
+			const levelOptions = makeLevelBasisOptions(store);
+			const sidekickType = knownSidekickType || (store.npc && store.npc._npcSidekickType) || null;
+
+			// If type is unknown, show a type selector
+			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior","mage","healer","prodigy"];
+			const typeNote = !sidekickType
+				? `<div style="margin-bottom:10px">
+					<p style="margin:0 0 4px;font-weight:bold;font-size:0.92em">Sidekick Type <span style="color:#c0392b">(not yet set — choose once)</span></p>
+					${allTypes.map((type, i) => {
+						const label = d20plus.sidekickData ? d20plus.sidekickData.typeLabel(type) : type;
+						return `<label style="display:flex;align-items:center;gap:6px;margin:3px 0;cursor:pointer">
+							<input type="radio" name="sidekickType" value="${type}" ${i === 0 ? "checked" : ""}>${label}
+						</label>`;
+					}).join("")}
+				</div>`
+				: `<p style="margin:0 0 10px;color:#555">Sidekick type: <strong>${d20plus.sidekickData ? d20plus.sidekickData.typeLabel(sidekickType) : sidekickType}</strong></p>`;
+
+			const avatarUrl = getCharacterAvatarUrl(character);
+			const $dialog = $(`
+				<div class="dialog largedialog b20-npc-level-up-dialog b20-sidekick-dialog b20-sidekick-shell" style="padding:6px 8px">
+					${makeDialogChromeCss()}
+					<div class="b20-sidekick-hero">
+						<img class="b20-sidekick-avatar" src="${avatarUrl}" alt="${charName}">
+						<div>
+							<div class="b20-sidekick-title">${charName}</div>
+							<div class="b20-sidekick-sub">Create a leveled-up sidekick copy</div>
+						</div>
+					</div>
+					<div class="b20-sidekick-grid" style="grid-template-columns:1fr">
+						<div class="b20-sidekick-card b20-sidekick-row">
+							${typeNote}
+							<h4 style="margin-top:0">Current Level</h4>
+							${makeLevelBasisHtml(levelOptions)}
+							<div class="b20-custom-level-row" style="display:none;margin-top:6px">
+								<label>Level (1–20): <input type="number" class="b20-custom-level-input" min="1" max="20" value="1" style="width:64px;margin-left:6px"></label>
+							</div>
+						</div>
+						<div class="b20-sidekick-card">
+							<h4>Preview</h4>
+							<div class="b20-upgrade-preview b20-sidekick-preview" style="min-height:90px"></div>
+						</div>
+					</div>
+				</div>
+			`);
+
+			function getType () {
+				if (sidekickType) return sidekickType;
+				return $dialog.find("input[name=sidekickType]:checked").val() || "expert";
+			}
+			function getLevel () { return getSelectedLevel($dialog, levelOptions); }
+
+			function refresh () {
+				const type = getType();
+				const level = getLevel();
+				const summary = previewUpgrade(store, level, type);
+				$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, level, level + 1));
+			}
+
+			$dialog.on("change", "input[name=sidekickType], input[name=levelBasis]", function () {
+				const chosen = $dialog.find("input[name=levelBasis]:checked").val();
+				$dialog.find(".b20-custom-level-row").css("display", chosen === "custom" ? "block" : "none");
+				refresh();
+			});
+			$dialog.on("input", ".b20-custom-level-input", refresh);
+
+			$dialog.dialog({
+				resizable: true, autoOpen: true, width: 620, dialogClass: "b20-sidekick-dialog",
+				title: "Level Up Sidekick — Create Copy",
+				open: () => refresh(),
+				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
+				buttons: {
+					"Create Copy": () => {
+						const currentLevel = getLevel();
+						const resolvedType = getType();
+						$dialog.off(); $dialog.dialog("destroy").remove();
+						resolve({confirmed: true, currentLevel, sidekickType: resolvedType});
+					},
+					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
+				},
+			});
+		});
+	}
+
+	/** Journal context-menu handler — detects Make Sidekick vs Level Up flow. */
 	d20plus.npcLevelUp.levelUpFromJournalContext = async function (event) {
 		const character = getCharacterFromJournalContext(event);
+		log(`Handler invoked — resolved character: "${character?.get?.("name") || "(none)"}" (id: ${character?.id || d20plus.journal?.lastClickedJournalItemId || "?"})`);
 		if (!character) return alert("No character found.");
-		console.log("betterR20 NPC level-up handler invoked", {
-			lastClickedJournalItemId: d20plus.journal?.lastClickedJournalItemId || null,
-			characterId: character?.id || null,
-			characterName: character?.get?.("name") || null,
-		});
+		await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
+		log(`Attributes loaded: ${character.attribs?.length || 0}`);
 		if (!canLevelUp(character)) return alert("The selected character is not a 2024 NPC sheet.");
 
 		const charName = character.get("name") || "Unnamed character";
 		const {attr, store} = d20plus.store2024.getStore(character);
 		if (!store) return alert("Could not read the 2024 store from this character.");
 
-		const crStr = store.npc && store.npc.challengeRating ? String(store.npc.challengeRating) : "0";
-		const currentLevel = store.npc._npcLevelUpLevel || crToSidekickLevel(crStr);
-		const nextLevel = Math.min(currentLevel + 1, 13);
+		// Only go to Level Up if _npcSidekickType is already set.
+		// _npcLevelUpLevel alone (from old flow) is not enough — use Make Sidekick.
+		const hasSidekickType = !!(store.npc && store.npc._npcSidekickType);
 
-		if (!window.confirm(`Level up "${charName}" from level ${currentLevel} to ${nextLevel}?\n\nA new copy will be created.`)) return;
+		let dialogResult;
+		if (hasSidekickType) {
+			log(`Existing sidekick (type: ${store.npc._npcSidekickType}, level: ${store.npc._npcLevelUpLevel || "?"}) — level-up dialog`);
+			dialogResult = await showLevelUpDialog(character, store);
+		} else {
+			log("No sidekick type set — Make Sidekick dialog");
+			dialogResult = await showMakeSidekickDialog(character, store);
+		}
+
+		if (!dialogResult.confirmed) return;
+		const {currentLevel, sidekickType} = dialogResult;
+		const isMakeSidekick = !hasSidekickType;
 
 		try {
-			const {character: newChar, summary} = await levelUpCharacter(character, {levels: 1});
-			alert(`Created "${newChar.get("name")}".\n\n${buildSummaryMessage(summary)}`);
+			const applyLevels = isMakeSidekick ? 0 : 1;
+			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, sidekickType});
+			log(`Done — created "${newChar.get("name")}"`);
+			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
+			if (isMakeSidekick) {
+				alert(`Created "${newChar.get("name")}" as a sidekick.
+
+Starting level: ${summary.newLevel}
+HP max: ${summary.newHpMax}
+Roll formula: ${summary.newRollHP}${featMsg}`);
+			} else {
+				alert(`Created "${newChar.get("name")}".
+
+Level: ${summary.sourceLevel} → ${summary.newLevel}
+HP: +${summary.hpAdded} (new max ${summary.newHpMax})
+Roll formula: ${summary.newRollHP}${featMsg}`);
+			}
 		} catch (e) {
-			console.error("betterR20 NPC level-up error:", e);
+			logError(`Failed to level up "${charName}":`, e);
 			alert(`Failed to level up "${charName}". See the console for details.`);
 		}
+	};
+
+	/** Remove stored sidekick metadata from a character (in-place, no copy). */
+	d20plus.npcLevelUp.resetSidekickDataFromJournalContext = async function (event) {
+		const character = getCharacterFromJournalContext(event);
+		if (!character) return alert("No character found.");
+		await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
+		const {attr, store} = d20plus.store2024.getStore(character) || {};
+		const hadType = store && store.npc && store.npc._npcSidekickType;
+		const hadLevel = store && store.npc && store.npc._npcLevelUpLevel;
+		if (!hadType && !hadLevel) return alert(`No sidekick data to reset on "${character.get("name")}".\n\n(Neither _npcSidekickType nor _npcLevelUpLevel found in the 2024 store.)`);
+		const clearMsg = [`Remove sidekick data from "${character.get("name")}"?`, ``, `This will clear:${hadType ? "\n\u2022 Sidekick type: " + hadType : ""}${hadLevel ? "\n\u2022 Stored level: " + hadLevel : ""}`, ``, `The character sheet is NOT modified \u2014 only the stored metadata.`].join("\n");
+		if (!window.confirm(clearMsg)) return;
+		delete store.npc._npcSidekickType;
+		delete store.npc._npcLevelUpLevel;
+		d20plus.store2024.saveStore(character, attr, store);
+		log(`Reset sidekick data on "${character.get("name")}"`);
+		alert(`Sidekick data cleared from "${character.get("name")}".`);
 	};
 
 	/** Initialise the journal context-menu button. */
 	d20plus.npcLevelUp.initJournalContextButton = () => {
 		const injectButton = () => {
 			const $menu = $("#journalitemmenu ul");
-			if (!$menu.length) return;
+			if (!$menu.length) { logWarn("initJournalContextButton: #journalitemmenu not found"); return; }
 			$menu.find(".Vetools-npc-level-up").remove();
+			$menu.find(".Vetools-npc-sidekick-reset").remove();
 
 			const $duplicate = $menu.find(`li:contains("Duplicate File")`).first();
-			const $entry = $(`<li class="Vetools-npc-level-up" data-action-type="npcLevelUp">Level Up NPC Copy</li>`);
-			if ($duplicate.length) $duplicate.after($entry);
-			else $menu.append($entry);
+			const $entry = $(`<li class="Vetools-npc-level-up" data-action-type="npcLevelUp">Sidekick…</li>`);
+			const $reset = $(`<li class="Vetools-npc-sidekick-reset" data-action-type="npcSidekickReset" style="color:#c0392b">Reset Sidekick Data</li>`);
+			if ($duplicate.length) { $duplicate.after($entry); $entry.after($reset); }
+			else { $menu.append($entry); $menu.append($reset); }
 		};
 
 		$("#journalitemmenu ul")
@@ -476,9 +939,15 @@ function d20plusNpcLevelUp () {
 			.on(window.mousedowntype, "li[data-action-type=npcLevelUp]", async function (evt) {
 				$("#journalitemmenu").hide();
 				await d20plus.npcLevelUp.levelUpFromJournalContext(evt);
+			})
+			.off(window.mousedowntype, "li[data-action-type=npcSidekickReset]")
+			.on(window.mousedowntype, "li[data-action-type=npcSidekickReset]", async function (evt) {
+				$("#journalitemmenu").hide();
+				await d20plus.npcLevelUp.resetSidekickDataFromJournalContext(evt);
 			});
 
 		injectButton();
+		log("initJournalContextButton: menu button registered");
 	};
 
 	// ─────────────────────────────────────────────────────────────────────────
@@ -493,3 +962,10 @@ function d20plusNpcLevelUp () {
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcLevelUp);
+
+
+
+
+
+
+

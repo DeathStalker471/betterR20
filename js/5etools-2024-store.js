@@ -225,8 +225,21 @@ function d20plus2024Store () {
 			&& parsedStore.integrants
 		);
 
-		return (is2024SheetKey && (isNpcAppState || isNpcStoreShape || isLegacyNpcFlag))
+		const result = (is2024SheetKey && (isNpcAppState || isNpcStoreShape || isLegacyNpcFlag))
 			|| isNpcStoreShape;
+
+		console.groupCollapsed(
+			`%cbetterR20 2024-Store%c isNpc2024Sheet("${character.get?.("name") || "?"}") → ${result}`,
+			"color:#88c0d0;font-weight:bold", "color:inherit;font-weight:normal",
+		);
+		console.log("sheetKey:", sheetKey, "| is2024SheetKey:", is2024SheetKey);
+		console.log("appState:", attrMap.appState, "| isNpcAppState:", isNpcAppState);
+		console.log("npc flag:", attrMap.npc, "| isLegacyNpcFlag:", isLegacyNpcFlag);
+		console.log("store keys:", parsedStore ? Object.keys(parsedStore) : "(none)");
+		console.log("isNpcStoreShape:", isNpcStoreShape, "{ npc:", !!(parsedStore?.npc), "hitpoints:", !!(parsedStore?.hitpoints), "integrants:", !!(parsedStore?.integrants), "}");
+		console.groupEnd();
+
+		return result;
 	};
 }
 
