@@ -999,9 +999,14 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			});
 
 			$dialog.dialog({
-				resizable: true, autoOpen: true, width: 1240, dialogClass: "b20-sidekick-dialog",
+				resizable: true, autoOpen: true, width: 1000, dialogClass: "b20-sidekick-dialog",
+				position: {my: "center", at: "center", of: window},
+				maxHeight: Math.floor(window.innerHeight * 0.92),
 				title: "Make Sidekick — Create Copy",
-				open: () => refresh(),
+				open: () => {
+					refresh();
+					$dialog.dialog("widget").css("max-height", `${Math.floor(window.innerHeight * 0.92)}px`);
+				},
 				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				buttons: {
 					"Create Sidekick Copy": () => {
@@ -1127,9 +1132,14 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			});
 
 			$dialog.dialog({
-				resizable: true, autoOpen: true, width: 1240, dialogClass: "b20-sidekick-dialog",
+				resizable: true, autoOpen: true, width: 1000, dialogClass: "b20-sidekick-dialog",
+				position: {my: "center", at: "center", of: window},
+				maxHeight: Math.floor(window.innerHeight * 0.92),
 				title: "Level Up Sidekick — Create Copy",
-				open: () => refresh(),
+				open: () => {
+					refresh();
+					$dialog.dialog("widget").css("max-height", `${Math.floor(window.innerHeight * 0.92)}px`);
+				},
 				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				buttons: {
 					"Create Copy": () => {
