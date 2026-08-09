@@ -1365,7 +1365,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						<div class="b20-sidekick-card b20-sidekick-row">
 							${typeNote}
 							<h4 style="margin-top:0">Current Level</h4>
-							<p style="margin:0;color:#475569">This sidekick is currently level <strong>${currentStoredLevel}</strong>. Creating this copy will level it up to <strong>${currentStoredLevel + 1}</strong>.</p>
+							<p style="margin:0;color:#475569">This sidekick is currently level <strong>${currentStoredLevel}</strong>. Confirming will level it up to <strong>${currentStoredLevel + 1}</strong> in-place.</p>
 						</div>
 						<div class="b20-sidekick-card b20-sidekick-row">
 							<h4 style="margin-top:0">Hit Point Increase</h4>
@@ -1384,6 +1384,10 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						<h4>Preview</h4>
 						<div class="b20-upgrade-preview b20-sidekick-preview" style="min-height:140px"></div>
 					</div>
+						<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0">
+							<button type="button" class="btn b20-levelup-cancel">Cancel</button>
+							<button type="button" class="btn btn-primary b20-levelup-confirm">Level Up</button>
+						</div>
 				</div>
 			`);
 
@@ -1412,28 +1416,23 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			$dialog.on("change", "input[name=sidekickType], input[name=hpMode]", refresh);
 			$dialog.on("input", ".b20-hp-roll-input", refresh);
 			$dialog.on("click", ".b20-hp-roll-chat", () => { d20.textchat.doChatInput(`/r 1d${dieFaces}`); });
+			$dialog.on("click", ".b20-levelup-cancel", () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); });
+			$dialog.on("click", ".b20-levelup-confirm", () => {
+				const currentLevel = getLevel();
+				const resolvedType = getType();
+				const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
+				if (!asiValidation.ok) return alert(asiValidation.message);
+				$dialog.off(); $dialog.dialog("destroy").remove();
+				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, asiChoices: asiValidation.asiChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
+			});
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
 			$dialog.dialog({
 				resizable: true, autoOpen: true, width: 1000, minHeight: 700, dialogClass: "b20-sidekick-dialog",
 				position: {my: "center top+30", at: "center top", of: $mapViewport},
 				title: "Level Up Sidekick",
-				open: () => {
-					refresh();
-					$dialog.dialog("widget").css("max-height", `${Math.floor(window.innerHeight * 0.92)}px`);
-				},
+				open: () => { refresh(); },
 				close: () => { $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
-				buttons: {
-					"Create Copy": () => {
-						const currentLevel = getLevel();
-						const resolvedType = getType();
-						const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
-						if (!asiValidation.ok) return alert(asiValidation.message);
-						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, asiChoices: asiValidation.asiChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
-					},
-					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
-				},
 			});
 		});
 	}
