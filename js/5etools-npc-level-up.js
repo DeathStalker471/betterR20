@@ -942,6 +942,24 @@ function d20plusNpcLevelUp () {
 		return (store.npc && store.npc._npcLevelUpLevel) || null;
 	}
 
+	async function waitForStoreAttr(character, timeout = 5000) {
+		const start = Date.now();
+		while (Date.now() - start < timeout) {
+			const storeAttr = character.attribs.find(a => a.get("name") === "store");
+			if (storeAttr && storeAttr.get("current")) {
+				const val = storeAttr.get("current");
+				const parsed = typeof val === "string" ? JSON.parse(val) : val;
+				if (parsed.npc && (parsed.npc._npcSidekickType || parsed.npc._npcLevelUpLevel)) {
+					return { attr: storeAttr, store: parsed };
+				}
+			}
+			await new Promise(r => setTimeout(r, 100));
+		}
+		const {attr, store} = d20plus.store2024.getStore(character);
+		if (!store) logWarn(`waitForStoreAttr: timeout waiting for sidekick store on ${character.get("name")}`);
+		return { attr, store };
+	}
+
 	function formatSignedConText (conMod) {
 		return `${conMod >= 0 ? "+" : ""}${conMod} (CON)`;
 	}
@@ -1397,8 +1415,13 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		const character = getCharacterFromJournalContext(event);
 		log(`Handler invoked — resolved character: "${character?.get?.("name") || "(none)"}" (id: ${character?.id || d20plus.journal?.lastClickedJournalItemId || "?"})`);
 		if (!character) return alert("No character found.");
+		log(`[fetch] Starting attribs fetch for "${character.get("name")}"`);
 		await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
-		log(`Attributes loaded: ${character.attribs?.length || 0}`);
+		log(`[fetch] Attributes loaded: ${character.attribs?.length || 0}; waiting for sidekick store...`);
+		const storeWaitResult = await waitForStoreAttr(character);
+		if (storeWaitResult.store) {
+			log(`[fetch] Found sidekick store after wait: type=${storeWaitResult.store.npc?._npcSidekickType}, level=${storeWaitResult.store.npc?._npcLevelUpLevel}`);
+		}
 		if (!canLevelUp(character)) return alert("The selected character is not a 2024 NPC sheet.");
 
 		const charName = character.get("name") || "Unnamed character";
