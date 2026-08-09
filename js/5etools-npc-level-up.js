@@ -907,6 +907,35 @@ function d20plusNpcLevelUp () {
 		});
 	}
 
+	/**
+	 * Level up an existing sidekick character in-place (no copy created).
+	 * Updates the store, HP, features, and name suffix directly on the character.
+	 */
+	async function levelUpCharacterInPlace (character, options = {}) {
+		if (!d20plus.store2024.isNpc2024Sheet(character)) {
+			throw new Error("The selected character is not a 2024 NPC sheet.");
+		}
+
+		const {attr: sourceAttr, store: sourceStore} = d20plus.store2024.getStore(character);
+		if (!sourceStore) throw new Error("Could not read the 2024 store from this character.");
+
+		const {store: upgradedStore, summary} = upgrade2024NpcStore(sourceStore, options);
+
+		logGroup(`Upgrade summary (in-place) for "${character.get("name")}"`, () => {
+			log(`Level: ${summary.sourceLevel} → ${summary.newLevel}`);
+			log(`PB: +${summary.sourcePb} → +${summary.newPb}${summary.pbChanged ? " (changed)" : ""}`);
+			log(`HP: +${summary.hpAdded} (new max ${summary.newHpMax}), roll formula: ${summary.newRollHP}`);
+			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}`);
+			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
+		});
+
+		const newName = getLevelUpName(character.get("name") || "Unnamed character", summary.newLevel);
+		d20plus.store2024.saveNewNpcState(character, upgradedStore);
+		d20plus.store2024.saveNpcNames(character, newName);
+		character.save({name: newName});
+		return {character, summary};
+	}
+
 	// ─────────────────────────────────────────────────────────────────────────
 	// UI entry points
 	// ─────────────────────────────────────────────────────────────────────────
@@ -1329,7 +1358,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						<img class="b20-sidekick-avatar" src="${avatarUrl}" alt="${charName}">
 						<div>
 							<div class="b20-sidekick-title">${charName}</div>
-							<div class="b20-sidekick-sub">Create a leveled-up sidekick copy</div>
+							<div class="b20-sidekick-sub">Level up this sidekick</div>
 						</div>
 					</div>
 					<div class="b20-sidekick-grid" style="grid-template-columns:1fr 1fr">
@@ -1388,8 +1417,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			$dialog.dialog({
 				resizable: true, autoOpen: true, width: 1000, minHeight: 700, dialogClass: "b20-sidekick-dialog",
 				position: {my: "center top+30", at: "center top", of: $mapViewport},
-				maxHeight: Math.floor(window.innerHeight * 0.92),
-				title: "Level Up Sidekick — Create Copy",
+				title: "Level Up Sidekick",
 				open: () => {
 					refresh();
 					$dialog.dialog("widget").css("max-height", `${Math.floor(window.innerHeight * 0.92)}px`);
@@ -1447,11 +1475,16 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		const isMakeSidekick = !hasSidekickType;
 
 		try {
-			const applyLevels = isMakeSidekick ? 0 : 1;
-			// For Make Sidekick, featureFromLevel=0 so all features up to the chosen level are written.
-			const featureFromLevel = isMakeSidekick ? 0 : undefined;
-			const {character: newChar, summary} = await levelUpCharacter(character, {levels: applyLevels, currentLevel, featureFromLevel, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal});
-			log(`Done — created "${newChar.get("name")}"`);
+			let newChar, summary;
+			if (isMakeSidekick) {
+				// Make Sidekick: create a copy with all features applied from level 1
+				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal}));
+				log(`Done — created sidekick copy "${newChar.get("name")}"`);
+			} else {
+				// Level Up: modify the existing character in-place
+				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal}));
+				log(`Done — levelled up "${newChar.get("name")}" in-place`);
+			}
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
 			const asiMsg = summary.asiApplied ? `\nAbility scores improved: ${summary.asiApplied}` : "";
@@ -1462,7 +1495,7 @@ Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
 Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}`);
 			} else {
-				alert(`Created "${newChar.get("name")}".
+				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
