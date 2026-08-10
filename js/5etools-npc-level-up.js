@@ -1032,6 +1032,9 @@ function d20plusNpcLevelUp () {
 							d20plus.store2024.writeSidekickStats(newCharacter, summary.newPb, summary.newCr);
 							
 							// Poll every 200ms for 5s. If Roll20 blanks our store, rewrite immediately.
+							// NOTE: the sheet re-serializes store.npc and strips custom keys
+							// (_npcSidekickType etc.), so only check fields that survive —
+							// otherwise the guard would fight the sheet's own init forever.
 							const deadline = Date.now() + 5000;
 							while (Date.now() < deadline) {
 								await new Promise(r => setTimeout(r, 200));
@@ -1044,14 +1047,18 @@ function d20plusNpcLevelUp () {
 								const val = storeAttr.get("current");
 								let parsed = null;
 								try { parsed = typeof val === "string" ? JSON.parse(val) : val; } catch (e) {}
-								if (!parsed || !parsed.npc || !parsed.npc._npcSidekickType) {
-									log(`[guard] Store lost sidekick data — rewriting (t=${Date.now()})`);
+								const storeBlanked = !parsed || !parsed.npc || !parsed.integrants;
+								const crRegressed = !storeBlanked && String(parsed.npc.challengeRating) !== String(summary.newCr);
+								if (storeBlanked || crRegressed) {
+									log(`[guard] Store ${storeBlanked ? "blanked" : "CR regressed"} — rewriting (t=${Date.now()})`);
 									d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
 								} else {
-									// Store looks good — ensure b20_sidekick is also present
+									// Store looks good — ensure b20_sidekick is also present.
+									// (The store's _npcSidekickType gets stripped by the sheet, so
+									// this attr is the persistent source of truth for routing.)
 									const meta = d20plus.store2024.getSidekickMeta(newCharacter);
 									if (!meta || !meta.type) {
-										log(`[guard] b20_sidekick missing — rewriting (t=${Date.now()})`);
+										log(`[guard] b20_sidekick missing — rewriting meta attr (t=${Date.now()})`);
 										d20plus.store2024.saveSidekickMeta(newCharacter, upgradedStore.npc._npcSidekickType, upgradedStore.npc._npcLevelUpLevel);
 									}
 								}
@@ -1104,7 +1111,9 @@ function d20plusNpcLevelUp () {
 		d20plus.store2024.writeSidekickStats(character, summary.newPb, summary.newCr);
 
 		// Post-init reapply guard: the sheet's Vue iframe init can re-save a stale
-		// store on top of ours. Poll for a few seconds and rewrite if PB/CR regress.
+		// store on top of ours. Poll for a few seconds and rewrite if CR/PB regress.
+		// Only checks fields that survive the sheet's re-serialization (it strips
+		// custom store.npc keys like _npcLevelUpLevel).
 		(async () => {
 			const deadline = Date.now() + 5000;
 			while (Date.now() < deadline) {
@@ -1112,9 +1121,10 @@ function d20plusNpcLevelUp () {
 				const {store: liveStore} = d20plus.store2024.getStore(character);
 				if (!liveStore || !liveStore.npc) continue;
 				const crOk = String(liveStore.npc.challengeRating) === String(summary.newCr);
-				const levelOk = liveStore.npc._npcLevelUpLevel === summary.newLevel;
-				if (!crOk || !levelOk) {
-					log(`[guard] In-place store regressed (cr=${liveStore.npc.challengeRating}, level=${liveStore.npc._npcLevelUpLevel}) — rewriting`);
+				const pbOk = Object.values((liveStore.integrants && liveStore.integrants.integrants) || {})
+					.some(i => i && i.type === "Proficiency Bonus Modifier" && i.valueFormula?.flatValue === summary.newPb);
+				if (!crOk || !pbOk) {
+					log(`[guard] In-place store regressed (crOk=${crOk}, pbOk=${pbOk}) — rewriting`);
 					d20plus.store2024.saveNewNpcState(character, upgradedStore);
 					d20plus.store2024.writeSidekickStats(character, summary.newPb, summary.newCr);
 				}
