@@ -940,6 +940,17 @@ function d20plusNpcLevelUp () {
 		return feature && feature.name === "Ability Score Improvement";
 	}
 
+	/** Features whose TODO is resolved by a dialog choice/automation rather than manually. */
+	function isDialogAutomatedFeature (feature) {
+		if (!feature) return false;
+		return isAutomatedBonusProficienciesFeature(feature)
+			|| isAutomatedAsiFeature(feature)
+			|| feature.name === "Spellcasting Advancement"
+			|| feature.name === "Expertise"
+			|| feature.name === "Sharp Mind"
+			|| feature.name === "Empowered Spells";
+	}
+
 	/**
 	 * Returns true when at least one ASI needs to be chosen in the given level range.
 	 */
@@ -2206,7 +2217,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		const featureItemsHtml = features.length
 			? `<ul class="b20-preview-feature-list">${
 				features.map(f => {
-					const isTodo = f.isTodo && !isAutomatedBonusProficienciesFeature(f) && !isAutomatedAsiFeature(f);
+					const isTodo = f.isTodo && !isDialogAutomatedFeature(f);
 					return `<li><span style="color:${isTodo ? "#c0392b" : "#27ae60"};font-weight:bold">${isTodo ? "TODO" : "AUTO"} ${f.name}</span> <span style="color:#888">(lv${f.level})</span><br><span style="font-size:0.9em">${f.description.slice(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
 				}).join("")
 			}</ul>`
@@ -2236,7 +2247,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const features = d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel);
 			if (features.length) {
 				const featureItems = features.map(f => {
-					const tag = (f.isTodo && !isAutomatedBonusProficienciesFeature(f) && !isAutomatedAsiFeature(f))
+					const tag = (f.isTodo && !isDialogAutomatedFeature(f))
 						? `<span style="color:#c0392b;font-size:0.85em;font-weight:bold">TODO</span>`
 						: `<span style="color:#27ae60;font-size:0.85em;font-weight:bold">AUTO</span>`;
 					return `<li>${tag} <strong>${f.name}</strong> <span style="color:#888;font-size:0.88em">(lv${f.level})</span><br><span style="color:#555;font-size:0.88em">${f.description.substring(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
