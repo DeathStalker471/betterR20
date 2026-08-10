@@ -315,18 +315,41 @@ function d20plusNpcLevelUp () {
 		// The 2024 sheet reads PB from this integrant to compute save/skill bonuses.
 		if (pbChanged) {
 			const pbIntegrants = ((store.integrants && store.integrants.integrants) || {});
+			let pbIntegrantFound = false;
 			Object.values(pbIntegrants).forEach(int => {
 				if (int && int.type === "Proficiency Bonus") {
 					if (!int.valueFormula) int.valueFormula = {};
 					int.valueFormula.flatValue = newPb;
+					pbIntegrantFound = true;
 				}
 			});
+			// Imported NPCs have no Proficiency Bonus integrant — the sheet then derives
+			// PB from CR, which is wrong for sidekicks. Create one to override the display.
+			if (!pbIntegrantFound && store.integrants) {
+				if (!store.integrants.integrants) store.integrants.integrants = {};
+				const { id, base } = d20plus.store2024.makeIntegrantBase(
+					"Proficiency Bonus",
+					d20plus.store2024.getNextArrayPos(store),
+				);
+				store.integrants.integrants[id] = {
+					...base,
+					name: "",
+					calculation: "Set Value",
+					valueFormula: { flatValue: newPb },
+				};
+			}
 			if (store.npc) store.npc.proficiencyBonus = newPb;
 		}
 
 		// Store the new "virtual level" as a custom note on the store so we can detect
 		// the current level on future upgrades without re-deriving from CR.
 		if (!store.npc) store.npc = {};
+		// Write the mapped CR into the store — the Jumpgate renderer reads
+		// store.npc.challengeRating for the statblock CR display (flat attrs are ignored).
+		const mappedCr = sidekickLevelToCr(targetSidekickLevel);
+		store.npc.challengeRating = mappedCr;
+		store.npc.cr = mappedCr;
+		summary.newCr = mappedCr;
 		store.npc._npcLevelUpLevel = targetSidekickLevel;
 		if (options.sidekickType) store.npc._npcSidekickType = options.sidekickType;
 
@@ -928,18 +951,7 @@ function d20plusNpcLevelUp () {
 
 		// Transform the store
 		const {store: upgradedStore, summary} = upgrade2024NpcStore(sourceStore, options);
-		const mappedCr = sidekickLevelToCr(summary.newLevel);
-		if (!upgradedStore.npc) upgradedStore.npc = {};
-		upgradedStore.npc.challengeRating = mappedCr;
-		upgradedStore.npc.cr = mappedCr;
-		log(`[level-up] Setting CR from level mapping: level ${summary.newLevel} -> CR ${mappedCr}`);
-		if (options.featureFromLevel === 0) {
-			const mappedCr = sidekickLevelToCr(summary.newLevel);
-			if (!upgradedStore.npc) upgradedStore.npc = {};
-			upgradedStore.npc.challengeRating = mappedCr;
-			upgradedStore.npc.cr = mappedCr;
-			log(`[make-sidekick] Setting CR from level mapping: level ${summary.newLevel} -> CR ${mappedCr}`);
-		}
+		log(`[level-up] CR from level mapping: level ${summary.newLevel} -> CR ${summary.newCr}`);
 
 		logGroup(`Upgrade summary for "${character.get("name")}"`, () => {
 			log(`Level: ${summary.sourceLevel} → ${summary.newLevel}`);
@@ -1006,8 +1018,7 @@ function d20plusNpcLevelUp () {
 							d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
 							
 							// Write flat character attributes for PB and CR so sheet display updates
-							const mappedCr = sidekickLevelToCr(summary.newLevel);
-							d20plus.store2024.writeSidekickStats(newCharacter, summary.newPb, mappedCr);
+							d20plus.store2024.writeSidekickStats(newCharacter, summary.newPb, summary.newCr);
 							
 							// Poll every 200ms for 5s. If Roll20 blanks our store, rewrite immediately.
 							const deadline = Date.now() + 5000;
@@ -1077,11 +1088,34 @@ function d20plusNpcLevelUp () {
 		character.save({name: newName, tags: newTags, tags_string: newTags});
 		d20plus.store2024.saveNewNpcState(character, upgradedStore);
 		d20plus.store2024.saveNpcNames(character, newName);
-	
+
 		// Write flat character attributes for PB and CR so sheet display updates
-		const mappedCr = sidekickLevelToCr(summary.newLevel);
-		d20plus.store2024.writeSidekickStats(character, summary.newPb, mappedCr);
-	
+		d20plus.store2024.writeSidekickStats(character, summary.newPb, summary.newCr);
+
+		// Post-init reapply guard: the sheet's Vue iframe init can re-save a stale
+		// store on top of ours. Poll for a few seconds and rewrite if PB/CR regress.
+		(async () => {
+			const deadline = Date.now() + 5000;
+			while (Date.now() < deadline) {
+				await new Promise(r => setTimeout(r, 500));
+				const {store: liveStore} = d20plus.store2024.getStore(character);
+				if (!liveStore || !liveStore.npc) continue;
+				const crOk = String(liveStore.npc.challengeRating) === String(summary.newCr);
+				const levelOk = liveStore.npc._npcLevelUpLevel === summary.newLevel;
+				if (!crOk || !levelOk) {
+					log(`[guard] In-place store regressed (cr=${liveStore.npc.challengeRating}, level=${liveStore.npc._npcLevelUpLevel}) — rewriting`);
+					d20plus.store2024.saveNewNpcState(character, upgradedStore);
+					d20plus.store2024.writeSidekickStats(character, summary.newPb, summary.newCr);
+				}
+			}
+			// Final instrumentation: dump renderer-bound PB/CR fields after settle
+			const {store: finalStore} = d20plus.store2024.getStore(character);
+			const pbInts = Object.values((finalStore?.integrants?.integrants) || {})
+				.filter(i => i && i.type === "Proficiency Bonus")
+				.map(i => i.valueFormula?.flatValue);
+			log(`[guard] In-place store guard complete for "${newName}" — final: challengeRating=${finalStore?.npc?.challengeRating}, cr=${finalStore?.npc?.cr}, proficiencyBonus=${finalStore?.npc?.proficiencyBonus}, PB integrant flatValue(s)=[${pbInts.join(", ")}]`);
+		})();
+
 		log(`[level-up] Updated tags: ${newTags}`);
 		return {character, summary};
 	}
