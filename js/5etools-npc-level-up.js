@@ -396,6 +396,14 @@ function d20plusNpcLevelUp () {
 		// Write (or replace) the sidekick identity feature — always done so level-up keeps it current.
 		writeSidekickIdentityFeature(store, sidekickType, targetSidekickLevel);
 
+		// Potent Cantrips (spellcaster level 6+): add the spellcasting ability modifier
+		// to cantrip damage. Applied on every level-up at 6+ so cantrips added since the
+		// last level-up are covered too.
+		const potentCantripsApplied = targetSidekickLevel >= 6
+			? applyPotentCantrips(store, sidekickType)
+			: 0;
+		summary.potentCantripsApplied = potentCantripsApplied;
+
 		// Count how many Proficiency integrants exist (informational for the summary)
 		const allInts = (store.integrants && store.integrants.integrants) || {};
 		summary.proficienciesUpdated = Object.values(allInts)
@@ -413,6 +421,57 @@ function d20plusNpcLevelUp () {
 	// ─────────────────────────────────────────────────────────────────────────
 
 	const SIDEKICK_IDENTITY_FEATURE_NAME = "betterR20 Sidekick";
+
+	/** Spellcasting ability by sidekick type (TCE p.144). Non-casters absent. */
+	const SIDEKICK_SPELLCASTING_ABILITY = {
+		mage: "Intelligence",
+		healer: "Wisdom",
+		prodigy: "Charisma",
+	};
+
+	/**
+	 * Apply the Potent Cantrips feature: set the damage ability of every cantrip's
+	 * Damage integrant to the sidekick's spellcasting ability.
+	 *
+	 * Cantrips are Spell integrants with level === 0; their Attack integrants are
+	 * children (parentID = spell id) and Damage integrants are children of the
+	 * Attack. We walk each Damage integrant's parentID chain up to a Spell to
+	 * decide whether it belongs to a cantrip. Only "none"/empty abilities are
+	 * overwritten so manual per-spell choices are preserved.
+	 *
+	 * @returns {number} count of Damage integrants updated
+	 */
+	function applyPotentCantrips (store, sidekickType) {
+		const ability = SIDEKICK_SPELLCASTING_ABILITY[sidekickType];
+		if (!ability) return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+
+		// Map from both full ids and shortIDs to integrants for parent lookups
+		const byId = {};
+		Object.entries(ints).forEach(([id, int]) => {
+			if (!int) return;
+			byId[id] = int;
+			if (int.shortID) byId[int.shortID] = int;
+			if (int._id) byId[int._id] = int;
+		});
+
+		const isCantripAncestor = (int, depth = 0) => {
+			if (!int || depth > 5) return false;
+			if (int.type === "Spell") return int.level === 0;
+			return isCantripAncestor(byId[int.parentID], depth + 1);
+		};
+
+		let updated = 0;
+		Object.values(ints).forEach(int => {
+			if (!int || int.type !== "Damage") return;
+			const currentAbility = (int.ability || "none").toLowerCase();
+			if (currentAbility !== "none" && currentAbility !== "") return;
+			if (!isCantripAncestor(byId[int.parentID])) return;
+			int.ability = ability;
+			updated++;
+		});
+		return updated;
+	}
 
 	/**
 	 * Write (or replace) a single "betterR20 Sidekick" identity feature recording type and level.
@@ -969,7 +1028,7 @@ function d20plusNpcLevelUp () {
 			log(`PB: +${summary.sourcePb} → +${summary.newPb}${summary.pbChanged ? " (changed)" : ""}`);
 			log(`HP: +${summary.hpAdded} (new max ${summary.newHpMax}), roll formula: ${summary.newRollHP}`);
 			log(`Hit dice added: ${summary.hitDiceAdded}, proficiencies present: ${summary.proficienciesUpdated}`);
-			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}`);
+			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}, Potent Cantrips applied: ${summary.potentCantripsApplied || 0}`);
 			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
 		});
 
@@ -1096,7 +1155,7 @@ function d20plusNpcLevelUp () {
 			log(`Level: ${summary.sourceLevel} → ${summary.newLevel}`);
 			log(`PB: +${summary.sourcePb} → +${summary.newPb}${summary.pbChanged ? " (changed)" : ""}`);
 			log(`HP: +${summary.hpAdded} (new max ${summary.newHpMax}), roll formula: ${summary.newRollHP}`);
-			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}`);
+			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}, Potent Cantrips applied: ${summary.potentCantripsApplied || 0}`);
 			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
 		});
 
@@ -1713,18 +1772,19 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
 			const asiMsg = summary.asiApplied ? `\nAbility scores improved: ${summary.asiApplied}` : "";
+			const cantripMsg = summary.potentCantripsApplied ? `\nPotent Cantrips applied to ${summary.potentCantripsApplied} cantrip damage roll(s)` : "";
 			if (isMakeSidekick) {
 				alert(`Created "${newChar.get("name")}" as a sidekick.
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}`);
 			} else {
 				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
