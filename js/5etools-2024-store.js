@@ -172,16 +172,21 @@ function d20plus2024Store () {
 	 * These bypass the store and ensure the sheet UI reflects the values immediately.
 	 */
 	d20plus.store2024.writeSidekickStats = function (character, pb, cr) {
-		const toSave = [];
-		if (pb != null) {
-			toSave.push({name: "pb", current: String(pb)});
-		}
+		const setAttr = (name, value) => {
+			const existing = character.attribs.find(a => a.get("name") === name);
+			if (existing) {
+				existing.set({current: String(value)});
+				existing.save();
+				return;
+			}
+			character.attribs.create({name, current: String(value)});
+		};
+		if (pb != null) setAttr("pb", pb);
 		if (cr != null) {
 			// CR can be a fraction like "1/2" or an integer like "3"
-			toSave.push({name: "challenge_rating", current: String(cr)});
-			toSave.push({name: "npc_challenge", current: String(cr)});
+			setAttr("challenge_rating", cr);
+			setAttr("npc_challenge", cr);
 		}
-		toSave.forEach(attr => character.attribs.push(attr).syncedSave());
 		if (pb != null || cr != null) {
 			console.log(`betterR20 writeSidekickStats: pb=${pb}, cr=${cr}`);
 		}
