@@ -116,6 +116,11 @@ function d20plus2024Store () {
 		].map(a => character.attribs.push(a));
 		toSave.forEach(s => s.syncedSave());
 
+		// Force the Jumpgate Vue sheet to re-render with updated store data.
+		if (character.view && typeof character.view.showNewVueFrame === "function") {
+			character.view.showNewVueFrame();
+		}
+
 		// Write a dedicated b20_sidekick attr that Roll20's sheet init never touches.
 		// This is the reliable source of truth for sidekick routing.
 		if (sidekickType || sidekickLevel) {

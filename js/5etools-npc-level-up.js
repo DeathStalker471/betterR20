@@ -656,9 +656,18 @@ function d20plusNpcLevelUp () {
 
 	function buildSidekickTags (existingTags, sidekickType, sidekickLevel) {
 		const raw = existingTags == null ? "" : existingTags;
-		const asList = Array.isArray(raw)
-			? raw
-			: String(raw).split(",");
+		let asList;
+		if (Array.isArray(raw)) {
+			asList = raw;
+		} else {
+			const str = String(raw).trim();
+			// Roll20 stores tags as a JSON array string e.g. ["_roll20_internal_party_tag_"]
+			if (str.startsWith("[")) {
+				try { asList = JSON.parse(str); } catch (e) { asList = [str]; }
+			} else {
+				asList = str ? str.split(",") : [];
+			}
+		}
 		const tokens = asList
 			.map(t => String(t).trim())
 			.filter(Boolean)
@@ -669,7 +678,8 @@ function d20plusNpcLevelUp () {
 		tokens.push("Sidekick");
 		tokens.push(`Sidekick-Type: ${typeLabel}`);
 		tokens.push(`Sidekick-Level: ${sidekickLevel}`);
-		return tokens.join(",");
+		// Return as a JSON array so Roll20 round-trips it correctly
+		return JSON.stringify(tokens);
 	}
 
 	function shouldApplyBonusProficiencies (currentLevel, targetLevel) {
