@@ -165,6 +165,7 @@ function d20plus2024Store () {
 			{name: "character_name", current: displayName},
 		].map(a => character.attribs.push(a));
 		toSave.forEach(s => s.syncedSave());
+	};
 
 	/**
 	 * Write flat character attributes for PB and CR that the Jumpgate sheet reads directly.
