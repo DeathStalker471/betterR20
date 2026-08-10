@@ -1,8 +1,10 @@
 /**
  * Sidekick feature tables — Tasha's Cauldron of Everything pp.142–147
  *
- * Five types: expert, warrior, mage, healer, prodigy
- * (mage/healer/prodigy are the three Spellcaster roles treated as distinct types)
+ * Six types: expert, warrior-attacker, warrior-defender, mage, healer, prodigy
+ * (mage/healer/prodigy are the three Spellcaster roles, and the Warrior Martial
+ * Role choice is baked into two Warrior types; "warrior" remains as a legacy
+ * alias for pre-split sidekicks)
  *
  * Each feature entry:
  *   level       {number}  Sidekick level at which the feature is gained
@@ -145,9 +147,12 @@ function d20plusNpcSidekickData () {
 
 	// ─────────────────────────────────────────────────────────────────────────
 	// Warrior (TCE pp.146–147)
+	// Split into Attacker/Defender types (Martial Role is a permanent level 1
+	// choice, so it is baked into the type like the spellcaster spell lists).
 	// ─────────────────────────────────────────────────────────────────────────
 
-	d20plus.sidekickData.warrior = [
+	function makeWarriorFeatures (martialRoleFeature) {
+		return [
 		{
 			level: 1,
 			name: "Bonus Proficiencies",
@@ -155,13 +160,7 @@ function d20plusNpcSidekickData () {
 			source: "TCE p.146",
 			description: "Choose one saving throw proficiency (Strength, Dexterity, or Constitution). Choose two skill proficiencies from: Acrobatics, Animal Handling, Athletics, Intimidation, Nature, Perception, or Survival. The sidekick gains proficiency with all armor. If it is a humanoid or has a simple or martial weapon in its stat block, it gains proficiency with shields and all simple and martial weapons.",
 		},
-		{
-			level: 1,
-			name: "Martial Role",
-			isTodo: true,
-			source: "TCE p.146",
-			description: "Choose one: Attacker — the sidekick gains a +2 bonus to all attack rolls. Defender — the sidekick can use its reaction to impose disadvantage on the attack roll of a creature within 5 feet of it whose target isn't the sidekick (provided the sidekick can see the attacker).",
-		},
+		martialRoleFeature,
 		{
 			level: 2,
 			name: "Second Wind",
@@ -267,7 +266,33 @@ function d20plusNpcSidekickData () {
 			source: "TCE p.146",
 			description: "The sidekick can now use its Second Wind feature twice between rests.",
 		},
-	];
+		];
+	}
+
+	d20plus.sidekickData["warrior-attacker"] = makeWarriorFeatures({
+		level: 1,
+		name: "Martial Role: Attacker",
+		isTodo: false,
+		source: "TCE p.146",
+		description: "The sidekick gains a +2 bonus to all attack rolls. (Applied automatically to the sidekick's attacks by betterR20.)",
+	});
+
+	d20plus.sidekickData["warrior-defender"] = makeWarriorFeatures({
+		level: 1,
+		name: "Martial Role: Defender",
+		isTodo: false,
+		source: "TCE p.146",
+		description: "The sidekick can use its reaction to impose disadvantage on the attack roll of a creature within 5 feet of it whose target isn't the sidekick (provided the sidekick can see the attacker).",
+	});
+
+	// Legacy type for sidekicks created before the Attacker/Defender split.
+	d20plus.sidekickData.warrior = makeWarriorFeatures({
+		level: 1,
+		name: "Martial Role",
+		isTodo: true,
+		source: "TCE p.146",
+		description: "Choose one: Attacker — the sidekick gains a +2 bonus to all attack rolls. Defender — the sidekick can use its reaction to impose disadvantage on the attack roll of a creature within 5 feet of it whose target isn't the sidekick (provided the sidekick can see the attacker).",
+	});
 
 	// ─────────────────────────────────────────────────────────────────────────
 	// Shared spellcasting level-up features (levels 4–20, all three roles)
@@ -443,13 +468,15 @@ function d20plusNpcSidekickData () {
 		return {
 			expert: "Expert",
 			warrior: "Warrior",
+			"warrior-attacker": "Warrior (Attacker)",
+			"warrior-defender": "Warrior (Defender)",
 			mage: "Mage (Spellcaster)",
 			healer: "Healer (Spellcaster)",
 			prodigy: "Prodigy (Spellcaster)",
 		}[type] || type;
 	};
 
-	d20plus.sidekickData.ALL_TYPES = ["expert", "warrior", "mage", "healer", "prodigy"];
+	d20plus.sidekickData.ALL_TYPES = ["expert", "warrior-attacker", "warrior-defender", "mage", "healer", "prodigy"];
 
 	// ─────────────────────────────────────────────────────────────────────────
 	// Sidekick spell lists (2024 PHB / XPHB data, bundled into the build)

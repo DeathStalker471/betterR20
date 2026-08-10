@@ -122,6 +122,9 @@ function d20plusNpcLevelUp () {
 			skills: { maxChoices: 2, options: ["Arcana", "History", "Insight", "Investigation", "Medicine", "Performance", "Persuasion", "Religion"] },
 		},
 	};
+	// The Attacker/Defender warrior types share the warrior proficiency options
+	SIDEKICK_BONUS_PROFICIENCY_CONFIG["warrior-attacker"] = SIDEKICK_BONUS_PROFICIENCY_CONFIG.warrior;
+	SIDEKICK_BONUS_PROFICIENCY_CONFIG["warrior-defender"] = SIDEKICK_BONUS_PROFICIENCY_CONFIG.warrior;
 
 	/**
 	 * Parse a CR string ("1/8", "1/4", "1/2", "1", "20", etc.) to a number.
@@ -379,18 +382,45 @@ function d20plusNpcLevelUp () {
 		const asiApplied = asiHasFeatures
 			? applyAsiToStore(store, options.asiChoices)
 			: 0;
+		// Expertise (expert L3/L15) — after bonus proficiencies so new skills can be chosen
+		const expertiseApplied = options.expertiseChoices
+			? applyExpertise(store, options.expertiseChoices)
+			: 0;
+		// Sharp Mind (expert L18) — one extra saving throw proficiency
+		let sharpMindApplied = 0;
+		if (options.sharpMindChoice) {
+			const existingSaves = getExistingProficiencies(store).saves;
+			if (!existingSaves.has(options.sharpMindChoice)) {
+				const pos = d20plus.store2024.getNextArrayPos(store);
+				const { id, integrant } = makeProficiencyIntegrant("Saving Throw", options.sharpMindChoice, pos);
+				store.integrants.integrants[id] = integrant;
+				sharpMindApplied = 1;
+			}
+		}
 		const featuresWritten = writeSidekickFeatures(
 			store,
 			sidekickType,
 			featureFromLevel,
 			targetSidekickLevel,
-			{ skipBonusProficienciesTodo: shouldHandleBonusProficiencies, skipAsiTodo: asiHasFeatures, skipSpellcastingAdvancementTodo: !!options.spellChoices },
+			{
+				skipBonusProficienciesTodo: shouldHandleBonusProficiencies,
+				skipAsiTodo: asiHasFeatures,
+				skipSpellcastingAdvancementTodo: !!options.spellChoices,
+				skipExpertiseTodo: !!options.expertiseChoices,
+				skipSharpMindTodo: !!options.sharpMindChoice,
+			},
 		);
 		const bonusProficiencyFeatureWritten = shouldHandleBonusProficiencies
 			? writeBonusProficiencyFeature(store, sidekickType, options.bonusProficiencies)
 			: 0;
 		const asiTraitsWritten = asiHasFeatures
 			? writeAsiFeatures(store, sidekickType, featureFromLevel, targetSidekickLevel, options.asiChoices)
+			: 0;
+		const expertiseTraitWritten = options.expertiseChoices
+			? writeExpertiseFeature(store, sidekickType, featureFromLevel, targetSidekickLevel, options.expertiseChoices)
+			: 0;
+		const sharpMindTraitWritten = options.sharpMindChoice
+			? writeSharpMindFeature(store, sidekickType, featureFromLevel, targetSidekickLevel, options.sharpMindChoice)
 			: 0;
 
 		// Write (or replace) the sidekick identity feature — always done so level-up keeps it current.
@@ -425,6 +455,10 @@ function d20plusNpcLevelUp () {
 			: 0;
 		summary.potentCantripsApplied = potentCantripsApplied;
 
+		// Martial Role: Attacker (warrior-attacker) — +2 to all attack rolls.
+		// Run on every level-up so attacks added since the last one are covered.
+		summary.attackerBonusApplied = applyMartialRoleAttacker(store, sidekickType);
+
 		// Count how many Proficiency integrants exist (informational for the summary)
 		const allInts = (store.integrants && store.integrants.integrants) || {};
 		summary.proficienciesUpdated = Object.values(allInts)
@@ -432,7 +466,9 @@ function d20plusNpcLevelUp () {
 			.length;
 		summary.bonusProficienciesAdded = bonusProficienciesAdded;
 		summary.asiApplied = asiApplied;
-		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten + (spellResult ? 1 : 0);
+		summary.expertiseApplied = expertiseApplied;
+		summary.sharpMindApplied = sharpMindApplied;
+		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten + expertiseTraitWritten + sharpMindTraitWritten + (spellResult ? 1 : 0);
 
 		return { store, summary };
 	}
@@ -537,7 +573,7 @@ function d20plusNpcLevelUp () {
 		if (!d20plus.sidekickData || !sidekickType) return 0;
 		const features = d20plus.sidekickData
 			.getFeaturesGained(sidekickType, fromLevel, toLevel)
-			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement") && !(options.skipSpellcastingAdvancementTodo && feature.name === "Spellcasting Advancement"));
+			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement") && !(options.skipSpellcastingAdvancementTodo && feature.name === "Spellcasting Advancement") && !(options.skipExpertiseTodo && feature.name === "Expertise") && !(options.skipSharpMindTodo && feature.name === "Sharp Mind"));
 		if (!features.length) return 0;
 
 		if (!store.integrants) store.integrants = { integrants: {} };
@@ -1020,6 +1056,195 @@ function d20plusNpcLevelUp () {
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
+	// Expertise (expert L3/L15), Sharp Mind (expert L18), Martial Role (warrior)
+	// ─────────────────────────────────────────────────────────────────────────
+
+	function getFeaturesByName (sidekickType, fromLevel, toLevel, name) {
+		if (!d20plus.sidekickData || !sidekickType) return [];
+		return d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel)
+			.filter(f => f.name === name);
+	}
+
+	/** Skills the sidekick is proficient (but not yet expert) in, sorted. */
+	function getExpertiseCandidates (store) {
+		return getProficiencyIntegrants(store, "Skill")
+			.filter(i => i.proficiency && (i.proficiencyLevel || "Proficient") === "Proficient")
+			.map(i => i.proficiency)
+			.sort();
+	}
+
+	/** Skills already at Expertise on the sheet. */
+	function getExistingExpertiseSkills (store) {
+		return new Set(getProficiencyIntegrants(store, "Skill")
+			.filter(i => i.proficiency && i.proficiencyLevel === "Expertise")
+			.map(i => i.proficiency));
+	}
+
+	/**
+	 * Render the Expertise picker (expert L3/L15). Options are the sidekick's
+	 * proficient skills plus any skills currently ticked in the Bonus
+	 * Proficiencies section of the same dialog (pendingSkills).
+	 */
+	function renderExpertiseSection ($container, store, sidekickType, fromLevel, toLevel, pendingSkills) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Expertise");
+		if (!features.length) { $container.html("").removeData("b20ExpKey"); return; }
+		const maxChoices = 2 * features.length;
+		const existingExpertise = getExistingExpertiseSkills(store);
+		const options = [...new Set([...getExpertiseCandidates(store), ...(pendingSkills || [])])]
+			.filter(skill => !existingExpertise.has(skill))
+			.sort();
+		const renderKey = `${sidekickType}|${fromLevel}|${toLevel}|${options.join(",")}`;
+		if ($container.data("b20ExpKey") === renderKey) return;
+		// Preserve any picks that survive the option-list change
+		const previousPicks = new Set(readSelectedValues($container, "expertiseSkills"));
+		$container.data("b20ExpKey", renderKey);
+		if (!options.length) {
+			$container.html(`<div class="b20-sidekick-card"><h4>Expertise</h4><p style="margin:0;color:#c0392b;font-size:12px">No proficient skills found to choose Expertise from — resolve the TODO trait manually.</p></div>`);
+			return;
+		}
+		const levelsText = features.map(f => f.level).join(" and ");
+		$container.html(`
+			<div class="b20-sidekick-card b20-expertise-picker">
+				<h4>Expertise</h4>
+				<p style="margin:0 0 6px;color:#475569;font-size:12px">Gained at level ${levelsText}: choose ${maxChoices} of the sidekick's skill proficiencies. Its proficiency bonus is doubled for ability checks using those skills. (<span class="b20-expertise-count">0</span>/${maxChoices} chosen)</p>
+				<div class="b20-spell-check-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px 10px">
+					${options.map(skill => `
+						<label class="b20-sidekick-checkbox">
+							<input type="checkbox" name="expertiseSkills" value="${skill}" ${previousPicks.has(skill) ? "checked" : ""}>
+							<span>${skill}</span>
+						</label>`).join("")}
+				</div>
+			</div>
+		`);
+		const update = () => {
+			enforceCheckboxLimit($container, "expertiseSkills", maxChoices);
+			$container.find(".b20-expertise-count").text(readSelectedValues($container, "expertiseSkills").length);
+		};
+		$container.off(".b20exp").on("change.b20exp", "input[name=expertiseSkills]", update);
+		update();
+	}
+
+	function validateExpertiseChoices ($dialog, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Expertise");
+		if (!features.length || !$dialog.find(".b20-expertise-picker").length) return { ok: true, expertiseChoices: null };
+		const maxChoices = 2 * features.length;
+		const chosen = readSelectedValues($dialog, "expertiseSkills");
+		if (chosen.length !== maxChoices) {
+			return { ok: false, message: `Select exactly ${maxChoices} skills for Expertise.` };
+		}
+		return { ok: true, expertiseChoices: chosen };
+	}
+
+	/** Set proficiencyLevel = "Expertise" on the matching Skill Proficiency integrants. */
+	function applyExpertise (store, skills) {
+		if (!skills || !skills.length) return 0;
+		let applied = 0;
+		getProficiencyIntegrants(store, "Skill").forEach(int => {
+			if (skills.includes(int.proficiency) && int.proficiencyLevel !== "Expertise") {
+				int.proficiencyLevel = "Expertise";
+				applied++;
+			}
+		});
+		return applied;
+	}
+
+	function writeExpertiseFeature (store, sidekickType, fromLevel, toLevel, skills) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Expertise");
+		if (!features.length || !skills || !skills.length) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+		store.integrants.integrants[id] = {
+			...base,
+			name: "Expertise",
+			description: `${features[0].description}\n\nChosen skills: ${skills.join(", ")}\n\n(Added by betterR20 sidekick level-up, ${features[0].source})`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
+	}
+
+	/** Render the Sharp Mind picker (expert L18): one save from Int/Wis/Cha. */
+	function renderSharpMindSection ($container, store, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Sharp Mind");
+		if (!features.length) { $container.html("").removeData("b20SharpKey"); return; }
+		const renderKey = `${sidekickType}|${fromLevel}|${toLevel}`;
+		if ($container.data("b20SharpKey") === renderKey) return;
+		$container.data("b20SharpKey", renderKey);
+		const existingSaves = getExistingProficiencies(store).saves;
+		const options = ["Intelligence", "Wisdom", "Charisma"];
+		$container.html(`
+			<div class="b20-sidekick-card b20-sharpmind-picker">
+				<h4>Sharp Mind</h4>
+				<p style="margin:0 0 6px;color:#475569;font-size:12px">Gained at level 18: choose one saving throw proficiency.</p>
+				${options.map((save, i) => {
+					const isNative = existingSaves.has(save);
+					return `<label class="b20-sidekick-checkbox ${isNative ? "b20-sidekick-checkbox-locked" : ""}">
+						<input type="radio" name="sharpMindSave" value="${save}" ${isNative ? "disabled" : ""}>
+						<span>${save}${isNative ? ' <span class="b20-sidekick-note">(already proficient)</span>' : ""}</span>
+					</label>`;
+				}).join("")}
+			</div>
+		`);
+	}
+
+	function validateSharpMindChoice ($dialog, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Sharp Mind");
+		if (!features.length || !$dialog.find(".b20-sharpmind-picker").length) return { ok: true, sharpMindChoice: null };
+		const chosen = $dialog.find("input[name=sharpMindSave]:checked").val();
+		if (!chosen) return { ok: false, message: "Select a saving throw proficiency for Sharp Mind." };
+		return { ok: true, sharpMindChoice: chosen };
+	}
+
+	function writeSharpMindFeature (store, sidekickType, fromLevel, toLevel, save) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Sharp Mind");
+		if (!features.length || !save) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+		store.integrants.integrants[id] = {
+			...base,
+			name: "Sharp Mind",
+			description: `${features[0].description}\n\nChosen saving throw: ${save}\n\n(Added by betterR20 sidekick level-up, ${features[0].source})`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
+	}
+
+	/**
+	 * Martial Role: Attacker — add +2 to every Attack integrant's flat to-hit
+	 * bonus. Marked with _b20AttackerBonus so re-running level-ups is idempotent
+	 * while attacks added since the last level-up still get the bonus.
+	 * @returns {number} attacks updated
+	 */
+	function applyMartialRoleAttacker (store, sidekickType) {
+		if (sidekickType !== "warrior-attacker") return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		let applied = 0;
+		Object.values(ints).forEach(int => {
+			if (!int || int.type !== "Attack" || !int.attack) return;
+			if (int._b20AttackerBonus) return;
+			int.attack.bonus = (Number(int.attack.bonus) || 0) + 2;
+			int._b20AttackerBonus = true;
+			applied++;
+		});
+		return applied;
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
 	// Spellcasting Advancement — spell picks (mage/healer/prodigy)
 	// ─────────────────────────────────────────────────────────────────────────
 
@@ -1050,8 +1275,33 @@ function d20plusNpcLevelUp () {
 			return `<label class="b20-sidekick-checkbox ${isKnown ? "b20-sidekick-checkbox-locked" : ""}" data-spell-name="${sp.name.toLowerCase()}">
 				<input type="checkbox" name="${inputName}" value="${sp.name}" ${isKnown ? 'checked disabled data-native="true"' : ""}>
 				<span>${sp.name}${isKnown ? ' <span class="b20-sidekick-note">(known)</span>' : ""}</span>
+				<a class="b20-spell-info" data-spell="${sp.name}" title="Show spell details" style="cursor:pointer;color:#2563eb;font-weight:bold;margin-left:2px;text-decoration:none">&#9432;</a>
 			</label>`;
 		}).join("");
+	}
+
+	/** Open a small dialog showing the full rendered spell details. */
+	function showSpellDetailDialog (spellName) {
+		const spell = d20plus.sidekickData && d20plus.sidekickData.getSpellByName(spellName);
+		if (!spell) return alert(`Spell "${spellName}" not found in the bundled data.`);
+		let html;
+		try {
+			// Deep clone — _getHandoutData mutates its input (defaults, roll20 meta)
+			const [notecontents] = d20plus.spells._getHandoutData(JSON.parse(JSON.stringify(spell)));
+			// Strip the embedded machine-readable JSON blob
+			html = notecontents.replace(/<del class="hidden">[\s\S]*<\/del>/, "");
+		} catch (e) {
+			html = `<p>Could not render spell details — see console.</p>`;
+			logError(`showSpellDetailDialog failed for "${spellName}":`, e);
+		}
+		const $detail = $(`<div class="b20-spell-detail" style="max-height:60vh;overflow:auto;font-size:13px;line-height:1.45;padding:2px 6px">${html}</div>`);
+		$detail.dialog({
+			title: spellName,
+			width: 480,
+			resizable: true,
+			close: () => { $detail.dialog("destroy").remove(); },
+			buttons: { Close: () => { $detail.dialog("destroy").remove(); } },
+		});
 	}
 
 	/**
@@ -1146,6 +1396,12 @@ function d20plusNpcLevelUp () {
 		}
 		$container.off(".b20spell")
 			.on("change.b20spell", "input[name=spellPickCantrip], input[name=spellPickSpell], input[name=spellPickSkip], select[name=spellReplaceTarget]", updateSpellPickerState)
+			.on("click.b20spell", ".b20-spell-info", function (evt) {
+				// Inside a <label> — stop it toggling the checkbox
+				evt.preventDefault();
+				evt.stopPropagation();
+				showSpellDetailDialog($(this).data("spell"));
+			})
 			.on("input.b20spell", ".b20-spell-filter", function () {
 				const q = String($(this).val() || "").toLowerCase().trim();
 				$container.find(".b20-sidekick-checkbox[data-spell-name]").each((_, el) => {
@@ -1929,7 +2185,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const charName = character.get("name") || "Unnamed character";
 			const levelOptions = makeLevelBasisOptions(store);
 
-			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior","mage","healer","prodigy"];
+			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior-attacker","warrior-defender","mage","healer","prodigy"];
 			const typeButtons = allTypes.map((type, i) => {
 				const label = d20plus.sidekickData ? d20plus.sidekickData.typeLabel(type) : type;
 				return `<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer">
@@ -1962,6 +2218,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						</div>
 					</div>
 					<div class="b20-bonus-prof-container"></div>
+					<div class="b20-expertise-container"></div>
+					<div class="b20-sharpmind-container"></div>
 					<div class="b20-asi-container"></div>
 					<div class="b20-spell-container"></div>
 					<div class="b20-sidekick-card">
@@ -2009,6 +2267,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const type = getType();
 				const level = getLevel();
 				renderBonusSection();
+				renderExpertiseSection($dialog.find(".b20-expertise-container"), store, type, 0, level, readSelectedValues($dialog, "bonusProfSkills"));
+				renderSharpMindSection($dialog.find(".b20-sharpmind-container"), store, type, 0, level);
 				renderAsiSection($dialog.find(".b20-asi-container"), store, type, 0, level);
 				renderSpellPickerSection($dialog.find(".b20-spell-container"), store, type, 0, level);
 				$dialog.find(".b20-upgrade-preview").html(makeStartingStateHtml(store, type, level));
@@ -2027,6 +2287,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			$dialog.on("change", "input[name=bonusProfSkills]", () => {
 				const cfg = getSidekickBonusProficiencyConfig(getType());
 				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
+				// Bonus-prof skills are Expertise candidates — refresh its options
+				renderExpertiseSection($dialog.find(".b20-expertise-container"), store, getType(), 0, getLevel(), readSelectedValues($dialog, "bonusProfSkills"));
 			});
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
@@ -2046,12 +2308,16 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						const sidekickType = getType();
 						const profValidation = validateBonusProfChoices($dialog, sidekickType);
 						if (!profValidation.ok) return alert(profValidation.message);
+						const expertiseValidation = validateExpertiseChoices($dialog, sidekickType, 0, currentLevel);
+						if (!expertiseValidation.ok) return alert(expertiseValidation.message);
+						const sharpMindValidation = validateSharpMindChoice($dialog, sidekickType, 0, currentLevel);
+						if (!sharpMindValidation.ok) return alert(sharpMindValidation.message);
 						const asiValidation = validateAsiChoices($dialog, sidekickType, 0, currentLevel);
 						if (!asiValidation.ok) return alert(asiValidation.message);
 						const spellValidation = validateSpellChoices($dialog, store, sidekickType, 0, currentLevel);
 						if (!spellValidation.ok) return alert(spellValidation.message);
 						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices});
+						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices});
 					},
 					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				},
@@ -2073,7 +2339,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const avgHp = parsedHP ? avgHpPerDie(parsedHP.faces) : 5;
 			const conMod = getConModFromStore(store);
 
-			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior","mage","healer","prodigy"];
+			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior-attacker","warrior-defender","mage","healer","prodigy"];
 			const typeNote = !sidekickType
 				? `<div style="margin-bottom:10px">
 					<p style="margin:0 0 4px;font-weight:bold;font-size:0.92em">Sidekick Type <span style="color:#c0392b">(not yet set — choose once)</span></p>
@@ -2115,6 +2381,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 							</div>
 						</div>
 					</div>
+					<div class="b20-expertise-container"></div>
+					<div class="b20-sharpmind-container"></div>
 					<div class="b20-asi-container"></div>
 					<div class="b20-spell-container"></div>
 					<div class="b20-sidekick-card">
@@ -2145,6 +2413,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const hpMode = getHpMode();
 				const hpRollTotal = getHpRollTotal();
 				$dialog.find('.b20-hp-roll-row').css('display', hpMode === 'roll' ? 'block' : 'none');
+				renderExpertiseSection($dialog.find(".b20-expertise-container"), store, type, level, level + 1, []);
+				renderSharpMindSection($dialog.find(".b20-sharpmind-container"), store, type, level, level + 1);
 				renderAsiSection($dialog.find(".b20-asi-container"), store, type, level, level + 1);
 				renderSpellPickerSection($dialog.find(".b20-spell-container"), store, type, level, level + 1);
 				const summary = previewUpgrade(store, level, type, { hpIncreaseMode: hpMode, hpRollTotal });
@@ -2158,12 +2428,16 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			$dialog.on("click", ".b20-levelup-confirm", () => {
 				const currentLevel = getLevel();
 				const resolvedType = getType();
+				const expertiseValidation = validateExpertiseChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
+				if (!expertiseValidation.ok) return alert(expertiseValidation.message);
+				const sharpMindValidation = validateSharpMindChoice($dialog, resolvedType, currentLevel, currentLevel + 1);
+				if (!sharpMindValidation.ok) return alert(sharpMindValidation.message);
 				const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
 				if (!asiValidation.ok) return alert(asiValidation.message);
 				const spellValidation = validateSpellChoices($dialog, store, resolvedType, currentLevel, currentLevel + 1);
 				if (!spellValidation.ok) return alert(spellValidation.message);
 				$dialog.off(); $dialog.dialog("destroy").remove();
-				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
+				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
 			});
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
@@ -2222,23 +2496,26 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType, bonusProficiencies, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
+		const {currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
 		const isMakeSidekick = !hasSidekickType;
 
 		try {
 			let newChar, summary;
 			if (isMakeSidekick) {
 				// Make Sidekick: create a copy with all features applied from level 1
-				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — created sidekick copy "${newChar.get("name")}"`);
 			} else {
 				// Level Up: modify the existing character in-place
-				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — levelled up "${newChar.get("name")}" in-place`);
 			}
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
 			const asiMsg = summary.asiApplied ? `\nAbility scores improved: ${summary.asiApplied}` : "";
+			const expertiseMsg = summary.expertiseApplied ? `\nExpertise applied to ${summary.expertiseApplied} skill(s)` : "";
+			const sharpMindMsg = summary.sharpMindApplied ? `\nSharp Mind saving throw proficiency added` : "";
+			const attackerMsg = summary.attackerBonusApplied ? `\nAttacker +2 applied to ${summary.attackerBonusApplied} attack(s)` : "";
 			const cantripMsg = summary.potentCantripsApplied ? `\nPotent Cantrips applied to ${summary.potentCantripsApplied} cantrip damage roll(s)` : "";
 			const spellMsg = summary.spellsAdded ? `\nSpells added: ${summary.spellsAdded}${summary.spellRemoved ? ` (replaced ${summary.spellRemoved})` : ""}` : "";
 			const spellFailMsg = summary.spellsFailed && summary.spellsFailed.length ? `\nSpells FAILED to import (add manually): ${summary.spellsFailed.join(", ")}` : "";
@@ -2248,13 +2525,13 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			} else {
 				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
