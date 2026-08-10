@@ -93,9 +93,17 @@ function d20plus2024Store () {
 
 	/**
 	 * Write the store and appState="npc" attrs for a freshly-created 2024 NPC.
-	 * Use this instead of saveStore when creating a new character (no existing storeAttr to destroy).
+	 * Destroys any pre-existing store/appState attrs first so there is exactly one
+	 * of each — prevents the sheet from finding a stale blank copy first.
 	 */
 	d20plus.store2024.saveNewNpcState = function (character, store) {
+		// Destroy any existing store/appState attrs the sheet may have already written
+		const toDestroy = character.attribs.filter(a =>
+			a.get("name") === "store" || a.get("name") === "appState"
+		);
+		console.log(`betterR20 saveNewNpcState: destroying ${toDestroy.length} existing attr(s), writing upgraded store with _npcSidekickType=${store?.npc?._npcSidekickType}, _npcLevelUpLevel=${store?.npc?._npcLevelUpLevel}`);
+		toDestroy.forEach(a => a.destroy());
+
 		const toSave = [
 			{name: "appState", current: "npc"},
 			{name: "store", current: store},
@@ -155,7 +163,7 @@ function d20plus2024Store () {
 	};
 
 	/**
-	 * Copy bio and gmnotes blobs from one character to another.
+	 * Copy bio, gmnotes, and defaulttoken blobs from one character to another.
 	 * @returns {Promise<void>}
 	 */
 	d20plus.store2024.copyBioAndNotes = function (sourceCharacter, targetCharacter) {
@@ -165,15 +173,22 @@ function d20plus2024Store () {
 		return Promise.all([
 			getBlobData(sourceCharacter, "bio"),
 			getBlobData(sourceCharacter, "gmnotes"),
-		]).then(([bio, gmnotes]) => {
-			targetCharacter.updateBlobs({
+			getBlobData(sourceCharacter, "defaulttoken"),
+		]).then(([bio, gmnotes, defaulttoken]) => {
+			const blobs = {
 				bio: bio || "",
 				gmnotes: gmnotes || "",
-			});
-			targetCharacter.save({
+			};
+			const saveAttrs = {
 				bio: Date.now(),
 				gmnotes: Date.now(),
-			});
+			};
+			if (defaulttoken) {
+				blobs.defaulttoken = defaulttoken;
+				saveAttrs.defaulttoken = Date.now();
+			}
+			targetCharacter.updateBlobs(blobs);
+			targetCharacter.save(saveAttrs);
 		});
 	};
 
