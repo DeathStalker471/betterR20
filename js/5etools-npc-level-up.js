@@ -1004,6 +1004,11 @@ function d20plusNpcLevelUp () {
 						const writeAndVerify = async () => {
 							d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
 							d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
+							
+							// Write flat character attributes for PB and CR so sheet display updates
+							const mappedCr = sidekickLevelToCr(summary.newLevel);
+							d20plus.store2024.writeSidekickStats(newCharacter, summary.newPb, mappedCr);
+							
 							// Poll every 200ms for 5s. If Roll20 blanks our store, rewrite immediately.
 							const deadline = Date.now() + 5000;
 							while (Date.now() < deadline) {
@@ -1072,6 +1077,11 @@ function d20plusNpcLevelUp () {
 		character.save({name: newName, tags: newTags, tags_string: newTags});
 		d20plus.store2024.saveNewNpcState(character, upgradedStore);
 		d20plus.store2024.saveNpcNames(character, newName);
+	
+		// Write flat character attributes for PB and CR so sheet display updates
+		const mappedCr = sidekickLevelToCr(summary.newLevel);
+		d20plus.store2024.writeSidekickStats(character, summary.newPb, mappedCr);
+	
 		log(`[level-up] Updated tags: ${newTags}`);
 		return {character, summary};
 	}

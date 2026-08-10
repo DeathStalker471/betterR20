@@ -165,8 +165,26 @@ function d20plus2024Store () {
 			{name: "character_name", current: displayName},
 		].map(a => character.attribs.push(a));
 		toSave.forEach(s => s.syncedSave());
-	};
 
+	/**
+	 * Write flat character attributes for PB and CR that the Jumpgate sheet reads directly.
+	 * These bypass the store and ensure the sheet UI reflects the values immediately.
+	 */
+	d20plus.store2024.writeSidekickStats = function (character, pb, cr) {
+		const toSave = [];
+		if (pb != null) {
+			toSave.push({name: "pb", current: String(pb)});
+		}
+		if (cr != null) {
+			// CR can be a fraction like "1/2" or an integer like "3"
+			toSave.push({name: "challenge_rating", current: String(cr)});
+			toSave.push({name: "npc_challenge", current: String(cr)});
+		}
+		toSave.forEach(attr => character.attribs.push(attr).syncedSave());
+		if (pb != null || cr != null) {
+			console.log(`betterR20 writeSidekickStats: pb=${pb}, cr=${cr}`);
+		}
+	};
 	// ----------------------------------------
 	// Display-order helpers
 	// ----------------------------------------
