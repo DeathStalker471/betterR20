@@ -350,6 +350,14 @@ function d20plusNpcLevelUp () {
 		store.npc.challengeRating = mappedCr;
 		store.npc.cr = mappedCr;
 		summary.newCr = mappedCr;
+		// The NPC card derives PB from CR unless the sheet's "Proficiency Override" is
+		// set. Write the override (candidate field names follow the sheet's convention:
+		// passivePerceptionOverride / initiativeModOverride) so PB shows the sidekick
+		// level's bonus instead of the CR-derived one. Always written — harmless when
+		// it matches the CR-derived value.
+		store.npc.proficiencyBonusOverride = newPb;
+		store.npc.proficiencyOverride = newPb;
+		store.npc.pbOverride = newPb;
 		store.npc._npcLevelUpLevel = targetSidekickLevel;
 		if (options.sidekickType) store.npc._npcSidekickType = options.sidekickType;
 
@@ -1113,7 +1121,8 @@ function d20plusNpcLevelUp () {
 			const pbInts = Object.values((finalStore?.integrants?.integrants) || {})
 				.filter(i => i && i.type === "Proficiency Bonus")
 				.map(i => i.valueFormula?.flatValue);
-			log(`[guard] In-place store guard complete for "${newName}" — final: challengeRating=${finalStore?.npc?.challengeRating}, cr=${finalStore?.npc?.cr}, proficiencyBonus=${finalStore?.npc?.proficiencyBonus}, PB integrant flatValue(s)=[${pbInts.join(", ")}]`);
+			log(`[guard] In-place store guard complete for "${newName}" — final: challengeRating=${finalStore?.npc?.challengeRating}, cr=${finalStore?.npc?.cr}, proficiencyBonus=${finalStore?.npc?.proficiencyBonus}, proficiencyBonusOverride=${finalStore?.npc?.proficiencyBonusOverride}, PB integrant flatValue(s)=[${pbInts.join(", ")}]`);
+			log(`[guard] Full final store.npc keys: ${Object.keys(finalStore?.npc || {}).join(", ")}`);
 		})();
 
 		log(`[level-up] Updated tags: ${newTags}`);
