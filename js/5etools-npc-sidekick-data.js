@@ -567,7 +567,7 @@ function d20plusNpcSidekickData () {
 
 	/**
 	 * Feat option list from the bundled data (JSON_DATA["data/feats.json"]).
-	 * Returns [{name, source, _feat}] sorted by name (XPHB entries first per name).
+	 * Returns XPHB-only [{name, source, _feat}] sorted by name.
 	 */
 	d20plus.sidekickData.getFeatOptions = function () {
 		if (_featOptionCache) return _featOptionCache;
@@ -575,8 +575,9 @@ function d20plusNpcSidekickData () {
 			const featFile = typeof JSON_DATA !== "undefined" ? JSON_DATA["data/feats.json"] : null;
 			if (!featFile || !featFile.feat) return [];
 			_featOptionCache = featFile.feat
+				.filter(f => (f.source || "") === "XPHB")
 				.map(f => ({name: f.name, source: f.source || "", _feat: f}))
-				.sort((a, b) => a.name.localeCompare(b.name) || (a.source === "XPHB" ? -1 : b.source === "XPHB" ? 1 : a.source.localeCompare(b.source)));
+				.sort((a, b) => a.name.localeCompare(b.name));
 			return _featOptionCache;
 		} catch (e) {
 			console.warn("betterR20: failed to load feat options", e);
@@ -616,6 +617,12 @@ function d20plusNpcSidekickData () {
 			return name.trim();
 		}
 		return String(entries);
+	};
+
+	d20plus.sidekickData.getFeatSummary = function (feat) {
+		if (!feat) return "";
+		const text = d20plus.sidekickData.entriesToText(feat.entries) || "";
+		return text.replace(/\n{3,}/g, "\n\n").trim();
 	};
 }
 

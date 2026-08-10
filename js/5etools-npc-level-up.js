@@ -969,7 +969,7 @@ function d20plusNpcLevelUp () {
 			`<option value="${ab}">${ab} (${scores[ab] ?? 10})</option>`
 		).join("");
 		const featOptions = (d20plus.sidekickData.getFeatOptions ? d20plus.sidekickData.getFeatOptions() : [])
-			.map(f => `<option value="${f.name}|${f.source}">${f.name} (${f.source})</option>`).join("");
+			.map(f => `<option value="${f.name}|${f.source}">${f.name}</option>`).join("");
 		const featRow = featOptions
 			? `
 					<label class="b20-asi-mode-label">
@@ -1004,7 +1004,10 @@ function d20plusNpcLevelUp () {
 						</select>
 					</label>${featRow}
 				</div>
-				${featRow ? `<p style="margin:6px 0 0;color:#64748b;font-size:11px;display:none" class="b20-asi-feat-note">The feat's text is added as a trait; apply any mechanical effects (HP, scores, etc.) manually.</p>` : ""}
+				${featRow ? `<div class="b20-asi-feat-note" style="margin:8px 0 0;display:none;padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc">
+					<div style="font-size:11px;color:#64748b;margin-bottom:4px">The feat's text is added as a trait; apply any mechanical effects manually.</div>
+					<div class="b20-asi-feat-preview" style="font-size:12px;line-height:1.4;color:#334155;white-space:pre-wrap">Choose a feat to preview its effects.</div>
+				</div>` : ""}
 			</div>
 		`;
 	}
@@ -1029,6 +1032,10 @@ function d20plusNpcLevelUp () {
 		$container.find("input[type=radio]").on("change", function () {
 			updateAsiSelectState($container);
 		});
+		$container.find("select[name^='asiFeat-']").on("change", function () {
+			const $inst = $(this).closest(".b20-asi-instance");
+			updateAsiFeatPreview($inst, $inst.data("asi-index"));
+		});
 		updateAsiSelectState($container);
 	}
 
@@ -1041,7 +1048,23 @@ function d20plusNpcLevelUp () {
 			$inst.find(`select[name="asiAbilityA-${idx}"], select[name="asiAbilityB-${idx}"]`).prop("disabled", mode !== "two");
 			$inst.find(`select[name="asiFeat-${idx}"]`).prop("disabled", mode !== "feat");
 			$inst.find(".b20-asi-feat-note").css("display", mode === "feat" ? "block" : "none");
+			if (mode === "feat") updateAsiFeatPreview($inst, idx);
 		});
+	}
+
+	function updateAsiFeatPreview ($inst, idx) {
+		const featVal = $inst.find(`select[name="asiFeat-${idx}"]`).val();
+		const $preview = $inst.find(".b20-asi-feat-preview");
+		if (!featVal) {
+			$preview.text("Choose a feat to preview its effects.");
+			return;
+		}
+		const [featName, featSource] = featVal.split("|");
+		const featData = d20plus.sidekickData.getFeatByName(featName, featSource);
+		const summary = featData && d20plus.sidekickData.getFeatSummary
+			? d20plus.sidekickData.getFeatSummary(featData)
+			: "";
+		$preview.text(summary || "No feat summary available.");
 	}
 
 	/**
