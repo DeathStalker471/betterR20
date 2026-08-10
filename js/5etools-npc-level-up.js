@@ -305,13 +305,16 @@ function d20plusNpcLevelUp () {
 		}
 
 		// ── Update proficiency-derived save/skill integrants ─────────────────
-		// When PB increases, every Proficiency integrant (save or skill) that uses
-		// proficiencyLevel "Proficient" or "Expertise" gets the higher PB automatically
-		// because the sheet derives the bonus from PB × proficiency multiplier.
-		// We don't need to mutate individual integrant values — PB in the 2024 sheet
-		// is implicitly set by the CR. However, for NPC level-up we need to update CR
-		// so the sheet derives the right PB.
-		//
+		// When PB increases, update the Proficiency Bonus integrant's flatValue.
+		// The 2024 sheet reads PB from this integrant to compute save/skill bonuses.
+		if (pbChanged) {
+			const pbIntegrant = findIntegrantByType(store, "Proficiency Bonus");
+			if (pbIntegrant) {
+				if (!pbIntegrant.valueFormula) pbIntegrant.valueFormula = {};
+				pbIntegrant.valueFormula.flatValue = newPb;
+			}
+		}
+
 		// Store the new "virtual level" as a custom note on the store so we can detect
 		// the current level on future upgrades without re-deriving from CR.
 		if (!store.npc) store.npc = {};
@@ -347,6 +350,9 @@ function d20plusNpcLevelUp () {
 			? writeAsiFeatures(store, sidekickType, featureFromLevel, targetSidekickLevel, options.asiChoices)
 			: 0;
 
+		// Write (or replace) the sidekick identity feature — always done so level-up keeps it current.
+		writeSidekickIdentityFeature(store, sidekickType, targetSidekickLevel);
+
 		// Count how many Proficiency integrants exist (informational for the summary)
 		const allInts = (store.integrants && store.integrants.integrants) || {};
 		summary.proficienciesUpdated = Object.values(allInts)
@@ -363,10 +369,47 @@ function d20plusNpcLevelUp () {
 	// Sidekick feature writing
 	// ─────────────────────────────────────────────────────────────────────────
 
+	const SIDEKICK_IDENTITY_FEATURE_NAME = "betterR20 Sidekick";
+
 	/**
-	 * Write sidekick features gained between fromLevel+1 and toLevel into the store.
-	 * Returns the number of features written.
+	 * Write (or replace) a single "betterR20 Sidekick" identity feature recording type and level.
+	 * On level-up this removes the old one and inserts a fresh one.
 	 */
+	function writeSidekickIdentityFeature (store, sidekickType, targetLevel) {
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+
+		const typeLabel = d20plus.sidekickData ? d20plus.sidekickData.typeLabel(sidekickType) : sidekickType;
+		const pb = SIDEKICK_LEVEL_TO_PB[targetLevel] || 2;
+
+		// Remove any existing identity integrant(s)
+		const ints = store.integrants.integrants;
+		const oldIds = Object.keys(ints).filter(k => ints[k].name === SIDEKICK_IDENTITY_FEATURE_NAME);
+		oldIds.forEach(k => delete ints[k]);
+
+		// Remove old ID from display order
+		const displayOrderRaw = store.features.speciesTraitsDisplayOrder;
+		let displayOrder = [];
+		try { displayOrder = JSON.parse(displayOrderRaw || "[]"); } catch (e) { displayOrder = []; }
+		displayOrder = displayOrder.filter(id => !oldIds.includes(id));
+
+		// Build fresh integrant
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+		ints[id] = {
+			...base,
+			name: SIDEKICK_IDENTITY_FEATURE_NAME,
+			description: `This character is a Level ${targetLevel} ${typeLabel} Sidekick (Proficiency Bonus: +${pb}).\n\nManaged by betterR20.`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.unshift(id); // show at top of species traits
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+	}
+
+
 	function writeSidekickFeatures (store, sidekickType, fromLevel, toLevel, options = {}) {
 		if (!d20plus.sidekickData || !sidekickType) return 0;
 		const features = d20plus.sidekickData
@@ -588,9 +631,10 @@ function d20plusNpcLevelUp () {
 		return 1;
 	}
 
-	/** Build a copy name for the upgraded character. */
+	/** Build a copy name for the upgraded character, stripping any existing (Level N) tags. */
 	function getLevelUpName (sourceName, targetLevel) {
-		return `${sourceName || "Unnamed"} (Level ${targetLevel})`;
+		const base = (sourceName || "Unnamed").replace(/\s*\(Level\s+\d+\)/gi, "").trim();
+		return `${base} (Level ${targetLevel})`;
 	}
 
 	function shouldApplyBonusProficiencies (currentLevel, targetLevel) {
@@ -1428,7 +1472,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
 			$dialog.dialog({
-				resizable: true, autoOpen: true, width: 1000, minHeight: 700, dialogClass: "b20-sidekick-dialog",
+				resizable: true, autoOpen: true, width: 1000, height: "auto", dialogClass: "b20-sidekick-dialog",
 				position: {my: "center top+30", at: "center top", of: $mapViewport},
 				title: "Level Up Sidekick",
 				open: () => { refresh(); },

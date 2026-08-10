@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.36.1.1jz-theoctonaut-test";
+const SCRIPT_VERSION = "1.36.1.1ka-theoctonaut-test";
 const SCRIPT_REPO = "https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-fix-requested-change/dist/";
 const SCRIPT_NAME_PREFIX = "betteR20-theoctonaut-test";
 
