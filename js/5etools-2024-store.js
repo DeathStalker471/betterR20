@@ -17,6 +17,15 @@ function d20plus2024Store () {
 		return id;
 	};
 
+	/** Generate an RFC-4122-style UUID (used as integrant map key + _id by the sheet). */
+	d20plus.store2024.makeUuid = function () {
+		if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+			const r = Math.random() * 16 | 0;
+			return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+		});
+	};
+
 	/**
 	 * Build the shared base fields for any new integrant.
 	 * @param {string} type  - Integrant type string (e.g. "Features", "Hit Points", "Class Level")

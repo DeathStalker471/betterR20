@@ -310,35 +310,47 @@ function d20plusNpcLevelUp () {
 			summary.errors.push("Could not parse rollHP formula — HP and hit dice not updated.");
 		}
 
-		// ── Update proficiency-derived save/skill integrants ─────────────────
-		// When PB increases, update the Proficiency Bonus integrant's flatValue.
-		// The 2024 sheet reads PB from this integrant to compute save/skill bonuses.
-		if (pbChanged) {
-			const pbIntegrants = ((store.integrants && store.integrants.integrants) || {});
-			let pbIntegrantFound = false;
-			Object.values(pbIntegrants).forEach(int => {
-				if (int && int.type === "Proficiency Bonus") {
+		// ── Proficiency Bonus ─────────────────────────────────────────────────
+		// The NPC card derives PB from CR unless a "Proficiency Bonus Modifier"
+		// integrant exists (this is what the sheet's "Proficiency Override" edit
+		// field writes — shape confirmed from a live sheet dump). Update any
+		// existing modifier, else create one matching the sheet's exact shape.
+		// Applied unconditionally so re-running a level-up repairs the override.
+		{
+			if (!store.integrants) store.integrants = {};
+			if (!store.integrants.integrants) store.integrants.integrants = {};
+			const ints = store.integrants.integrants;
+			let pbModifierFound = false;
+			Object.values(ints).forEach(int => {
+				if (!int) return;
+				// Update both the real override type and any legacy "Proficiency Bonus"
+				// integrants written by earlier betterR20 builds.
+				if (int.type === "Proficiency Bonus Modifier" || int.type === "Proficiency Bonus") {
 					if (!int.valueFormula) int.valueFormula = {};
 					int.valueFormula.flatValue = newPb;
-					pbIntegrantFound = true;
+					if (int.type === "Proficiency Bonus Modifier") pbModifierFound = true;
 				}
 			});
-			// Imported NPCs have no Proficiency Bonus integrant — the sheet then derives
-			// PB from CR, which is wrong for sidekicks. Create one to override the display.
-			if (!pbIntegrantFound && store.integrants) {
-				if (!store.integrants.integrants) store.integrants.integrants = {};
-				const { id, base } = d20plus.store2024.makeIntegrantBase(
-					"Proficiency Bonus",
-					d20plus.store2024.getNextArrayPos(store),
-				);
-				store.integrants.integrants[id] = {
-					...base,
+			if (!pbModifierFound) {
+				const uuid = d20plus.store2024.makeUuid();
+				ints[uuid] = {
+					_id: uuid,
+					shortID: d20plus.store2024.makeId(),
 					name: "",
+					builderDisplayName: "",
+					label: "",
+					createdTime: Date.now(),
+					type: "Proficiency Bonus Modifier",
+					_enabled: true,
+					source: "Custom",
+					childIDs: "[]",
+					parentID: "",
 					calculation: "Set Value",
 					valueFormula: { flatValue: newPb },
+					cascades: {},
+					relations: {},
 				};
 			}
-			if (store.npc) store.npc.proficiencyBonus = newPb;
 		}
 
 		// Store the new "virtual level" as a custom note on the store so we can detect
@@ -348,16 +360,7 @@ function d20plusNpcLevelUp () {
 		// store.npc.challengeRating for the statblock CR display (flat attrs are ignored).
 		const mappedCr = sidekickLevelToCr(targetSidekickLevel);
 		store.npc.challengeRating = mappedCr;
-		store.npc.cr = mappedCr;
 		summary.newCr = mappedCr;
-		// The NPC card derives PB from CR unless the sheet's "Proficiency Override" is
-		// set. Write the override (candidate field names follow the sheet's convention:
-		// passivePerceptionOverride / initiativeModOverride) so PB shows the sidekick
-		// level's bonus instead of the CR-derived one. Always written — harmless when
-		// it matches the CR-derived value.
-		store.npc.proficiencyBonusOverride = newPb;
-		store.npc.proficiencyOverride = newPb;
-		store.npc.pbOverride = newPb;
 		store.npc._npcLevelUpLevel = targetSidekickLevel;
 		if (options.sidekickType) store.npc._npcSidekickType = options.sidekickType;
 
@@ -1119,10 +1122,9 @@ function d20plusNpcLevelUp () {
 			// Final instrumentation: dump renderer-bound PB/CR fields after settle
 			const {store: finalStore} = d20plus.store2024.getStore(character);
 			const pbInts = Object.values((finalStore?.integrants?.integrants) || {})
-				.filter(i => i && i.type === "Proficiency Bonus")
-				.map(i => i.valueFormula?.flatValue);
-			log(`[guard] In-place store guard complete for "${newName}" — final: challengeRating=${finalStore?.npc?.challengeRating}, cr=${finalStore?.npc?.cr}, proficiencyBonus=${finalStore?.npc?.proficiencyBonus}, proficiencyBonusOverride=${finalStore?.npc?.proficiencyBonusOverride}, PB integrant flatValue(s)=[${pbInts.join(", ")}]`);
-			log(`[guard] Full final store.npc keys: ${Object.keys(finalStore?.npc || {}).join(", ")}`);
+				.filter(i => i && (i.type === "Proficiency Bonus Modifier" || i.type === "Proficiency Bonus"))
+				.map(i => `${i.type}=${i.valueFormula?.flatValue}`);
+			log(`[guard] In-place store guard complete for "${newName}" — final: challengeRating=${finalStore?.npc?.challengeRating}, PB integrants=[${pbInts.join(", ")}]`);
 		})();
 
 		log(`[level-up] Updated tags: ${newTags}`);
