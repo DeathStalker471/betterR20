@@ -17,6 +17,15 @@ function d20plus2024Store () {
 		return id;
 	};
 
+	/** Generate an RFC-4122-style UUID (used as integrant map key + _id by the sheet). */
+	d20plus.store2024.makeUuid = function () {
+		if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+		return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+			const r = Math.random() * 16 | 0;
+			return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+		});
+	};
+
 	/**
 	 * Build the shared base fields for any new integrant.
 	 * @param {string} type  - Integrant type string (e.g. "Features", "Hit Points", "Class Level")
@@ -107,6 +116,7 @@ function d20plus2024Store () {
 		);
 		const sidekickType = store?.npc?._npcSidekickType;
 		const sidekickLevel = store?.npc?._npcLevelUpLevel;
+		const empoweredSchool = store?.npc?._npcEmpoweredSchool;
 		console.log(`betterR20 saveNewNpcState: destroying ${toDestroy.length} existing attr(s), writing upgraded store with _npcSidekickType=${sidekickType}, _npcLevelUpLevel=${sidekickLevel}`);
 		toDestroy.forEach(a => a.destroy());
 
@@ -124,7 +134,7 @@ function d20plus2024Store () {
 		// Write a dedicated b20_sidekick attr that Roll20's sheet init never touches.
 		// This is the reliable source of truth for sidekick routing.
 		if (sidekickType || sidekickLevel) {
-			d20plus.store2024.saveSidekickMeta(character, sidekickType, sidekickLevel);
+			d20plus.store2024.saveSidekickMeta(character, sidekickType, sidekickLevel, empoweredSchool);
 		}
 	};
 
@@ -133,12 +143,12 @@ function d20plus2024Store () {
 	 * This attribute is never written by Roll20's sheet init so it is the reliable
 	 * source of truth for detecting existing sidekicks.
 	 */
-	d20plus.store2024.saveSidekickMeta = function (character, sidekickType, sidekickLevel) {
+	d20plus.store2024.saveSidekickMeta = function (character, sidekickType, sidekickLevel, empoweredSchool) {
 		const toDestroy = character.attribs.filter(a => a.get("name") === "b20_sidekick");
 		toDestroy.forEach(a => a.destroy());
-		const meta = {type: sidekickType || null, level: sidekickLevel || null};
+		const meta = {type: sidekickType || null, level: sidekickLevel || null, school: empoweredSchool || null};
 		character.attribs.push({name: "b20_sidekick", current: JSON.stringify(meta)}).syncedSave();
-		console.log(`betterR20 saveSidekickMeta: type=${meta.type}, level=${meta.level}`);
+		console.log(`betterR20 saveSidekickMeta: type=${meta.type}, level=${meta.level}, school=${meta.school}`);
 	};
 
 	/**

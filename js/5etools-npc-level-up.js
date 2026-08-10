@@ -122,6 +122,9 @@ function d20plusNpcLevelUp () {
 			skills: { maxChoices: 2, options: ["Arcana", "History", "Insight", "Investigation", "Medicine", "Performance", "Persuasion", "Religion"] },
 		},
 	};
+	// The Attacker/Defender warrior types share the warrior proficiency options
+	SIDEKICK_BONUS_PROFICIENCY_CONFIG["warrior-attacker"] = SIDEKICK_BONUS_PROFICIENCY_CONFIG.warrior;
+	SIDEKICK_BONUS_PROFICIENCY_CONFIG["warrior-defender"] = SIDEKICK_BONUS_PROFICIENCY_CONFIG.warrior;
 
 	/**
 	 * Parse a CR string ("1/8", "1/4", "1/2", "1", "20", etc.) to a number.
@@ -310,25 +313,63 @@ function d20plusNpcLevelUp () {
 			summary.errors.push("Could not parse rollHP formula — HP and hit dice not updated.");
 		}
 
-		// ── Update proficiency-derived save/skill integrants ─────────────────
-		// When PB increases, update the Proficiency Bonus integrant's flatValue.
-		// The 2024 sheet reads PB from this integrant to compute save/skill bonuses.
-		if (pbChanged) {
-			const pbIntegrants = ((store.integrants && store.integrants.integrants) || {});
-			Object.values(pbIntegrants).forEach(int => {
-				if (int && int.type === "Proficiency Bonus") {
+		// ── Proficiency Bonus ─────────────────────────────────────────────────
+		// The NPC card derives PB from CR unless a "Proficiency Bonus Modifier"
+		// integrant exists (this is what the sheet's "Proficiency Override" edit
+		// field writes — shape confirmed from a live sheet dump). Update any
+		// existing modifier, else create one matching the sheet's exact shape.
+		// Applied unconditionally so re-running a level-up repairs the override.
+		{
+			if (!store.integrants) store.integrants = {};
+			if (!store.integrants.integrants) store.integrants.integrants = {};
+			const ints = store.integrants.integrants;
+			let pbModifierFound = false;
+			Object.values(ints).forEach(int => {
+				if (!int) return;
+				// Update both the real override type and any legacy "Proficiency Bonus"
+				// integrants written by earlier betterR20 builds.
+				if (int.type === "Proficiency Bonus Modifier" || int.type === "Proficiency Bonus") {
 					if (!int.valueFormula) int.valueFormula = {};
 					int.valueFormula.flatValue = newPb;
+					if (int.type === "Proficiency Bonus Modifier") pbModifierFound = true;
 				}
 			});
-			if (store.npc) store.npc.proficiencyBonus = newPb;
+			if (!pbModifierFound) {
+				const uuid = d20plus.store2024.makeUuid();
+				ints[uuid] = {
+					_id: uuid,
+					shortID: d20plus.store2024.makeId(),
+					name: "",
+					builderDisplayName: "",
+					label: "",
+					createdTime: Date.now(),
+					type: "Proficiency Bonus Modifier",
+					_enabled: true,
+					source: "Custom",
+					childIDs: "[]",
+					parentID: "",
+					calculation: "Set Value",
+					valueFormula: { flatValue: newPb },
+					cascades: {},
+					relations: {},
+				};
+			}
 		}
 
 		// Store the new "virtual level" as a custom note on the store so we can detect
 		// the current level on future upgrades without re-deriving from CR.
 		if (!store.npc) store.npc = {};
+		// Write the mapped CR into the store — the Jumpgate renderer reads
+		// store.npc.challengeRating for the statblock CR display (flat attrs are ignored).
+		const mappedCr = sidekickLevelToCr(targetSidekickLevel);
+		store.npc.challengeRating = mappedCr;
+		summary.newCr = mappedCr;
 		store.npc._npcLevelUpLevel = targetSidekickLevel;
 		if (options.sidekickType) store.npc._npcSidekickType = options.sidekickType;
+		// Empowered Spells school: new choice this pass, or carried over from a
+		// previous level-up (restored into the store from b20_sidekick meta).
+		const empoweredSchool = options.empoweredSchool || store.npc._npcEmpoweredSchool || null;
+		if (empoweredSchool) store.npc._npcEmpoweredSchool = empoweredSchool;
 
 		// Write sidekick class features for levels gained.
 		// For Make Sidekick (options.featureFromLevel = 0), write all features from 0 up to
@@ -345,22 +386,97 @@ function d20plusNpcLevelUp () {
 		const asiApplied = asiHasFeatures
 			? applyAsiToStore(store, options.asiChoices)
 			: 0;
+		// Expertise (expert L3/L15) — after bonus proficiencies so new skills can be chosen
+		const expertiseApplied = options.expertiseChoices
+			? applyExpertise(store, options.expertiseChoices)
+			: 0;
+		// Sharp Mind (expert L18) — one extra saving throw proficiency
+		let sharpMindApplied = 0;
+		if (options.sharpMindChoice) {
+			const existingSaves = getExistingProficiencies(store).saves;
+			if (!existingSaves.has(options.sharpMindChoice)) {
+				const pos = d20plus.store2024.getNextArrayPos(store);
+				const { id, integrant } = makeProficiencyIntegrant("Saving Throw", options.sharpMindChoice, pos);
+				store.integrants.integrants[id] = integrant;
+				sharpMindApplied = 1;
+			}
+		}
 		const featuresWritten = writeSidekickFeatures(
 			store,
 			sidekickType,
 			featureFromLevel,
 			targetSidekickLevel,
-			{ skipBonusProficienciesTodo: shouldHandleBonusProficiencies, skipAsiTodo: asiHasFeatures },
+			{
+				skipBonusProficienciesTodo: shouldHandleBonusProficiencies,
+				skipAsiTodo: asiHasFeatures,
+				skipSpellcastingAdvancementTodo: !!options.spellChoices,
+				skipExpertiseTodo: !!options.expertiseChoices,
+				skipSharpMindTodo: !!options.sharpMindChoice,
+				skipEmpoweredSpellsTodo: !!options.empoweredSchool,
+			},
 		);
 		const bonusProficiencyFeatureWritten = shouldHandleBonusProficiencies
 			? writeBonusProficiencyFeature(store, sidekickType, options.bonusProficiencies)
 			: 0;
 		const asiTraitsWritten = asiHasFeatures
-			? writeAsiFeatures(store, sidekickType, featureFromLevel, targetSidekickLevel, options.asiChoices)
+			? writeAsiFeatures(store, sidekickType, featureFromLevel, targetSidekickLevel, options.asiChoices, options.asiInstances)
+			: 0;
+		const expertiseTraitWritten = options.expertiseChoices
+			? writeExpertiseFeature(store, sidekickType, featureFromLevel, targetSidekickLevel, options.expertiseChoices)
+			: 0;
+		const sharpMindTraitWritten = options.sharpMindChoice
+			? writeSharpMindFeature(store, sidekickType, featureFromLevel, targetSidekickLevel, options.sharpMindChoice)
+			: 0;
+		const empoweredTraitWritten = options.empoweredSchool
+			? writeEmpoweredSpellsFeature(store, sidekickType, featureFromLevel, targetSidekickLevel, options.empoweredSchool)
 			: 0;
 
 		// Write (or replace) the sidekick identity feature — always done so level-up keeps it current.
 		writeSidekickIdentityFeature(store, sidekickType, targetSidekickLevel);
+
+		// Spellcasting Advancement: import picked spells (and apply a replacement)
+		// before Potent Cantrips so newly added cantrips get the damage ability too.
+		// Spell slots and the spellcasting source label are updated on every
+		// spellcaster level-up, regardless of whether spells were picked.
+		let spellResult = null;
+		let spellSlotsChanged = 0;
+		let spellSourceRenamed = 0;
+		if (isSpellcasterType(sidekickType)) {
+			// Always ensure a Spellcasting config exists — the sheet derives spell
+			// save DC (8 + ability mod + PB) and spell attack mod from it — then
+			// rename its source to "<Type> Sidekick".
+			ensureSidekickSpellcastingConfig(store, sidekickType);
+			spellSourceRenamed = renameSidekickSpellcastingSource(store, sidekickType);
+			if (options.spellChoices) {
+				spellResult = applySpellChoices(store, sidekickType, options.spellChoices);
+				writeSpellcastingAdvancementFeature(store, sidekickType, options.spellChoices, targetSidekickLevel, spellResult);
+			}
+			spellSlotsChanged = writeSidekickSpellSlots(store, sidekickType, targetSidekickLevel);
+		}
+		summary.spellsAdded = spellResult ? spellResult.added : 0;
+		summary.spellRemoved = spellResult ? spellResult.removedName : null;
+		summary.spellsFailed = spellResult ? spellResult.failed : [];
+		summary.spellSlotsChanged = spellSlotsChanged;
+		summary.spellSourceRenamed = spellSourceRenamed;
+
+		// Potent Cantrips (spellcaster level 6+): add the spellcasting ability modifier
+		// to cantrip damage. Applied on every level-up at 6+ so cantrips added since the
+		// last level-up are covered too.
+		const potentCantripsApplied = targetSidekickLevel >= 6
+			? applyPotentCantrips(store, sidekickType)
+			: 0;
+		summary.potentCantripsApplied = potentCantripsApplied;
+
+		// Empowered Spells (spellcaster level 14+): re-applied every level-up so
+		// spells added since the school was chosen are covered too.
+		summary.empoweredSpellsApplied = targetSidekickLevel >= 14 && empoweredSchool
+			? applyEmpoweredSpells(store, sidekickType, empoweredSchool)
+			: 0;
+		summary.empoweredSchool = empoweredSchool;
+
+		// Martial Role: Attacker (warrior-attacker) — +2 to all attack rolls.
+		// Run on every level-up so attacks added since the last one are covered.
+		summary.attackerBonusApplied = applyMartialRoleAttacker(store, sidekickType);
 
 		// Count how many Proficiency integrants exist (informational for the summary)
 		const allInts = (store.integrants && store.integrants.integrants) || {};
@@ -369,7 +485,10 @@ function d20plusNpcLevelUp () {
 			.length;
 		summary.bonusProficienciesAdded = bonusProficienciesAdded;
 		summary.asiApplied = asiApplied;
-		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten;
+		summary.featsChosen = (options.asiInstances || []).filter(inst => inst.mode === "feat" && inst.feat).map(inst => inst.feat.name);
+		summary.expertiseApplied = expertiseApplied;
+		summary.sharpMindApplied = sharpMindApplied;
+		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten + expertiseTraitWritten + sharpMindTraitWritten + empoweredTraitWritten + (spellResult ? 1 : 0);
 
 		return { store, summary };
 	}
@@ -379,6 +498,101 @@ function d20plusNpcLevelUp () {
 	// ─────────────────────────────────────────────────────────────────────────
 
 	const SIDEKICK_IDENTITY_FEATURE_NAME = "betterR20 Sidekick";
+
+	/** Spellcasting ability by sidekick type (TCE p.144). Non-casters absent. */
+	const SIDEKICK_SPELLCASTING_ABILITY = {
+		mage: "Intelligence",
+		healer: "Wisdom",
+		prodigy: "Charisma",
+	};
+
+	/**
+	 * Apply the Potent Cantrips feature: set the damage ability of every cantrip's
+	 * Damage integrant to the sidekick's spellcasting ability.
+	 *
+	 * Cantrips are Spell integrants with level === 0; their Attack integrants are
+	 * children (parentID = spell id) and Damage integrants are children of the
+	 * Attack. We walk each Damage integrant's parentID chain up to a Spell to
+	 * decide whether it belongs to a cantrip. Only "none"/empty abilities are
+	 * overwritten so manual per-spell choices are preserved.
+	 *
+	 * @returns {number} count of Damage integrants updated
+	 */
+	function applyPotentCantrips (store, sidekickType) {
+		const ability = SIDEKICK_SPELLCASTING_ABILITY[sidekickType];
+		if (!ability) return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+
+		// Map from both full ids and shortIDs to integrants for parent lookups
+		const byId = {};
+		Object.entries(ints).forEach(([id, int]) => {
+			if (!int) return;
+			byId[id] = int;
+			if (int.shortID) byId[int.shortID] = int;
+			if (int._id) byId[int._id] = int;
+		});
+
+		const isCantripAncestor = (int, depth = 0) => {
+			if (!int || depth > 5) return false;
+			if (int.type === "Spell") return int.level === 0;
+			return isCantripAncestor(byId[int.parentID], depth + 1);
+		};
+
+		let updated = 0;
+		Object.values(ints).forEach(int => {
+			if (!int || int.type !== "Damage") return;
+			const currentAbility = (int.ability || "none").toLowerCase();
+			if (currentAbility !== "none" && currentAbility !== "") return;
+			if (!isCantripAncestor(byId[int.parentID])) return;
+			int.ability = ability;
+			updated++;
+		});
+		return updated;
+	}
+
+	/**
+	 * Apply the Empowered Spells feature (spellcaster L14): add the spellcasting
+	 * ability modifier to the damage/healing rolls of leveled spells of the
+	 * chosen school. Walks each Damage/Healing integrant's parentID chain up to
+	 * its Spell (same approach as Potent Cantrips); only "none"/empty abilities
+	 * are overwritten. The "only when expending a slot" condition can't be
+	 * represented on the sheet, so the bonus applies to all casts.
+	 * Run on every level-up ≥14 so spells added later are covered.
+	 *
+	 * @returns {number} count of Damage/Healing integrants updated
+	 */
+	function applyEmpoweredSpells (store, sidekickType, school) {
+		const ability = SIDEKICK_SPELLCASTING_ABILITY[sidekickType];
+		if (!ability || !school) return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+
+		const byId = {};
+		Object.entries(ints).forEach(([id, int]) => {
+			if (!int) return;
+			byId[id] = int;
+			if (int.shortID) byId[int.shortID] = int;
+			if (int._id) byId[int._id] = int;
+		});
+
+		const findSpellAncestor = (int, depth = 0) => {
+			if (!int || depth > 5) return null;
+			if (int.type === "Spell") return int;
+			return findSpellAncestor(byId[int.parentID], depth + 1);
+		};
+
+		let updated = 0;
+		Object.values(ints).forEach(int => {
+			if (!int || (int.type !== "Damage" && int.type !== "Healing")) return;
+			const currentAbility = (int.ability || "none").toLowerCase();
+			if (currentAbility !== "none" && currentAbility !== "") return;
+			const spell = findSpellAncestor(byId[int.parentID]);
+			if (!spell || !(spell.level >= 1)) return;
+			if ((spell.school || "") !== school) return;
+			int.ability = ability;
+			updated++;
+		});
+		return updated;
+	}
 
 	/**
 	 * Write (or replace) a single "betterR20 Sidekick" identity feature recording type and level.
@@ -423,7 +637,7 @@ function d20plusNpcLevelUp () {
 		if (!d20plus.sidekickData || !sidekickType) return 0;
 		const features = d20plus.sidekickData
 			.getFeaturesGained(sidekickType, fromLevel, toLevel)
-			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement"));
+			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement") && !(options.skipSpellcastingAdvancementTodo && feature.name === "Spellcasting Advancement") && !(options.skipExpertiseTodo && feature.name === "Expertise") && !(options.skipSharpMindTodo && feature.name === "Sharp Mind") && !(options.skipEmpoweredSpellsTodo && feature.name === "Empowered Spells"));
 		if (!features.length) return 0;
 
 		if (!store.integrants) store.integrants = { integrants: {} };
@@ -727,6 +941,17 @@ function d20plusNpcLevelUp () {
 		return feature && feature.name === "Ability Score Improvement";
 	}
 
+	/** Features whose TODO is resolved by a dialog choice/automation rather than manually. */
+	function isDialogAutomatedFeature (feature) {
+		if (!feature) return false;
+		return isAutomatedBonusProficienciesFeature(feature)
+			|| isAutomatedAsiFeature(feature)
+			|| feature.name === "Spellcasting Advancement"
+			|| feature.name === "Expertise"
+			|| feature.name === "Sharp Mind"
+			|| feature.name === "Empowered Spells";
+	}
+
 	/**
 	 * Returns true when at least one ASI needs to be chosen in the given level range.
 	 */
@@ -743,6 +968,19 @@ function d20plusNpcLevelUp () {
 		const abilityOptions = ASI_ABILITIES.map(ab =>
 			`<option value="${ab}">${ab} (${scores[ab] ?? 10})</option>`
 		).join("");
+		const featOptions = (d20plus.sidekickData.getFeatOptionsForLevel ? d20plus.sidekickData.getFeatOptionsForLevel(asiLevel) : [])
+			.map(f => `<option value="${f.name}|${f.source}">${f.name}</option>`).join("");
+		const featRow = featOptions
+			? `
+					<label class="b20-asi-mode-label">
+						<input type="radio" name="asiMode${i}" value="feat">
+						<span>Feat instead:</span>
+						<select name="asiFeat-${i}" style="margin-left:6px;max-width:260px">
+							<option value="">— choose a feat —</option>
+							${featOptions}
+						</select>
+					</label>`
+			: "";
 		return `
 			<div class="b20-asi-instance" data-asi-index="${i}">
 				<p style="margin:0 0 6px;font-weight:600;font-size:12px;color:#334155">ASI gained at level ${asiLevel}</p>
@@ -764,8 +1002,12 @@ function d20plusNpcLevelUp () {
 						<select name="asiAbilityB-${i}" style="margin-left:0">
 							${abilityOptions.replace(/<option value="Strength"/, '<option value="Strength" selected')}
 						</select>
-					</label>
+					</label>${featRow}
 				</div>
+				${featRow ? `<div class="b20-asi-feat-note" style="margin:8px 0 0;display:none;padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc">
+					<div style="font-size:11px;color:#64748b;margin-bottom:4px">The feat's text is added as a trait; apply any mechanical effects manually.</div>
+					<div class="b20-asi-feat-preview" style="font-size:12px;line-height:1.4;color:#334155;white-space:pre-wrap">Choose a feat to preview its effects.</div>
+				</div>` : ""}
 			</div>
 		`;
 	}
@@ -782,13 +1024,17 @@ function d20plusNpcLevelUp () {
 		$container.html(`
 			<div class="b20-sidekick-card">
 				<h4>Ability Score Improvement${asiFeatures.length > 1 ? "s" : ""}</h4>
-				<p style="margin:0 0 10px;color:#475569;font-size:12px">Increase one ability score by 2, or two ability scores by 1 each (max 20).</p>
+				<p style="margin:0 0 10px;color:#475569;font-size:12px">Increase one ability score by 2, or two ability scores by 1 each (max 20). Feat choices are limited to legal XPHB options for that level: Origin/General feats before 19, Epic Boons from 19+, no Fighting Style feats.</p>
 				${pickersHtml}
 			</div>
 		`);
 		// Wire mode radio to enable/disable the correct selects
 		$container.find("input[type=radio]").on("change", function () {
 			updateAsiSelectState($container);
+		});
+		$container.find("select[name^='asiFeat-']").on("change", function () {
+			const $inst = $(this).closest(".b20-asi-instance");
+			updateAsiFeatPreview($inst, $inst.data("asi-index"));
 		});
 		updateAsiSelectState($container);
 	}
@@ -800,32 +1046,62 @@ function d20plusNpcLevelUp () {
 			const mode = $inst.find(`input[name="asiMode${idx}"]:checked`).val() || "one";
 			$inst.find(`select[name="asiAbility1-${idx}"]`).prop("disabled", mode !== "one");
 			$inst.find(`select[name="asiAbilityA-${idx}"], select[name="asiAbilityB-${idx}"]`).prop("disabled", mode !== "two");
+			$inst.find(`select[name="asiFeat-${idx}"]`).prop("disabled", mode !== "feat");
+			$inst.find(".b20-asi-feat-note").css("display", mode === "feat" ? "block" : "none");
+			if (mode === "feat") updateAsiFeatPreview($inst, idx);
 		});
+	}
+
+	function updateAsiFeatPreview ($inst, idx) {
+		const featVal = $inst.find(`select[name="asiFeat-${idx}"]`).val();
+		const $preview = $inst.find(".b20-asi-feat-preview");
+		if (!featVal) {
+			$preview.text("Choose a feat to preview its effects.");
+			return;
+		}
+		const [featName, featSource] = featVal.split("|");
+		const featData = d20plus.sidekickData.getFeatByName(featName, featSource);
+		const summary = featData && d20plus.sidekickData.getFeatSummary
+			? d20plus.sidekickData.getFeatSummary(featData)
+			: "";
+		$preview.text(summary || "No feat summary available.");
 	}
 
 	/**
 	 * Read and validate ASI choices from the dialog.
-	 * Returns { ok, message, asiChoices: [{ability, bonus}, ...] } flat list.
+	 * Returns { ok, message, asiChoices: [{ability, bonus}, ...] (flat score bumps),
+	 * asiInstances: [{mode, choiceDesc, feat?}] aligned with the ASI features in range }.
 	 */
 	function validateAsiChoices ($dialog, sidekickType, featureFromLevel, targetSidekickLevel) {
 		const asiFeatures = getAsiFeatures(sidekickType, featureFromLevel, targetSidekickLevel);
-		if (!asiFeatures.length) return { ok: true, asiChoices: [] };
+		if (!asiFeatures.length) return { ok: true, asiChoices: [], asiInstances: [] };
 		const asiChoices = [];
+		const asiInstances = [];
 		for (let i = 0; i < asiFeatures.length; i++) {
 			const mode = $dialog.find(`input[name="asiMode${i}"]:checked`).val() || "one";
 			if (mode === "one") {
 				const ability = $dialog.find(`select[name="asiAbility1-${i}"]`).val();
 				if (!ability) return { ok: false, message: `Select an ability score for ASI ${i + 1}.` };
 				asiChoices.push({ ability, bonus: 2 });
-			} else {
+				asiInstances.push({ mode, choiceDesc: `+2 ${ability}` });
+			} else if (mode === "two") {
 				const abilityA = $dialog.find(`select[name="asiAbilityA-${i}"]`).val();
 				const abilityB = $dialog.find(`select[name="asiAbilityB-${i}"]`).val();
 				if (!abilityA || !abilityB) return { ok: false, message: `Select both ability scores for ASI ${i + 1}.` };
 				if (abilityA === abilityB) return { ok: false, message: `ASI ${i + 1}: choose two different ability scores for the +1/+1 option.` };
 				asiChoices.push({ ability: abilityA, bonus: 1 }, { ability: abilityB, bonus: 1 });
+				asiInstances.push({ mode, choiceDesc: `+1 ${abilityA}, +1 ${abilityB}` });
+			} else {
+				const featVal = $dialog.find(`select[name="asiFeat-${i}"]`).val();
+				if (!featVal) return { ok: false, message: `Select a feat for ASI ${i + 1} (or pick an ability score option).` };
+				const [featName, featSource] = featVal.split("|");
+				const featData = d20plus.sidekickData.getFeatByName(featName, featSource);
+				if (!featData) return { ok: false, message: `Feat "${featName}" not found in the bundled data.` };
+				const text = d20plus.sidekickData.entriesToText(featData.entries);
+				asiInstances.push({ mode, choiceDesc: `Feat: ${featName}`, feat: { name: featName, source: featSource, page: featData.page, text } });
 			}
 		}
-		return { ok: true, asiChoices };
+		return { ok: true, asiChoices, asiInstances };
 	}
 
 	/**
@@ -857,43 +1133,59 @@ function d20plusNpcLevelUp () {
 	 * Write the ASI feature trait(s) to the store, one trait per ASI instance.
 	 * Returns number of traits written.
 	 */
-	function writeAsiFeatures (store, sidekickType, featureFromLevel, targetSidekickLevel, asiChoices) {
+	/**
+	 * Write the ASI feature trait(s) to the store, one trait per ASI instance.
+	 * When asiInstances is provided (from validateAsiChoices), feat-mode instances
+	 * write the chosen feat's text as a trait instead of an ASI trait.
+	 * Returns number of traits written.
+	 */
+	function writeAsiFeatures (store, sidekickType, featureFromLevel, targetSidekickLevel, asiChoices, asiInstances) {
 		const asiFeatures = getAsiFeatures(sidekickType, featureFromLevel, targetSidekickLevel);
-		if (!asiFeatures.length || !asiChoices) return 0;
+		if (!asiFeatures.length || (!asiChoices && !asiInstances)) return 0;
 		if (!store.integrants) store.integrants = { integrants: {} };
 		if (!store.integrants.integrants) store.integrants.integrants = {};
 		if (!store.features) store.features = {};
 		const integrants = store.integrants.integrants;
 		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
 		let pos = d20plus.store2024.getNextArrayPos(store);
-		// Group choices by ASI instance (two +1s are one ASI, one +2 is one ASI)
-		// We reconstruct per-ASI choice text by tracking consumption across instances
 		let choiceOffset = 0;
 		let written = 0;
-		for (const f of asiFeatures) {
-			// Read the choices that belong to this ASI
-			// Each ASI consumes 1 choice (for +2 mode) or 2 choices (for +1+1 mode)
-			// Detect mode: if next choice has bonus=2, it's one; otherwise two +1s
-			const firstChoice = asiChoices[choiceOffset];
-			let choiceDesc;
-			if (!firstChoice) {
-				choiceDesc = "(no selection recorded)";
-			} else if (firstChoice.bonus === 2) {
-				choiceDesc = `+2 ${firstChoice.ability}`;
-				choiceOffset += 1;
+		for (let fi = 0; fi < asiFeatures.length; fi++) {
+			const f = asiFeatures[fi];
+			const instance = asiInstances && asiInstances[fi];
+			let name = "Ability Score Improvement";
+			let description;
+			if (instance && instance.mode === "feat" && instance.feat) {
+				const feat = instance.feat;
+				name = `Feat: ${feat.name}`;
+				description = `${feat.text}\n\n(Chosen instead of the level ${f.level} Ability Score Improvement. Feat text only — apply any mechanical effects manually. Added by betterR20 sidekick level-up, ${feat.source}${feat.page ? ` p.${feat.page}` : ""})`;
 			} else {
-				// Two +1 choices
-				const secondChoice = asiChoices[choiceOffset + 1];
-				choiceDesc = secondChoice
-					? `+1 ${firstChoice.ability}, +1 ${secondChoice.ability}`
-					: `+1 ${firstChoice.ability}`;
-				choiceOffset += secondChoice ? 2 : 1;
+				let choiceDesc;
+				if (instance) {
+					choiceDesc = instance.choiceDesc;
+				} else {
+					// Legacy fallback: reconstruct per-ASI text from the flat bump list
+					const firstChoice = asiChoices[choiceOffset];
+					if (!firstChoice) {
+						choiceDesc = "(no selection recorded)";
+					} else if (firstChoice.bonus === 2) {
+						choiceDesc = `+2 ${firstChoice.ability}`;
+						choiceOffset += 1;
+					} else {
+						const secondChoice = asiChoices[choiceOffset + 1];
+						choiceDesc = secondChoice
+							? `+1 ${firstChoice.ability}, +1 ${secondChoice.ability}`
+							: `+1 ${firstChoice.ability}`;
+						choiceOffset += secondChoice ? 2 : 1;
+					}
+				}
+				description = `${f.description}\n\nChosen: ${choiceDesc}\n\n(Added by betterR20 sidekick level-up, ${f.source})`;
 			}
 			const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos++);
 			integrants[id] = {
 				...base,
-				name: "Ability Score Improvement",
-				description: `${f.description}\n\nChosen: ${choiceDesc}\n\n(Added by betterR20 sidekick level-up, ${f.source})`,
+				name,
+				description,
 				source: "Species",
 				cascades: {},
 				relations: {},
@@ -903,6 +1195,717 @@ function d20plusNpcLevelUp () {
 		}
 		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
 		return written;
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Expertise (expert L3/L15), Sharp Mind (expert L18), Martial Role (warrior)
+	// ─────────────────────────────────────────────────────────────────────────
+
+	function getFeaturesByName (sidekickType, fromLevel, toLevel, name) {
+		if (!d20plus.sidekickData || !sidekickType) return [];
+		return d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel)
+			.filter(f => f.name === name);
+	}
+
+	/** Skills the sidekick is proficient (but not yet expert) in, sorted. */
+	function getExpertiseCandidates (store) {
+		return getProficiencyIntegrants(store, "Skill")
+			.filter(i => i.proficiency && (i.proficiencyLevel || "Proficient") === "Proficient")
+			.map(i => i.proficiency)
+			.sort();
+	}
+
+	/** Skills already at Expertise on the sheet. */
+	function getExistingExpertiseSkills (store) {
+		return new Set(getProficiencyIntegrants(store, "Skill")
+			.filter(i => i.proficiency && i.proficiencyLevel === "Expertise")
+			.map(i => i.proficiency));
+	}
+
+	/**
+	 * Render the Expertise picker (expert L3/L15). Options are the sidekick's
+	 * proficient skills plus any skills currently ticked in the Bonus
+	 * Proficiencies section of the same dialog (pendingSkills).
+	 */
+	function renderExpertiseSection ($container, store, sidekickType, fromLevel, toLevel, pendingSkills) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Expertise");
+		if (!features.length) { $container.html("").removeData("b20ExpKey"); return; }
+		const maxChoices = 2 * features.length;
+		const existingExpertise = getExistingExpertiseSkills(store);
+		const options = [...new Set([...getExpertiseCandidates(store), ...(pendingSkills || [])])]
+			.filter(skill => !existingExpertise.has(skill))
+			.sort();
+		const renderKey = `${sidekickType}|${fromLevel}|${toLevel}|${options.join(",")}`;
+		if ($container.data("b20ExpKey") === renderKey) return;
+		// Preserve any picks that survive the option-list change
+		const previousPicks = new Set(readSelectedValues($container, "expertiseSkills"));
+		$container.data("b20ExpKey", renderKey);
+		if (!options.length) {
+			$container.html(`<div class="b20-sidekick-card"><h4>Expertise</h4><p style="margin:0;color:#c0392b;font-size:12px">No proficient skills found to choose Expertise from — resolve the TODO trait manually.</p></div>`);
+			return;
+		}
+		const levelsText = features.map(f => f.level).join(" and ");
+		$container.html(`
+			<div class="b20-sidekick-card b20-expertise-picker">
+				<h4>Expertise</h4>
+				<p style="margin:0 0 6px;color:#475569;font-size:12px">Gained at level ${levelsText}: choose ${maxChoices} of the sidekick's skill proficiencies. Its proficiency bonus is doubled for ability checks using those skills. (<span class="b20-expertise-count">0</span>/${maxChoices} chosen)</p>
+				<div class="b20-spell-check-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px 10px">
+					${options.map(skill => `
+						<label class="b20-sidekick-checkbox">
+							<input type="checkbox" name="expertiseSkills" value="${skill}" ${previousPicks.has(skill) ? "checked" : ""}>
+							<span>${skill}</span>
+						</label>`).join("")}
+				</div>
+			</div>
+		`);
+		const update = () => {
+			enforceCheckboxLimit($container, "expertiseSkills", maxChoices);
+			$container.find(".b20-expertise-count").text(readSelectedValues($container, "expertiseSkills").length);
+		};
+		$container.off(".b20exp").on("change.b20exp", "input[name=expertiseSkills]", update);
+		update();
+	}
+
+	function validateExpertiseChoices ($dialog, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Expertise");
+		if (!features.length || !$dialog.find(".b20-expertise-picker").length) return { ok: true, expertiseChoices: null };
+		const maxChoices = 2 * features.length;
+		const chosen = readSelectedValues($dialog, "expertiseSkills");
+		if (chosen.length !== maxChoices) {
+			return { ok: false, message: `Select exactly ${maxChoices} skills for Expertise.` };
+		}
+		return { ok: true, expertiseChoices: chosen };
+	}
+
+	/** Set proficiencyLevel = "Expertise" on the matching Skill Proficiency integrants. */
+	function applyExpertise (store, skills) {
+		if (!skills || !skills.length) return 0;
+		let applied = 0;
+		getProficiencyIntegrants(store, "Skill").forEach(int => {
+			if (skills.includes(int.proficiency) && int.proficiencyLevel !== "Expertise") {
+				int.proficiencyLevel = "Expertise";
+				applied++;
+			}
+		});
+		return applied;
+	}
+
+	function writeExpertiseFeature (store, sidekickType, fromLevel, toLevel, skills) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Expertise");
+		if (!features.length || !skills || !skills.length) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+		store.integrants.integrants[id] = {
+			...base,
+			name: "Expertise",
+			description: `${features[0].description}\n\nChosen skills: ${skills.join(", ")}\n\n(Added by betterR20 sidekick level-up, ${features[0].source})`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
+	}
+
+	/** Render the Sharp Mind picker (expert L18): one save from Int/Wis/Cha. */
+	function renderSharpMindSection ($container, store, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Sharp Mind");
+		if (!features.length) { $container.html("").removeData("b20SharpKey"); return; }
+		const renderKey = `${sidekickType}|${fromLevel}|${toLevel}`;
+		if ($container.data("b20SharpKey") === renderKey) return;
+		$container.data("b20SharpKey", renderKey);
+		const existingSaves = getExistingProficiencies(store).saves;
+		const options = ["Intelligence", "Wisdom", "Charisma"];
+		$container.html(`
+			<div class="b20-sidekick-card b20-sharpmind-picker">
+				<h4>Sharp Mind</h4>
+				<p style="margin:0 0 6px;color:#475569;font-size:12px">Gained at level 18: choose one saving throw proficiency.</p>
+				${options.map((save, i) => {
+					const isNative = existingSaves.has(save);
+					return `<label class="b20-sidekick-checkbox ${isNative ? "b20-sidekick-checkbox-locked" : ""}">
+						<input type="radio" name="sharpMindSave" value="${save}" ${isNative ? "disabled" : ""}>
+						<span>${save}${isNative ? ' <span class="b20-sidekick-note">(already proficient)</span>' : ""}</span>
+					</label>`;
+				}).join("")}
+			</div>
+		`);
+	}
+
+	function validateSharpMindChoice ($dialog, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Sharp Mind");
+		if (!features.length || !$dialog.find(".b20-sharpmind-picker").length) return { ok: true, sharpMindChoice: null };
+		const chosen = $dialog.find("input[name=sharpMindSave]:checked").val();
+		if (!chosen) return { ok: false, message: "Select a saving throw proficiency for Sharp Mind." };
+		return { ok: true, sharpMindChoice: chosen };
+	}
+
+	function writeSharpMindFeature (store, sidekickType, fromLevel, toLevel, save) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Sharp Mind");
+		if (!features.length || !save) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+		store.integrants.integrants[id] = {
+			...base,
+			name: "Sharp Mind",
+			description: `${features[0].description}\n\nChosen saving throw: ${save}\n\n(Added by betterR20 sidekick level-up, ${features[0].source})`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
+	}
+
+	const MAGIC_SCHOOLS = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"];
+
+	/** Render the Empowered Spells picker (spellcaster L14): one school of magic. */
+	function renderEmpoweredSpellsSection ($container, store, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Empowered Spells");
+		if (!features.length) { $container.html("").removeData("b20EmpKey"); return; }
+		const renderKey = `${sidekickType}|${fromLevel}|${toLevel}`;
+		if ($container.data("b20EmpKey") === renderKey) return;
+		$container.data("b20EmpKey", renderKey);
+		$container.html(`
+			<div class="b20-sidekick-card b20-empowered-picker">
+				<h4>Empowered Spells</h4>
+				<p style="margin:0 0 6px;color:#475569;font-size:12px">Gained at level 14: choose one school of magic. The sidekick adds its spellcasting ability modifier to damage and healing rolls of leveled spells of that school (applied automatically, including spells learned later).</p>
+				<label style="font-size:12px;color:#475569">School:
+					<select name="empoweredSchool" style="margin-left:6px">
+						<option value="">— choose a school —</option>
+						${MAGIC_SCHOOLS.map(s => `<option value="${s}">${s}</option>`).join("")}
+					</select>
+				</label>
+			</div>
+		`);
+	}
+
+	function validateEmpoweredSpellsChoice ($dialog, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Empowered Spells");
+		if (!features.length || !$dialog.find(".b20-empowered-picker").length) return { ok: true, empoweredSchool: null };
+		const chosen = $dialog.find("select[name=empoweredSchool]").val();
+		if (!chosen) return { ok: false, message: "Select a school of magic for Empowered Spells." };
+		return { ok: true, empoweredSchool: chosen };
+	}
+
+	function writeEmpoweredSpellsFeature (store, sidekickType, fromLevel, toLevel, school) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Empowered Spells");
+		if (!features.length || !school) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+		store.integrants.integrants[id] = {
+			...base,
+			name: "Empowered Spells",
+			description: `${features[0].description}\n\nChosen school: ${school}\n\n(Applied automatically by betterR20 to the sidekick's ${school} spell damage/healing rolls, including spells learned later. Added by betterR20 sidekick level-up, ${features[0].source})`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
+	}
+
+	/**
+	 * Martial Role: Attacker — add +2 to every Attack integrant's flat to-hit
+	 * bonus. Marked with _b20AttackerBonus so re-running level-ups is idempotent
+	 * while attacks added since the last level-up still get the bonus.
+	 * @returns {number} attacks updated
+	 */
+	function applyMartialRoleAttacker (store, sidekickType) {
+		if (sidekickType !== "warrior-attacker") return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		let applied = 0;
+		Object.values(ints).forEach(int => {
+			if (!int || int.type !== "Attack" || !int.attack) return;
+			if (int._b20AttackerBonus) return;
+			int.attack.bonus = (Number(int.attack.bonus) || 0) + 2;
+			int._b20AttackerBonus = true;
+			applied++;
+		});
+		return applied;
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Spellcasting Advancement — spell picks (mage/healer/prodigy)
+	// ─────────────────────────────────────────────────────────────────────────
+
+	function isSpellcasterType (sidekickType) {
+		return !!(d20plus.sidekickData && d20plus.sidekickData.SPELL_LISTS && d20plus.sidekickData.SPELL_LISTS[sidekickType]);
+	}
+
+	/** Cantrips/spells newly known going from fromLevel to toLevel (fromLevel 0 = full loadout). */
+	function getSpellPickDelta (fromLevel, toLevel) {
+		const known = (d20plus.sidekickData && d20plus.sidekickData.spellcasterKnown) || {};
+		const from = known[fromLevel] || [0, 0];
+		const to = known[toLevel] || from;
+		return { cantrips: Math.max(0, to[0] - from[0]), spells: Math.max(0, to[1] - from[1]) };
+	}
+
+	/** All Spell integrants in the store, as [{id, name, level}]. */
+	function getKnownSpellIntegrants (store) {
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		return Object.entries(ints)
+			.filter(([, it]) => it && it.type === "Spell")
+			.map(([id, it]) => ({ id, name: it.name || "(unnamed)", level: it.level || 0 }))
+			.sort((a, b) => (a.level - b.level) || a.name.localeCompare(b.name));
+	}
+
+	function renderSpellCheckboxes (options, inputName, knownNames) {
+		return options.map(sp => {
+			const isKnown = knownNames.has(sp.name.toLowerCase());
+			return `<label class="b20-sidekick-checkbox ${isKnown ? "b20-sidekick-checkbox-locked" : ""}" data-spell-name="${sp.name.toLowerCase()}">
+				<input type="checkbox" name="${inputName}" value="${sp.name}" ${isKnown ? 'checked disabled data-native="true"' : ""}>
+				<span>${sp.name}${isKnown ? ' <span class="b20-sidekick-note">(known)</span>' : ""}</span>
+				<a class="b20-spell-info" data-spell="${sp.name}" title="Show spell details" style="cursor:pointer;color:#2563eb;font-weight:bold;margin-left:2px;text-decoration:none">&#9432;</a>
+			</label>`;
+		}).join("");
+	}
+
+	/** Open a small dialog showing the full rendered spell details. */
+	function showSpellDetailDialog (spellName) {
+		const spell = d20plus.sidekickData && d20plus.sidekickData.getSpellByName(spellName);
+		if (!spell) return alert(`Spell "${spellName}" not found in the bundled data.`);
+		let html;
+		try {
+			// Deep clone — _getHandoutData mutates its input (defaults, roll20 meta)
+			const [notecontents] = d20plus.spells._getHandoutData(JSON.parse(JSON.stringify(spell)));
+			// Strip the embedded machine-readable JSON blob
+			html = notecontents.replace(/<del class="hidden">[\s\S]*<\/del>/, "");
+		} catch (e) {
+			html = `<p>Could not render spell details — see console.</p>`;
+			logError(`showSpellDetailDialog failed for "${spellName}":`, e);
+		}
+		const $detail = $(`<div class="b20-spell-detail" style="max-height:60vh;overflow:auto;font-size:13px;line-height:1.45;padding:2px 6px">${html}</div>`);
+		$detail.dialog({
+			title: spellName,
+			width: 480,
+			resizable: true,
+			close: () => { $detail.dialog("destroy").remove(); },
+			buttons: { Close: () => { $detail.dialog("destroy").remove(); } },
+		});
+	}
+
+	/**
+	 * Render the Spellcasting Advancement picker into $container.
+	 * fromLevel 0 = Make Sidekick (full loadout); otherwise level-up delta.
+	 * No-op (clears container) for non-spellcasters or when nothing new is known.
+	 */
+	function renderSpellPickerSection ($container, store, sidekickType, fromLevel, toLevel) {
+		if (!isSpellcasterType(sidekickType)) { $container.html("").removeData("b20SpellKey"); return; }
+		// Skip re-render when nothing relevant changed (preserves in-progress picks
+		// when unrelated dialog inputs trigger a refresh)
+		const renderKey = `${sidekickType}|${fromLevel}|${toLevel}`;
+		if ($container.data("b20SpellKey") === renderKey) return;
+		$container.data("b20SpellKey", renderKey);
+		const delta = getSpellPickDelta(fromLevel, toLevel);
+		const isLevelUp = fromLevel > 0;
+		const knownSpells = getKnownSpellIntegrants(store);
+		const knownLeveled = knownSpells.filter(sp => sp.level > 0);
+		if (!delta.cantrips && !delta.spells && !(isLevelUp && knownLeveled.length)) { $container.html(""); return; }
+
+		const maxSpellLevel = d20plus.sidekickData.maxSpellLevelAt(toLevel);
+		const opts = d20plus.sidekickData.getSpellOptions(sidekickType, maxSpellLevel);
+		if (!opts.cantrips.length && !opts.spells.length) {
+			$container.html(`<div class="b20-sidekick-card"><h4>Spellcasting Advancement</h4><p style="margin:0;color:#c0392b;font-size:12px">Bundled XPHB spell data unavailable — resolve the TODO trait manually.</p></div>`);
+			return;
+		}
+		const knownNames = new Set(knownSpells.map(sp => sp.name.toLowerCase()));
+		const listLabel = d20plus.sidekickData.spellListLabel(sidekickType);
+
+		const cantripHtml = delta.cantrips > 0 ? `
+			<div class="b20-spell-group" data-spell-group="cantrip">
+				<p class="b20-sidekick-check-title" style="margin:8px 0 6px;color:#475569;font-size:12px">Cantrips (<span class="b20-spell-count-cantrip">0</span>/${delta.cantrips} chosen)</p>
+				<div class="b20-spell-check-grid">${renderSpellCheckboxes(opts.cantrips, "spellPickCantrip", knownNames)}</div>
+			</div>` : "";
+
+		const spellsByLevel = {};
+		opts.spells.forEach(sp => { (spellsByLevel[sp.level] = spellsByLevel[sp.level] || []).push(sp); });
+		const spellGroupsHtml = Object.keys(spellsByLevel).sort((a, b) => a - b).map(lvl => `
+			<div class="b20-spell-group" data-spell-group="spell">
+				<p class="b20-sidekick-check-title" style="margin:8px 0 6px;color:#475569;font-size:12px">Level ${lvl} Spells</p>
+				<div class="b20-spell-check-grid">${renderSpellCheckboxes(spellsByLevel[lvl], "spellPickSpell", knownNames)}</div>
+			</div>`).join("");
+		const spellsHtml = delta.spells > 0 || (isLevelUp && knownLeveled.length) ? `
+			<p class="b20-sidekick-check-title" style="margin:8px 0 0;color:#475569;font-size:12px">Spells (<span class="b20-spell-count-spell">0</span>/<span class="b20-spell-limit-spell">${delta.spells}</span> chosen — any level shown below)</p>
+			${spellGroupsHtml}` : "";
+
+		const replaceHtml = isLevelUp && knownLeveled.length ? `
+			<div style="margin:10px 0 0;padding-top:8px;border-top:1px solid #e2e8f0">
+				<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#475569">Replace one known spell (optional):
+					<select name="spellReplaceTarget" style="margin-left:4px">
+						<option value="">— no replacement —</option>
+						${knownLeveled.map(sp => `<option value="${sp.id}">${sp.name} (level ${sp.level})</option>`).join("")}
+					</select>
+				</label>
+				<p style="margin:4px 0 0;color:#64748b;font-size:11px">Replacing grants one extra spell pick above; the replaced spell is removed from the sheet.</p>
+			</div>` : "";
+
+		$container.html(`
+			<div class="b20-sidekick-card b20-spell-picker">
+				<h4>Spellcasting Advancement</h4>
+				<p style="margin:0 0 6px;color:#475569;font-size:12px">Choose from the ${listLabel} spell list (2024 PHB). Max spell level: ${maxSpellLevel}.
+					${delta.cantrips ? ` New cantrips: ${delta.cantrips}.` : ""}${delta.spells ? ` New spells: ${delta.spells}.` : ""}</p>
+				<label style="display:flex;align-items:center;gap:6px;margin:0 0 6px;font-size:12px;color:#475569;cursor:pointer">
+					<input type="checkbox" name="spellPickSkip">Skip spell selection for now (keeps the TODO trait to resolve manually)
+				</label>
+				<input type="text" class="b20-spell-filter" placeholder="Filter spells…" style="width:220px;margin:0 0 4px;padding:2px 6px">
+				<div class="b20-spell-lists">
+					${cantripHtml}
+					${spellsHtml}
+					${replaceHtml}
+				</div>
+				<style>.b20-spell-check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 10px}</style>
+			</div>
+		`);
+
+		function spellPickLimit () {
+			const replacing = $container.find("select[name=spellReplaceTarget]").val();
+			return delta.spells + (replacing ? 1 : 0);
+		}
+		function updateSpellPickerState () {
+			const skipped = $container.find("input[name=spellPickSkip]").is(":checked");
+			$container.find(".b20-spell-lists").css("opacity", skipped ? 0.4 : 1)
+				.find("input,select").prop("disabled", skipped);
+			if (skipped) return;
+			// Re-enable everything, then let the limit enforcement re-disable as needed
+			$container.find(".b20-spell-lists").find("input,select").prop("disabled", false);
+			enforceCheckboxLimit($container, "spellPickCantrip", delta.cantrips);
+			enforceCheckboxLimit($container, "spellPickSpell", spellPickLimit());
+			$container.find(".b20-spell-count-cantrip").text(readSelectedNonNative($container, "spellPickCantrip").length);
+			$container.find(".b20-spell-count-spell").text(readSelectedNonNative($container, "spellPickSpell").length);
+			$container.find(".b20-spell-limit-spell").text(spellPickLimit());
+		}
+		$container.off(".b20spell")
+			.on("change.b20spell", "input[name=spellPickCantrip], input[name=spellPickSpell], input[name=spellPickSkip], select[name=spellReplaceTarget]", updateSpellPickerState)
+			.on("click.b20spell", ".b20-spell-info", function (evt) {
+				// Inside a <label> — stop it toggling the checkbox
+				evt.preventDefault();
+				evt.stopPropagation();
+				showSpellDetailDialog($(this).data("spell"));
+			})
+			.on("input.b20spell", ".b20-spell-filter", function () {
+				const q = String($(this).val() || "").toLowerCase().trim();
+				$container.find(".b20-sidekick-checkbox[data-spell-name]").each((_, el) => {
+					const $el = $(el);
+					const show = !q || $el.data("spell-name").includes(q) || $el.find("input").is(":checked");
+					$el.css("display", show ? "" : "none");
+				});
+			});
+		updateSpellPickerState();
+	}
+
+	function readSelectedNonNative ($scope, inputName) {
+		return $scope.find(`input[name="${inputName}"]:checked`).filter((_, el) => !$(el).is("[data-native=true]")).map((_, el) => $(el).val()).get();
+	}
+
+	/**
+	 * Read + validate spell picks from the dialog.
+	 * Returns {ok, message, spellChoices} where spellChoices is null when skipped
+	 * or not applicable, else {cantrips: [names], spells: [names], replace: {id, name}|null}.
+	 */
+	function validateSpellChoices ($dialog, store, sidekickType, fromLevel, toLevel) {
+		if (!isSpellcasterType(sidekickType)) return { ok: true, spellChoices: null };
+		if (!$dialog.find(".b20-spell-picker").length) return { ok: true, spellChoices: null };
+		if ($dialog.find("input[name=spellPickSkip]").is(":checked")) return { ok: true, spellChoices: null };
+
+		const delta = getSpellPickDelta(fromLevel, toLevel);
+		const cantrips = readSelectedNonNative($dialog, "spellPickCantrip");
+		const spells = readSelectedNonNative($dialog, "spellPickSpell");
+		const replaceId = $dialog.find("select[name=spellReplaceTarget]").val() || "";
+		const replace = replaceId
+			? (() => { const sp = getKnownSpellIntegrants(store).find(k => k.id === replaceId); return sp ? { id: sp.id, name: sp.name } : null; })()
+			: null;
+		const spellLimit = delta.spells + (replace ? 1 : 0);
+
+		if (cantrips.length !== delta.cantrips) {
+			return { ok: false, message: `Select exactly ${delta.cantrips} cantrip${delta.cantrips === 1 ? "" : "s"} (or tick "Skip spell selection").` };
+		}
+		if (spells.length !== spellLimit) {
+			return { ok: false, message: `Select exactly ${spellLimit} spell${spellLimit === 1 ? "" : "s"} (or tick "Skip spell selection").` };
+		}
+		if (!cantrips.length && !spells.length && !replace) return { ok: true, spellChoices: null };
+		return { ok: true, spellChoices: { cantrips, spells, replace } };
+	}
+
+	/** Delete a Spell integrant and all descendants, and clean displayOrder. */
+	function removeSpellFromStore (store, spellId) {
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		if (!ints[spellId]) return false;
+		// Collect descendants breadth-first via parentID links (covers Attack/Damage/Heal children)
+		const toRemove = new Set([spellId]);
+		let grew = true;
+		while (grew) {
+			grew = false;
+			Object.entries(ints).forEach(([id, it]) => {
+				if (!toRemove.has(id) && it && toRemove.has(it.parentID)) { toRemove.add(id); grew = true; }
+			});
+		}
+		toRemove.forEach(id => delete ints[id]);
+		if (store.spells && Array.isArray(store.spells.displayOrder)) {
+			store.spells.displayOrder = store.spells.displayOrder.map(lvlJson => {
+				try { return JSON.stringify(JSON.parse(lvlJson || "[]").filter(id => !toRemove.has(id))); } catch (e) { return lvlJson; }
+			});
+		}
+		return true;
+	}
+
+	/**
+	 * Find or create the sidekick's Class + Spellcasting config integrant pair
+	 * (mirrors the monster spellcasting import wiring). Returns {classId, configId}.
+	 */
+	function ensureSidekickSpellcastingConfig (store, sidekickType) {
+		const ability = d20plus.sidekickData.SPELLCASTING_ABILITY[sidekickType];
+		const ints = store.integrants.integrants;
+
+		// Reuse any existing Spellcasting config with the right ability
+		const existing = Object.entries(ints).find(([, it]) => it && it.type === "Spellcasting" && it.ability === ability);
+		if (existing) {
+			const [configId, config] = existing;
+			return { classId: config.parentID || "", configId };
+		}
+
+		const label = "Sidekick";
+		let pos = d20plus.store2024.getNextArrayPos(store);
+		const { id: classId, base: classBase } = d20plus.store2024.makeIntegrantBase("Class", pos++);
+		const { id: configId, base: configBase } = d20plus.store2024.makeIntegrantBase("Spellcasting", pos++);
+		ints[classId] = {
+			...classBase,
+			name: label,
+			_label: label,
+			parentID: "",
+			childIDs: JSON.stringify([configId]),
+			cascades: {},
+			relations: {},
+		};
+		ints[configId] = {
+			...configBase,
+			name: "Spellcasting",
+			ability,
+			casterType: "other",
+			overviewDisplay: true,
+			parentID: classId,
+			sourceID: classId,
+			childIDs: "[]",
+			cascades: {},
+			relations: {},
+		};
+		return { classId, configId };
+	}
+
+	/**
+	 * Apply spell picks to the store: remove replacement target, import picked
+	 * spells from the bundled XPHB data, and wire them to the sidekick's
+	 * Spellcasting config. Returns {added, removedName, failed: [names]}.
+	 */
+	function applySpellChoices (store, sidekickType, spellChoices) {
+		const result = { added: 0, removedName: null, failed: [] };
+		if (!spellChoices) return result;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+
+		if (spellChoices.replace && removeSpellFromStore(store, spellChoices.replace.id)) {
+			result.removedName = spellChoices.replace.name;
+		}
+
+		const picks = [...(spellChoices.cantrips || []), ...(spellChoices.spells || [])];
+		if (!picks.length) return result;
+
+		const { classId, configId } = ensureSidekickSpellcastingConfig(store, sidekickType);
+		const preIds = new Set(Object.keys(store.integrants.integrants));
+
+		for (const name of picks) {
+			try {
+				const spell = d20plus.sidekickData.getSpellByName(name);
+				if (!spell) { result.failed.push(name); continue; }
+				const [, gmnotes] = d20plus.spells._getHandoutData(spell);
+				d20plus.importer.import2024Spell(null, JSON.parse(gmnotes), store);
+				result.added++;
+			} catch (e) {
+				console.warn(`betterR20 sidekick: failed to import spell "${name}"`, e);
+				result.failed.push(name);
+			}
+		}
+
+		// Wire new Spell integrants to the class, and their Attack integrants to the config
+		Object.entries(store.integrants.integrants).forEach(([id, it]) => {
+			if (preIds.has(id) || !it) return;
+			if (it.type === "Spell") {
+				it.sourceID = classId;
+			} else if (it.type === "Attack" && it.attack && (it.attack.type === "Spell Save" || it.attack.type === "Spell Attack")) {
+				const config = store.integrants.integrants[configId];
+				if (!config) return;
+				it.relations = it.relations || {};
+				it.relations[configId] = "uses";
+				config.relations = config.relations || {};
+				config.relations[id] = "usedBy";
+			}
+		});
+
+		return result;
+	}
+
+	/** Display name for the sidekick's spellcasting source header, per type. */
+	function sidekickSpellcastingSourceLabel (sidekickType) {
+		const label = d20plus.sidekickData ? d20plus.sidekickData.typeLabel(sidekickType) : sidekickType;
+		// typeLabel returns e.g. "Healer (Spellcaster)" — use the base word
+		return `${String(label).replace(/\s*\(.*\)$/, "")} Sidekick`;
+	}
+
+	/**
+	 * Rename the spellcasting source shown in the sheet's spells header (e.g.
+	 * "Acolyte of Fierna") to "<Type> Sidekick". On NPC sheets the source is a
+	 * plain name string held in parentID/sourceID of the Spellcasting config,
+	 * Spell Slot and Spell integrants (confirmed from a live dump); when a real
+	 * Class integrant exists (our created pair), its name is renamed instead.
+	 * Returns count of renames performed.
+	 */
+	function renameSidekickSpellcastingSource (store, sidekickType) {
+		const ability = d20plus.sidekickData && d20plus.sidekickData.SPELLCASTING_ABILITY
+			? d20plus.sidekickData.SPELLCASTING_ABILITY[sidekickType] : null;
+		if (!ability) return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		const newName = sidekickSpellcastingSourceLabel(sidekickType);
+		let renamed = 0;
+
+		const configs = Object.values(ints).filter(it => it && it.type === "Spellcasting" && it.ability === ability);
+		configs.forEach(cfg => {
+			const oldRef = cfg.parentID;
+			if (!oldRef || oldRef === newName) return;
+			const target = ints[oldRef];
+			if (target) {
+				// Real Class integrant — rename its display name only
+				if (target.name !== newName) {
+					target.name = newName;
+					if ("_label" in target) target._label = newName;
+					renamed++;
+				}
+				return;
+			}
+			// Name-string convention — rewrite every reference to the old name
+			Object.values(ints).forEach(it => {
+				if (!it) return;
+				if (it.parentID === oldRef) it.parentID = newName;
+				if (it.sourceID === oldRef) it.sourceID = newName;
+			});
+			renamed++;
+		});
+		return renamed;
+	}
+
+	/**
+	 * Write the sidekick's spell slots for the target level (TCE table).
+	 * Slots persist as "Spell Slot" integrants (calculation "Modify",
+	 * flatValue = slot count, parentID/sourceID = spellcasting source name —
+	 * shape confirmed from a live sheet dump). One integrant per spell level is
+	 * kept; extras are removed and levels with no slots are cleared. Current
+	 * slots (store.spellSlots.currentByLevel) are refilled to the new maximums.
+	 * Returns count of slot integrants changed.
+	 */
+	function writeSidekickSpellSlots (store, sidekickType, targetLevel) {
+		const slots = d20plus.sidekickData && d20plus.sidekickData.spellcasterSlots
+			? d20plus.sidekickData.spellcasterSlots[targetLevel] : null;
+		if (!slots) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		const ints = store.integrants.integrants;
+
+		// Parent reference: reuse whatever the existing Spellcasting config points at
+		const ability = d20plus.sidekickData.SPELLCASTING_ABILITY[sidekickType];
+		const cfg = Object.values(ints).find(it => it && it.type === "Spellcasting" && it.ability === ability)
+			|| Object.values(ints).find(it => it && it.type === "Spellcasting");
+		const parentRef = cfg ? (cfg.parentID || "") : "";
+
+		let changed = 0;
+		for (let lvl = 1; lvl <= 5; lvl++) {
+			const want = slots[lvl - 1] || 0;
+			const existing = Object.entries(ints).filter(([, it]) => it && it.type === "Spell Slot" && it.spellLevel === lvl);
+			if (!want) {
+				existing.forEach(([id]) => { delete ints[id]; changed++; });
+				continue;
+			}
+			if (existing.length) {
+				const [, keep] = existing[0];
+				if (!keep.valueFormula || keep.valueFormula.flatValue !== want) {
+					keep.valueFormula = { flatValue: want };
+					changed++;
+				}
+				existing.slice(1).forEach(([id]) => { delete ints[id]; changed++; });
+			} else {
+				const uuid = d20plus.store2024.makeUuid();
+				ints[uuid] = {
+					_enabled: true,
+					_id: uuid,
+					_slotType: "other",
+					builderDisplayName: "",
+					calculation: "Modify",
+					childIDs: "[]",
+					createdTime: Date.now(),
+					label: "",
+					name: "",
+					parentID: parentRef,
+					shortID: d20plus.store2024.makeId(),
+					source: "Custom",
+					sourceID: parentRef,
+					spellLevel: lvl,
+					type: "Spell Slot",
+					valueFormula: { flatValue: want },
+				};
+				changed++;
+			}
+		}
+
+		// Refill current slots to the new maximums (word-keyed, from live dump)
+		if (!store.spellSlots) store.spellSlots = { currentByLevel: {}, currentPactByLevel: {}, useSpellSlotOnCast: true };
+		if (!store.spellSlots.currentByLevel) store.spellSlots.currentByLevel = {};
+		["FIRST", "SECOND", "THIRD", "FOURTH", "FIFTH"].forEach((key, ix) => {
+			store.spellSlots.currentByLevel[key] = slots[ix] || 0;
+		});
+
+		return changed;
+	}
+
+	/** Write a resolved "Spellcasting Advancement" trait recording the choices made. */	function writeSpellcastingAdvancementFeature (store, sidekickType, spellChoices, targetLevel, spellResult) {
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+
+		const slots = d20plus.sidekickData.spellcasterSlots[targetLevel] || [];
+		const slotDesc = slots.map((n, i) => n > 0 ? `${n}\u00d7${["1st", "2nd", "3rd", "4th", "5th"][i]}` : null).filter(Boolean).join(", ");
+		const lines = [];
+		if (spellChoices.cantrips && spellChoices.cantrips.length) lines.push(`Cantrips chosen: ${spellChoices.cantrips.join(", ")}`);
+		if (spellChoices.spells && spellChoices.spells.length) lines.push(`Spells chosen: ${spellChoices.spells.join(", ")}`);
+		if (spellResult && spellResult.removedName) lines.push(`Replaced: ${spellResult.removedName}`);
+		if (spellResult && spellResult.failed.length) lines.push(`FAILED to import (add manually): ${spellResult.failed.join(", ")}`);
+		if (slotDesc) lines.push(`Spell slots at level ${targetLevel}: ${slotDesc} (set automatically)`);
+
+		store.integrants.integrants[id] = {
+			...base,
+			name: "Spellcasting Advancement",
+			description: `${lines.join("\n")}\n\n(Added by betterR20 sidekick level-up, TCE p.144)`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
@@ -928,25 +1931,14 @@ function d20plusNpcLevelUp () {
 
 		// Transform the store
 		const {store: upgradedStore, summary} = upgrade2024NpcStore(sourceStore, options);
-		const mappedCr = sidekickLevelToCr(summary.newLevel);
-		if (!upgradedStore.npc) upgradedStore.npc = {};
-		upgradedStore.npc.challengeRating = mappedCr;
-		upgradedStore.npc.cr = mappedCr;
-		log(`[level-up] Setting CR from level mapping: level ${summary.newLevel} -> CR ${mappedCr}`);
-		if (options.featureFromLevel === 0) {
-			const mappedCr = sidekickLevelToCr(summary.newLevel);
-			if (!upgradedStore.npc) upgradedStore.npc = {};
-			upgradedStore.npc.challengeRating = mappedCr;
-			upgradedStore.npc.cr = mappedCr;
-			log(`[make-sidekick] Setting CR from level mapping: level ${summary.newLevel} -> CR ${mappedCr}`);
-		}
+		log(`[level-up] CR from level mapping: level ${summary.newLevel} -> CR ${summary.newCr}`);
 
 		logGroup(`Upgrade summary for "${character.get("name")}"`, () => {
 			log(`Level: ${summary.sourceLevel} → ${summary.newLevel}`);
 			log(`PB: +${summary.sourcePb} → +${summary.newPb}${summary.pbChanged ? " (changed)" : ""}`);
 			log(`HP: +${summary.hpAdded} (new max ${summary.newHpMax}), roll formula: ${summary.newRollHP}`);
 			log(`Hit dice added: ${summary.hitDiceAdded}, proficiencies present: ${summary.proficienciesUpdated}`);
-			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}`);
+			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}, Potent Cantrips applied: ${summary.potentCantripsApplied || 0}`);
 			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
 		});
 
@@ -1006,10 +1998,12 @@ function d20plusNpcLevelUp () {
 							d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
 							
 							// Write flat character attributes for PB and CR so sheet display updates
-							const mappedCr = sidekickLevelToCr(summary.newLevel);
-							d20plus.store2024.writeSidekickStats(newCharacter, summary.newPb, mappedCr);
+							d20plus.store2024.writeSidekickStats(newCharacter, summary.newPb, summary.newCr);
 							
 							// Poll every 200ms for 5s. If Roll20 blanks our store, rewrite immediately.
+							// NOTE: the sheet re-serializes store.npc and strips custom keys
+							// (_npcSidekickType etc.), so only check fields that survive —
+							// otherwise the guard would fight the sheet's own init forever.
 							const deadline = Date.now() + 5000;
 							while (Date.now() < deadline) {
 								await new Promise(r => setTimeout(r, 200));
@@ -1022,14 +2016,18 @@ function d20plusNpcLevelUp () {
 								const val = storeAttr.get("current");
 								let parsed = null;
 								try { parsed = typeof val === "string" ? JSON.parse(val) : val; } catch (e) {}
-								if (!parsed || !parsed.npc || !parsed.npc._npcSidekickType) {
-									log(`[guard] Store lost sidekick data — rewriting (t=${Date.now()})`);
+								const storeBlanked = !parsed || !parsed.npc || !parsed.integrants;
+								const crRegressed = !storeBlanked && String(parsed.npc.challengeRating) !== String(summary.newCr);
+								if (storeBlanked || crRegressed) {
+									log(`[guard] Store ${storeBlanked ? "blanked" : "CR regressed"} — rewriting (t=${Date.now()})`);
 									d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
 								} else {
-									// Store looks good — ensure b20_sidekick is also present
+									// Store looks good — ensure b20_sidekick is also present.
+									// (The store's _npcSidekickType gets stripped by the sheet, so
+									// this attr is the persistent source of truth for routing.)
 									const meta = d20plus.store2024.getSidekickMeta(newCharacter);
 									if (!meta || !meta.type) {
-										log(`[guard] b20_sidekick missing — rewriting (t=${Date.now()})`);
+										log(`[guard] b20_sidekick missing — rewriting meta attr (t=${Date.now()})`);
 										d20plus.store2024.saveSidekickMeta(newCharacter, upgradedStore.npc._npcSidekickType, upgradedStore.npc._npcLevelUpLevel);
 									}
 								}
@@ -1067,7 +2065,7 @@ function d20plusNpcLevelUp () {
 			log(`Level: ${summary.sourceLevel} → ${summary.newLevel}`);
 			log(`PB: +${summary.sourcePb} → +${summary.newPb}${summary.pbChanged ? " (changed)" : ""}`);
 			log(`HP: +${summary.hpAdded} (new max ${summary.newHpMax}), roll formula: ${summary.newRollHP}`);
-			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}`);
+			log(`Bonus proficiencies added: ${summary.bonusProficienciesAdded || 0}, Potent Cantrips applied: ${summary.potentCantripsApplied || 0}`);
 			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
 		});
 
@@ -1077,11 +2075,37 @@ function d20plusNpcLevelUp () {
 		character.save({name: newName, tags: newTags, tags_string: newTags});
 		d20plus.store2024.saveNewNpcState(character, upgradedStore);
 		d20plus.store2024.saveNpcNames(character, newName);
-	
+
 		// Write flat character attributes for PB and CR so sheet display updates
-		const mappedCr = sidekickLevelToCr(summary.newLevel);
-		d20plus.store2024.writeSidekickStats(character, summary.newPb, mappedCr);
-	
+		d20plus.store2024.writeSidekickStats(character, summary.newPb, summary.newCr);
+
+		// Post-init reapply guard: the sheet's Vue iframe init can re-save a stale
+		// store on top of ours. Poll for a few seconds and rewrite if CR/PB regress.
+		// Only checks fields that survive the sheet's re-serialization (it strips
+		// custom store.npc keys like _npcLevelUpLevel).
+		(async () => {
+			const deadline = Date.now() + 5000;
+			while (Date.now() < deadline) {
+				await new Promise(r => setTimeout(r, 500));
+				const {store: liveStore} = d20plus.store2024.getStore(character);
+				if (!liveStore || !liveStore.npc) continue;
+				const crOk = String(liveStore.npc.challengeRating) === String(summary.newCr);
+				const pbOk = Object.values((liveStore.integrants && liveStore.integrants.integrants) || {})
+					.some(i => i && i.type === "Proficiency Bonus Modifier" && i.valueFormula?.flatValue === summary.newPb);
+				if (!crOk || !pbOk) {
+					log(`[guard] In-place store regressed (crOk=${crOk}, pbOk=${pbOk}) — rewriting`);
+					d20plus.store2024.saveNewNpcState(character, upgradedStore);
+					d20plus.store2024.writeSidekickStats(character, summary.newPb, summary.newCr);
+				}
+			}
+			// Final instrumentation: dump renderer-bound PB/CR fields after settle
+			const {store: finalStore} = d20plus.store2024.getStore(character);
+			const pbInts = Object.values((finalStore?.integrants?.integrants) || {})
+				.filter(i => i && (i.type === "Proficiency Bonus Modifier" || i.type === "Proficiency Bonus"))
+				.map(i => `${i.type}=${i.valueFormula?.flatValue}`);
+			log(`[guard] In-place store guard complete for "${newName}" — final: challengeRating=${finalStore?.npc?.challengeRating}, PB integrants=[${pbInts.join(", ")}]`);
+		})();
+
 		log(`[level-up] Updated tags: ${newTags}`);
 		return {character, summary};
 	}
@@ -1261,7 +2285,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		const featureItemsHtml = features.length
 			? `<ul class="b20-preview-feature-list">${
 				features.map(f => {
-					const isTodo = f.isTodo && !isAutomatedBonusProficienciesFeature(f) && !isAutomatedAsiFeature(f);
+					const isTodo = f.isTodo && !isDialogAutomatedFeature(f);
 					return `<li><span style="color:${isTodo ? "#c0392b" : "#27ae60"};font-weight:bold">${isTodo ? "TODO" : "AUTO"} ${f.name}</span> <span style="color:#888">(lv${f.level})</span><br><span style="font-size:0.9em">${f.description.slice(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
 				}).join("")
 			}</ul>`
@@ -1291,7 +2315,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const features = d20plus.sidekickData.getFeaturesGained(sidekickType, fromLevel, toLevel);
 			if (features.length) {
 				const featureItems = features.map(f => {
-					const tag = (f.isTodo && !isAutomatedBonusProficienciesFeature(f) && !isAutomatedAsiFeature(f))
+					const tag = (f.isTodo && !isDialogAutomatedFeature(f))
 						? `<span style="color:#c0392b;font-size:0.85em;font-weight:bold">TODO</span>`
 						: `<span style="color:#27ae60;font-size:0.85em;font-weight:bold">AUTO</span>`;
 					return `<li>${tag} <strong>${f.name}</strong> <span style="color:#888;font-size:0.88em">(lv${f.level})</span><br><span style="color:#555;font-size:0.88em">${f.description.substring(0, 120)}${f.description.length > 120 ? "…" : ""}</span></li>`;
@@ -1356,7 +2380,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const charName = character.get("name") || "Unnamed character";
 			const levelOptions = makeLevelBasisOptions(store);
 
-			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior","mage","healer","prodigy"];
+			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior-attacker","warrior-defender","mage","healer","prodigy"];
 			const typeButtons = allTypes.map((type, i) => {
 				const label = d20plus.sidekickData ? d20plus.sidekickData.typeLabel(type) : type;
 				return `<label style="display:flex;align-items:center;gap:6px;margin:4px 0;cursor:pointer">
@@ -1389,7 +2413,11 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						</div>
 					</div>
 					<div class="b20-bonus-prof-container"></div>
+					<div class="b20-expertise-container"></div>
+					<div class="b20-sharpmind-container"></div>
+					<div class="b20-empowered-container"></div>
 					<div class="b20-asi-container"></div>
+					<div class="b20-spell-container"></div>
 					<div class="b20-sidekick-card">
 						<h4>Preview</h4>
 						<div class="b20-upgrade-preview b20-sidekick-preview"></div>
@@ -1435,7 +2463,11 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const type = getType();
 				const level = getLevel();
 				renderBonusSection();
+				renderExpertiseSection($dialog.find(".b20-expertise-container"), store, type, 0, level, readSelectedValues($dialog, "bonusProfSkills"));
+				renderSharpMindSection($dialog.find(".b20-sharpmind-container"), store, type, 0, level);
+				renderEmpoweredSpellsSection($dialog.find(".b20-empowered-container"), store, type, 0, level);
 				renderAsiSection($dialog.find(".b20-asi-container"), store, type, 0, level);
+				renderSpellPickerSection($dialog.find(".b20-spell-container"), store, type, 0, level);
 				$dialog.find(".b20-upgrade-preview").html(makeStartingStateHtml(store, type, level));
 			}
 
@@ -1452,6 +2484,8 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			$dialog.on("change", "input[name=bonusProfSkills]", () => {
 				const cfg = getSidekickBonusProficiencyConfig(getType());
 				if (cfg) enforceCheckboxLimit($dialog, "bonusProfSkills", cfg.skills.maxChoices);
+				// Bonus-prof skills are Expertise candidates — refresh its options
+				renderExpertiseSection($dialog.find(".b20-expertise-container"), store, getType(), 0, getLevel(), readSelectedValues($dialog, "bonusProfSkills"));
 			});
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
@@ -1471,10 +2505,18 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						const sidekickType = getType();
 						const profValidation = validateBonusProfChoices($dialog, sidekickType);
 						if (!profValidation.ok) return alert(profValidation.message);
+						const expertiseValidation = validateExpertiseChoices($dialog, sidekickType, 0, currentLevel);
+						if (!expertiseValidation.ok) return alert(expertiseValidation.message);
+						const sharpMindValidation = validateSharpMindChoice($dialog, sidekickType, 0, currentLevel);
+						if (!sharpMindValidation.ok) return alert(sharpMindValidation.message);
+						const empoweredValidation = validateEmpoweredSpellsChoice($dialog, sidekickType, 0, currentLevel);
+						if (!empoweredValidation.ok) return alert(empoweredValidation.message);
 						const asiValidation = validateAsiChoices($dialog, sidekickType, 0, currentLevel);
 						if (!asiValidation.ok) return alert(asiValidation.message);
+						const spellValidation = validateSpellChoices($dialog, store, sidekickType, 0, currentLevel);
+						if (!spellValidation.ok) return alert(spellValidation.message);
 						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, asiChoices: asiValidation.asiChoices});
+						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, empoweredSchool: empoweredValidation.empoweredSchool, asiChoices: asiValidation.asiChoices, asiInstances: asiValidation.asiInstances, spellChoices: spellValidation.spellChoices});
 					},
 					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				},
@@ -1496,7 +2538,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const avgHp = parsedHP ? avgHpPerDie(parsedHP.faces) : 5;
 			const conMod = getConModFromStore(store);
 
-			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior","mage","healer","prodigy"];
+			const allTypes = (d20plus.sidekickData && d20plus.sidekickData.ALL_TYPES) || ["expert","warrior-attacker","warrior-defender","mage","healer","prodigy"];
 			const typeNote = !sidekickType
 				? `<div style="margin-bottom:10px">
 					<p style="margin:0 0 4px;font-weight:bold;font-size:0.92em">Sidekick Type <span style="color:#c0392b">(not yet set — choose once)</span></p>
@@ -1538,7 +2580,11 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 							</div>
 						</div>
 					</div>
+					<div class="b20-expertise-container"></div>
+					<div class="b20-sharpmind-container"></div>
+					<div class="b20-empowered-container"></div>
 					<div class="b20-asi-container"></div>
+					<div class="b20-spell-container"></div>
 					<div class="b20-sidekick-card">
 						<h4>Preview</h4>
 						<div class="b20-upgrade-preview b20-sidekick-preview" style="min-height:140px"></div>
@@ -1567,7 +2613,11 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const hpMode = getHpMode();
 				const hpRollTotal = getHpRollTotal();
 				$dialog.find('.b20-hp-roll-row').css('display', hpMode === 'roll' ? 'block' : 'none');
+				renderExpertiseSection($dialog.find(".b20-expertise-container"), store, type, level, level + 1, []);
+				renderSharpMindSection($dialog.find(".b20-sharpmind-container"), store, type, level, level + 1);
+				renderEmpoweredSpellsSection($dialog.find(".b20-empowered-container"), store, type, level, level + 1);
 				renderAsiSection($dialog.find(".b20-asi-container"), store, type, level, level + 1);
+				renderSpellPickerSection($dialog.find(".b20-spell-container"), store, type, level, level + 1);
 				const summary = previewUpgrade(store, level, type, { hpIncreaseMode: hpMode, hpRollTotal });
 				$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, level, level + 1));
 			}
@@ -1579,10 +2629,18 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			$dialog.on("click", ".b20-levelup-confirm", () => {
 				const currentLevel = getLevel();
 				const resolvedType = getType();
+				const expertiseValidation = validateExpertiseChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
+				if (!expertiseValidation.ok) return alert(expertiseValidation.message);
+				const sharpMindValidation = validateSharpMindChoice($dialog, resolvedType, currentLevel, currentLevel + 1);
+				if (!sharpMindValidation.ok) return alert(sharpMindValidation.message);
+				const empoweredValidation = validateEmpoweredSpellsChoice($dialog, resolvedType, currentLevel, currentLevel + 1);
+				if (!empoweredValidation.ok) return alert(empoweredValidation.message);
 				const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
 				if (!asiValidation.ok) return alert(asiValidation.message);
+				const spellValidation = validateSpellChoices($dialog, store, resolvedType, currentLevel, currentLevel + 1);
+				if (!spellValidation.ok) return alert(spellValidation.message);
 				$dialog.off(); $dialog.dialog("destroy").remove();
-				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, asiChoices: asiValidation.asiChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
+				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, empoweredSchool: empoweredValidation.empoweredSchool, asiChoices: asiValidation.asiChoices, asiInstances: asiValidation.asiInstances, spellChoices: spellValidation.spellChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
 			});
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
@@ -1629,6 +2687,11 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			if (sidekickMeta.type) store.npc._npcSidekickType = sidekickMeta.type;
 			if (sidekickMeta.level) store.npc._npcLevelUpLevel = sidekickMeta.level;
 		}
+		// Empowered Spells school lives only in b20_sidekick meta (store custom keys
+		// can be blanked by sheet re-init) — restore it whenever present.
+		if (sidekickMeta && sidekickMeta.school && store.npc && !store.npc._npcEmpoweredSchool) {
+			store.npc._npcEmpoweredSchool = sidekickMeta.school;
+		}
 		log(`Store read — _npcSidekickType: ${store.npc?._npcSidekickType || "(none)"}, _npcLevelUpLevel: ${store.npc?._npcLevelUpLevel || "(none)"}, hasSidekickType: ${hasSidekickType}, store attr id: ${attr?.id || "(no attr)"}, total store attrs: ${character.attribs.filter(a => a.get("name") === "store").length}`);
 
 		let dialogResult;
@@ -1641,35 +2704,47 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
+		const {currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, asiInstances, spellChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
+		// School chosen this pass (L14 dialog) or carried in b20_sidekick meta from
+		// a prior level-up — pass through so it re-applies to newly-added spells.
+		const empoweredSchool = dialogResult.empoweredSchool || (sidekickMeta && sidekickMeta.school) || null;
 		const isMakeSidekick = !hasSidekickType;
 
 		try {
 			let newChar, summary;
 			if (isMakeSidekick) {
 				// Make Sidekick: create a copy with all features applied from level 1
-				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, empoweredSchool, asiChoices, asiInstances, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — created sidekick copy "${newChar.get("name")}"`);
 			} else {
 				// Level Up: modify the existing character in-place
-				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, empoweredSchool, asiChoices, asiInstances, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — levelled up "${newChar.get("name")}" in-place`);
 			}
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
 			const asiMsg = summary.asiApplied ? `\nAbility scores improved: ${summary.asiApplied}` : "";
+			const featPickMsg = summary.featsChosen && summary.featsChosen.length ? `\nFeat(s) taken instead of ASI: ${summary.featsChosen.join(", ")} (text added as trait — apply mechanics manually)` : "";
+			const expertiseMsg = summary.expertiseApplied ? `\nExpertise applied to ${summary.expertiseApplied} skill(s)` : "";
+			const sharpMindMsg = summary.sharpMindApplied ? `\nSharp Mind saving throw proficiency added` : "";
+			const attackerMsg = summary.attackerBonusApplied ? `\nAttacker +2 applied to ${summary.attackerBonusApplied} attack(s)` : "";
+			const cantripMsg = summary.potentCantripsApplied ? `\nPotent Cantrips applied to ${summary.potentCantripsApplied} cantrip damage roll(s)` : "";
+			const empoweredMsg = summary.empoweredSchool ? `\nEmpowered Spells (${summary.empoweredSchool}) applied to ${summary.empoweredSpellsApplied || 0} damage/healing roll(s)` : "";
+			const spellMsg = summary.spellsAdded ? `\nSpells added: ${summary.spellsAdded}${summary.spellRemoved ? ` (replaced ${summary.spellRemoved})` : ""}` : "";
+			const spellFailMsg = summary.spellsFailed && summary.spellsFailed.length ? `\nSpells FAILED to import (add manually): ${summary.spellsFailed.join(", ")}` : "";
+			const slotMsg = summary.spellSlotsChanged ? `\nSpell slots updated (${summary.spellSlotsChanged} change(s))` : "";
 			if (isMakeSidekick) {
 				alert(`Created "${newChar.get("name")}" as a sidekick.
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${featPickMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			} else {
 				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${featPickMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);

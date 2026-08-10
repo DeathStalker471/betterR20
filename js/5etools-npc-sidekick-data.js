@@ -1,8 +1,10 @@
 /**
  * Sidekick feature tables — Tasha's Cauldron of Everything pp.142–147
  *
- * Five types: expert, warrior, mage, healer, prodigy
- * (mage/healer/prodigy are the three Spellcaster roles treated as distinct types)
+ * Six types: expert, warrior-attacker, warrior-defender, mage, healer, prodigy
+ * (mage/healer/prodigy are the three Spellcaster roles, and the Warrior Martial
+ * Role choice is baked into two Warrior types; "warrior" remains as a legacy
+ * alias for pre-split sidekicks)
  *
  * Each feature entry:
  *   level       {number}  Sidekick level at which the feature is gained
@@ -145,9 +147,12 @@ function d20plusNpcSidekickData () {
 
 	// ─────────────────────────────────────────────────────────────────────────
 	// Warrior (TCE pp.146–147)
+	// Split into Attacker/Defender types (Martial Role is a permanent level 1
+	// choice, so it is baked into the type like the spellcaster spell lists).
 	// ─────────────────────────────────────────────────────────────────────────
 
-	d20plus.sidekickData.warrior = [
+	function makeWarriorFeatures (martialRoleFeature) {
+		return [
 		{
 			level: 1,
 			name: "Bonus Proficiencies",
@@ -155,13 +160,7 @@ function d20plusNpcSidekickData () {
 			source: "TCE p.146",
 			description: "Choose one saving throw proficiency (Strength, Dexterity, or Constitution). Choose two skill proficiencies from: Acrobatics, Animal Handling, Athletics, Intimidation, Nature, Perception, or Survival. The sidekick gains proficiency with all armor. If it is a humanoid or has a simple or martial weapon in its stat block, it gains proficiency with shields and all simple and martial weapons.",
 		},
-		{
-			level: 1,
-			name: "Martial Role",
-			isTodo: true,
-			source: "TCE p.146",
-			description: "Choose one: Attacker — the sidekick gains a +2 bonus to all attack rolls. Defender — the sidekick can use its reaction to impose disadvantage on the attack roll of a creature within 5 feet of it whose target isn't the sidekick (provided the sidekick can see the attacker).",
-		},
+		martialRoleFeature,
 		{
 			level: 2,
 			name: "Second Wind",
@@ -267,7 +266,33 @@ function d20plusNpcSidekickData () {
 			source: "TCE p.146",
 			description: "The sidekick can now use its Second Wind feature twice between rests.",
 		},
-	];
+		];
+	}
+
+	d20plus.sidekickData["warrior-attacker"] = makeWarriorFeatures({
+		level: 1,
+		name: "Martial Role: Attacker",
+		isTodo: false,
+		source: "TCE p.146",
+		description: "The sidekick gains a +2 bonus to all attack rolls. (Applied automatically to the sidekick's attacks by betterR20.)",
+	});
+
+	d20plus.sidekickData["warrior-defender"] = makeWarriorFeatures({
+		level: 1,
+		name: "Martial Role: Defender",
+		isTodo: false,
+		source: "TCE p.146",
+		description: "The sidekick can use its reaction to impose disadvantage on the attack roll of a creature within 5 feet of it whose target isn't the sidekick (provided the sidekick can see the attacker).",
+	});
+
+	// Legacy type for sidekicks created before the Attacker/Defender split.
+	d20plus.sidekickData.warrior = makeWarriorFeatures({
+		level: 1,
+		name: "Martial Role",
+		isTodo: true,
+		source: "TCE p.146",
+		description: "Choose one: Attacker — the sidekick gains a +2 bonus to all attack rolls. Defender — the sidekick can use its reaction to impose disadvantage on the attack roll of a creature within 5 feet of it whose target isn't the sidekick (provided the sidekick can see the attacker).",
+	});
 
 	// ─────────────────────────────────────────────────────────────────────────
 	// Shared spellcasting level-up features (levels 4–20, all three roles)
@@ -336,9 +361,9 @@ function d20plusNpcSidekickData () {
 			{
 				level: 1,
 				name: "Spellcasting",
-				isTodo: true,
+				isTodo: false,
 				source: sourcePage,
-				description: `The sidekick is a ${roleName}. Its spellcasting ability is ${spellcastingAbility} and its spell list is ${spellList}. It knows 2 cantrips and 1 1st-level spell of your choice from its spell list. Spell save DC = 8 + ${spellcastingAbility} modifier + PB. Spell attack modifier = ${spellcastingAbility} modifier + PB. Set up spell slots: 1st-level ×2.`,
+				description: `The sidekick is a ${roleName}. Its spellcasting ability is ${spellcastingAbility} and its spell list is ${spellList}. It knows 2 cantrips and 1 1st-level spell of your choice from its spell list (chosen via the betterR20 spell picker). Spell save DC (8 + ${spellcastingAbility} modifier + PB), spell attack modifier (${spellcastingAbility} modifier + PB) and spell slots are set automatically by betterR20.`,
 			},
 		];
 
@@ -443,13 +468,172 @@ function d20plusNpcSidekickData () {
 		return {
 			expert: "Expert",
 			warrior: "Warrior",
+			"warrior-attacker": "Warrior (Attacker)",
+			"warrior-defender": "Warrior (Defender)",
 			mage: "Mage (Spellcaster)",
 			healer: "Healer (Spellcaster)",
 			prodigy: "Prodigy (Spellcaster)",
 		}[type] || type;
 	};
 
-	d20plus.sidekickData.ALL_TYPES = ["expert", "warrior", "mage", "healer", "prodigy"];
+	d20plus.sidekickData.ALL_TYPES = ["expert", "warrior-attacker", "warrior-defender", "mage", "healer", "prodigy"];
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Sidekick spell lists (2024 PHB / XPHB data, bundled into the build)
+	// ─────────────────────────────────────────────────────────────────────────
+
+	// TCE p.144: mage uses the Wizard list, healer Cleric+Druid, prodigy Bard+Warlock.
+	d20plus.sidekickData.SPELL_LISTS = {
+		mage: ["Wizard"],
+		healer: ["Cleric", "Druid"],
+		prodigy: ["Bard", "Warlock"],
+	};
+
+	d20plus.sidekickData.SPELLCASTING_ABILITY = {
+		mage: "Intelligence",
+		healer: "Wisdom",
+		prodigy: "Charisma",
+	};
+
+	/** Highest spell level for which the sidekick has slots at the given level. */
+	d20plus.sidekickData.maxSpellLevelAt = function (level) {
+		const slots = d20plus.sidekickData.spellcasterSlots[level];
+		if (!slots) return 0;
+		let max = 0;
+		slots.forEach((count, ix) => { if (count > 0) max = ix + 1; });
+		return max;
+	};
+
+	let _spellOptionCache = null;
+
+	/**
+	 * Build (and cache) the XPHB spell option list from the bundled data
+	 * (JSON_DATA, embedded at build time; see base-jsload.js).
+	 * Returns [{name, level, school, classes: Set}] or [] if data unavailable.
+	 */
+	function loadXphbSpellOptions () {
+		if (_spellOptionCache) return _spellOptionCache;
+		try {
+			const spellFile = typeof JSON_DATA !== "undefined" ? JSON_DATA["data/spells/spells-xphb.json"] : null;
+			const sources = typeof JSON_DATA !== "undefined" ? JSON_DATA["data/spells/sources.json"] : null;
+			if (!spellFile || !spellFile.spell || !sources || !sources.XPHB) return [];
+
+			const classLists = sources.XPHB;
+			_spellOptionCache = spellFile.spell.map(sp => {
+				const entry = classLists[sp.name];
+				const classes = new Set(((entry && entry.class) || []).map(c => c.name));
+				return {name: sp.name, level: sp.level || 0, school: sp.school || "", classes, _spell: sp};
+			});
+			return _spellOptionCache;
+		} catch (e) {
+			console.warn("betterR20: failed to load XPHB spell options", e);
+			return [];
+		}
+	}
+
+	/**
+	 * Spell options for a sidekick type, split into cantrips and leveled spells.
+	 * @param type sidekick type (mage/healer/prodigy)
+	 * @param maxSpellLevel highest allowed spell level (from slot table)
+	 * @return {cantrips: [...], spells: [...]} sorted by level then name
+	 */
+	d20plus.sidekickData.getSpellOptions = function (type, maxSpellLevel) {
+		const lists = d20plus.sidekickData.SPELL_LISTS[type];
+		if (!lists) return {cantrips: [], spells: []};
+		const all = loadXphbSpellOptions()
+			.filter(sp => lists.some(cls => sp.classes.has(cls)))
+			.sort((a, b) => (a.level - b.level) || a.name.localeCompare(b.name));
+		return {
+			cantrips: all.filter(sp => sp.level === 0),
+			spells: all.filter(sp => sp.level >= 1 && sp.level <= maxSpellLevel),
+		};
+	};
+
+	/** Full 5etools spell object by name (XPHB), for import. Null if not found. */
+	d20plus.sidekickData.getSpellByName = function (name) {
+		const found = loadXphbSpellOptions().find(sp => sp.name.toLowerCase() === String(name).toLowerCase());
+		return found ? found._spell : null;
+	};
+
+	/** Human-readable spell list label for dialogs, e.g. "Cleric and Druid". */
+	d20plus.sidekickData.spellListLabel = function (type) {
+		const lists = d20plus.sidekickData.SPELL_LISTS[type];
+		return lists ? lists.join(" and ") : "";
+	};
+
+	// ── Feats (for "feat instead of ASI") ───────────────────────────────────
+
+	let _featOptionCache = null;
+
+	/**
+	 * Feat option list from the bundled data (JSON_DATA["data/feats.json"]).
+	 * Returns XPHB-only [{name, source, _feat}] sorted by name.
+	 */
+	d20plus.sidekickData.getFeatOptions = function () {
+		if (_featOptionCache) return _featOptionCache;
+		try {
+			const featFile = typeof JSON_DATA !== "undefined" ? JSON_DATA["data/feats.json"] : null;
+			if (!featFile || !featFile.feat) return [];
+			_featOptionCache = featFile.feat
+				.filter(f => (f.source || "") === "XPHB")
+				.map(f => ({name: f.name, source: f.source || "", _feat: f}))
+				.sort((a, b) => a.name.localeCompare(b.name));
+			return _featOptionCache;
+		} catch (e) {
+			console.warn("betterR20: failed to load feat options", e);
+			return [];
+		}
+	};
+
+	/** Full 5etools feat object by name+source. Null if not found. */
+	d20plus.sidekickData.getFeatByName = function (name, source) {
+		const opts = d20plus.sidekickData.getFeatOptions();
+		const found = opts.find(f => f.name === name && (!source || f.source === source)) || opts.find(f => f.name.toLowerCase() === String(name).toLowerCase());
+		return found ? found._feat : null;
+	};
+
+	/**
+	 * Flatten 5etools "entries" data to plain text for trait descriptions.
+	 * Strips {@tag ...} markup, renders lists/entries recursively; tables are noted.
+	 */
+	d20plus.sidekickData.entriesToText = function (entries, depth = 0) {
+		if (entries == null) return "";
+		if (typeof entries === "string") {
+			// {@tag payload|source|display} -> display if present, else payload
+			return entries.replace(/\{@\w+ ([^}]+)\}/g, (m, inner) => {
+				const parts = inner.split("|");
+				return parts.length > 2 && parts[2] ? parts[2] : parts[0];
+			});
+		}
+		if (Array.isArray(entries)) return entries.map(e => d20plus.sidekickData.entriesToText(e, depth)).filter(Boolean).join("\n\n");
+		if (typeof entries === "object") {
+			const name = entries.name ? `${entries.name}. ` : "";
+			if (entries.type === "list" && entries.items) {
+				return entries.items.map(it => `\u2022 ${d20plus.sidekickData.entriesToText(it, depth + 1)}`).join("\n");
+			}
+			if (entries.type === "table") return "[See the feat's source for a table omitted here.]";
+			if (entries.entries) return `${name}${d20plus.sidekickData.entriesToText(entries.entries, depth + 1)}`;
+			if (entries.entry) return `${name}${d20plus.sidekickData.entriesToText(entries.entry, depth + 1)}`;
+			return name.trim();
+		}
+		return String(entries);
+	};
+
+	d20plus.sidekickData.getFeatSummary = function (feat) {
+		if (!feat) return "";
+		const text = d20plus.sidekickData.entriesToText(feat.entries) || "";
+		return text.replace(/\n{3,}/g, "\n\n").trim();
+	};
+
+	d20plus.sidekickData.getFeatOptionsForLevel = function (level) {
+		const lvl = Number(level) || 0;
+		return d20plus.sidekickData.getFeatOptions().filter(opt => {
+			const feat = opt._feat || {};
+			if (feat.category === "FS") return false;
+			if (feat.category === "EB") return lvl >= 19;
+			return feat.category === "O" || feat.category === "G";
+		});
+	};
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcSidekickData);
