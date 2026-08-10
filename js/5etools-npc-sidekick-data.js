@@ -338,7 +338,7 @@ function d20plusNpcSidekickData () {
 				name: "Spellcasting",
 				isTodo: true,
 				source: sourcePage,
-				description: `The sidekick is a ${roleName}. Its spellcasting ability is ${spellcastingAbility} and its spell list is ${spellList}. It knows 2 cantrips and 1 1st-level spell of your choice from its spell list. Spell save DC = 8 + ${spellcastingAbility} modifier + PB. Spell attack modifier = ${spellcastingAbility} modifier + PB. Set up spell slots: 1st-level ×2.`,
+				description: `The sidekick is a ${roleName}. Its spellcasting ability is ${spellcastingAbility} and its spell list is ${spellList}. It knows 2 cantrips and 1 1st-level spell of your choice from its spell list. Spell save DC = 8 + ${spellcastingAbility} modifier + PB. Spell attack modifier = ${spellcastingAbility} modifier + PB. Spell slots are set automatically by betterR20.`,
 			},
 		];
 

@@ -398,14 +398,24 @@ function d20plusNpcLevelUp () {
 
 		// Spellcasting Advancement: import picked spells (and apply a replacement)
 		// before Potent Cantrips so newly added cantrips get the damage ability too.
+		// Spell slots and the spellcasting source label are updated on every
+		// spellcaster level-up, regardless of whether spells were picked.
 		let spellResult = null;
-		if (options.spellChoices && isSpellcasterType(sidekickType)) {
-			spellResult = applySpellChoices(store, sidekickType, options.spellChoices);
-			writeSpellcastingAdvancementFeature(store, sidekickType, options.spellChoices, targetSidekickLevel, spellResult);
+		let spellSlotsChanged = 0;
+		let spellSourceRenamed = 0;
+		if (isSpellcasterType(sidekickType)) {
+			spellSourceRenamed = renameSidekickSpellcastingSource(store, sidekickType);
+			if (options.spellChoices) {
+				spellResult = applySpellChoices(store, sidekickType, options.spellChoices);
+				writeSpellcastingAdvancementFeature(store, sidekickType, options.spellChoices, targetSidekickLevel, spellResult);
+			}
+			spellSlotsChanged = writeSidekickSpellSlots(store, sidekickType, targetSidekickLevel);
 		}
 		summary.spellsAdded = spellResult ? spellResult.added : 0;
 		summary.spellRemoved = spellResult ? spellResult.removedName : null;
 		summary.spellsFailed = spellResult ? spellResult.failed : [];
+		summary.spellSlotsChanged = spellSlotsChanged;
+		summary.spellSourceRenamed = spellSourceRenamed;
 
 		// Potent Cantrips (spellcaster level 6+): add the spellcasting ability modifier
 		// to cantrip damage. Applied on every level-up at 6+ so cantrips added since the
@@ -1297,8 +1307,127 @@ function d20plusNpcLevelUp () {
 		return result;
 	}
 
-	/** Write a resolved "Spellcasting Advancement" trait recording the choices made. */
-	function writeSpellcastingAdvancementFeature (store, sidekickType, spellChoices, targetLevel, spellResult) {
+	/** Display name for the sidekick's spellcasting source header, per type. */
+	function sidekickSpellcastingSourceLabel (sidekickType) {
+		const label = d20plus.sidekickData ? d20plus.sidekickData.typeLabel(sidekickType) : sidekickType;
+		// typeLabel returns e.g. "Healer (Spellcaster)" — use the base word
+		return `${String(label).replace(/\s*\(.*\)$/, "")} Sidekick`;
+	}
+
+	/**
+	 * Rename the spellcasting source shown in the sheet's spells header (e.g.
+	 * "Acolyte of Fierna") to "<Type> Sidekick". On NPC sheets the source is a
+	 * plain name string held in parentID/sourceID of the Spellcasting config,
+	 * Spell Slot and Spell integrants (confirmed from a live dump); when a real
+	 * Class integrant exists (our created pair), its name is renamed instead.
+	 * Returns count of renames performed.
+	 */
+	function renameSidekickSpellcastingSource (store, sidekickType) {
+		const ability = d20plus.sidekickData && d20plus.sidekickData.SPELLCASTING_ABILITY
+			? d20plus.sidekickData.SPELLCASTING_ABILITY[sidekickType] : null;
+		if (!ability) return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		const newName = sidekickSpellcastingSourceLabel(sidekickType);
+		let renamed = 0;
+
+		const configs = Object.values(ints).filter(it => it && it.type === "Spellcasting" && it.ability === ability);
+		configs.forEach(cfg => {
+			const oldRef = cfg.parentID;
+			if (!oldRef || oldRef === newName) return;
+			const target = ints[oldRef];
+			if (target) {
+				// Real Class integrant — rename its display name only
+				if (target.name !== newName) {
+					target.name = newName;
+					if ("_label" in target) target._label = newName;
+					renamed++;
+				}
+				return;
+			}
+			// Name-string convention — rewrite every reference to the old name
+			Object.values(ints).forEach(it => {
+				if (!it) return;
+				if (it.parentID === oldRef) it.parentID = newName;
+				if (it.sourceID === oldRef) it.sourceID = newName;
+			});
+			renamed++;
+		});
+		return renamed;
+	}
+
+	/**
+	 * Write the sidekick's spell slots for the target level (TCE table).
+	 * Slots persist as "Spell Slot" integrants (calculation "Modify",
+	 * flatValue = slot count, parentID/sourceID = spellcasting source name —
+	 * shape confirmed from a live sheet dump). One integrant per spell level is
+	 * kept; extras are removed and levels with no slots are cleared. Current
+	 * slots (store.spellSlots.currentByLevel) are refilled to the new maximums.
+	 * Returns count of slot integrants changed.
+	 */
+	function writeSidekickSpellSlots (store, sidekickType, targetLevel) {
+		const slots = d20plus.sidekickData && d20plus.sidekickData.spellcasterSlots
+			? d20plus.sidekickData.spellcasterSlots[targetLevel] : null;
+		if (!slots) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		const ints = store.integrants.integrants;
+
+		// Parent reference: reuse whatever the existing Spellcasting config points at
+		const ability = d20plus.sidekickData.SPELLCASTING_ABILITY[sidekickType];
+		const cfg = Object.values(ints).find(it => it && it.type === "Spellcasting" && it.ability === ability)
+			|| Object.values(ints).find(it => it && it.type === "Spellcasting");
+		const parentRef = cfg ? (cfg.parentID || "") : "";
+
+		let changed = 0;
+		for (let lvl = 1; lvl <= 5; lvl++) {
+			const want = slots[lvl - 1] || 0;
+			const existing = Object.entries(ints).filter(([, it]) => it && it.type === "Spell Slot" && it.spellLevel === lvl);
+			if (!want) {
+				existing.forEach(([id]) => { delete ints[id]; changed++; });
+				continue;
+			}
+			if (existing.length) {
+				const [, keep] = existing[0];
+				if (!keep.valueFormula || keep.valueFormula.flatValue !== want) {
+					keep.valueFormula = { flatValue: want };
+					changed++;
+				}
+				existing.slice(1).forEach(([id]) => { delete ints[id]; changed++; });
+			} else {
+				const uuid = d20plus.store2024.makeUuid();
+				ints[uuid] = {
+					_enabled: true,
+					_id: uuid,
+					_slotType: "other",
+					builderDisplayName: "",
+					calculation: "Modify",
+					childIDs: "[]",
+					createdTime: Date.now(),
+					label: "",
+					name: "",
+					parentID: parentRef,
+					shortID: d20plus.store2024.makeId(),
+					source: "Custom",
+					sourceID: parentRef,
+					spellLevel: lvl,
+					type: "Spell Slot",
+					valueFormula: { flatValue: want },
+				};
+				changed++;
+			}
+		}
+
+		// Refill current slots to the new maximums (word-keyed, from live dump)
+		if (!store.spellSlots) store.spellSlots = { currentByLevel: {}, currentPactByLevel: {}, useSpellSlotOnCast: true };
+		if (!store.spellSlots.currentByLevel) store.spellSlots.currentByLevel = {};
+		["FIRST", "SECOND", "THIRD", "FOURTH", "FIFTH"].forEach((key, ix) => {
+			store.spellSlots.currentByLevel[key] = slots[ix] || 0;
+		});
+
+		return changed;
+	}
+
+	/** Write a resolved "Spellcasting Advancement" trait recording the choices made. */	function writeSpellcastingAdvancementFeature (store, sidekickType, spellChoices, targetLevel, spellResult) {
 		if (!store.integrants) store.integrants = { integrants: {} };
 		if (!store.integrants.integrants) store.integrants.integrants = {};
 		if (!store.features) store.features = {};
@@ -1313,7 +1442,7 @@ function d20plusNpcLevelUp () {
 		if (spellChoices.spells && spellChoices.spells.length) lines.push(`Spells chosen: ${spellChoices.spells.join(", ")}`);
 		if (spellResult && spellResult.removedName) lines.push(`Replaced: ${spellResult.removedName}`);
 		if (spellResult && spellResult.failed.length) lines.push(`FAILED to import (add manually): ${spellResult.failed.join(", ")}`);
-		if (slotDesc) lines.push(`Spell slots at level ${targetLevel}: ${slotDesc} (set slots on the sheet manually)`);
+		if (slotDesc) lines.push(`Spell slots at level ${targetLevel}: ${slotDesc} (set automatically)`);
 
 		store.integrants.integrants[id] = {
 			...base,
@@ -2113,18 +2242,19 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const cantripMsg = summary.potentCantripsApplied ? `\nPotent Cantrips applied to ${summary.potentCantripsApplied} cantrip damage roll(s)` : "";
 			const spellMsg = summary.spellsAdded ? `\nSpells added: ${summary.spellsAdded}${summary.spellRemoved ? ` (replaced ${summary.spellRemoved})` : ""}` : "";
 			const spellFailMsg = summary.spellsFailed && summary.spellsFailed.length ? `\nSpells FAILED to import (add manually): ${summary.spellsFailed.join(", ")}` : "";
+			const slotMsg = summary.spellSlotsChanged ? `\nSpell slots updated (${summary.spellSlotsChanged} change(s))` : "";
 			if (isMakeSidekick) {
 				alert(`Created "${newChar.get("name")}" as a sidekick.
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}${spellMsg}${spellFailMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			} else {
 				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}${spellMsg}${spellFailMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
