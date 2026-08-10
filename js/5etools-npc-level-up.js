@@ -314,11 +314,14 @@ function d20plusNpcLevelUp () {
 		// When PB increases, update the Proficiency Bonus integrant's flatValue.
 		// The 2024 sheet reads PB from this integrant to compute save/skill bonuses.
 		if (pbChanged) {
-			const pbIntegrant = findIntegrantByType(store, "Proficiency Bonus");
-			if (pbIntegrant) {
-				if (!pbIntegrant.valueFormula) pbIntegrant.valueFormula = {};
-				pbIntegrant.valueFormula.flatValue = newPb;
-			}
+			const pbIntegrants = ((store.integrants && store.integrants.integrants) || {});
+			Object.values(pbIntegrants).forEach(int => {
+				if (int && int.type === "Proficiency Bonus") {
+					if (!int.valueFormula) int.valueFormula = {};
+					int.valueFormula.flatValue = newPb;
+				}
+			});
+			if (store.npc) store.npc.proficiencyBonus = newPb;
 		}
 
 		// Store the new "virtual level" as a custom note on the store so we can detect
@@ -652,9 +655,12 @@ function d20plusNpcLevelUp () {
 	}
 
 	function buildSidekickTags (existingTags, sidekickType, sidekickLevel) {
-		const tokens = String(existingTags || "")
-			.split(",")
-			.map(t => t.trim())
+		const raw = existingTags == null ? "" : existingTags;
+		const asList = Array.isArray(raw)
+			? raw
+			: String(raw).split(",");
+		const tokens = asList
+			.map(t => String(t).trim())
 			.filter(Boolean)
 			.filter(t => !/^sidekick$/i.test(t))
 			.filter(t => !/^sidekick-type:/i.test(t))
@@ -663,7 +669,7 @@ function d20plusNpcLevelUp () {
 		tokens.push("Sidekick");
 		tokens.push(`Sidekick-Type: ${typeLabel}`);
 		tokens.push(`Sidekick-Level: ${sidekickLevel}`);
-		return tokens.join(", ");
+		return tokens.join(",");
 	}
 
 	function shouldApplyBonusProficiencies (currentLevel, targetLevel) {
@@ -912,10 +918,16 @@ function d20plusNpcLevelUp () {
 
 		// Transform the store
 		const {store: upgradedStore, summary} = upgrade2024NpcStore(sourceStore, options);
+		const mappedCr = sidekickLevelToCr(summary.newLevel);
+		if (!upgradedStore.npc) upgradedStore.npc = {};
+		upgradedStore.npc.challengeRating = mappedCr;
+		upgradedStore.npc.cr = mappedCr;
+		log(`[level-up] Setting CR from level mapping: level ${summary.newLevel} -> CR ${mappedCr}`);
 		if (options.featureFromLevel === 0) {
 			const mappedCr = sidekickLevelToCr(summary.newLevel);
 			if (!upgradedStore.npc) upgradedStore.npc = {};
 			upgradedStore.npc.challengeRating = mappedCr;
+			upgradedStore.npc.cr = mappedCr;
 			log(`[make-sidekick] Setting CR from level mapping: level ${summary.newLevel} -> CR ${mappedCr}`);
 		}
 
@@ -947,6 +959,7 @@ function d20plusNpcLevelUp () {
 				inplayerjournals: sourceAttributes.inplayerjournals || "",
 				controlledby: sourceAttributes.controlledby || "",
 				tags: upgradedTags,
+				tags_string: upgradedTags,
 			}, {
 				success: async (newCharacter) => {
 					try {
@@ -1046,7 +1059,7 @@ function d20plusNpcLevelUp () {
 		const newName = getLevelUpName(character.get("name") || "Unnamed character");
 		const sidekickType = options.sidekickType || upgradedStore.npc?._npcSidekickType;
 		const newTags = buildSidekickTags(character.get("tags") || character.attributes?.tags || "", sidekickType, summary.newLevel);
-		character.save({name: newName, tags: newTags});
+		character.save({name: newName, tags: newTags, tags_string: newTags});
 		d20plus.store2024.saveNewNpcState(character, upgradedStore);
 		d20plus.store2024.saveNpcNames(character, newName);
 		log(`[level-up] Updated tags: ${newTags}`);
