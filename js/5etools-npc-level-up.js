@@ -94,6 +94,12 @@ function d20plusNpcLevelUp () {
 		6, 6, 6, 6,   // levels 17–20
 	];
 
+	const SIDEKICK_LEVEL_TO_CR = [
+		null,
+		"1/2", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+		"10", "11", "12", "13", "14", "15", "16", "17", "18",
+	];
+
 	const SIDEKICK_BONUS_PROFICIENCY_CONFIG = {
 		expert: {
 			saves: { maxChoices: 1, options: ["Dexterity", "Intelligence", "Charisma"] },
@@ -631,10 +637,33 @@ function d20plusNpcLevelUp () {
 		return 1;
 	}
 
-	/** Build a copy name for the upgraded character, stripping any existing (Level N) tags. */
-	function getLevelUpName (sourceName, targetLevel) {
-		const base = (sourceName || "Unnamed").replace(/\s*\(Level\s+\d+\)/gi, "").trim();
-		return `${base} (Level ${targetLevel})`;
+	/** Build a sidekick copy name, stripping any previous sidekick/level suffixes. */
+	function getLevelUpName (sourceName) {
+		const base = (sourceName || "Unnamed")
+			.replace(/\s*\(Level\s+\d+\)/gi, "")
+			.replace(/\s*\(Sidekick\)/gi, "")
+			.trim();
+		return `${base} (Sidekick)`;
+	}
+
+	function sidekickLevelToCr (level) {
+		const lvl = Math.max(1, Math.min(Number(level) || 1, 20));
+		return SIDEKICK_LEVEL_TO_CR[lvl] || "18";
+	}
+
+	function buildSidekickTags (existingTags, sidekickType, sidekickLevel) {
+		const tokens = String(existingTags || "")
+			.split(",")
+			.map(t => t.trim())
+			.filter(Boolean)
+			.filter(t => !/^sidekick$/i.test(t))
+			.filter(t => !/^sidekick-type:/i.test(t))
+			.filter(t => !/^sidekick-level:/i.test(t));
+		const typeLabel = d20plus.sidekickData ? d20plus.sidekickData.typeLabel(sidekickType || "unknown") : (sidekickType || "unknown");
+		tokens.push("Sidekick");
+		tokens.push(`Sidekick-Type: ${typeLabel}`);
+		tokens.push(`Sidekick-Level: ${sidekickLevel}`);
+		return tokens.join(", ");
 	}
 
 	function shouldApplyBonusProficiencies (currentLevel, targetLevel) {
@@ -883,6 +912,12 @@ function d20plusNpcLevelUp () {
 
 		// Transform the store
 		const {store: upgradedStore, summary} = upgrade2024NpcStore(sourceStore, options);
+		if (options.featureFromLevel === 0) {
+			const mappedCr = sidekickLevelToCr(summary.newLevel);
+			if (!upgradedStore.npc) upgradedStore.npc = {};
+			upgradedStore.npc.challengeRating = mappedCr;
+			log(`[make-sidekick] Setting CR from level mapping: level ${summary.newLevel} -> CR ${mappedCr}`);
+		}
 
 		logGroup(`Upgrade summary for "${character.get("name")}"`, () => {
 			log(`Level: ${summary.sourceLevel} → ${summary.newLevel}`);
@@ -898,7 +933,8 @@ function d20plusNpcLevelUp () {
 		}
 
 		const sourceName = character.get("name") || "Unnamed character";
-		const upgradedName = getLevelUpName(sourceName, summary.newLevel);
+		const upgradedName = getLevelUpName(sourceName);
+		const upgradedTags = buildSidekickTags(sourceAttributes.tags || "", options.sidekickType || upgradedStore.npc?._npcSidekickType, summary.newLevel);
 		const sourceAttributes = {...character.attributes};
 		delete sourceAttributes.id;
 
@@ -909,7 +945,7 @@ function d20plusNpcLevelUp () {
 				charactersheetname: d20plus.cfg.getOrDefault("import", "importSheetFormat"),
 				inplayerjournals: sourceAttributes.inplayerjournals || "",
 				controlledby: sourceAttributes.controlledby || "",
-				tags: sourceAttributes.tags || "",
+				tags: upgradedTags,
 			}, {
 				success: async (newCharacter) => {
 					try {
@@ -993,10 +1029,13 @@ function d20plusNpcLevelUp () {
 			if (summary.errors.length) logWarn("Warnings:", summary.errors.join("; "));
 		});
 
-		const newName = getLevelUpName(character.get("name") || "Unnamed character", summary.newLevel);
+		const newName = getLevelUpName(character.get("name") || "Unnamed character");
+		const sidekickType = options.sidekickType || upgradedStore.npc?._npcSidekickType;
+		const newTags = buildSidekickTags(character.get("tags") || character.attributes?.tags || "", sidekickType, summary.newLevel);
+		character.save({name: newName, tags: newTags});
 		d20plus.store2024.saveNewNpcState(character, upgradedStore);
 		d20plus.store2024.saveNpcNames(character, newName);
-		character.save({name: newName});
+		log(`[level-up] Updated tags: ${newTags}`);
 		return {character, summary};
 	}
 
