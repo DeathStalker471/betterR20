@@ -933,10 +933,11 @@ function d20plusNpcLevelUp () {
 		}
 
 		const sourceName = character.get("name") || "Unnamed character";
-		const upgradedName = getLevelUpName(sourceName);
-		const upgradedTags = buildSidekickTags(sourceAttributes.tags || "", options.sidekickType || upgradedStore.npc?._npcSidekickType, summary.newLevel);
 		const sourceAttributes = {...character.attributes};
 		delete sourceAttributes.id;
+		const upgradedName = getLevelUpName(sourceName);
+		const upgradedSidekickType = options.sidekickType || upgradedStore.npc?._npcSidekickType;
+		const upgradedTags = buildSidekickTags(sourceAttributes.tags || "", upgradedSidekickType, summary.newLevel);
 
 		return new Promise((resolve, reject) => {
 			d20.Campaign.characters.create({
@@ -975,6 +976,8 @@ function d20plusNpcLevelUp () {
 
 						// Write the store and keep re-writing for up to 5 seconds to beat
 						// any late blank-store writes by Roll20's sheet initialisation.
+						// Also writes b20_sidekick — a dedicated attr Roll20 never blanks —
+						// so sidekick routing works even if the store gets overwritten.
 						const writeAndVerify = async () => {
 							d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
 							d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
@@ -983,13 +986,24 @@ function d20plusNpcLevelUp () {
 							while (Date.now() < deadline) {
 								await new Promise(r => setTimeout(r, 200));
 								const storeAttr = newCharacter.attribs.find(a => a.get("name") === "store");
-								if (!storeAttr) { d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore); continue; }
+								if (!storeAttr) {
+									log(`[guard] store attr missing — rewriting (t=${Date.now()})`);
+									d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
+									continue;
+								}
 								const val = storeAttr.get("current");
 								let parsed = null;
 								try { parsed = typeof val === "string" ? JSON.parse(val) : val; } catch (e) {}
 								if (!parsed || !parsed.npc || !parsed.npc._npcSidekickType) {
 									log(`[guard] Store lost sidekick data — rewriting (t=${Date.now()})`);
 									d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
+								} else {
+									// Store looks good — ensure b20_sidekick is also present
+									const meta = d20plus.store2024.getSidekickMeta(newCharacter);
+									if (!meta || !meta.type) {
+										log(`[guard] b20_sidekick missing — rewriting (t=${Date.now()})`);
+										d20plus.store2024.saveSidekickMeta(newCharacter, upgradedStore.npc._npcSidekickType, upgradedStore.npc._npcLevelUpLevel);
+									}
 								}
 							}
 							log(`[guard] Store guard complete for "${upgradedName}"`);
@@ -1077,19 +1091,28 @@ function d20plusNpcLevelUp () {
 	async function waitForStoreAttr(character, timeout = 5000) {
 		const start = Date.now();
 		while (Date.now() - start < timeout) {
+			// First check the dedicated b20_sidekick attr — it is never blanked by Roll20 sheet init
+			const meta = d20plus.store2024.getSidekickMeta(character);
+			if (meta && (meta.type || meta.level)) {
+				const {attr, store} = d20plus.store2024.getStore(character);
+				return { attr, store, sidekickMeta: meta };
+			}
+			// Fall back to checking the store attr directly
 			const storeAttr = character.attribs.find(a => a.get("name") === "store");
 			if (storeAttr && storeAttr.get("current")) {
 				const val = storeAttr.get("current");
-				const parsed = typeof val === "string" ? JSON.parse(val) : val;
-				if (parsed.npc && (parsed.npc._npcSidekickType || parsed.npc._npcLevelUpLevel)) {
-					return { attr: storeAttr, store: parsed };
-				}
+				try {
+					const parsed = typeof val === "string" ? JSON.parse(val) : val;
+					if (parsed.npc && (parsed.npc._npcSidekickType || parsed.npc._npcLevelUpLevel)) {
+						return { attr: storeAttr, store: parsed, sidekickMeta: null };
+					}
+				} catch (e) {}
 			}
 			await new Promise(r => setTimeout(r, 100));
 		}
 		const {attr, store} = d20plus.store2024.getStore(character);
 		if (!store) logWarn(`waitForStoreAttr: timeout waiting for sidekick store on ${character.get("name")}`);
-		return { attr, store };
+		return { attr, store, sidekickMeta: d20plus.store2024.getSidekickMeta(character) };
 	}
 
 	function formatSignedConText (conMod) {
@@ -1547,21 +1570,33 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		if (!character) return alert("No character found.");
 		log(`[fetch] Starting attribs fetch for "${character.get("name")}"`);
 		await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
-		log(`[fetch] Attributes loaded: ${character.attribs?.length || 0}; waiting for sidekick store...`);
+		log(`[fetch] Attributes loaded: ${character.attribs?.length || 0}; checking b20_sidekick + store...`);
 		const storeWaitResult = await waitForStoreAttr(character);
+		const sidekickMeta = storeWaitResult.sidekickMeta || d20plus.store2024.getSidekickMeta(character);
 		if (storeWaitResult.store) {
-			log(`[fetch] Found sidekick store after wait: type=${storeWaitResult.store.npc?._npcSidekickType}, level=${storeWaitResult.store.npc?._npcLevelUpLevel}`);
+			log(`[fetch] Store after wait: type=${storeWaitResult.store.npc?._npcSidekickType}, level=${storeWaitResult.store.npc?._npcLevelUpLevel}`);
 		}
+		log(`[fetch] b20_sidekick attr: ${sidekickMeta ? JSON.stringify(sidekickMeta) : "(none)"}`);
 		if (!canLevelUp(character)) return alert("The selected character is not a 2024 NPC sheet.");
 
 		const charName = character.get("name") || "Unnamed character";
 		const {attr, store} = d20plus.store2024.getStore(character);
 		if (!store) return alert("Could not read the 2024 store from this character.");
 
-		// Treat the character as an existing sidekick if either the sidekick type or the
-		// stored sidekick level is present. Some earlier copies may have one without the other.
-		const hasSidekickType = !!(store.npc && (store.npc._npcSidekickType || store.npc._npcLevelUpLevel));
-		log(`Store read — _npcSidekickType: ${store.npc?._npcSidekickType || "(none)"}, _npcLevelUpLevel: ${store.npc?._npcLevelUpLevel || "(none)"}, store attr id: ${attr?.id || "(no attr)"}, total store attrs: ${character.attribs.filter(a => a.get("name") === "store").length}`);
+		// Primary: check dedicated b20_sidekick attr (survives Roll20 sheet re-init)
+		// Fallback: check store fields (for sidekicks created before this version)
+		const hasSidekickType = !!(
+			(sidekickMeta && (sidekickMeta.type || sidekickMeta.level)) ||
+			(store.npc && (store.npc._npcSidekickType || store.npc._npcLevelUpLevel))
+		);
+		// If b20_sidekick has type/level but the store was blanked, restore them into the store
+		// so the rest of the code (level derivation, type lookup) still works.
+		if (sidekickMeta && (sidekickMeta.type || sidekickMeta.level) && store.npc && !store.npc._npcSidekickType && !store.npc._npcLevelUpLevel) {
+			log(`[routing] Restoring sidekick meta from b20_sidekick into store (type=${sidekickMeta.type}, level=${sidekickMeta.level})`);
+			if (sidekickMeta.type) store.npc._npcSidekickType = sidekickMeta.type;
+			if (sidekickMeta.level) store.npc._npcLevelUpLevel = sidekickMeta.level;
+		}
+		log(`Store read — _npcSidekickType: ${store.npc?._npcSidekickType || "(none)"}, _npcLevelUpLevel: ${store.npc?._npcLevelUpLevel || "(none)"}, hasSidekickType: ${hasSidekickType}, store attr id: ${attr?.id || "(no attr)"}, total store attrs: ${character.attribs.filter(a => a.get("name") === "store").length}`);
 
 		let dialogResult;
 		if (hasSidekickType) {
@@ -1617,12 +1652,17 @@ Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}`);
 		const {attr, store} = d20plus.store2024.getStore(character) || {};
 		const hadType = store && store.npc && store.npc._npcSidekickType;
 		const hadLevel = store && store.npc && store.npc._npcLevelUpLevel;
-		if (!hadType && !hadLevel) return alert(`No sidekick data to reset on "${character.get("name")}".\n\n(Neither _npcSidekickType nor _npcLevelUpLevel found in the 2024 store.)`);
-		const clearMsg = [`Remove sidekick data from "${character.get("name")}"?`, ``, `This will clear:${hadType ? "\n\u2022 Sidekick type: " + hadType : ""}${hadLevel ? "\n\u2022 Stored level: " + hadLevel : ""}`, ``, `The character sheet is NOT modified \u2014 only the stored metadata.`].join("\n");
+		const hadMeta = d20plus.store2024.getSidekickMeta(character);
+		if (!hadType && !hadLevel && !hadMeta) return alert(`No sidekick data to reset on "${character.get("name")}".\n\n(Neither _npcSidekickType nor _npcLevelUpLevel found in the 2024 store, and no b20_sidekick attr present.)`);
+		const clearMsg = [`Remove sidekick data from "${character.get("name")}"?`, ``, `This will clear:${hadType ? "\n\u2022 Sidekick type: " + hadType : ""}${hadLevel ? "\n\u2022 Stored level: " + hadLevel : ""}${hadMeta ? "\n\u2022 b20_sidekick attr: " + JSON.stringify(hadMeta) : ""}`, ``, `The character sheet is NOT modified \u2014 only the stored metadata.`].join("\n");
 		if (!window.confirm(clearMsg)) return;
-		delete store.npc._npcSidekickType;
-		delete store.npc._npcLevelUpLevel;
-		d20plus.store2024.saveStore(character, attr, store);
+		if (store && store.npc) {
+			delete store.npc._npcSidekickType;
+			delete store.npc._npcLevelUpLevel;
+			d20plus.store2024.saveStore(character, attr, store);
+		}
+		// Also destroy the dedicated b20_sidekick attr
+		character.attribs.filter(a => a.get("name") === "b20_sidekick").forEach(a => a.destroy());
 		log(`Reset sidekick data on "${character.get("name")}"`);
 		alert(`Sidekick data cleared from "${character.get("name")}".`);
 	};

@@ -95,13 +95,19 @@ function d20plus2024Store () {
 	 * Write the store and appState="npc" attrs for a freshly-created 2024 NPC.
 	 * Destroys any pre-existing store/appState attrs first so there is exactly one
 	 * of each — prevents the sheet from finding a stale blank copy first.
+	 *
+	 * Also writes a dedicated "b20_sidekick" attribute that survives Roll20's sheet
+	 * async init (which can blank "store"). Routing reads this attr first so that
+	 * sidekick detection is robust even when the store gets overwritten.
 	 */
 	d20plus.store2024.saveNewNpcState = function (character, store) {
 		// Destroy any existing store/appState attrs the sheet may have already written
 		const toDestroy = character.attribs.filter(a =>
 			a.get("name") === "store" || a.get("name") === "appState"
 		);
-		console.log(`betterR20 saveNewNpcState: destroying ${toDestroy.length} existing attr(s), writing upgraded store with _npcSidekickType=${store?.npc?._npcSidekickType}, _npcLevelUpLevel=${store?.npc?._npcLevelUpLevel}`);
+		const sidekickType = store?.npc?._npcSidekickType;
+		const sidekickLevel = store?.npc?._npcLevelUpLevel;
+		console.log(`betterR20 saveNewNpcState: destroying ${toDestroy.length} existing attr(s), writing upgraded store with _npcSidekickType=${sidekickType}, _npcLevelUpLevel=${sidekickLevel}`);
 		toDestroy.forEach(a => a.destroy());
 
 		const toSave = [
@@ -109,6 +115,39 @@ function d20plus2024Store () {
 			{name: "store", current: store},
 		].map(a => character.attribs.push(a));
 		toSave.forEach(s => s.syncedSave());
+
+		// Write a dedicated b20_sidekick attr that Roll20's sheet init never touches.
+		// This is the reliable source of truth for sidekick routing.
+		if (sidekickType || sidekickLevel) {
+			d20plus.store2024.saveSidekickMeta(character, sidekickType, sidekickLevel);
+		}
+	};
+
+	/**
+	 * Write (or overwrite) the dedicated b20_sidekick attribute.
+	 * This attribute is never written by Roll20's sheet init so it is the reliable
+	 * source of truth for detecting existing sidekicks.
+	 */
+	d20plus.store2024.saveSidekickMeta = function (character, sidekickType, sidekickLevel) {
+		const toDestroy = character.attribs.filter(a => a.get("name") === "b20_sidekick");
+		toDestroy.forEach(a => a.destroy());
+		const meta = {type: sidekickType || null, level: sidekickLevel || null};
+		character.attribs.push({name: "b20_sidekick", current: JSON.stringify(meta)}).syncedSave();
+		console.log(`betterR20 saveSidekickMeta: type=${meta.type}, level=${meta.level}`);
+	};
+
+	/**
+	 * Read the b20_sidekick attribute, returning {type, level} or null.
+	 */
+	d20plus.store2024.getSidekickMeta = function (character) {
+		const attr = character.attribs.find(a => a.get("name") === "b20_sidekick");
+		if (!attr) return null;
+		try {
+			const val = attr.get("current");
+			return typeof val === "string" ? JSON.parse(val) : val;
+		} catch (e) {
+			return null;
+		}
 	};
 
 	/**
