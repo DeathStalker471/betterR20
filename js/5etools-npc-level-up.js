@@ -384,7 +384,7 @@ function d20plusNpcLevelUp () {
 			sidekickType,
 			featureFromLevel,
 			targetSidekickLevel,
-			{ skipBonusProficienciesTodo: shouldHandleBonusProficiencies, skipAsiTodo: asiHasFeatures },
+			{ skipBonusProficienciesTodo: shouldHandleBonusProficiencies, skipAsiTodo: asiHasFeatures, skipSpellcastingAdvancementTodo: !!options.spellChoices },
 		);
 		const bonusProficiencyFeatureWritten = shouldHandleBonusProficiencies
 			? writeBonusProficiencyFeature(store, sidekickType, options.bonusProficiencies)
@@ -395,6 +395,17 @@ function d20plusNpcLevelUp () {
 
 		// Write (or replace) the sidekick identity feature — always done so level-up keeps it current.
 		writeSidekickIdentityFeature(store, sidekickType, targetSidekickLevel);
+
+		// Spellcasting Advancement: import picked spells (and apply a replacement)
+		// before Potent Cantrips so newly added cantrips get the damage ability too.
+		let spellResult = null;
+		if (options.spellChoices && isSpellcasterType(sidekickType)) {
+			spellResult = applySpellChoices(store, sidekickType, options.spellChoices);
+			writeSpellcastingAdvancementFeature(store, sidekickType, options.spellChoices, targetSidekickLevel, spellResult);
+		}
+		summary.spellsAdded = spellResult ? spellResult.added : 0;
+		summary.spellRemoved = spellResult ? spellResult.removedName : null;
+		summary.spellsFailed = spellResult ? spellResult.failed : [];
 
 		// Potent Cantrips (spellcaster level 6+): add the spellcasting ability modifier
 		// to cantrip damage. Applied on every level-up at 6+ so cantrips added since the
@@ -411,7 +422,7 @@ function d20plusNpcLevelUp () {
 			.length;
 		summary.bonusProficienciesAdded = bonusProficienciesAdded;
 		summary.asiApplied = asiApplied;
-		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten;
+		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten + (spellResult ? 1 : 0);
 
 		return { store, summary };
 	}
@@ -516,7 +527,7 @@ function d20plusNpcLevelUp () {
 		if (!d20plus.sidekickData || !sidekickType) return 0;
 		const features = d20plus.sidekickData
 			.getFeaturesGained(sidekickType, fromLevel, toLevel)
-			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement"));
+			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement") && !(options.skipSpellcastingAdvancementTodo && feature.name === "Spellcasting Advancement"));
 		if (!features.length) return 0;
 
 		if (!store.integrants) store.integrants = { integrants: {} };
@@ -996,6 +1007,325 @@ function d20plusNpcLevelUp () {
 		}
 		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
 		return written;
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Spellcasting Advancement — spell picks (mage/healer/prodigy)
+	// ─────────────────────────────────────────────────────────────────────────
+
+	function isSpellcasterType (sidekickType) {
+		return !!(d20plus.sidekickData && d20plus.sidekickData.SPELL_LISTS && d20plus.sidekickData.SPELL_LISTS[sidekickType]);
+	}
+
+	/** Cantrips/spells newly known going from fromLevel to toLevel (fromLevel 0 = full loadout). */
+	function getSpellPickDelta (fromLevel, toLevel) {
+		const known = (d20plus.sidekickData && d20plus.sidekickData.spellcasterKnown) || {};
+		const from = known[fromLevel] || [0, 0];
+		const to = known[toLevel] || from;
+		return { cantrips: Math.max(0, to[0] - from[0]), spells: Math.max(0, to[1] - from[1]) };
+	}
+
+	/** All Spell integrants in the store, as [{id, name, level}]. */
+	function getKnownSpellIntegrants (store) {
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		return Object.entries(ints)
+			.filter(([, it]) => it && it.type === "Spell")
+			.map(([id, it]) => ({ id, name: it.name || "(unnamed)", level: it.level || 0 }))
+			.sort((a, b) => (a.level - b.level) || a.name.localeCompare(b.name));
+	}
+
+	function renderSpellCheckboxes (options, inputName, knownNames) {
+		return options.map(sp => {
+			const isKnown = knownNames.has(sp.name.toLowerCase());
+			return `<label class="b20-sidekick-checkbox ${isKnown ? "b20-sidekick-checkbox-locked" : ""}" data-spell-name="${sp.name.toLowerCase()}">
+				<input type="checkbox" name="${inputName}" value="${sp.name}" ${isKnown ? 'checked disabled data-native="true"' : ""}>
+				<span>${sp.name}${isKnown ? ' <span class="b20-sidekick-note">(known)</span>' : ""}</span>
+			</label>`;
+		}).join("");
+	}
+
+	/**
+	 * Render the Spellcasting Advancement picker into $container.
+	 * fromLevel 0 = Make Sidekick (full loadout); otherwise level-up delta.
+	 * No-op (clears container) for non-spellcasters or when nothing new is known.
+	 */
+	function renderSpellPickerSection ($container, store, sidekickType, fromLevel, toLevel) {
+		if (!isSpellcasterType(sidekickType)) { $container.html("").removeData("b20SpellKey"); return; }
+		// Skip re-render when nothing relevant changed (preserves in-progress picks
+		// when unrelated dialog inputs trigger a refresh)
+		const renderKey = `${sidekickType}|${fromLevel}|${toLevel}`;
+		if ($container.data("b20SpellKey") === renderKey) return;
+		$container.data("b20SpellKey", renderKey);
+		const delta = getSpellPickDelta(fromLevel, toLevel);
+		const isLevelUp = fromLevel > 0;
+		const knownSpells = getKnownSpellIntegrants(store);
+		const knownLeveled = knownSpells.filter(sp => sp.level > 0);
+		if (!delta.cantrips && !delta.spells && !(isLevelUp && knownLeveled.length)) { $container.html(""); return; }
+
+		const maxSpellLevel = d20plus.sidekickData.maxSpellLevelAt(toLevel);
+		const opts = d20plus.sidekickData.getSpellOptions(sidekickType, maxSpellLevel);
+		if (!opts.cantrips.length && !opts.spells.length) {
+			$container.html(`<div class="b20-sidekick-card"><h4>Spellcasting Advancement</h4><p style="margin:0;color:#c0392b;font-size:12px">Bundled XPHB spell data unavailable — resolve the TODO trait manually.</p></div>`);
+			return;
+		}
+		const knownNames = new Set(knownSpells.map(sp => sp.name.toLowerCase()));
+		const listLabel = d20plus.sidekickData.spellListLabel(sidekickType);
+
+		const cantripHtml = delta.cantrips > 0 ? `
+			<div class="b20-spell-group" data-spell-group="cantrip">
+				<p class="b20-sidekick-check-title" style="margin:8px 0 6px;color:#475569;font-size:12px">Cantrips (<span class="b20-spell-count-cantrip">0</span>/${delta.cantrips} chosen)</p>
+				<div class="b20-spell-check-grid">${renderSpellCheckboxes(opts.cantrips, "spellPickCantrip", knownNames)}</div>
+			</div>` : "";
+
+		const spellsByLevel = {};
+		opts.spells.forEach(sp => { (spellsByLevel[sp.level] = spellsByLevel[sp.level] || []).push(sp); });
+		const spellGroupsHtml = Object.keys(spellsByLevel).sort((a, b) => a - b).map(lvl => `
+			<div class="b20-spell-group" data-spell-group="spell">
+				<p class="b20-sidekick-check-title" style="margin:8px 0 6px;color:#475569;font-size:12px">Level ${lvl} Spells</p>
+				<div class="b20-spell-check-grid">${renderSpellCheckboxes(spellsByLevel[lvl], "spellPickSpell", knownNames)}</div>
+			</div>`).join("");
+		const spellsHtml = delta.spells > 0 || (isLevelUp && knownLeveled.length) ? `
+			<p class="b20-sidekick-check-title" style="margin:8px 0 0;color:#475569;font-size:12px">Spells (<span class="b20-spell-count-spell">0</span>/<span class="b20-spell-limit-spell">${delta.spells}</span> chosen — any level shown below)</p>
+			${spellGroupsHtml}` : "";
+
+		const replaceHtml = isLevelUp && knownLeveled.length ? `
+			<div style="margin:10px 0 0;padding-top:8px;border-top:1px solid #e2e8f0">
+				<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#475569">Replace one known spell (optional):
+					<select name="spellReplaceTarget" style="margin-left:4px">
+						<option value="">— no replacement —</option>
+						${knownLeveled.map(sp => `<option value="${sp.id}">${sp.name} (level ${sp.level})</option>`).join("")}
+					</select>
+				</label>
+				<p style="margin:4px 0 0;color:#64748b;font-size:11px">Replacing grants one extra spell pick above; the replaced spell is removed from the sheet.</p>
+			</div>` : "";
+
+		$container.html(`
+			<div class="b20-sidekick-card b20-spell-picker">
+				<h4>Spellcasting Advancement</h4>
+				<p style="margin:0 0 6px;color:#475569;font-size:12px">Choose from the ${listLabel} spell list (2024 PHB). Max spell level: ${maxSpellLevel}.
+					${delta.cantrips ? ` New cantrips: ${delta.cantrips}.` : ""}${delta.spells ? ` New spells: ${delta.spells}.` : ""}</p>
+				<label style="display:flex;align-items:center;gap:6px;margin:0 0 6px;font-size:12px;color:#475569;cursor:pointer">
+					<input type="checkbox" name="spellPickSkip">Skip spell selection for now (keeps the TODO trait to resolve manually)
+				</label>
+				<input type="text" class="b20-spell-filter" placeholder="Filter spells…" style="width:220px;margin:0 0 4px;padding:2px 6px">
+				<div class="b20-spell-lists">
+					${cantripHtml}
+					${spellsHtml}
+					${replaceHtml}
+				</div>
+				<style>.b20-spell-check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 10px}</style>
+			</div>
+		`);
+
+		function spellPickLimit () {
+			const replacing = $container.find("select[name=spellReplaceTarget]").val();
+			return delta.spells + (replacing ? 1 : 0);
+		}
+		function updateSpellPickerState () {
+			const skipped = $container.find("input[name=spellPickSkip]").is(":checked");
+			$container.find(".b20-spell-lists").css("opacity", skipped ? 0.4 : 1)
+				.find("input,select").prop("disabled", skipped);
+			if (skipped) return;
+			// Re-enable everything, then let the limit enforcement re-disable as needed
+			$container.find(".b20-spell-lists").find("input,select").prop("disabled", false);
+			enforceCheckboxLimit($container, "spellPickCantrip", delta.cantrips);
+			enforceCheckboxLimit($container, "spellPickSpell", spellPickLimit());
+			$container.find(".b20-spell-count-cantrip").text(readSelectedNonNative($container, "spellPickCantrip").length);
+			$container.find(".b20-spell-count-spell").text(readSelectedNonNative($container, "spellPickSpell").length);
+			$container.find(".b20-spell-limit-spell").text(spellPickLimit());
+		}
+		$container.off(".b20spell")
+			.on("change.b20spell", "input[name=spellPickCantrip], input[name=spellPickSpell], input[name=spellPickSkip], select[name=spellReplaceTarget]", updateSpellPickerState)
+			.on("input.b20spell", ".b20-spell-filter", function () {
+				const q = String($(this).val() || "").toLowerCase().trim();
+				$container.find(".b20-sidekick-checkbox[data-spell-name]").each((_, el) => {
+					const $el = $(el);
+					const show = !q || $el.data("spell-name").includes(q) || $el.find("input").is(":checked");
+					$el.css("display", show ? "" : "none");
+				});
+			});
+		updateSpellPickerState();
+	}
+
+	function readSelectedNonNative ($scope, inputName) {
+		return $scope.find(`input[name="${inputName}"]:checked`).filter((_, el) => !$(el).is("[data-native=true]")).map((_, el) => $(el).val()).get();
+	}
+
+	/**
+	 * Read + validate spell picks from the dialog.
+	 * Returns {ok, message, spellChoices} where spellChoices is null when skipped
+	 * or not applicable, else {cantrips: [names], spells: [names], replace: {id, name}|null}.
+	 */
+	function validateSpellChoices ($dialog, store, sidekickType, fromLevel, toLevel) {
+		if (!isSpellcasterType(sidekickType)) return { ok: true, spellChoices: null };
+		if (!$dialog.find(".b20-spell-picker").length) return { ok: true, spellChoices: null };
+		if ($dialog.find("input[name=spellPickSkip]").is(":checked")) return { ok: true, spellChoices: null };
+
+		const delta = getSpellPickDelta(fromLevel, toLevel);
+		const cantrips = readSelectedNonNative($dialog, "spellPickCantrip");
+		const spells = readSelectedNonNative($dialog, "spellPickSpell");
+		const replaceId = $dialog.find("select[name=spellReplaceTarget]").val() || "";
+		const replace = replaceId
+			? (() => { const sp = getKnownSpellIntegrants(store).find(k => k.id === replaceId); return sp ? { id: sp.id, name: sp.name } : null; })()
+			: null;
+		const spellLimit = delta.spells + (replace ? 1 : 0);
+
+		if (cantrips.length !== delta.cantrips) {
+			return { ok: false, message: `Select exactly ${delta.cantrips} cantrip${delta.cantrips === 1 ? "" : "s"} (or tick "Skip spell selection").` };
+		}
+		if (spells.length !== spellLimit) {
+			return { ok: false, message: `Select exactly ${spellLimit} spell${spellLimit === 1 ? "" : "s"} (or tick "Skip spell selection").` };
+		}
+		if (!cantrips.length && !spells.length && !replace) return { ok: true, spellChoices: null };
+		return { ok: true, spellChoices: { cantrips, spells, replace } };
+	}
+
+	/** Delete a Spell integrant and all descendants, and clean displayOrder. */
+	function removeSpellFromStore (store, spellId) {
+		const ints = (store.integrants && store.integrants.integrants) || {};
+		if (!ints[spellId]) return false;
+		// Collect descendants breadth-first via parentID links (covers Attack/Damage/Heal children)
+		const toRemove = new Set([spellId]);
+		let grew = true;
+		while (grew) {
+			grew = false;
+			Object.entries(ints).forEach(([id, it]) => {
+				if (!toRemove.has(id) && it && toRemove.has(it.parentID)) { toRemove.add(id); grew = true; }
+			});
+		}
+		toRemove.forEach(id => delete ints[id]);
+		if (store.spells && Array.isArray(store.spells.displayOrder)) {
+			store.spells.displayOrder = store.spells.displayOrder.map(lvlJson => {
+				try { return JSON.stringify(JSON.parse(lvlJson || "[]").filter(id => !toRemove.has(id))); } catch (e) { return lvlJson; }
+			});
+		}
+		return true;
+	}
+
+	/**
+	 * Find or create the sidekick's Class + Spellcasting config integrant pair
+	 * (mirrors the monster spellcasting import wiring). Returns {classId, configId}.
+	 */
+	function ensureSidekickSpellcastingConfig (store, sidekickType) {
+		const ability = d20plus.sidekickData.SPELLCASTING_ABILITY[sidekickType];
+		const ints = store.integrants.integrants;
+
+		// Reuse any existing Spellcasting config with the right ability
+		const existing = Object.entries(ints).find(([, it]) => it && it.type === "Spellcasting" && it.ability === ability);
+		if (existing) {
+			const [configId, config] = existing;
+			return { classId: config.parentID || "", configId };
+		}
+
+		const label = "Sidekick";
+		let pos = d20plus.store2024.getNextArrayPos(store);
+		const { id: classId, base: classBase } = d20plus.store2024.makeIntegrantBase("Class", pos++);
+		const { id: configId, base: configBase } = d20plus.store2024.makeIntegrantBase("Spellcasting", pos++);
+		ints[classId] = {
+			...classBase,
+			name: label,
+			_label: label,
+			parentID: "",
+			childIDs: JSON.stringify([configId]),
+			cascades: {},
+			relations: {},
+		};
+		ints[configId] = {
+			...configBase,
+			name: "Spellcasting",
+			ability,
+			casterType: "other",
+			overviewDisplay: true,
+			parentID: classId,
+			sourceID: classId,
+			childIDs: "[]",
+			cascades: {},
+			relations: {},
+		};
+		return { classId, configId };
+	}
+
+	/**
+	 * Apply spell picks to the store: remove replacement target, import picked
+	 * spells from the bundled XPHB data, and wire them to the sidekick's
+	 * Spellcasting config. Returns {added, removedName, failed: [names]}.
+	 */
+	function applySpellChoices (store, sidekickType, spellChoices) {
+		const result = { added: 0, removedName: null, failed: [] };
+		if (!spellChoices) return result;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+
+		if (spellChoices.replace && removeSpellFromStore(store, spellChoices.replace.id)) {
+			result.removedName = spellChoices.replace.name;
+		}
+
+		const picks = [...(spellChoices.cantrips || []), ...(spellChoices.spells || [])];
+		if (!picks.length) return result;
+
+		const { classId, configId } = ensureSidekickSpellcastingConfig(store, sidekickType);
+		const preIds = new Set(Object.keys(store.integrants.integrants));
+
+		for (const name of picks) {
+			try {
+				const spell = d20plus.sidekickData.getSpellByName(name);
+				if (!spell) { result.failed.push(name); continue; }
+				const [, gmnotes] = d20plus.spells._getHandoutData(spell);
+				d20plus.importer.import2024Spell(null, JSON.parse(gmnotes), store);
+				result.added++;
+			} catch (e) {
+				console.warn(`betterR20 sidekick: failed to import spell "${name}"`, e);
+				result.failed.push(name);
+			}
+		}
+
+		// Wire new Spell integrants to the class, and their Attack integrants to the config
+		Object.entries(store.integrants.integrants).forEach(([id, it]) => {
+			if (preIds.has(id) || !it) return;
+			if (it.type === "Spell") {
+				it.sourceID = classId;
+			} else if (it.type === "Attack" && it.attack && (it.attack.type === "Spell Save" || it.attack.type === "Spell Attack")) {
+				const config = store.integrants.integrants[configId];
+				if (!config) return;
+				it.relations = it.relations || {};
+				it.relations[configId] = "uses";
+				config.relations = config.relations || {};
+				config.relations[id] = "usedBy";
+			}
+		});
+
+		return result;
+	}
+
+	/** Write a resolved "Spellcasting Advancement" trait recording the choices made. */
+	function writeSpellcastingAdvancementFeature (store, sidekickType, spellChoices, targetLevel, spellResult) {
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+
+		const slots = d20plus.sidekickData.spellcasterSlots[targetLevel] || [];
+		const slotDesc = slots.map((n, i) => n > 0 ? `${n}\u00d7${["1st", "2nd", "3rd", "4th", "5th"][i]}` : null).filter(Boolean).join(", ");
+		const lines = [];
+		if (spellChoices.cantrips && spellChoices.cantrips.length) lines.push(`Cantrips chosen: ${spellChoices.cantrips.join(", ")}`);
+		if (spellChoices.spells && spellChoices.spells.length) lines.push(`Spells chosen: ${spellChoices.spells.join(", ")}`);
+		if (spellResult && spellResult.removedName) lines.push(`Replaced: ${spellResult.removedName}`);
+		if (spellResult && spellResult.failed.length) lines.push(`FAILED to import (add manually): ${spellResult.failed.join(", ")}`);
+		if (slotDesc) lines.push(`Spell slots at level ${targetLevel}: ${slotDesc} (set slots on the sheet manually)`);
+
+		store.integrants.integrants[id] = {
+			...base,
+			name: "Spellcasting Advancement",
+			description: `${lines.join("\n")}\n\n(Added by betterR20 sidekick level-up, TCE p.144)`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
@@ -1504,6 +1834,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 					</div>
 					<div class="b20-bonus-prof-container"></div>
 					<div class="b20-asi-container"></div>
+					<div class="b20-spell-container"></div>
 					<div class="b20-sidekick-card">
 						<h4>Preview</h4>
 						<div class="b20-upgrade-preview b20-sidekick-preview"></div>
@@ -1550,6 +1881,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const level = getLevel();
 				renderBonusSection();
 				renderAsiSection($dialog.find(".b20-asi-container"), store, type, 0, level);
+				renderSpellPickerSection($dialog.find(".b20-spell-container"), store, type, 0, level);
 				$dialog.find(".b20-upgrade-preview").html(makeStartingStateHtml(store, type, level));
 			}
 
@@ -1587,8 +1919,10 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						if (!profValidation.ok) return alert(profValidation.message);
 						const asiValidation = validateAsiChoices($dialog, sidekickType, 0, currentLevel);
 						if (!asiValidation.ok) return alert(asiValidation.message);
+						const spellValidation = validateSpellChoices($dialog, store, sidekickType, 0, currentLevel);
+						if (!spellValidation.ok) return alert(spellValidation.message);
 						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, asiChoices: asiValidation.asiChoices});
+						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices});
 					},
 					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				},
@@ -1653,6 +1987,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						</div>
 					</div>
 					<div class="b20-asi-container"></div>
+					<div class="b20-spell-container"></div>
 					<div class="b20-sidekick-card">
 						<h4>Preview</h4>
 						<div class="b20-upgrade-preview b20-sidekick-preview" style="min-height:140px"></div>
@@ -1682,6 +2017,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const hpRollTotal = getHpRollTotal();
 				$dialog.find('.b20-hp-roll-row').css('display', hpMode === 'roll' ? 'block' : 'none');
 				renderAsiSection($dialog.find(".b20-asi-container"), store, type, level, level + 1);
+				renderSpellPickerSection($dialog.find(".b20-spell-container"), store, type, level, level + 1);
 				const summary = previewUpgrade(store, level, type, { hpIncreaseMode: hpMode, hpRollTotal });
 				$dialog.find(".b20-upgrade-preview").html(makeStatPreviewHtml(summary, type, level, level + 1));
 			}
@@ -1695,8 +2031,10 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const resolvedType = getType();
 				const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
 				if (!asiValidation.ok) return alert(asiValidation.message);
+				const spellValidation = validateSpellChoices($dialog, store, resolvedType, currentLevel, currentLevel + 1);
+				if (!spellValidation.ok) return alert(spellValidation.message);
 				$dialog.off(); $dialog.dialog("destroy").remove();
-				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, asiChoices: asiValidation.asiChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
+				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
 			});
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
@@ -1755,36 +2093,38 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
+		const {currentLevel, sidekickType, bonusProficiencies, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
 		const isMakeSidekick = !hasSidekickType;
 
 		try {
 			let newChar, summary;
 			if (isMakeSidekick) {
 				// Make Sidekick: create a copy with all features applied from level 1
-				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — created sidekick copy "${newChar.get("name")}"`);
 			} else {
 				// Level Up: modify the existing character in-place
-				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, asiChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — levelled up "${newChar.get("name")}" in-place`);
 			}
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
 			const asiMsg = summary.asiApplied ? `\nAbility scores improved: ${summary.asiApplied}` : "";
 			const cantripMsg = summary.potentCantripsApplied ? `\nPotent Cantrips applied to ${summary.potentCantripsApplied} cantrip damage roll(s)` : "";
+			const spellMsg = summary.spellsAdded ? `\nSpells added: ${summary.spellsAdded}${summary.spellRemoved ? ` (replaced ${summary.spellRemoved})` : ""}` : "";
+			const spellFailMsg = summary.spellsFailed && summary.spellsFailed.length ? `\nSpells FAILED to import (add manually): ${summary.spellsFailed.join(", ")}` : "";
 			if (isMakeSidekick) {
 				alert(`Created "${newChar.get("name")}" as a sidekick.
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}${spellMsg}${spellFailMsg}`);
 			} else {
 				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${cantripMsg}${spellMsg}${spellFailMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);

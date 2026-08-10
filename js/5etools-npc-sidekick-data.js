@@ -450,6 +450,89 @@ function d20plusNpcSidekickData () {
 	};
 
 	d20plus.sidekickData.ALL_TYPES = ["expert", "warrior", "mage", "healer", "prodigy"];
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// Sidekick spell lists (2024 PHB / XPHB data, bundled into the build)
+	// ─────────────────────────────────────────────────────────────────────────
+
+	// TCE p.144: mage uses the Wizard list, healer Cleric+Druid, prodigy Bard+Warlock.
+	d20plus.sidekickData.SPELL_LISTS = {
+		mage: ["Wizard"],
+		healer: ["Cleric", "Druid"],
+		prodigy: ["Bard", "Warlock"],
+	};
+
+	d20plus.sidekickData.SPELLCASTING_ABILITY = {
+		mage: "Intelligence",
+		healer: "Wisdom",
+		prodigy: "Charisma",
+	};
+
+	/** Highest spell level for which the sidekick has slots at the given level. */
+	d20plus.sidekickData.maxSpellLevelAt = function (level) {
+		const slots = d20plus.sidekickData.spellcasterSlots[level];
+		if (!slots) return 0;
+		let max = 0;
+		slots.forEach((count, ix) => { if (count > 0) max = ix + 1; });
+		return max;
+	};
+
+	let _spellOptionCache = null;
+
+	/**
+	 * Build (and cache) the XPHB spell option list from the bundled data
+	 * (JSON_DATA, embedded at build time; see base-jsload.js).
+	 * Returns [{name, level, school, classes: Set}] or [] if data unavailable.
+	 */
+	function loadXphbSpellOptions () {
+		if (_spellOptionCache) return _spellOptionCache;
+		try {
+			const spellFile = typeof JSON_DATA !== "undefined" ? JSON_DATA["data/spells/spells-xphb.json"] : null;
+			const sources = typeof JSON_DATA !== "undefined" ? JSON_DATA["data/spells/sources.json"] : null;
+			if (!spellFile || !spellFile.spell || !sources || !sources.XPHB) return [];
+
+			const classLists = sources.XPHB;
+			_spellOptionCache = spellFile.spell.map(sp => {
+				const entry = classLists[sp.name];
+				const classes = new Set(((entry && entry.class) || []).map(c => c.name));
+				return {name: sp.name, level: sp.level || 0, school: sp.school || "", classes, _spell: sp};
+			});
+			return _spellOptionCache;
+		} catch (e) {
+			console.warn("betterR20: failed to load XPHB spell options", e);
+			return [];
+		}
+	}
+
+	/**
+	 * Spell options for a sidekick type, split into cantrips and leveled spells.
+	 * @param type sidekick type (mage/healer/prodigy)
+	 * @param maxSpellLevel highest allowed spell level (from slot table)
+	 * @return {cantrips: [...], spells: [...]} sorted by level then name
+	 */
+	d20plus.sidekickData.getSpellOptions = function (type, maxSpellLevel) {
+		const lists = d20plus.sidekickData.SPELL_LISTS[type];
+		if (!lists) return {cantrips: [], spells: []};
+		const all = loadXphbSpellOptions()
+			.filter(sp => lists.some(cls => sp.classes.has(cls)))
+			.sort((a, b) => (a.level - b.level) || a.name.localeCompare(b.name));
+		return {
+			cantrips: all.filter(sp => sp.level === 0),
+			spells: all.filter(sp => sp.level >= 1 && sp.level <= maxSpellLevel),
+		};
+	};
+
+	/** Full 5etools spell object by name (XPHB), for import. Null if not found. */
+	d20plus.sidekickData.getSpellByName = function (name) {
+		const found = loadXphbSpellOptions().find(sp => sp.name.toLowerCase() === String(name).toLowerCase());
+		return found ? found._spell : null;
+	};
+
+	/** Human-readable spell list label for dialogs, e.g. "Cleric and Druid". */
+	d20plus.sidekickData.spellListLabel = function (type) {
+		const lists = d20plus.sidekickData.SPELL_LISTS[type];
+		return lists ? lists.join(" and ") : "";
+	};
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcSidekickData);
