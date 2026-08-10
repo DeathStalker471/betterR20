@@ -434,6 +434,10 @@ function d20plusNpcLevelUp () {
 		let spellSlotsChanged = 0;
 		let spellSourceRenamed = 0;
 		if (isSpellcasterType(sidekickType)) {
+			// Always ensure a Spellcasting config exists — the sheet derives spell
+			// save DC (8 + ability mod + PB) and spell attack mod from it — then
+			// rename its source to "<Type> Sidekick".
+			ensureSidekickSpellcastingConfig(store, sidekickType);
 			spellSourceRenamed = renameSidekickSpellcastingSource(store, sidekickType);
 			if (options.spellChoices) {
 				spellResult = applySpellChoices(store, sidekickType, options.spellChoices);
