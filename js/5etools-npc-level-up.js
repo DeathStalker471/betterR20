@@ -934,14 +934,34 @@ function d20plusNpcLevelUp () {
 						}
 
 						// Wait for the sheet to finish its own async initialisation (which may push a
-						// blank store attr). We then overwrite it. 500ms is enough in practice.
+						// blank store attr). We then overwrite it with multiple attempts.
 						await new Promise(r => setTimeout(r, 500));
 
-						// Write upgraded store LAST so it wins over any blank store the sheet wrote on init
-						d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
-						d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
+						// Write the store and keep re-writing for up to 5 seconds to beat
+						// any late blank-store writes by Roll20's sheet initialisation.
+						const writeAndVerify = async () => {
+							d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
+							d20plus.store2024.saveNpcNames(newCharacter, upgradedName);
+							// Poll every 200ms for 5s. If Roll20 blanks our store, rewrite immediately.
+							const deadline = Date.now() + 5000;
+							while (Date.now() < deadline) {
+								await new Promise(r => setTimeout(r, 200));
+								const storeAttr = newCharacter.attribs.find(a => a.get("name") === "store");
+								if (!storeAttr) { d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore); continue; }
+								const val = storeAttr.get("current");
+								let parsed = null;
+								try { parsed = typeof val === "string" ? JSON.parse(val) : val; } catch (e) {}
+								if (!parsed || !parsed.npc || !parsed.npc._npcSidekickType) {
+									log(`[guard] Store lost sidekick data — rewriting (t=${Date.now()})`);
+									d20plus.store2024.saveNewNpcState(newCharacter, upgradedStore);
+								}
+							}
+							log(`[guard] Store guard complete for "${upgradedName}"`);
+						};
+						writeAndVerify(); // fire and forget — don't await, just let it guard in background
 
 						log(`Created "${upgradedName}" (id: ${newCharacter.id})`);
+						resolve({character: newCharacter, summary});
 					} catch (e) {
 						reject(e);
 					}
