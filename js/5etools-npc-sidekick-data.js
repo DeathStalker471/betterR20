@@ -560,6 +560,63 @@ function d20plusNpcSidekickData () {
 		const lists = d20plus.sidekickData.SPELL_LISTS[type];
 		return lists ? lists.join(" and ") : "";
 	};
+
+	// ── Feats (for "feat instead of ASI") ───────────────────────────────────
+
+	let _featOptionCache = null;
+
+	/**
+	 * Feat option list from the bundled data (JSON_DATA["data/feats.json"]).
+	 * Returns [{name, source, _feat}] sorted by name (XPHB entries first per name).
+	 */
+	d20plus.sidekickData.getFeatOptions = function () {
+		if (_featOptionCache) return _featOptionCache;
+		try {
+			const featFile = typeof JSON_DATA !== "undefined" ? JSON_DATA["data/feats.json"] : null;
+			if (!featFile || !featFile.feat) return [];
+			_featOptionCache = featFile.feat
+				.map(f => ({name: f.name, source: f.source || "", _feat: f}))
+				.sort((a, b) => a.name.localeCompare(b.name) || (a.source === "XPHB" ? -1 : b.source === "XPHB" ? 1 : a.source.localeCompare(b.source)));
+			return _featOptionCache;
+		} catch (e) {
+			console.warn("betterR20: failed to load feat options", e);
+			return [];
+		}
+	};
+
+	/** Full 5etools feat object by name+source. Null if not found. */
+	d20plus.sidekickData.getFeatByName = function (name, source) {
+		const opts = d20plus.sidekickData.getFeatOptions();
+		const found = opts.find(f => f.name === name && (!source || f.source === source)) || opts.find(f => f.name.toLowerCase() === String(name).toLowerCase());
+		return found ? found._feat : null;
+	};
+
+	/**
+	 * Flatten 5etools "entries" data to plain text for trait descriptions.
+	 * Strips {@tag ...} markup, renders lists/entries recursively; tables are noted.
+	 */
+	d20plus.sidekickData.entriesToText = function (entries, depth = 0) {
+		if (entries == null) return "";
+		if (typeof entries === "string") {
+			// {@tag payload|source|display} -> display if present, else payload
+			return entries.replace(/\{@\w+ ([^}]+)\}/g, (m, inner) => {
+				const parts = inner.split("|");
+				return parts.length > 2 && parts[2] ? parts[2] : parts[0];
+			});
+		}
+		if (Array.isArray(entries)) return entries.map(e => d20plus.sidekickData.entriesToText(e, depth)).filter(Boolean).join("\n\n");
+		if (typeof entries === "object") {
+			const name = entries.name ? `${entries.name}. ` : "";
+			if (entries.type === "list" && entries.items) {
+				return entries.items.map(it => `\u2022 ${d20plus.sidekickData.entriesToText(it, depth + 1)}`).join("\n");
+			}
+			if (entries.type === "table") return "[See the feat's source for a table omitted here.]";
+			if (entries.entries) return `${name}${d20plus.sidekickData.entriesToText(entries.entries, depth + 1)}`;
+			if (entries.entry) return `${name}${d20plus.sidekickData.entriesToText(entries.entry, depth + 1)}`;
+			return name.trim();
+		}
+		return String(entries);
+	};
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcSidekickData);

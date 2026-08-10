@@ -419,7 +419,7 @@ function d20plusNpcLevelUp () {
 			? writeBonusProficiencyFeature(store, sidekickType, options.bonusProficiencies)
 			: 0;
 		const asiTraitsWritten = asiHasFeatures
-			? writeAsiFeatures(store, sidekickType, featureFromLevel, targetSidekickLevel, options.asiChoices)
+			? writeAsiFeatures(store, sidekickType, featureFromLevel, targetSidekickLevel, options.asiChoices, options.asiInstances)
 			: 0;
 		const expertiseTraitWritten = options.expertiseChoices
 			? writeExpertiseFeature(store, sidekickType, featureFromLevel, targetSidekickLevel, options.expertiseChoices)
@@ -485,6 +485,7 @@ function d20plusNpcLevelUp () {
 			.length;
 		summary.bonusProficienciesAdded = bonusProficienciesAdded;
 		summary.asiApplied = asiApplied;
+		summary.featsChosen = (options.asiInstances || []).filter(inst => inst.mode === "feat" && inst.feat).map(inst => inst.feat.name);
 		summary.expertiseApplied = expertiseApplied;
 		summary.sharpMindApplied = sharpMindApplied;
 		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten + expertiseTraitWritten + sharpMindTraitWritten + empoweredTraitWritten + (spellResult ? 1 : 0);
@@ -967,6 +968,19 @@ function d20plusNpcLevelUp () {
 		const abilityOptions = ASI_ABILITIES.map(ab =>
 			`<option value="${ab}">${ab} (${scores[ab] ?? 10})</option>`
 		).join("");
+		const featOptions = (d20plus.sidekickData.getFeatOptions ? d20plus.sidekickData.getFeatOptions() : [])
+			.map(f => `<option value="${f.name}|${f.source}">${f.name} (${f.source})</option>`).join("");
+		const featRow = featOptions
+			? `
+					<label class="b20-asi-mode-label">
+						<input type="radio" name="asiMode${i}" value="feat">
+						<span>Feat instead:</span>
+						<select name="asiFeat-${i}" style="margin-left:6px;max-width:260px">
+							<option value="">— choose a feat —</option>
+							${featOptions}
+						</select>
+					</label>`
+			: "";
 		return `
 			<div class="b20-asi-instance" data-asi-index="${i}">
 				<p style="margin:0 0 6px;font-weight:600;font-size:12px;color:#334155">ASI gained at level ${asiLevel}</p>
@@ -988,8 +1002,9 @@ function d20plusNpcLevelUp () {
 						<select name="asiAbilityB-${i}" style="margin-left:0">
 							${abilityOptions.replace(/<option value="Strength"/, '<option value="Strength" selected')}
 						</select>
-					</label>
+					</label>${featRow}
 				</div>
+				${featRow ? `<p style="margin:6px 0 0;color:#64748b;font-size:11px;display:none" class="b20-asi-feat-note">The feat's text is added as a trait; apply any mechanical effects (HP, scores, etc.) manually.</p>` : ""}
 			</div>
 		`;
 	}
@@ -1024,32 +1039,46 @@ function d20plusNpcLevelUp () {
 			const mode = $inst.find(`input[name="asiMode${idx}"]:checked`).val() || "one";
 			$inst.find(`select[name="asiAbility1-${idx}"]`).prop("disabled", mode !== "one");
 			$inst.find(`select[name="asiAbilityA-${idx}"], select[name="asiAbilityB-${idx}"]`).prop("disabled", mode !== "two");
+			$inst.find(`select[name="asiFeat-${idx}"]`).prop("disabled", mode !== "feat");
+			$inst.find(".b20-asi-feat-note").css("display", mode === "feat" ? "block" : "none");
 		});
 	}
 
 	/**
 	 * Read and validate ASI choices from the dialog.
-	 * Returns { ok, message, asiChoices: [{ability, bonus}, ...] } flat list.
+	 * Returns { ok, message, asiChoices: [{ability, bonus}, ...] (flat score bumps),
+	 * asiInstances: [{mode, choiceDesc, feat?}] aligned with the ASI features in range }.
 	 */
 	function validateAsiChoices ($dialog, sidekickType, featureFromLevel, targetSidekickLevel) {
 		const asiFeatures = getAsiFeatures(sidekickType, featureFromLevel, targetSidekickLevel);
-		if (!asiFeatures.length) return { ok: true, asiChoices: [] };
+		if (!asiFeatures.length) return { ok: true, asiChoices: [], asiInstances: [] };
 		const asiChoices = [];
+		const asiInstances = [];
 		for (let i = 0; i < asiFeatures.length; i++) {
 			const mode = $dialog.find(`input[name="asiMode${i}"]:checked`).val() || "one";
 			if (mode === "one") {
 				const ability = $dialog.find(`select[name="asiAbility1-${i}"]`).val();
 				if (!ability) return { ok: false, message: `Select an ability score for ASI ${i + 1}.` };
 				asiChoices.push({ ability, bonus: 2 });
-			} else {
+				asiInstances.push({ mode, choiceDesc: `+2 ${ability}` });
+			} else if (mode === "two") {
 				const abilityA = $dialog.find(`select[name="asiAbilityA-${i}"]`).val();
 				const abilityB = $dialog.find(`select[name="asiAbilityB-${i}"]`).val();
 				if (!abilityA || !abilityB) return { ok: false, message: `Select both ability scores for ASI ${i + 1}.` };
 				if (abilityA === abilityB) return { ok: false, message: `ASI ${i + 1}: choose two different ability scores for the +1/+1 option.` };
 				asiChoices.push({ ability: abilityA, bonus: 1 }, { ability: abilityB, bonus: 1 });
+				asiInstances.push({ mode, choiceDesc: `+1 ${abilityA}, +1 ${abilityB}` });
+			} else {
+				const featVal = $dialog.find(`select[name="asiFeat-${i}"]`).val();
+				if (!featVal) return { ok: false, message: `Select a feat for ASI ${i + 1} (or pick an ability score option).` };
+				const [featName, featSource] = featVal.split("|");
+				const featData = d20plus.sidekickData.getFeatByName(featName, featSource);
+				if (!featData) return { ok: false, message: `Feat "${featName}" not found in the bundled data.` };
+				const text = d20plus.sidekickData.entriesToText(featData.entries);
+				asiInstances.push({ mode, choiceDesc: `Feat: ${featName}`, feat: { name: featName, source: featSource, page: featData.page, text } });
 			}
 		}
-		return { ok: true, asiChoices };
+		return { ok: true, asiChoices, asiInstances };
 	}
 
 	/**
@@ -1081,43 +1110,59 @@ function d20plusNpcLevelUp () {
 	 * Write the ASI feature trait(s) to the store, one trait per ASI instance.
 	 * Returns number of traits written.
 	 */
-	function writeAsiFeatures (store, sidekickType, featureFromLevel, targetSidekickLevel, asiChoices) {
+	/**
+	 * Write the ASI feature trait(s) to the store, one trait per ASI instance.
+	 * When asiInstances is provided (from validateAsiChoices), feat-mode instances
+	 * write the chosen feat's text as a trait instead of an ASI trait.
+	 * Returns number of traits written.
+	 */
+	function writeAsiFeatures (store, sidekickType, featureFromLevel, targetSidekickLevel, asiChoices, asiInstances) {
 		const asiFeatures = getAsiFeatures(sidekickType, featureFromLevel, targetSidekickLevel);
-		if (!asiFeatures.length || !asiChoices) return 0;
+		if (!asiFeatures.length || (!asiChoices && !asiInstances)) return 0;
 		if (!store.integrants) store.integrants = { integrants: {} };
 		if (!store.integrants.integrants) store.integrants.integrants = {};
 		if (!store.features) store.features = {};
 		const integrants = store.integrants.integrants;
 		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
 		let pos = d20plus.store2024.getNextArrayPos(store);
-		// Group choices by ASI instance (two +1s are one ASI, one +2 is one ASI)
-		// We reconstruct per-ASI choice text by tracking consumption across instances
 		let choiceOffset = 0;
 		let written = 0;
-		for (const f of asiFeatures) {
-			// Read the choices that belong to this ASI
-			// Each ASI consumes 1 choice (for +2 mode) or 2 choices (for +1+1 mode)
-			// Detect mode: if next choice has bonus=2, it's one; otherwise two +1s
-			const firstChoice = asiChoices[choiceOffset];
-			let choiceDesc;
-			if (!firstChoice) {
-				choiceDesc = "(no selection recorded)";
-			} else if (firstChoice.bonus === 2) {
-				choiceDesc = `+2 ${firstChoice.ability}`;
-				choiceOffset += 1;
+		for (let fi = 0; fi < asiFeatures.length; fi++) {
+			const f = asiFeatures[fi];
+			const instance = asiInstances && asiInstances[fi];
+			let name = "Ability Score Improvement";
+			let description;
+			if (instance && instance.mode === "feat" && instance.feat) {
+				const feat = instance.feat;
+				name = `Feat: ${feat.name}`;
+				description = `${feat.text}\n\n(Chosen instead of the level ${f.level} Ability Score Improvement. Feat text only — apply any mechanical effects manually. Added by betterR20 sidekick level-up, ${feat.source}${feat.page ? ` p.${feat.page}` : ""})`;
 			} else {
-				// Two +1 choices
-				const secondChoice = asiChoices[choiceOffset + 1];
-				choiceDesc = secondChoice
-					? `+1 ${firstChoice.ability}, +1 ${secondChoice.ability}`
-					: `+1 ${firstChoice.ability}`;
-				choiceOffset += secondChoice ? 2 : 1;
+				let choiceDesc;
+				if (instance) {
+					choiceDesc = instance.choiceDesc;
+				} else {
+					// Legacy fallback: reconstruct per-ASI text from the flat bump list
+					const firstChoice = asiChoices[choiceOffset];
+					if (!firstChoice) {
+						choiceDesc = "(no selection recorded)";
+					} else if (firstChoice.bonus === 2) {
+						choiceDesc = `+2 ${firstChoice.ability}`;
+						choiceOffset += 1;
+					} else {
+						const secondChoice = asiChoices[choiceOffset + 1];
+						choiceDesc = secondChoice
+							? `+1 ${firstChoice.ability}, +1 ${secondChoice.ability}`
+							: `+1 ${firstChoice.ability}`;
+						choiceOffset += secondChoice ? 2 : 1;
+					}
+				}
+				description = `${f.description}\n\nChosen: ${choiceDesc}\n\n(Added by betterR20 sidekick level-up, ${f.source})`;
 			}
 			const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos++);
 			integrants[id] = {
 				...base,
-				name: "Ability Score Improvement",
-				description: `${f.description}\n\nChosen: ${choiceDesc}\n\n(Added by betterR20 sidekick level-up, ${f.source})`,
+				name,
+				description,
 				source: "Species",
 				cascades: {},
 				relations: {},
@@ -2448,7 +2493,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						const spellValidation = validateSpellChoices($dialog, store, sidekickType, 0, currentLevel);
 						if (!spellValidation.ok) return alert(spellValidation.message);
 						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, empoweredSchool: empoweredValidation.empoweredSchool, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices});
+						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, empoweredSchool: empoweredValidation.empoweredSchool, asiChoices: asiValidation.asiChoices, asiInstances: asiValidation.asiInstances, spellChoices: spellValidation.spellChoices});
 					},
 					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				},
@@ -2572,7 +2617,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				const spellValidation = validateSpellChoices($dialog, store, resolvedType, currentLevel, currentLevel + 1);
 				if (!spellValidation.ok) return alert(spellValidation.message);
 				$dialog.off(); $dialog.dialog("destroy").remove();
-				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, empoweredSchool: empoweredValidation.empoweredSchool, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
+				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, empoweredSchool: empoweredValidation.empoweredSchool, asiChoices: asiValidation.asiChoices, asiInstances: asiValidation.asiInstances, spellChoices: spellValidation.spellChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
 			});
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
@@ -2636,7 +2681,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 		}
 
 		if (!dialogResult.confirmed) return;
-		const {currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
+		const {currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, asiInstances, spellChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
 		// School chosen this pass (L14 dialog) or carried in b20_sidekick meta from
 		// a prior level-up — pass through so it re-applies to newly-added spells.
 		const empoweredSchool = dialogResult.empoweredSchool || (sidekickMeta && sidekickMeta.school) || null;
@@ -2646,16 +2691,17 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			let newChar, summary;
 			if (isMakeSidekick) {
 				// Make Sidekick: create a copy with all features applied from level 1
-				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, empoweredSchool, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, empoweredSchool, asiChoices, asiInstances, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — created sidekick copy "${newChar.get("name")}"`);
 			} else {
 				// Level Up: modify the existing character in-place
-				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, empoweredSchool, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, empoweredSchool, asiChoices, asiInstances, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — levelled up "${newChar.get("name")}" in-place`);
 			}
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
 			const profMsg = summary.bonusProficienciesAdded ? `\nBonus proficiencies added: ${summary.bonusProficienciesAdded}` : "";
 			const asiMsg = summary.asiApplied ? `\nAbility scores improved: ${summary.asiApplied}` : "";
+			const featPickMsg = summary.featsChosen && summary.featsChosen.length ? `\nFeat(s) taken instead of ASI: ${summary.featsChosen.join(", ")} (text added as trait — apply mechanics manually)` : "";
 			const expertiseMsg = summary.expertiseApplied ? `\nExpertise applied to ${summary.expertiseApplied} skill(s)` : "";
 			const sharpMindMsg = summary.sharpMindApplied ? `\nSharp Mind saving throw proficiency added` : "";
 			const attackerMsg = summary.attackerBonusApplied ? `\nAttacker +2 applied to ${summary.attackerBonusApplied} attack(s)` : "";
@@ -2669,13 +2715,13 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${featPickMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			} else {
 				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${featPickMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
