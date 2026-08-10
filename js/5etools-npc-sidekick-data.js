@@ -624,6 +624,16 @@ function d20plusNpcSidekickData () {
 		const text = d20plus.sidekickData.entriesToText(feat.entries) || "";
 		return text.replace(/\n{3,}/g, "\n\n").trim();
 	};
+
+	d20plus.sidekickData.getFeatOptionsForLevel = function (level) {
+		const lvl = Number(level) || 0;
+		return d20plus.sidekickData.getFeatOptions().filter(opt => {
+			const feat = opt._feat || {};
+			if (feat.category === "FS") return false;
+			if (feat.category === "EB") return lvl >= 19;
+			return feat.category === "O" || feat.category === "G";
+		});
+	};
 }
 
 SCRIPT_EXTENSIONS.push(d20plusNpcSidekickData);

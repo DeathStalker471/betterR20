@@ -968,7 +968,7 @@ function d20plusNpcLevelUp () {
 		const abilityOptions = ASI_ABILITIES.map(ab =>
 			`<option value="${ab}">${ab} (${scores[ab] ?? 10})</option>`
 		).join("");
-		const featOptions = (d20plus.sidekickData.getFeatOptions ? d20plus.sidekickData.getFeatOptions() : [])
+		const featOptions = (d20plus.sidekickData.getFeatOptionsForLevel ? d20plus.sidekickData.getFeatOptionsForLevel(asiLevel) : [])
 			.map(f => `<option value="${f.name}|${f.source}">${f.name}</option>`).join("");
 		const featRow = featOptions
 			? `
@@ -1024,7 +1024,7 @@ function d20plusNpcLevelUp () {
 		$container.html(`
 			<div class="b20-sidekick-card">
 				<h4>Ability Score Improvement${asiFeatures.length > 1 ? "s" : ""}</h4>
-				<p style="margin:0 0 10px;color:#475569;font-size:12px">Increase one ability score by 2, or two ability scores by 1 each (max 20).</p>
+				<p style="margin:0 0 10px;color:#475569;font-size:12px">Increase one ability score by 2, or two ability scores by 1 each (max 20). Feat choices are limited to legal XPHB options for that level: Origin/General feats before 19, Epic Boons from 19+, no Fighting Style feats.</p>
 				${pickersHtml}
 			</div>
 		`);
