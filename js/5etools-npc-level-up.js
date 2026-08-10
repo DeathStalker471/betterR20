@@ -366,6 +366,10 @@ function d20plusNpcLevelUp () {
 		summary.newCr = mappedCr;
 		store.npc._npcLevelUpLevel = targetSidekickLevel;
 		if (options.sidekickType) store.npc._npcSidekickType = options.sidekickType;
+		// Empowered Spells school: new choice this pass, or carried over from a
+		// previous level-up (restored into the store from b20_sidekick meta).
+		const empoweredSchool = options.empoweredSchool || store.npc._npcEmpoweredSchool || null;
+		if (empoweredSchool) store.npc._npcEmpoweredSchool = empoweredSchool;
 
 		// Write sidekick class features for levels gained.
 		// For Make Sidekick (options.featureFromLevel = 0), write all features from 0 up to
@@ -408,6 +412,7 @@ function d20plusNpcLevelUp () {
 				skipSpellcastingAdvancementTodo: !!options.spellChoices,
 				skipExpertiseTodo: !!options.expertiseChoices,
 				skipSharpMindTodo: !!options.sharpMindChoice,
+				skipEmpoweredSpellsTodo: !!options.empoweredSchool,
 			},
 		);
 		const bonusProficiencyFeatureWritten = shouldHandleBonusProficiencies
@@ -421,6 +426,9 @@ function d20plusNpcLevelUp () {
 			: 0;
 		const sharpMindTraitWritten = options.sharpMindChoice
 			? writeSharpMindFeature(store, sidekickType, featureFromLevel, targetSidekickLevel, options.sharpMindChoice)
+			: 0;
+		const empoweredTraitWritten = options.empoweredSchool
+			? writeEmpoweredSpellsFeature(store, sidekickType, featureFromLevel, targetSidekickLevel, options.empoweredSchool)
 			: 0;
 
 		// Write (or replace) the sidekick identity feature — always done so level-up keeps it current.
@@ -459,6 +467,13 @@ function d20plusNpcLevelUp () {
 			: 0;
 		summary.potentCantripsApplied = potentCantripsApplied;
 
+		// Empowered Spells (spellcaster level 14+): re-applied every level-up so
+		// spells added since the school was chosen are covered too.
+		summary.empoweredSpellsApplied = targetSidekickLevel >= 14 && empoweredSchool
+			? applyEmpoweredSpells(store, sidekickType, empoweredSchool)
+			: 0;
+		summary.empoweredSchool = empoweredSchool;
+
 		// Martial Role: Attacker (warrior-attacker) — +2 to all attack rolls.
 		// Run on every level-up so attacks added since the last one are covered.
 		summary.attackerBonusApplied = applyMartialRoleAttacker(store, sidekickType);
@@ -472,7 +487,7 @@ function d20plusNpcLevelUp () {
 		summary.asiApplied = asiApplied;
 		summary.expertiseApplied = expertiseApplied;
 		summary.sharpMindApplied = sharpMindApplied;
-		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten + expertiseTraitWritten + sharpMindTraitWritten + (spellResult ? 1 : 0);
+		summary.featuresWritten = featuresWritten + bonusProficiencyFeatureWritten + asiTraitsWritten + expertiseTraitWritten + sharpMindTraitWritten + empoweredTraitWritten + (spellResult ? 1 : 0);
 
 		return { store, summary };
 	}
@@ -535,6 +550,50 @@ function d20plusNpcLevelUp () {
 	}
 
 	/**
+	 * Apply the Empowered Spells feature (spellcaster L14): add the spellcasting
+	 * ability modifier to the damage/healing rolls of leveled spells of the
+	 * chosen school. Walks each Damage/Healing integrant's parentID chain up to
+	 * its Spell (same approach as Potent Cantrips); only "none"/empty abilities
+	 * are overwritten. The "only when expending a slot" condition can't be
+	 * represented on the sheet, so the bonus applies to all casts.
+	 * Run on every level-up ≥14 so spells added later are covered.
+	 *
+	 * @returns {number} count of Damage/Healing integrants updated
+	 */
+	function applyEmpoweredSpells (store, sidekickType, school) {
+		const ability = SIDEKICK_SPELLCASTING_ABILITY[sidekickType];
+		if (!ability || !school) return 0;
+		const ints = (store.integrants && store.integrants.integrants) || {};
+
+		const byId = {};
+		Object.entries(ints).forEach(([id, int]) => {
+			if (!int) return;
+			byId[id] = int;
+			if (int.shortID) byId[int.shortID] = int;
+			if (int._id) byId[int._id] = int;
+		});
+
+		const findSpellAncestor = (int, depth = 0) => {
+			if (!int || depth > 5) return null;
+			if (int.type === "Spell") return int;
+			return findSpellAncestor(byId[int.parentID], depth + 1);
+		};
+
+		let updated = 0;
+		Object.values(ints).forEach(int => {
+			if (!int || (int.type !== "Damage" && int.type !== "Healing")) return;
+			const currentAbility = (int.ability || "none").toLowerCase();
+			if (currentAbility !== "none" && currentAbility !== "") return;
+			const spell = findSpellAncestor(byId[int.parentID]);
+			if (!spell || !(spell.level >= 1)) return;
+			if ((spell.school || "") !== school) return;
+			int.ability = ability;
+			updated++;
+		});
+		return updated;
+	}
+
+	/**
 	 * Write (or replace) a single "betterR20 Sidekick" identity feature recording type and level.
 	 * On level-up this removes the old one and inserts a fresh one.
 	 */
@@ -577,7 +636,7 @@ function d20plusNpcLevelUp () {
 		if (!d20plus.sidekickData || !sidekickType) return 0;
 		const features = d20plus.sidekickData
 			.getFeaturesGained(sidekickType, fromLevel, toLevel)
-			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement") && !(options.skipSpellcastingAdvancementTodo && feature.name === "Spellcasting Advancement") && !(options.skipExpertiseTodo && feature.name === "Expertise") && !(options.skipSharpMindTodo && feature.name === "Sharp Mind"));
+			.filter(feature => !(options.skipBonusProficienciesTodo && feature.name === "Bonus Proficiencies") && !(options.skipAsiTodo && feature.name === "Ability Score Improvement") && !(options.skipSpellcastingAdvancementTodo && feature.name === "Spellcasting Advancement") && !(options.skipExpertiseTodo && feature.name === "Expertise") && !(options.skipSharpMindTodo && feature.name === "Sharp Mind") && !(options.skipEmpoweredSpellsTodo && feature.name === "Empowered Spells"));
 		if (!features.length) return 0;
 
 		if (!store.integrants) store.integrants = { integrants: {} };
@@ -1219,6 +1278,59 @@ function d20plusNpcLevelUp () {
 			...base,
 			name: "Sharp Mind",
 			description: `${features[0].description}\n\nChosen saving throw: ${save}\n\n(Added by betterR20 sidekick level-up, ${features[0].source})`,
+			source: "Species",
+			cascades: {},
+			relations: {},
+		};
+		displayOrder.push(id);
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
+	}
+
+	const MAGIC_SCHOOLS = ["Abjuration", "Conjuration", "Divination", "Enchantment", "Evocation", "Illusion", "Necromancy", "Transmutation"];
+
+	/** Render the Empowered Spells picker (spellcaster L14): one school of magic. */
+	function renderEmpoweredSpellsSection ($container, store, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Empowered Spells");
+		if (!features.length) { $container.html("").removeData("b20EmpKey"); return; }
+		const renderKey = `${sidekickType}|${fromLevel}|${toLevel}`;
+		if ($container.data("b20EmpKey") === renderKey) return;
+		$container.data("b20EmpKey", renderKey);
+		$container.html(`
+			<div class="b20-sidekick-card b20-empowered-picker">
+				<h4>Empowered Spells</h4>
+				<p style="margin:0 0 6px;color:#475569;font-size:12px">Gained at level 14: choose one school of magic. The sidekick adds its spellcasting ability modifier to damage and healing rolls of leveled spells of that school (applied automatically, including spells learned later).</p>
+				<label style="font-size:12px;color:#475569">School:
+					<select name="empoweredSchool" style="margin-left:6px">
+						<option value="">— choose a school —</option>
+						${MAGIC_SCHOOLS.map(s => `<option value="${s}">${s}</option>`).join("")}
+					</select>
+				</label>
+			</div>
+		`);
+	}
+
+	function validateEmpoweredSpellsChoice ($dialog, sidekickType, fromLevel, toLevel) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Empowered Spells");
+		if (!features.length || !$dialog.find(".b20-empowered-picker").length) return { ok: true, empoweredSchool: null };
+		const chosen = $dialog.find("select[name=empoweredSchool]").val();
+		if (!chosen) return { ok: false, message: "Select a school of magic for Empowered Spells." };
+		return { ok: true, empoweredSchool: chosen };
+	}
+
+	function writeEmpoweredSpellsFeature (store, sidekickType, fromLevel, toLevel, school) {
+		const features = getFeaturesByName(sidekickType, fromLevel, toLevel, "Empowered Spells");
+		if (!features.length || !school) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		if (!store.features) store.features = {};
+		const displayOrder = JSON.parse(store.features.speciesTraitsDisplayOrder || "[]");
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Features", pos);
+		store.integrants.integrants[id] = {
+			...base,
+			name: "Empowered Spells",
+			description: `${features[0].description}\n\nChosen school: ${school}\n\n(Applied automatically by betterR20 to the sidekick's ${school} spell damage/healing rolls, including spells learned later. Added by betterR20 sidekick level-up, ${features[0].source})`,
 			source: "Species",
 			cascades: {},
 			relations: {},
@@ -2224,6 +2336,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 					<div class="b20-bonus-prof-container"></div>
 					<div class="b20-expertise-container"></div>
 					<div class="b20-sharpmind-container"></div>
+					<div class="b20-empowered-container"></div>
 					<div class="b20-asi-container"></div>
 					<div class="b20-spell-container"></div>
 					<div class="b20-sidekick-card">
@@ -2273,6 +2386,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				renderBonusSection();
 				renderExpertiseSection($dialog.find(".b20-expertise-container"), store, type, 0, level, readSelectedValues($dialog, "bonusProfSkills"));
 				renderSharpMindSection($dialog.find(".b20-sharpmind-container"), store, type, 0, level);
+				renderEmpoweredSpellsSection($dialog.find(".b20-empowered-container"), store, type, 0, level);
 				renderAsiSection($dialog.find(".b20-asi-container"), store, type, 0, level);
 				renderSpellPickerSection($dialog.find(".b20-spell-container"), store, type, 0, level);
 				$dialog.find(".b20-upgrade-preview").html(makeStartingStateHtml(store, type, level));
@@ -2316,12 +2430,14 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 						if (!expertiseValidation.ok) return alert(expertiseValidation.message);
 						const sharpMindValidation = validateSharpMindChoice($dialog, sidekickType, 0, currentLevel);
 						if (!sharpMindValidation.ok) return alert(sharpMindValidation.message);
+						const empoweredValidation = validateEmpoweredSpellsChoice($dialog, sidekickType, 0, currentLevel);
+						if (!empoweredValidation.ok) return alert(empoweredValidation.message);
 						const asiValidation = validateAsiChoices($dialog, sidekickType, 0, currentLevel);
 						if (!asiValidation.ok) return alert(asiValidation.message);
 						const spellValidation = validateSpellChoices($dialog, store, sidekickType, 0, currentLevel);
 						if (!spellValidation.ok) return alert(spellValidation.message);
 						$dialog.off(); $dialog.dialog("destroy").remove();
-						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices});
+						resolve({confirmed: true, currentLevel, sidekickType, bonusProficiencies: profValidation.selections, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, empoweredSchool: empoweredValidation.empoweredSchool, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices});
 					},
 					Cancel: () => { $dialog.off(); $dialog.dialog("destroy").remove(); resolve({confirmed: false}); },
 				},
@@ -2387,6 +2503,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 					</div>
 					<div class="b20-expertise-container"></div>
 					<div class="b20-sharpmind-container"></div>
+					<div class="b20-empowered-container"></div>
 					<div class="b20-asi-container"></div>
 					<div class="b20-spell-container"></div>
 					<div class="b20-sidekick-card">
@@ -2419,6 +2536,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				$dialog.find('.b20-hp-roll-row').css('display', hpMode === 'roll' ? 'block' : 'none');
 				renderExpertiseSection($dialog.find(".b20-expertise-container"), store, type, level, level + 1, []);
 				renderSharpMindSection($dialog.find(".b20-sharpmind-container"), store, type, level, level + 1);
+				renderEmpoweredSpellsSection($dialog.find(".b20-empowered-container"), store, type, level, level + 1);
 				renderAsiSection($dialog.find(".b20-asi-container"), store, type, level, level + 1);
 				renderSpellPickerSection($dialog.find(".b20-spell-container"), store, type, level, level + 1);
 				const summary = previewUpgrade(store, level, type, { hpIncreaseMode: hpMode, hpRollTotal });
@@ -2436,12 +2554,14 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 				if (!expertiseValidation.ok) return alert(expertiseValidation.message);
 				const sharpMindValidation = validateSharpMindChoice($dialog, resolvedType, currentLevel, currentLevel + 1);
 				if (!sharpMindValidation.ok) return alert(sharpMindValidation.message);
+				const empoweredValidation = validateEmpoweredSpellsChoice($dialog, resolvedType, currentLevel, currentLevel + 1);
+				if (!empoweredValidation.ok) return alert(empoweredValidation.message);
 				const asiValidation = validateAsiChoices($dialog, resolvedType, currentLevel, currentLevel + 1);
 				if (!asiValidation.ok) return alert(asiValidation.message);
 				const spellValidation = validateSpellChoices($dialog, store, resolvedType, currentLevel, currentLevel + 1);
 				if (!spellValidation.ok) return alert(spellValidation.message);
 				$dialog.off(); $dialog.dialog("destroy").remove();
-				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
+				resolve({confirmed: true, currentLevel, sidekickType: resolvedType, bonusProficiencies: { saves: [], skills: [] }, expertiseChoices: expertiseValidation.expertiseChoices, sharpMindChoice: sharpMindValidation.sharpMindChoice, empoweredSchool: empoweredValidation.empoweredSchool, asiChoices: asiValidation.asiChoices, spellChoices: spellValidation.spellChoices, hpIncreaseMode: getHpMode(), hpRollTotal: getHpRollTotal()});
 			});
 			const $mapViewport = $("#playerzone").length ? $("#playerzone") : ($("#editor-wrapper").length ? $("#editor-wrapper") : $(window));
 
@@ -2488,6 +2608,11 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			if (sidekickMeta.type) store.npc._npcSidekickType = sidekickMeta.type;
 			if (sidekickMeta.level) store.npc._npcLevelUpLevel = sidekickMeta.level;
 		}
+		// Empowered Spells school lives only in b20_sidekick meta (store custom keys
+		// can be blanked by sheet re-init) — restore it whenever present.
+		if (sidekickMeta && sidekickMeta.school && store.npc && !store.npc._npcEmpoweredSchool) {
+			store.npc._npcEmpoweredSchool = sidekickMeta.school;
+		}
 		log(`Store read — _npcSidekickType: ${store.npc?._npcSidekickType || "(none)"}, _npcLevelUpLevel: ${store.npc?._npcLevelUpLevel || "(none)"}, hasSidekickType: ${hasSidekickType}, store attr id: ${attr?.id || "(no attr)"}, total store attrs: ${character.attribs.filter(a => a.get("name") === "store").length}`);
 
 		let dialogResult;
@@ -2501,17 +2626,20 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 
 		if (!dialogResult.confirmed) return;
 		const {currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal} = dialogResult;
+		// School chosen this pass (L14 dialog) or carried in b20_sidekick meta from
+		// a prior level-up — pass through so it re-applies to newly-added spells.
+		const empoweredSchool = dialogResult.empoweredSchool || (sidekickMeta && sidekickMeta.school) || null;
 		const isMakeSidekick = !hasSidekickType;
 
 		try {
 			let newChar, summary;
 			if (isMakeSidekick) {
 				// Make Sidekick: create a copy with all features applied from level 1
-				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacter(character, {levels: 0, currentLevel, featureFromLevel: 0, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, empoweredSchool, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — created sidekick copy "${newChar.get("name")}"`);
 			} else {
 				// Level Up: modify the existing character in-place
-				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
+				({character: newChar, summary} = await levelUpCharacterInPlace(character, {levels: 1, currentLevel, sidekickType, bonusProficiencies, expertiseChoices, sharpMindChoice, empoweredSchool, asiChoices, spellChoices, hpIncreaseMode, hpRollTotal}));
 				log(`Done — levelled up "${newChar.get("name")}" in-place`);
 			}
 			const featMsg = summary.featuresWritten ? `\nFeatures added: ${summary.featuresWritten}` : "";
@@ -2521,6 +2649,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const sharpMindMsg = summary.sharpMindApplied ? `\nSharp Mind saving throw proficiency added` : "";
 			const attackerMsg = summary.attackerBonusApplied ? `\nAttacker +2 applied to ${summary.attackerBonusApplied} attack(s)` : "";
 			const cantripMsg = summary.potentCantripsApplied ? `\nPotent Cantrips applied to ${summary.potentCantripsApplied} cantrip damage roll(s)` : "";
+			const empoweredMsg = summary.empoweredSchool ? `\nEmpowered Spells (${summary.empoweredSchool}) applied to ${summary.empoweredSpellsApplied || 0} damage/healing roll(s)` : "";
 			const spellMsg = summary.spellsAdded ? `\nSpells added: ${summary.spellsAdded}${summary.spellRemoved ? ` (replaced ${summary.spellRemoved})` : ""}` : "";
 			const spellFailMsg = summary.spellsFailed && summary.spellsFailed.length ? `\nSpells FAILED to import (add manually): ${summary.spellsFailed.join(", ")}` : "";
 			const slotMsg = summary.spellSlotsChanged ? `\nSpell slots updated (${summary.spellSlotsChanged} change(s))` : "";
@@ -2529,13 +2658,13 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			} else {
 				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);

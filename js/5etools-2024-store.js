@@ -116,6 +116,7 @@ function d20plus2024Store () {
 		);
 		const sidekickType = store?.npc?._npcSidekickType;
 		const sidekickLevel = store?.npc?._npcLevelUpLevel;
+		const empoweredSchool = store?.npc?._npcEmpoweredSchool;
 		console.log(`betterR20 saveNewNpcState: destroying ${toDestroy.length} existing attr(s), writing upgraded store with _npcSidekickType=${sidekickType}, _npcLevelUpLevel=${sidekickLevel}`);
 		toDestroy.forEach(a => a.destroy());
 
@@ -133,7 +134,7 @@ function d20plus2024Store () {
 		// Write a dedicated b20_sidekick attr that Roll20's sheet init never touches.
 		// This is the reliable source of truth for sidekick routing.
 		if (sidekickType || sidekickLevel) {
-			d20plus.store2024.saveSidekickMeta(character, sidekickType, sidekickLevel);
+			d20plus.store2024.saveSidekickMeta(character, sidekickType, sidekickLevel, empoweredSchool);
 		}
 	};
 
@@ -142,12 +143,12 @@ function d20plus2024Store () {
 	 * This attribute is never written by Roll20's sheet init so it is the reliable
 	 * source of truth for detecting existing sidekicks.
 	 */
-	d20plus.store2024.saveSidekickMeta = function (character, sidekickType, sidekickLevel) {
+	d20plus.store2024.saveSidekickMeta = function (character, sidekickType, sidekickLevel, empoweredSchool) {
 		const toDestroy = character.attribs.filter(a => a.get("name") === "b20_sidekick");
 		toDestroy.forEach(a => a.destroy());
-		const meta = {type: sidekickType || null, level: sidekickLevel || null};
+		const meta = {type: sidekickType || null, level: sidekickLevel || null, school: empoweredSchool || null};
 		character.attribs.push({name: "b20_sidekick", current: JSON.stringify(meta)}).syncedSave();
-		console.log(`betterR20 saveSidekickMeta: type=${meta.type}, level=${meta.level}`);
+		console.log(`betterR20 saveSidekickMeta: type=${meta.type}, level=${meta.level}, school=${meta.school}`);
 	};
 
 	/**
