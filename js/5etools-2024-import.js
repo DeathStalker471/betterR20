@@ -451,7 +451,13 @@ function d20plus2024Import() {
 		Object.entries(saveAbilityMap).forEach(([key, abilityName]) => {
 			const saveVal = attrMap[`npc_${key}_save`];
 			const saveFlag = attrMap[`npc_${key}_save_flag`];
-			if (saveVal === undefined && `${saveFlag || ""}` !== "1") return;
+			const hasNumericSave = saveVal !== undefined && saveVal !== null && `${saveVal}`.trim() !== "";
+			const isExplicitlyProficient = `${saveFlag || ""}` === "1";
+			// OGL sheets can emit npc_*_save = "0" for non-proficient saves.
+			// Only create save proficiency when the sheet explicitly marks it
+			// proficient, or when a concrete save bonus value is present.
+			if (!hasNumericSave && !isExplicitlyProficient) return;
+			if (hasNumericSave && parseInt(`${saveVal}`.trim() || "0", 10) === 0 && !isExplicitlyProficient) return;
 
 			const { id, base } = createIntegrantBase("Proficiency");
 			integrants[id] = {
