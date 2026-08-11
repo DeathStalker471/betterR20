@@ -55,7 +55,13 @@ function d20plusNpcConverter () {
 				|| name.startsWith("repeating_npcaction-m_"),
 			);
 
-			return expectedCount >= 3 || hasNpcRepeatingContent;
+			// Accept sparse legacy NPCs (e.g. simple/commoner-like sheets) as long as
+			// they carry the legacy NPC flag and at least minimal NPC identity fields.
+			const hasMinimalLegacyNpcShape = attrMap.npc_name !== undefined
+				|| attrMap.npc_challenge !== undefined
+				|| attrMap.npc_type !== undefined;
+
+			return expectedCount >= 3 || hasNpcRepeatingContent || hasMinimalLegacyNpcShape;
 		}
 
 		function getCharacterFolderContext (character) {
@@ -137,7 +143,7 @@ function d20plusNpcConverter () {
 			character.attribs.fetch(character.attribs);
 
 			if (!isNpc2014Sheet(character)) throw new Error("The selected character is not a compatible 2014 NPC sheet.");
-			if (isNpc2024Sheet(character)) throw new Error("The selected character already appears to be a 2024 NPC sheet.");
+			if (d20plus.store2024.isNpc2024Sheet(character)) throw new Error("The selected character already appears to be a 2024 NPC sheet.");
 			if (!d20plus.importer?.translateOGLTo2024Store) throw new Error("2024 import support is not available.");
 
 			const store = d20plus.importer.translateOGLTo2024Store(character.attribs.toJSON());
