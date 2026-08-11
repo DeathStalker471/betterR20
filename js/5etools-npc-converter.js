@@ -89,6 +89,29 @@ function d20plusNpcConverter () {
 			return `${name} (2024)`;
 		}
 
+		function buildConverterTags (baseTags, sourceAttrMap) {
+			const list = String(baseTags || "")
+				.split(",")
+				.map(t => t.trim())
+				.filter(Boolean);
+			const existing = new Set(list.map(t => t.toLowerCase()));
+			const add = (tag) => {
+				const t = String(tag || "").trim();
+				if (!t) return;
+				const key = t.toLowerCase();
+				if (existing.has(key)) return;
+				existing.add(key);
+				list.push(t);
+			};
+
+			add("Converted 2014->2024");
+			add("Sheet: 2024 NPC");
+			add("Source: Legacy 2014 NPC");
+			const cr = sourceAttrMap?.npc_challenge;
+			if (cr != null && `${cr}`.trim() !== "") add(`CR ${`${cr}`.trim()}`);
+			return list.join(", ");
+		}
+
 		function cloneForDebug (value) { return d20plus.store2024.cloneForDebug(value); }
 		function logDebugJson (label, value) { return d20plus.store2024.logDebugJson(label, value); }
 
@@ -167,6 +190,7 @@ function d20plusNpcConverter () {
 			normalizeConverterStoreFields(store, sourceAttrMap);
 			const sourceAttributes = {...character.attributes};
 			delete sourceAttributes.id;
+			const converterTags = buildConverterTags(sourceAttributes.tags || "", sourceAttrMap);
 
 			return new Promise((resolve, reject) => {
 				d20.Campaign.characters.create({
@@ -175,7 +199,8 @@ function d20plusNpcConverter () {
 					charactersheetname: d20plus.cfg.getOrDefault("import", "importSheetFormat"),
 					inplayerjournals: sourceAttributes.inplayerjournals || "",
 					controlledby: sourceAttributes.controlledby || "",
-					tags: sourceAttributes.tags || "",
+					tags: converterTags,
+					tags_string: converterTags,
 				}, {
 					success: async (newCharacter) => {
 						try {
