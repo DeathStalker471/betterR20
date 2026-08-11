@@ -4,6 +4,8 @@ function d20plusNpcConverter () {
 	(() => {
 		const ATTRIBUTES_2014_CORE = ["npc"];
 		const ATTRIBUTES_2014_EXPECTED = ["npc_name", "npc_type", "npc_ac", "npc_hpbase", "npc_challenge"];
+		const CONVERTER_META_ATTR = "b20_converter_meta";
+		const CONVERTER_RECONCILE_DELAY_MS = 2500;
 
 		function getConverterCharacterFromEvent (event) {
 			const $target = $(event.target);
@@ -76,6 +78,56 @@ function d20plusNpcConverter () {
 			return d20plus.store2024.saveNewNpcState(character, store);
 		}
 
+		function saveConverterMeta (character, sourceCharacter) {
+			const toDestroy = character.attribs.filter(a => a.get("name") === CONVERTER_META_ATTR);
+			toDestroy.forEach(a => a.destroy());
+			const meta = {
+				sourceCharacterId: sourceCharacter?.id || null,
+				sourceCharacterName: sourceCharacter?.get?.("name") || null,
+				convertedAt: Date.now(),
+				feature: "npc-converter-2014-to-2024",
+			};
+			character.attribs.push({name: CONVERTER_META_ATTR, current: JSON.stringify(meta)}).syncedSave();
+		}
+
+		function normalizeConverterStoreFields (store, sourceAttrMap) {
+			if (!store || !store.npc) return;
+			if (!store.npc.challengeRating) {
+				const cr = sourceAttrMap?.npc_challenge;
+				if (cr != null && `${cr}`.trim()) store.npc.challengeRating = `${cr}`.trim();
+			}
+		}
+
+		function getConverterPbFromStore (store) {
+			const ints = store?.integrants?.integrants;
+			if (!ints) return null;
+			for (const int of Object.values(ints)) {
+				if (!int || int.type !== "Proficiency Bonus Modifier") continue;
+				if (int.calculation !== "Set Value") continue;
+				const v = int?.valueFormula?.flatValue;
+				if (v == null || v === "") continue;
+				return v;
+			}
+			return null;
+		}
+
+		function writeConverterDisplayStats (character, store, sourceAttrMap) {
+			const pb = getConverterPbFromStore(store);
+			const cr = store?.npc?.challengeRating || sourceAttrMap?.npc_challenge || null;
+			d20plus.store2024.writeSidekickStats(character, pb, cr);
+		}
+
+		async function waitAndReconcileConvertedState (character, store, sourceAttrMap) {
+			await new Promise(resolve => setTimeout(resolve, CONVERTER_RECONCILE_DELAY_MS));
+			await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
+			const {store: currentStore} = d20plus.store2024.getStore(character) || {};
+			if (!currentStore || !currentStore.npc || !currentStore.npc.challengeRating) {
+				console.log("betterR20 NPC converter: reconciling store after init race");
+				save2024NpcState(character, store);
+			}
+			writeConverterDisplayStats(character, store, sourceAttrMap);
+		}
+
 		function save2024NpcNames (character, sourceAttrMap) {
 			const npcDisplayName = sourceAttrMap.npc_name || character.get("name") || "Unnamed character";
 			return d20plus.store2024.saveNpcNames(character, npcDisplayName);
@@ -94,6 +146,7 @@ function d20plusNpcConverter () {
 			logDebugJson("betterR20 NPC converter source attribs", window.__npcConverterLastSourceAttribs);
 			logDebugJson("betterR20 NPC converter translated 2024 store", window.__npcConverterLastStore);
 			const sourceAttrMap = getConverterAttrMap(character);
+			normalizeConverterStoreFields(store, sourceAttrMap);
 			const sourceAttributes = {...character.attributes};
 			delete sourceAttributes.id;
 
@@ -122,6 +175,8 @@ function d20plusNpcConverter () {
 
 							save2024NpcState(newCharacter, store);
 							save2024NpcNames(newCharacter, sourceAttrMap);
+							saveConverterMeta(newCharacter, character);
+							writeConverterDisplayStats(newCharacter, store, sourceAttrMap);
 							window.__npcConverterLastCharacter = cloneForDebug(newCharacter?.attributes || newCharacter);
 							logDebugJson("betterR20 NPC converter created character", window.__npcConverterLastCharacter);
 
@@ -131,6 +186,7 @@ function d20plusNpcConverter () {
 							if (folderContext?.folderId) d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
 
 							if (newCharacter.view && typeof newCharacter.view.showNewVueFrame === "function") newCharacter.view.showNewVueFrame();
+							await waitAndReconcileConvertedState(newCharacter, store, sourceAttrMap);
 							resolve(newCharacter);
 						} catch (e) {
 							reject(e);
