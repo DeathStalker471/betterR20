@@ -40,7 +40,7 @@ function d20plusNpcConverter () {
 
 		function isNpc2014Sheet (character) {
 			const attrMap = getConverterAttrMap(character);
-			if (!ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1")) return false;
+			const hasLegacyNpcFlag = ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1");
 
 			const expectedCount = ATTRIBUTES_2014_EXPECTED
 				.map(name => attrMap[name] !== undefined)
@@ -61,7 +61,13 @@ function d20plusNpcConverter () {
 				|| attrMap.npc_challenge !== undefined
 				|| attrMap.npc_type !== undefined;
 
-			return expectedCount >= 3 || hasNpcRepeatingContent || hasMinimalLegacyNpcShape;
+			// Some Roll20 NPCs (notably sparse/commoner-like sheets) can miss npc=1
+			// while still clearly being legacy NPC sheets. Accept either path:
+			// 1) explicit npc flag + minimal shape, or
+			// 2) strong legacy NPC shape without the flag.
+			const hasStrongLegacyNpcShape = expectedCount >= 2 || hasNpcRepeatingContent;
+			if (hasLegacyNpcFlag) return hasStrongLegacyNpcShape || hasMinimalLegacyNpcShape;
+			return hasStrongLegacyNpcShape;
 		}
 
 		function getCharacterFolderContext (character) {
