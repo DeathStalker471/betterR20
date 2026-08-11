@@ -89,27 +89,15 @@ function d20plusNpcConverter () {
 			return `${name} (2024)`;
 		}
 
-		function buildConverterTags (baseTags, sourceAttrMap) {
-			const list = String(baseTags || "")
-				.split(",")
-				.map(t => t.trim())
-				.filter(Boolean);
-			const existing = new Set(list.map(t => t.toLowerCase()));
-			const add = (tag) => {
-				const t = String(tag || "").trim();
-				if (!t) return;
-				const key = t.toLowerCase();
-				if (existing.has(key)) return;
-				existing.add(key);
-				list.push(t);
-			};
-
-			add("Converted 2014->2024");
-			add("Sheet: 2024 NPC");
-			add("Source: Legacy 2014 NPC");
+		function buildConverterTags (sourceAttrMap) {
+			const tags = [
+				"converted 2014 to 2024",
+				"sheet 2024 npc",
+				"legacy 2014 npc source",
+			];
 			const cr = sourceAttrMap?.npc_challenge;
-			if (cr != null && `${cr}`.trim() !== "") add(`CR ${`${cr}`.trim()}`);
-			return list.join(", ");
+			if (cr != null && `${cr}`.trim() !== "") tags.push(`cr ${`${cr}`.trim().replace(/\//g, " over ")}`);
+			return d20plus.importer.getTagString(tags, "creature");
 		}
 
 		function cloneForDebug (value) { return d20plus.store2024.cloneForDebug(value); }
@@ -190,7 +178,7 @@ function d20plusNpcConverter () {
 			normalizeConverterStoreFields(store, sourceAttrMap);
 			const sourceAttributes = {...character.attributes};
 			delete sourceAttributes.id;
-			const converterTags = buildConverterTags(sourceAttributes.tags || "", sourceAttrMap);
+			const converterTags = buildConverterTags(sourceAttrMap);
 
 			return new Promise((resolve, reject) => {
 				d20.Campaign.characters.create({
@@ -219,6 +207,7 @@ function d20plusNpcConverter () {
 							save2024NpcState(newCharacter, store);
 							save2024NpcNames(newCharacter, sourceAttrMap);
 							newCharacter.save({tags: converterTags, tags_string: converterTags});
+							setTimeout(() => newCharacter.save({tags: converterTags, tags_string: converterTags}), 500);
 							saveConverterMeta(newCharacter, character);
 							writeConverterDisplayStats(newCharacter, store, sourceAttrMap);
 							window.__npcConverterLastCharacter = cloneForDebug(newCharacter?.attributes || newCharacter);
