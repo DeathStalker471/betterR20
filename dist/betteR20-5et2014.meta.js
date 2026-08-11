@@ -2,11 +2,11 @@
 // @name         betteR20-theoctonaut-test-5et2014
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.1kw-theoctonaut-test
+// @version      1.36.1.1lg-theoctonaut-test
 // @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-fix-requested-change
 // @supportURL   https://github.com/TheOctonaut/betterR20/pull/2
-// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-fix-requested-change/dist/betteR20-5et2014.meta.js
-// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-fix-requested-change/dist/betteR20-5et2014.user.js
+// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-sidekick-pb-cr-render-fix/dist/betteR20-5et2014.meta.js
+// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-sidekick-pb-cr-render-fix/dist/betteR20-5et2014.user.js
 // @description  Enhance your Roll20 experience
 // @author       5egmegaanon/astranauta/MrLabRat/TheGiddyLimit/DBAWiseMan/BDeveau/Remuz/Callador Julaan/Erogroth/Stormy/FlayedOne/Cucucc/Cee/oldewyrm/darthbeep/Mertang/Redweller/DeathStalker
 

@@ -368,3 +368,26 @@ The most effective debugging path was to log and inspect:
 - created character metadata.
 
 This made it possible to compare converter output against live working 2024 sheets and identify mistakes in hidden store structure that were not obvious from static code inspection alone.
+
+### 13. Converted 2024 state needs post-init reconciliation for resilience
+
+Recent sidekick work showed that Roll20 2024 sheet init can race or re-serialize state shortly after writes.
+
+The converter now follows a safer pattern:
+
+- write the translated store via `saveNewNpcState(...)`;
+- write critical display stats (CR/PB compatibility attrs) immediately;
+- perform a delayed re-fetch/reconcile pass;
+- if store is missing/blank critical state after init, re-save store and re-apply critical display stats.
+
+This keeps converter behavior localized while improving reliability against sheet lifecycle timing.
+
+### 14. Converter metadata should not depend on custom store keys
+
+Custom keys inside `store.npc` are not durable enough to carry converter provenance.
+
+To avoid coupling converter state to volatile store internals, converter provenance is now stored in a dedicated attribute:
+
+- `b20_converter_meta`
+
+This mirrors the broader 2024-sidekick persistence strategy of keeping durable workflow metadata outside sheet-managed store keys.

@@ -4,6 +4,8 @@ function d20plusNpcConverter () {
 	(() => {
 		const ATTRIBUTES_2014_CORE = ["npc"];
 		const ATTRIBUTES_2014_EXPECTED = ["npc_name", "npc_type", "npc_ac", "npc_hpbase", "npc_challenge"];
+		const CONVERTER_META_ATTR = "b20_converter_meta";
+		const CONVERTER_RECONCILE_DELAY_MS = 2500;
 
 		function getConverterCharacterFromEvent (event) {
 			const $target = $(event.target);
@@ -22,10 +24,16 @@ function d20plusNpcConverter () {
 		}
 
 		function canConvertCharacter (character) {
-			if (!character) return false;
-			if (!isNpc2014Sheet(character)) return false;
-			if (d20plus.store2024.isNpc2024Sheet(character)) return false;
-			return !!d20plus.importer?.translateOGLTo2024Store;
+			if (!character) {
+				console.log("betterR20 NPC converter canConvertCharacter: false (no character)");
+				return false;
+			}
+			const is2014 = isNpc2014Sheet(character);
+			const is2024 = d20plus.store2024.isNpc2024Sheet(character);
+			const hasTranslator = !!d20plus.importer?.translateOGLTo2024Store;
+			const ok = is2014 && !is2024 && hasTranslator;
+			console.log(`betterR20 NPC converter canConvertCharacter("${character.get("name") || "?"}"): is2014=${is2014}, is2024=${is2024}, hasTranslator=${hasTranslator}, result=${ok}`);
+			return ok;
 		}
 
 		function getConverterAttrMap (character) {
@@ -38,7 +46,11 @@ function d20plusNpcConverter () {
 
 		function isNpc2014Sheet (character) {
 			const attrMap = getConverterAttrMap(character);
-			if (!ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1")) return false;
+			const hasCoreNpcFlag = ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1");
+			if (!hasCoreNpcFlag) {
+				console.log(`betterR20 NPC converter isNpc2014Sheet("${character?.get?.("name") || "?"}"): false (npc flag missing)`, { npc: attrMap.npc });
+				return false;
+			}
 
 			const expectedCount = ATTRIBUTES_2014_EXPECTED
 				.map(name => attrMap[name] !== undefined)
@@ -53,7 +65,15 @@ function d20plusNpcConverter () {
 				|| name.startsWith("repeating_npcaction-m_"),
 			);
 
-			return expectedCount >= 3 || hasNpcRepeatingContent;
+			// Accept sparse legacy NPCs (e.g. simple/commoner-like sheets) as long as
+			// they carry the legacy NPC flag and at least minimal NPC identity fields.
+			const hasMinimalLegacyNpcShape = attrMap.npc_name !== undefined
+				|| attrMap.npc_challenge !== undefined
+				|| attrMap.npc_type !== undefined;
+
+			const result = expectedCount >= 3 || hasNpcRepeatingContent || hasMinimalLegacyNpcShape;
+			console.log(`betterR20 NPC converter isNpc2014Sheet("${character?.get?.("name") || "?"}"): expectedCount=${expectedCount}, repeating=${hasNpcRepeatingContent}, minimal=${hasMinimalLegacyNpcShape}, result=${result}`);
+			return result;
 		}
 
 		function getCharacterFolderContext (character) {
@@ -69,11 +89,83 @@ function d20plusNpcConverter () {
 			return `${name} (2024)`;
 		}
 
+		function buildConverterTags (sourceAttrMap) {
+			const tags = [
+				"converted 2014 to 2024",
+				"sheet 2024 npc",
+				"legacy 2014 npc source",
+			];
+			const cr = sourceAttrMap?.npc_challenge;
+			if (cr != null && `${cr}`.trim() !== "") tags.push(`cr ${`${cr}`.trim().replace(/\//g, " over ")}`);
+			return d20plus.importer.getTagString(tags, "creature");
+		}
+
+		function persistConverterTags (character, tags) {
+			const run = (label) => {
+				character.save({tags, tags_string: tags});
+				const live = character.get("tags");
+				console.log(`betterR20 NPC converter tags persist [${label}]: requested="${tags}", live="${live || ""}"`);
+			};
+			run("immediate");
+			setTimeout(() => run("500ms"), 500);
+			setTimeout(() => run("1500ms"), 1500);
+		}
+
 		function cloneForDebug (value) { return d20plus.store2024.cloneForDebug(value); }
 		function logDebugJson (label, value) { return d20plus.store2024.logDebugJson(label, value); }
 
 		function save2024NpcState (character, store) {
 			return d20plus.store2024.saveNewNpcState(character, store);
+		}
+
+		function saveConverterMeta (character, sourceCharacter) {
+			const toDestroy = character.attribs.filter(a => a.get("name") === CONVERTER_META_ATTR);
+			toDestroy.forEach(a => a.destroy());
+			const meta = {
+				sourceCharacterId: sourceCharacter?.id || null,
+				sourceCharacterName: sourceCharacter?.get?.("name") || null,
+				convertedAt: Date.now(),
+				feature: "npc-converter-2014-to-2024",
+			};
+			character.attribs.push({name: CONVERTER_META_ATTR, current: JSON.stringify(meta)}).syncedSave();
+		}
+
+		function normalizeConverterStoreFields (store, sourceAttrMap) {
+			if (!store || !store.npc) return;
+			if (!store.npc.challengeRating) {
+				const cr = sourceAttrMap?.npc_challenge;
+				if (cr != null && `${cr}`.trim()) store.npc.challengeRating = `${cr}`.trim();
+			}
+		}
+
+		function getConverterPbFromStore (store) {
+			const ints = store?.integrants?.integrants;
+			if (!ints) return null;
+			for (const int of Object.values(ints)) {
+				if (!int || int.type !== "Proficiency Bonus Modifier") continue;
+				if (int.calculation !== "Set Value") continue;
+				const v = int?.valueFormula?.flatValue;
+				if (v == null || v === "") continue;
+				return v;
+			}
+			return null;
+		}
+
+		function writeConverterDisplayStats (character, store, sourceAttrMap) {
+			const pb = getConverterPbFromStore(store);
+			const cr = store?.npc?.challengeRating || sourceAttrMap?.npc_challenge || null;
+			d20plus.store2024.writeSidekickStats(character, pb, cr);
+		}
+
+		async function waitAndReconcileConvertedState (character, store, sourceAttrMap) {
+			await new Promise(resolve => setTimeout(resolve, CONVERTER_RECONCILE_DELAY_MS));
+			await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
+			const {store: currentStore} = d20plus.store2024.getStore(character) || {};
+			if (!currentStore || !currentStore.npc || !currentStore.npc.challengeRating) {
+				console.log("betterR20 NPC converter: reconciling store after init race");
+				save2024NpcState(character, store);
+			}
+			writeConverterDisplayStats(character, store, sourceAttrMap);
 		}
 
 		function save2024NpcNames (character, sourceAttrMap) {
@@ -85,7 +177,7 @@ function d20plusNpcConverter () {
 			character.attribs.fetch(character.attribs);
 
 			if (!isNpc2014Sheet(character)) throw new Error("The selected character is not a compatible 2014 NPC sheet.");
-			if (isNpc2024Sheet(character)) throw new Error("The selected character already appears to be a 2024 NPC sheet.");
+			if (d20plus.store2024.isNpc2024Sheet(character)) throw new Error("The selected character already appears to be a 2024 NPC sheet.");
 			if (!d20plus.importer?.translateOGLTo2024Store) throw new Error("2024 import support is not available.");
 
 			const store = d20plus.importer.translateOGLTo2024Store(character.attribs.toJSON());
@@ -94,8 +186,10 @@ function d20plusNpcConverter () {
 			logDebugJson("betterR20 NPC converter source attribs", window.__npcConverterLastSourceAttribs);
 			logDebugJson("betterR20 NPC converter translated 2024 store", window.__npcConverterLastStore);
 			const sourceAttrMap = getConverterAttrMap(character);
+			normalizeConverterStoreFields(store, sourceAttrMap);
 			const sourceAttributes = {...character.attributes};
 			delete sourceAttributes.id;
+			const converterTags = buildConverterTags(sourceAttrMap);
 
 			return new Promise((resolve, reject) => {
 				d20.Campaign.characters.create({
@@ -104,7 +198,8 @@ function d20plusNpcConverter () {
 					charactersheetname: d20plus.cfg.getOrDefault("import", "importSheetFormat"),
 					inplayerjournals: sourceAttributes.inplayerjournals || "",
 					controlledby: sourceAttributes.controlledby || "",
-					tags: sourceAttributes.tags || "",
+					tags: converterTags,
+					tags_string: converterTags,
 				}, {
 					success: async (newCharacter) => {
 						try {
@@ -122,6 +217,9 @@ function d20plusNpcConverter () {
 
 							save2024NpcState(newCharacter, store);
 							save2024NpcNames(newCharacter, sourceAttrMap);
+							persistConverterTags(newCharacter, converterTags);
+							saveConverterMeta(newCharacter, character);
+							writeConverterDisplayStats(newCharacter, store, sourceAttrMap);
 							window.__npcConverterLastCharacter = cloneForDebug(newCharacter?.attributes || newCharacter);
 							logDebugJson("betterR20 NPC converter created character", window.__npcConverterLastCharacter);
 
@@ -131,6 +229,8 @@ function d20plusNpcConverter () {
 							if (folderContext?.folderId) d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
 
 							if (newCharacter.view && typeof newCharacter.view.showNewVueFrame === "function") newCharacter.view.showNewVueFrame();
+							await waitAndReconcileConvertedState(newCharacter, store, sourceAttrMap);
+							persistConverterTags(newCharacter, converterTags);
 							resolve(newCharacter);
 						} catch (e) {
 							reject(e);
@@ -179,6 +279,7 @@ function d20plusNpcConverter () {
 					$("#journalitemmenu").hide();
 					const character = getConverterCharacterFromJournalContext();
 					if (!character) return alert("No character found.");
+					await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
 					if (!canConvertCharacter(character)) return alert("The selected character is not a compatible 2014 NPC sheet.");
 
 					const charName = character.get("name") || "Unnamed character";
