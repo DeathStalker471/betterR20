@@ -466,6 +466,7 @@ function d20plusNpcLevelUp () {
 			? applyPotentCantrips(store, sidekickType)
 			: 0;
 		summary.potentCantripsApplied = potentCantripsApplied;
+		summary.helpfulBonusActionApplied = applyHelpfulBonusAction(store, sidekickType, featureFromLevel, targetSidekickLevel);
 
 		// Empowered Spells (spellcaster level 14+): re-applied every level-up so
 		// spells added since the school was chosen are covered too.
@@ -851,6 +852,43 @@ function d20plusNpcLevelUp () {
 		};
 		displayOrder.push(id);
 		store.features.speciesTraitsDisplayOrder = JSON.stringify(displayOrder);
+		return 1;
+	}
+
+	/**
+	 * Expert Helpful (L1): create a Bonus Action "Help" action entry so the feature
+	 * is actually usable on the sheet, not just a descriptive trait.
+	 * Idempotent: if a Bonus Action Help already exists, no duplicate is created.
+	 */
+	function applyHelpfulBonusAction (store, sidekickType, featureFromLevel, targetSidekickLevel) {
+		if (sidekickType !== "expert") return 0;
+		const helpfulFeatures = getFeaturesByName(sidekickType, featureFromLevel, targetSidekickLevel, "Helpful");
+		if (!helpfulFeatures.length) return 0;
+		if (!store.integrants) store.integrants = { integrants: {} };
+		if (!store.integrants.integrants) store.integrants.integrants = {};
+		const ints = store.integrants.integrants;
+		const exists = Object.values(ints).some(i =>
+			i
+			&& i.type === "Action"
+			&& (i.actionType === "Bonus Action")
+			&& String(i.name || "").toLowerCase() === "help"
+		);
+		if (exists) return 0;
+		const pos = d20plus.store2024.getNextArrayPos(store);
+		const { id, base } = d20plus.store2024.makeIntegrantBase("Action", pos);
+		ints[id] = {
+			...base,
+			name: "Help",
+			actionType: "Bonus Action",
+			displayAsAttack: false,
+			description: "You can take the Help action as a bonus action.",
+			rechargeType: "None",
+			range: "",
+			target: "",
+			conditions: "",
+			cascades: {},
+			relations: {},
+		};
 		return 1;
 	}
 
@@ -2729,6 +2767,7 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 			const sharpMindMsg = summary.sharpMindApplied ? `\nSharp Mind saving throw proficiency added` : "";
 			const attackerMsg = summary.attackerBonusApplied ? `\nAttacker +2 applied to ${summary.attackerBonusApplied} attack(s)` : "";
 			const cantripMsg = summary.potentCantripsApplied ? `\nPotent Cantrips applied to ${summary.potentCantripsApplied} cantrip damage roll(s)` : "";
+			const helpfulMsg = summary.helpfulBonusActionApplied ? `\nHelpful action added as Bonus Action` : "";
 			const empoweredMsg = summary.empoweredSchool ? `\nEmpowered Spells (${summary.empoweredSchool}) applied to ${summary.empoweredSpellsApplied || 0} damage/healing roll(s)` : "";
 			const spellMsg = summary.spellsAdded ? `\nSpells added: ${summary.spellsAdded}${summary.spellRemoved ? ` (replaced ${summary.spellRemoved})` : ""}` : "";
 			const spellFailMsg = summary.spellsFailed && summary.spellsFailed.length ? `\nSpells FAILED to import (add manually): ${summary.spellsFailed.join(", ")}` : "";
@@ -2738,13 +2777,13 @@ function makeStartingStateHtml (store, sidekickType, targetLevel) {
 
 Starting level: ${summary.newLevel}
 HP max: ${summary.newHpMax}
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${featPickMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${featPickMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${helpfulMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			} else {
 				alert(`Levelled up "${newChar.get("name")}".
 
 Level: ${summary.sourceLevel} → ${summary.newLevel}
 HP: +${summary.hpAdded} (new max ${summary.newHpMax})
-Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${featPickMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
+Roll formula: ${summary.newRollHP}${featMsg}${profMsg}${asiMsg}${featPickMsg}${expertiseMsg}${sharpMindMsg}${attackerMsg}${helpfulMsg}${cantripMsg}${empoweredMsg}${spellMsg}${spellFailMsg}${slotMsg}`);
 			}
 		} catch (e) {
 			logError(`Failed to level up "${charName}":`, e);
