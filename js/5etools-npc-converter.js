@@ -24,10 +24,16 @@ function d20plusNpcConverter () {
 		}
 
 		function canConvertCharacter (character) {
-			if (!character) return false;
-			if (!isNpc2014Sheet(character)) return false;
-			if (d20plus.store2024.isNpc2024Sheet(character)) return false;
-			return !!d20plus.importer?.translateOGLTo2024Store;
+			if (!character) {
+				console.log("betterR20 NPC converter canConvertCharacter: false (no character)");
+				return false;
+			}
+			const is2014 = isNpc2014Sheet(character);
+			const is2024 = d20plus.store2024.isNpc2024Sheet(character);
+			const hasTranslator = !!d20plus.importer?.translateOGLTo2024Store;
+			const ok = is2014 && !is2024 && hasTranslator;
+			console.log(`betterR20 NPC converter canConvertCharacter("${character.get("name") || "?"}"): is2014=${is2014}, is2024=${is2024}, hasTranslator=${hasTranslator}, result=${ok}`);
+			return ok;
 		}
 
 		function getConverterAttrMap (character) {
@@ -40,7 +46,11 @@ function d20plusNpcConverter () {
 
 		function isNpc2014Sheet (character) {
 			const attrMap = getConverterAttrMap(character);
-			if (!ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1")) return false;
+			const hasCoreNpcFlag = ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1");
+			if (!hasCoreNpcFlag) {
+				console.log(`betterR20 NPC converter isNpc2014Sheet("${character?.get?.("name") || "?"}"): false (npc flag missing)`, { npc: attrMap.npc });
+				return false;
+			}
 
 			const expectedCount = ATTRIBUTES_2014_EXPECTED
 				.map(name => attrMap[name] !== undefined)
@@ -61,7 +71,9 @@ function d20plusNpcConverter () {
 				|| attrMap.npc_challenge !== undefined
 				|| attrMap.npc_type !== undefined;
 
-			return expectedCount >= 3 || hasNpcRepeatingContent || hasMinimalLegacyNpcShape;
+			const result = expectedCount >= 3 || hasNpcRepeatingContent || hasMinimalLegacyNpcShape;
+			console.log(`betterR20 NPC converter isNpc2014Sheet("${character?.get?.("name") || "?"}"): expectedCount=${expectedCount}, repeating=${hasNpcRepeatingContent}, minimal=${hasMinimalLegacyNpcShape}, result=${result}`);
+			return result;
 		}
 
 		function getCharacterFolderContext (character) {
