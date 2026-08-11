@@ -39,16 +39,14 @@ function d20plusNpcConverter () {
 		}
 
 		function isNpc2014Sheet (character) {
-			if (!character) return false;
-			// Hard stop: never run the 2014 converter on a confirmed 2024 sheet.
-			if (d20plus.store2024.isNpc2024Sheet(character)) return false;
-
 			const attrMap = getConverterAttrMap(character);
-			const hasLegacyNpcFlag = ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1");
+			if (!ATTRIBUTES_2014_CORE.every(name => `${attrMap[name] || ""}` === "1")) return false;
+
 			const expectedCount = ATTRIBUTES_2014_EXPECTED
 				.map(name => attrMap[name] !== undefined)
 				.filter(Boolean)
 				.length;
+
 			const hasNpcRepeatingContent = Object.keys(attrMap).some(name =>
 				name.startsWith("repeating_npcaction_")
 				|| name.startsWith("repeating_npctrait_")
@@ -56,15 +54,14 @@ function d20plusNpcConverter () {
 				|| name.startsWith("repeating_npcaction-l_")
 				|| name.startsWith("repeating_npcaction-m_"),
 			);
-			const hasLegacyNpcSignals = hasLegacyNpcFlag
-				|| expectedCount >= 1
-				|| hasNpcRepeatingContent
-				|| attrMap.npc_name !== undefined
-				|| attrMap.npc_type !== undefined
+
+			// Accept sparse legacy NPCs (e.g. simple/commoner-like sheets) as long as
+			// they carry the legacy NPC flag and at least minimal NPC identity fields.
+			const hasMinimalLegacyNpcShape = attrMap.npc_name !== undefined
 				|| attrMap.npc_challenge !== undefined
-				|| attrMap.npc_ac !== undefined
-				|| attrMap.npc_hpbase !== undefined;
-			return hasLegacyNpcSignals;
+				|| attrMap.npc_type !== undefined;
+
+			return expectedCount >= 3 || hasNpcRepeatingContent || hasMinimalLegacyNpcShape;
 		}
 
 		function getCharacterFolderContext (character) {
