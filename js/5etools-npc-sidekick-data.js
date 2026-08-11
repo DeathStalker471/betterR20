@@ -3,8 +3,7 @@
  *
  * Six types: expert, warrior-attacker, warrior-defender, mage, healer, prodigy
  * (mage/healer/prodigy are the three Spellcaster roles, and the Warrior Martial
- * Role choice is baked into two Warrior types; "warrior" remains as a legacy
- * alias for pre-split sidekicks)
+ * Role choice is baked into two Warrior types)
  *
  * Each feature entry:
  *   level       {number}  Sidekick level at which the feature is gained
@@ -27,7 +26,7 @@ function d20plusNpcSidekickData () {
 		{
 			level: 1,
 			name: "Bonus Proficiencies",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Choose one saving throw proficiency (Dexterity, Intelligence, or Charisma). Choose five skill proficiencies. The sidekick gains proficiency with light armor. If it is a humanoid or has a simple or martial weapon in its stat block, it also gains proficiency with all simple weapons and with two tools of your choice.",
 		},
@@ -48,14 +47,14 @@ function d20plusNpcSidekickData () {
 		{
 			level: 3,
 			name: "Expertise",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Choose two of the sidekick's skill proficiencies. Its proficiency bonus is doubled for any ability check using those skills.",
 		},
 		{
 			level: 4,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -76,14 +75,14 @@ function d20plusNpcSidekickData () {
 		{
 			level: 8,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
 		{
 			level: 10,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -97,7 +96,7 @@ function d20plusNpcSidekickData () {
 		{
 			level: 12,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -111,28 +110,28 @@ function d20plusNpcSidekickData () {
 		{
 			level: 15,
 			name: "Expertise",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Choose two more of the sidekick's skill proficiencies. Its proficiency bonus is doubled for any ability check using those skills.",
 		},
 		{
 			level: 16,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
 		{
 			level: 18,
 			name: "Sharp Mind",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "The sidekick gains proficiency in one saving throw of your choice: Intelligence, Wisdom, or Charisma.",
 		},
 		{
 			level: 19,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.142",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -156,7 +155,7 @@ function d20plusNpcSidekickData () {
 		{
 			level: 1,
 			name: "Bonus Proficiencies",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.146",
 			description: "Choose one saving throw proficiency (Strength, Dexterity, or Constitution). Choose two skill proficiencies from: Acrobatics, Animal Handling, Athletics, Intimidation, Nature, Perception, or Survival. The sidekick gains proficiency with all armor. If it is a humanoid or has a simple or martial weapon in its stat block, it gains proficiency with shields and all simple and martial weapons.",
 		},
@@ -178,7 +177,7 @@ function d20plusNpcSidekickData () {
 		{
 			level: 4,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.146",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -199,7 +198,7 @@ function d20plusNpcSidekickData () {
 		{
 			level: 8,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.146",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -220,14 +219,14 @@ function d20plusNpcSidekickData () {
 		{
 			level: 12,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.146",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
 		{
 			level: 14,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.146",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -241,7 +240,7 @@ function d20plusNpcSidekickData () {
 		{
 			level: 16,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.146",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -255,7 +254,7 @@ function d20plusNpcSidekickData () {
 		{
 			level: 19,
 			name: "Ability Score Improvement",
-			isTodo: true,
+			isTodo: false,
 			source: "TCE p.146",
 			description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 		},
@@ -286,14 +285,6 @@ function d20plusNpcSidekickData () {
 	});
 
 	// Legacy type for sidekicks created before the Attacker/Defender split.
-	d20plus.sidekickData.warrior = makeWarriorFeatures({
-		level: 1,
-		name: "Martial Role",
-		isTodo: true,
-		source: "TCE p.146",
-		description: "Choose one: Attacker — the sidekick gains a +2 bonus to all attack rolls. Defender — the sidekick can use its reaction to impose disadvantage on the attack roll of a creature within 5 feet of it whose target isn't the sidekick (provided the sidekick can see the attacker).",
-	});
-
 	// ─────────────────────────────────────────────────────────────────────────
 	// Shared spellcasting level-up features (levels 4–20, all three roles)
 	// Role-specific details are in the per-type arrays below.
@@ -354,7 +345,7 @@ function d20plusNpcSidekickData () {
 			{
 				level: 1,
 				name: "Bonus Proficiencies",
-				isTodo: true,
+				isTodo: false,
 				source: sourcePage,
 				description: `Choose one saving throw proficiency (Wisdom, Intelligence, or Charisma). Choose two skill proficiencies from: Arcana, History, Insight, Investigation, Medicine, Performance, Persuasion, or Religion. The sidekick gains proficiency with light armor, and if it is a humanoid or has a simple or martial weapon in its stat block, it also gains proficiency with all simple weapons.`,
 			},
@@ -386,7 +377,7 @@ function d20plusNpcSidekickData () {
 				features.push({
 					level: lvl,
 					name: "Spellcasting Advancement",
-					isTodo: true,
+					isTodo: false,
 					source: sourcePage,
 					description: lines.join(". ") + `. You may also replace one known spell with another from the ${spellList} list.`,
 				});
@@ -398,7 +389,7 @@ function d20plusNpcSidekickData () {
 			features.push({
 				level: lvl,
 				name: "Ability Score Improvement",
-				isTodo: true,
+				isTodo: false,
 				source: sourcePage,
 				description: "Increase one ability score by 2, or two ability scores by 1 each (max 20). Alternatively, take a feat if your DM allows it.",
 			});
@@ -415,7 +406,7 @@ function d20plusNpcSidekickData () {
 		features.push({
 			level: 14,
 			name: "Empowered Spells",
-			isTodo: true,
+			isTodo: false,
 			source: sourcePage,
 			description: "Choose one school of magic. Whenever the sidekick casts a spell of that school by expending a slot, it can add its spellcasting ability modifier to the damage or healing roll.",
 		});
@@ -467,7 +458,6 @@ function d20plusNpcSidekickData () {
 	d20plus.sidekickData.typeLabel = function (type) {
 		return {
 			expert: "Expert",
-			warrior: "Warrior",
 			"warrior-attacker": "Warrior (Attacker)",
 			"warrior-defender": "Warrior (Defender)",
 			mage: "Mage (Spellcaster)",

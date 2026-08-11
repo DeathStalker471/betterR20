@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.36.1.1lg-theoctonaut-test";
+const SCRIPT_VERSION = "1.36.1.1lh-theoctonaut-test";
 const SCRIPT_REPO = "https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-sidekick-pb-cr-render-fix/dist/";
 const SCRIPT_NAME_PREFIX = "betteR20-theoctonaut-test";
 
@@ -54,7 +54,7 @@ function getHeader (name, info) {
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
 // @version      ${SCRIPT_VERSION}
-// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-fix-requested-change
+// @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-sidekick-pb-cr-render-fix
 // @supportURL   https://github.com/TheOctonaut/betterR20/pull/2
 // @updateURL    ${SCRIPT_REPO}betteR20-${name}.meta.js
 // @downloadURL  ${SCRIPT_REPO}betteR20-${name}.user.js

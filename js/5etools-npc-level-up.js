@@ -105,7 +105,7 @@ function d20plusNpcLevelUp () {
 			saves: { maxChoices: 1, options: ["Dexterity", "Intelligence", "Charisma"] },
 			skills: { maxChoices: 5, options: ["Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation", "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion", "Sleight of Hand", "Stealth", "Survival"] },
 		},
-		warrior: {
+		__warriorShared: {
 			saves: { maxChoices: 1, options: ["Strength", "Dexterity", "Constitution"] },
 			skills: { maxChoices: 2, options: ["Acrobatics", "Animal Handling", "Athletics", "Intimidation", "Nature", "Perception", "Survival"] },
 		},
@@ -122,9 +122,9 @@ function d20plusNpcLevelUp () {
 			skills: { maxChoices: 2, options: ["Arcana", "History", "Insight", "Investigation", "Medicine", "Performance", "Persuasion", "Religion"] },
 		},
 	};
-	// The Attacker/Defender warrior types share the warrior proficiency options
-	SIDEKICK_BONUS_PROFICIENCY_CONFIG["warrior-attacker"] = SIDEKICK_BONUS_PROFICIENCY_CONFIG.warrior;
-	SIDEKICK_BONUS_PROFICIENCY_CONFIG["warrior-defender"] = SIDEKICK_BONUS_PROFICIENCY_CONFIG.warrior;
+	// The Attacker/Defender warrior types share one proficiency rules block.
+	SIDEKICK_BONUS_PROFICIENCY_CONFIG["warrior-attacker"] = SIDEKICK_BONUS_PROFICIENCY_CONFIG.__warriorShared;
+	SIDEKICK_BONUS_PROFICIENCY_CONFIG["warrior-defender"] = SIDEKICK_BONUS_PROFICIENCY_CONFIG.__warriorShared;
 
 	/**
 	 * Parse a CR string ("1/8", "1/4", "1/2", "1", "20", etc.) to a number.
@@ -999,53 +999,53 @@ function d20plusNpcLevelUp () {
 
 	/**
 	 * Render the ASI picker for one ASI instance.
-	 * instanceIndex: 0-based index used for input names (asiMode-0, asiAbility1-0, asiAbility2-0)
+	 * instanceIndex: 0-based index used for input names (asiFeat-0, asiAbility1-0, asiAbility2-0)
 	 */
 	function renderAsiPicker (scores, instanceIndex, asiLevel) {
 		const i = instanceIndex;
 		const abilityOptions = ASI_ABILITIES.map(ab =>
 			`<option value="${ab}">${ab} (${scores[ab] ?? 10})</option>`
 		).join("");
-		const featOptions = (d20plus.sidekickData.getFeatOptionsForLevel ? d20plus.sidekickData.getFeatOptionsForLevel(asiLevel) : [])
-			.map(f => `<option value="${f.name}|${f.source}">${f.name}</option>`).join("");
-		const featRow = featOptions
-			? `
-					<label class="b20-asi-mode-label">
-						<input type="radio" name="asiMode${i}" value="feat">
-						<span>Feat instead:</span>
-						<select name="asiFeat-${i}" style="margin-left:6px;max-width:260px">
-							<option value="">— choose a feat —</option>
-							${featOptions}
-						</select>
-					</label>`
-			: "";
+		const featOptions = [{name: "Ability Score Improvement", source: "betterR20", isAsi: true}]
+			.concat(d20plus.sidekickData.getFeatOptionsForLevel ? d20plus.sidekickData.getFeatOptionsForLevel(asiLevel) : []);
+		const featOptionsHtml = featOptions
+			.map(f => `<option value="${f.name}|${f.source}">${f.name}</option>`)
+			.join("");
 		return `
 			<div class="b20-asi-instance" data-asi-index="${i}">
 				<p style="margin:0 0 6px;font-weight:600;font-size:12px;color:#334155">ASI gained at level ${asiLevel}</p>
-				<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
-					<label class="b20-asi-mode-label">
-						<input type="radio" name="asiMode${i}" value="one" checked>
-						<span>+2 to one score:</span>
-						<select name="asiAbility1-${i}" style="margin-left:6px">
-							${abilityOptions}
+				<div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+					<label class="b20-asi-mode-label" style="gap:8px">
+						<span style="min-width:72px;font-weight:600">Feat:</span>
+						<select name="asiFeat-${i}" style="max-width:300px">
+							${featOptionsHtml}
 						</select>
 					</label>
-					<label class="b20-asi-mode-label">
-						<input type="radio" name="asiMode${i}" value="two">
-						<span>+1 to two scores:</span>
-						<select name="asiAbilityA-${i}" style="margin-left:6px">
-							${abilityOptions}
-						</select>
-						<span style="margin:0 6px">and</span>
-						<select name="asiAbilityB-${i}" style="margin-left:0">
-							${abilityOptions.replace(/<option value="Strength"/, '<option value="Strength" selected')}
-						</select>
-					</label>${featRow}
+					<div class="b20-asi-score-controls" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+						<label class="b20-asi-mode-label">
+							<input type="radio" name="asiMode${i}" value="one" checked>
+							<span>+2 to one score:</span>
+							<select name="asiAbility1-${i}" style="margin-left:6px">
+								${abilityOptions}
+							</select>
+						</label>
+						<label class="b20-asi-mode-label">
+							<input type="radio" name="asiMode${i}" value="two">
+							<span>+1 to two scores:</span>
+							<select name="asiAbilityA-${i}" style="margin-left:6px">
+								${abilityOptions}
+							</select>
+							<span style="margin:0 6px">and</span>
+							<select name="asiAbilityB-${i}" style="margin-left:0">
+								${abilityOptions.replace(/<option value="Strength"/, '<option value="Strength" selected')}
+							</select>
+						</label>
+					</div>
 				</div>
-				${featRow ? `<div class="b20-asi-feat-note" style="margin:8px 0 0;display:none;padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc">
+				<div class="b20-asi-feat-note" style="margin:8px 0 0;display:none;padding:8px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#f8fafc">
 					<div style="font-size:11px;color:#64748b;margin-bottom:4px">The feat's text is added as a trait; apply any mechanical effects manually.</div>
 					<div class="b20-asi-feat-preview" style="font-size:12px;line-height:1.4;color:#334155;white-space:pre-wrap">Choose a feat to preview its effects.</div>
-				</div>` : ""}
+				</div>
 			</div>
 		`;
 	}
@@ -1066,13 +1066,12 @@ function d20plusNpcLevelUp () {
 				${pickersHtml}
 			</div>
 		`);
-		// Wire mode radio to enable/disable the correct selects
-		$container.find("input[type=radio]").on("change", function () {
-			updateAsiSelectState($container);
-		});
 		$container.find("select[name^='asiFeat-']").on("change", function () {
 			const $inst = $(this).closest(".b20-asi-instance");
 			updateAsiFeatPreview($inst, $inst.data("asi-index"));
+		});
+		$container.find("input[type=radio]").on("change", function () {
+			updateAsiSelectState($container);
 		});
 		updateAsiSelectState($container);
 	}
@@ -1081,12 +1080,16 @@ function d20plusNpcLevelUp () {
 		$container.find(".b20-asi-instance").each((_, el) => {
 			const $inst = $(el);
 			const idx = $inst.data("asi-index");
-			const mode = $inst.find(`input[name="asiMode${idx}"]:checked`).val() || "one";
-			$inst.find(`select[name="asiAbility1-${idx}"]`).prop("disabled", mode !== "one");
-			$inst.find(`select[name="asiAbilityA-${idx}"], select[name="asiAbilityB-${idx}"]`).prop("disabled", mode !== "two");
-			$inst.find(`select[name="asiFeat-${idx}"]`).prop("disabled", mode !== "feat");
-			$inst.find(".b20-asi-feat-note").css("display", mode === "feat" ? "block" : "none");
-			if (mode === "feat") updateAsiFeatPreview($inst, idx);
+			const featVal = $inst.find(`select[name="asiFeat-${idx}"]`).val() || "";
+			const [featName] = featVal.split("|");
+			const isAsi = featName === "Ability Score Improvement";
+			const mode = isAsi ? ($inst.find(`input[name="asiMode${idx}"]:checked`).val() || "one") : "feat";
+			$inst.find(`input[name="asiMode${idx}"]`).prop("disabled", !isAsi);
+			$inst.find(".b20-asi-score-controls").css("display", isAsi ? "flex" : "none");
+			$inst.find(`select[name="asiAbility1-${idx}"]`).prop("disabled", !isAsi || mode !== "one");
+			$inst.find(`select[name="asiAbilityA-${idx}"], select[name="asiAbilityB-${idx}"]`).prop("disabled", !isAsi || mode !== "two");
+			$inst.find(".b20-asi-feat-note").css("display", isAsi ? "none" : "block");
+			if (!isAsi) updateAsiFeatPreview($inst, idx);
 		});
 	}
 
@@ -1116,27 +1119,31 @@ function d20plusNpcLevelUp () {
 		const asiChoices = [];
 		const asiInstances = [];
 		for (let i = 0; i < asiFeatures.length; i++) {
-			const mode = $dialog.find(`input[name="asiMode${i}"]:checked`).val() || "one";
-			if (mode === "one") {
+			const featVal = $dialog.find(`select[name="asiFeat-${i}"]`).val();
+			if (!featVal) return { ok: false, message: `Select a feat for ASI ${i + 1}.` };
+			const [featName, featSource] = featVal.split("|");
+			if (featName === "Ability Score Improvement") {
+				const mode = $dialog.find(`input[name="asiMode${i}"]:checked`).val() || "one";
 				const ability = $dialog.find(`select[name="asiAbility1-${i}"]`).val();
-				if (!ability) return { ok: false, message: `Select an ability score for ASI ${i + 1}.` };
-				asiChoices.push({ ability, bonus: 2 });
-				asiInstances.push({ mode, choiceDesc: `+2 ${ability}` });
-			} else if (mode === "two") {
-				const abilityA = $dialog.find(`select[name="asiAbilityA-${i}"]`).val();
-				const abilityB = $dialog.find(`select[name="asiAbilityB-${i}"]`).val();
-				if (!abilityA || !abilityB) return { ok: false, message: `Select both ability scores for ASI ${i + 1}.` };
-				if (abilityA === abilityB) return { ok: false, message: `ASI ${i + 1}: choose two different ability scores for the +1/+1 option.` };
-				asiChoices.push({ ability: abilityA, bonus: 1 }, { ability: abilityB, bonus: 1 });
-				asiInstances.push({ mode, choiceDesc: `+1 ${abilityA}, +1 ${abilityB}` });
+				if (mode === "one") {
+					if (!ability) return { ok: false, message: `Select an ability score for ASI ${i + 1}.` };
+					asiChoices.push({ ability, bonus: 2 });
+					asiInstances.push({ mode, choiceDesc: `+2 ${ability}` });
+				} else if (mode === "two") {
+					const abilityA = $dialog.find(`select[name="asiAbilityA-${i}"]`).val();
+					const abilityB = $dialog.find(`select[name="asiAbilityB-${i}"]`).val();
+					if (!abilityA || !abilityB) return { ok: false, message: `Select both ability scores for ASI ${i + 1}.` };
+					if (abilityA === abilityB) return { ok: false, message: `ASI ${i + 1}: choose two different ability scores for the +1/+1 option.` };
+					asiChoices.push({ ability: abilityA, bonus: 1 }, { ability: abilityB, bonus: 1 });
+					asiInstances.push({ mode, choiceDesc: `+1 ${abilityA}, +1 ${abilityB}` });
+				} else {
+					return { ok: false, message: `Choose an Ability Score Improvement mode for ASI ${i + 1}.` };
+				}
 			} else {
-				const featVal = $dialog.find(`select[name="asiFeat-${i}"]`).val();
-				if (!featVal) return { ok: false, message: `Select a feat for ASI ${i + 1} (or pick an ability score option).` };
-				const [featName, featSource] = featVal.split("|");
 				const featData = d20plus.sidekickData.getFeatByName(featName, featSource);
 				if (!featData) return { ok: false, message: `Feat "${featName}" not found in the bundled data.` };
 				const text = d20plus.sidekickData.entriesToText(featData.entries);
-				asiInstances.push({ mode, choiceDesc: `Feat: ${featName}`, feat: { name: featName, source: featSource, page: featData.page, text } });
+				asiInstances.push({ mode: "feat", choiceDesc: `Feat: ${featName}`, feat: { name: featName, source: featSource, page: featData.page, text } });
 			}
 		}
 		return { ok: true, asiChoices, asiInstances };
