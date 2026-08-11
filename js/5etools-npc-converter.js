@@ -218,6 +218,7 @@ function d20plusNpcConverter () {
 
 							save2024NpcState(newCharacter, store);
 							save2024NpcNames(newCharacter, sourceAttrMap);
+							newCharacter.save({tags: converterTags, tags_string: converterTags});
 							saveConverterMeta(newCharacter, character);
 							writeConverterDisplayStats(newCharacter, store, sourceAttrMap);
 							window.__npcConverterLastCharacter = cloneForDebug(newCharacter?.attributes || newCharacter);

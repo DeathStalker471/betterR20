@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = "1.36.1.1la-theoctonaut-test";
+const SCRIPT_VERSION = "1.36.1.1lb-theoctonaut-test";
 const SCRIPT_REPO = "https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-sidekick-pb-cr-render-fix/dist/";
 const SCRIPT_NAME_PREFIX = "betteR20-theoctonaut-test";
 
