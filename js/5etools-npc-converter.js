@@ -253,6 +253,7 @@ function d20plusNpcConverter () {
 					$("#journalitemmenu").hide();
 					const character = getConverterCharacterFromJournalContext();
 					if (!character) return alert("No character found.");
+					await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
 					if (!canConvertCharacter(character)) return alert("The selected character is not a compatible 2014 NPC sheet.");
 
 					const charName = character.get("name") || "Unnamed character";
