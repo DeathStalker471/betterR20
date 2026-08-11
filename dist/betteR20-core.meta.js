@@ -2,7 +2,7 @@
 // @name         betteR20-theoctonaut-test-core
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.1lc-theoctonaut-test
+// @version      1.36.1.1ld-theoctonaut-test
 // @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-fix-requested-change
 // @supportURL   https://github.com/TheOctonaut/betterR20/pull/2
 // @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-sidekick-pb-cr-render-fix/dist/betteR20-core.meta.js

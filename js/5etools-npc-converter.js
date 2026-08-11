@@ -100,6 +100,17 @@ function d20plusNpcConverter () {
 			return d20plus.importer.getTagString(tags, "creature");
 		}
 
+		function persistConverterTags (character, tags) {
+			const run = (label) => {
+				character.save({tags, tags_string: tags});
+				const live = character.get("tags");
+				console.log(`betterR20 NPC converter tags persist [${label}]: requested="${tags}", live="${live || ""}"`);
+			};
+			run("immediate");
+			setTimeout(() => run("500ms"), 500);
+			setTimeout(() => run("1500ms"), 1500);
+		}
+
 		function cloneForDebug (value) { return d20plus.store2024.cloneForDebug(value); }
 		function logDebugJson (label, value) { return d20plus.store2024.logDebugJson(label, value); }
 
@@ -206,8 +217,7 @@ function d20plusNpcConverter () {
 
 							save2024NpcState(newCharacter, store);
 							save2024NpcNames(newCharacter, sourceAttrMap);
-							newCharacter.save({tags: converterTags, tags_string: converterTags});
-							setTimeout(() => newCharacter.save({tags: converterTags, tags_string: converterTags}), 500);
+							persistConverterTags(newCharacter, converterTags);
 							saveConverterMeta(newCharacter, character);
 							writeConverterDisplayStats(newCharacter, store, sourceAttrMap);
 							window.__npcConverterLastCharacter = cloneForDebug(newCharacter?.attributes || newCharacter);
@@ -220,6 +230,7 @@ function d20plusNpcConverter () {
 
 							if (newCharacter.view && typeof newCharacter.view.showNewVueFrame === "function") newCharacter.view.showNewVueFrame();
 							await waitAndReconcileConvertedState(newCharacter, store, sourceAttrMap);
+							persistConverterTags(newCharacter, converterTags);
 							resolve(newCharacter);
 						} catch (e) {
 							reject(e);
