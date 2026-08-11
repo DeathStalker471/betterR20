@@ -5,8 +5,8 @@
 // @version      1.36.1.1kz-theoctonaut-test
 // @homepageURL  https://github.com/TheOctonaut/betterR20/tree/theoctonaut-fix-requested-change
 // @supportURL   https://github.com/TheOctonaut/betterR20/pull/2
-// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-fix-requested-change/dist/betteR20-core.meta.js
-// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-fix-requested-change/dist/betteR20-core.user.js
+// @updateURL    https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-sidekick-pb-cr-render-fix/dist/betteR20-core.meta.js
+// @downloadURL  https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-sidekick-pb-cr-render-fix/dist/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
 // @author       TheGiddyLimit/Redweller
 
@@ -33,7 +33,7 @@ CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
 B20_VERSION = `1.36.1.1kz-theoctonaut-test`;
-B20_REPO_URL = `https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-fix-requested-change/dist/`;
+B20_REPO_URL = `https://raw.githubusercontent.com/TheOctonaut/betterR20/theoctonaut-sidekick-pb-cr-render-fix/dist/`;
 
 // TODO automate to use mirror if main site is unavailable
 BASE_SITE_URL = `https://5e.tools/`; // "https://5e.tools/";
