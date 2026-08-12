@@ -128,6 +128,10 @@ function initHTMLroll20EditorsMisc () {
 								<button class='btn character-json-import'>Overwrite JSON</button>
 								<a class='showtip pictos' title='Export or overwrite this character as JSON. Overwriting will replace this sheet&#39;s data.'>?</a>
 							</div>
+							<div style="margin-top: 8px;">
+								<button class='btn character-npc-convert-2024'>Convert 2014 NPC to 2024 Copy</button>
+								<a class='showtip pictos' title='Create a new Journal character using the 2024 NPC sheet store format, reusing this 2014 NPC&#39;s available data.'>?</a>
+							</div>
 							<div class='clear'></div>
 							<$ if(window.is_gm) { $>
 							<hr>

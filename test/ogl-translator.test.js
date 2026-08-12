@@ -322,10 +322,15 @@ describe('Languages', () => {
 // Defenses
 // ---------------------------------------------------------------------------
 describe('Defenses', () => {
+	// Field names (`damage`/`condition`, not `damageType`/`conditionType`) and the
+	// "Features" (plural) integrant type below match what the already-verified
+	// drag-and-drop importers (5etools-2024-monster-import.js, 5etools-2024-race-import.js)
+	// already produce for these same integrant types - this file had drifted from
+	// that convention.
 	test('creates Resistance Defense integrants from npc_resistances', () => {
 		const store = translate(attrs({ npc_resistances: 'fire, cold' }));
 		const defs = intsByType(store, 'Defense').filter(d => d.defense === 'Resistance');
-		const names = defs.map(d => d.damageType);
+		const names = defs.map(d => d.damage);
 		expect(names).toContain('Fire');
 		expect(names).toContain('Cold');
 	});
@@ -333,7 +338,7 @@ describe('Defenses', () => {
 	test('creates Immunity Defense integrants from npc_immunities', () => {
 		const store = translate(attrs({ npc_immunities: 'poison, psychic' }));
 		const defs = intsByType(store, 'Defense').filter(d => d.defense === 'Immunity');
-		const names = defs.map(d => d.damageType);
+		const names = defs.map(d => d.damage);
 		expect(names).toContain('Poison');
 		expect(names).toContain('Psychic');
 	});
@@ -341,13 +346,13 @@ describe('Defenses', () => {
 	test('creates Vulnerability Defense integrants from npc_vulnerabilities', () => {
 		const store = translate(attrs({ npc_vulnerabilities: 'bludgeoning' }));
 		const defs = intsByType(store, 'Defense').filter(d => d.defense === 'Vulnerability');
-		expect(defs[0].damageType).toBe('Bludgeoning');
+		expect(defs[0].damage).toBe('Bludgeoning');
 	});
 
 	test('creates Condition Immunity Defense integrants from npc_condition_immunities', () => {
 		const store = translate(attrs({ npc_condition_immunities: 'charmed, frightened' }));
 		const defs = intsByType(store, 'Defense').filter(d => d.defense === 'Condition Immunity');
-		const types = defs.map(d => d.conditionType);
+		const types = defs.map(d => d.condition);
 		expect(types).toContain('Charmed');
 		expect(types).toContain('Frightened');
 	});
@@ -355,7 +360,7 @@ describe('Defenses', () => {
 	test('capitalizes damage type correctly', () => {
 		const store = translate(attrs({ npc_resistances: 'FIRE' }));
 		const defs = intsByType(store, 'Defense');
-		expect(defs[0].damageType).toBe('Fire');
+		expect(defs[0].damage).toBe('Fire');
 	});
 });
 
@@ -370,9 +375,9 @@ describe('Traits', () => {
 		];
 	}
 
-	test('creates a Feature integrant from a repeating trait', () => {
+	test('creates a Features integrant from a repeating trait', () => {
 		const store = translate(traitAttrs('abc123', 'Keen Senses', 'Advantage on Perception.'));
-		const features = intsByType(store, 'Feature');
+		const features = intsByType(store, 'Features');
 		expect(features).toHaveLength(1);
 		expect(features[0].name).toBe('Keen Senses');
 		expect(features[0].description).toBe('Advantage on Perception.');
@@ -380,7 +385,7 @@ describe('Traits', () => {
 
 	test('ignores traits with no name', () => {
 		const store = translate([{ name: 'repeating_npctrait_zz1_description', current: 'Some text' }]);
-		expect(intsByType(store, 'Feature')).toHaveLength(0);
+		expect(intsByType(store, 'Features')).toHaveLength(0);
 	});
 
 	test('creates multiple traits', () => {
@@ -388,7 +393,7 @@ describe('Traits', () => {
 			...traitAttrs('t1', 'Pack Tactics', 'Advantage when ally is adjacent.'),
 			...traitAttrs('t2', 'Rampage', 'Can make bonus bite attack.'),
 		]);
-		expect(intsByType(store, 'Feature')).toHaveLength(2);
+		expect(intsByType(store, 'Features')).toHaveLength(2);
 	});
 });
 
