@@ -48,10 +48,13 @@ function d20plus2024OGLTranslator() {
 		const parts = speedStr.split(",").map(s => s.trim());
 
 		for (const part of parts) {
-			const match = part.match(/(?:(\w+)\s+)?(\d+)\s*(?:ft\.?)?/i);
+			// Trailing "(hover)" etc. is captured separately from the leading type word, so a
+			// speed like "fly 60 ft. (hover)" is detected via `note`, not via the typeMap below.
+			const match = part.match(/(?:(\w+)\s+)?(\d+)\s*(?:ft\.?)?\s*(\(([^)]+)\))?/i);
 			if (match) {
 				let type = match[1] ? match[1].toLowerCase() : "walk";
 				const value = parseInt(match[2], 10);
+				const note = match[4] ? match[4].trim() : "";
 
 				const typeMap = {
 					"walk": "Walking",
@@ -62,6 +65,7 @@ function d20plus2024OGLTranslator() {
 					"hover": "Flying",
 				};
 				type = typeMap[type] || "Walking";
+				if (type === "Flying" && note.toLowerCase() === "hover") type = "Flying (Hover)";
 
 				speeds.push({ type, value });
 			}
@@ -77,13 +81,14 @@ function d20plus2024OGLTranslator() {
 		const parts = sensesStr.split(",").map(s => s.trim());
 
 		for (const part of parts) {
+			if (/^passive perception\b/i.test(part)) continue;
 			const match = part.match(/(\w+)\s+(\d+)\s*(?:ft\.?)?/i);
 			if (match) {
 				let type = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
 				const value = parseInt(match[2], 10);
 
 				const validSenses = ["Darkvision", "Blindsight", "Tremorsense", "Truesight"];
-				if (validSenses.includes(type)) {
+				if (validSenses.includes(type) && value > 0) {
 					senses.push({ type, value });
 				}
 			}
@@ -263,6 +268,7 @@ function d20plus2024OGLTranslator() {
 			valueFormula: { flatValue: hpMax },
 		};
 		store.hitpoints.currentHP = hpMax;
+		if (attrMap["npc_hpformula"]) store.npc.rollHP = String(attrMap["npc_hpformula"]).replace(/\s/g, "");
 
 		// Armor Class
 		const ac = parseInt(attrMap["npc_ac"] || attrMap["ac"] || "10", 10);
@@ -274,15 +280,32 @@ function d20plus2024OGLTranslator() {
 			name: "",
 			valueFormula: { flatValue: ac },
 		};
+		store.npc.acNotes = attrMap["npc_actype"] || "";
 
 		// NPC Type, Size, Alignment
 		const npcTypeStr = attrMap["npc_type"] || "";
 		const { size, creatureType, alignment } = parseNpcType(npcTypeStr);
 		store.about.characteristics = { size, creatureType, alignment };
+		const npcDisplayName = (attrMap["npc_name"] || "").trim();
+		if (npcDisplayName) store.about.characteristics.species = npcDisplayName;
 		store.character.creatureType = creatureType;
 
 		// Challenge Rating
-        store.npc.challengeRating = attrMap["npc_challenge"] || "0";
+		const cr = attrMap["npc_challenge"] || "0";
+		store.npc.challengeRating = cr;
+		const passivePerception = parseInt(
+			attrMap["passive"]
+			|| attrMap["npc_passive"]
+			|| attrMap["passive_wisdom"]
+			|| "0",
+			10,
+		);
+		const perceptionBonus = parseInt(attrMap["npc_perception"] || attrMap["perception_bonus"] || "0", 10);
+		if (passivePerception > 0) store.npc.passivePerceptionOverride = passivePerception;
+		else if (!Number.isNaN(perceptionBonus)) store.npc.passivePerceptionOverride = 10 + perceptionBonus;
+		store.npc.gear = store.npc.gear || "Any";
+		store.npc.habitat = store.npc.habitat || "Any";
+		store.npc.treasure = store.npc.treasure || "Any";
 
 		// Speeds
 		const speedStr = attrMap["npc_speed"] || "30 ft.";
@@ -311,6 +334,84 @@ function d20plus2024OGLTranslator() {
 			};
 		}
 
+		// Saving Throws
+		const saveAbilityMap = {
+			str: "Strength",
+			dex: "Dexterity",
+			con: "Constitution",
+			int: "Intelligence",
+			wis: "Wisdom",
+			cha: "Charisma",
+		};
+		Object.entries(saveAbilityMap).forEach(([key, abilityName]) => {
+			const saveVal = attrMap[`npc_${key}_save`];
+			const saveFlag = attrMap[`npc_${key}_save_flag`];
+			const hasNumericSave = saveVal !== undefined && saveVal !== null && `${saveVal}`.trim() !== "";
+			const isExplicitlyProficient = `${saveFlag || ""}` === "1";
+			// OGL sheets can emit npc_*_save = "0" for non-proficient saves.
+			// Only create save proficiency when the sheet explicitly marks it
+			// proficient, or when a concrete save bonus value is present.
+			if (!hasNumericSave && !isExplicitlyProficient) return;
+			if (hasNumericSave && parseInt(`${saveVal}`.trim() || "0", 10) === 0 && !isExplicitlyProficient) return;
+
+			const { id, base } = createIntegrantBase("Proficiency");
+			integrants[id] = {
+				...base,
+				name: "Saving Throw Proficiency",
+				category: "Saving Throw",
+				proficiency: abilityName,
+				proficiencyLevel: "Proficient",
+				increaseIfAlreadyAt: false,
+				rollAbility: "Query Attribute",
+				notes: "",
+				cascades: {},
+				relations: {},
+			};
+		});
+
+		// Skills
+		const skillNameMap = {
+			acrobatics: "Acrobatics",
+			"animal_handling": "Animal Handling",
+			arcana: "Arcana",
+			athletics: "Athletics",
+			deception: "Deception",
+			history: "History",
+			insight: "Insight",
+			intimidation: "Intimidation",
+			investigation: "Investigation",
+			medicine: "Medicine",
+			nature: "Nature",
+			perception: "Perception",
+			performance: "Performance",
+			persuasion: "Persuasion",
+			religion: "Religion",
+			"sleight_of_hand": "Sleight of Hand",
+			stealth: "Stealth",
+			survival: "Survival",
+		};
+		Object.entries(skillNameMap).forEach(([skillKey, skillName]) => {
+			const skillValRaw = attrMap[`npc_${skillKey}`];
+			const skillFlagRaw = attrMap[`npc_${skillKey}_flag`];
+			const skillVal = parseInt(skillValRaw || "0", 10);
+			const skillFlag = parseInt(skillFlagRaw || "0", 10);
+			if ((!skillValRaw && !skillFlagRaw) || Number.isNaN(skillVal) || skillFlag <= 0) return;
+
+			const { id, base } = createIntegrantBase("Proficiency");
+			integrants[id] = {
+				...base,
+				name: "Skill Proficiency",
+				category: "Skill",
+				proficiency: skillName,
+				proficiencyLevel: "Proficient",
+				increaseIfAlreadyAt: false,
+				rollAbility: "Query Attribute",
+				notes: "",
+				cascades: {},
+				relations: {},
+			};
+		});
+
 		// Languages
 		const languagesStr = attrMap["npc_languages"] || "";
 		if (languagesStr) {
@@ -324,6 +425,9 @@ function d20plus2024OGLTranslator() {
 			}
 		}
 
+		// Defenses - match native 2024 sheet fields
+		const cap = v => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+
 		// Defenses - Resistances
 		const resistancesStr = attrMap["npc_resistances"] || "";
 		if (resistancesStr) {
@@ -332,9 +436,11 @@ function d20plus2024OGLTranslator() {
 				const { id, base } = createIntegrantBase("Defense");
 				integrants[id] = {
 					...base,
-					name: res,
+					name: `Resistance: ${cap(res)}`,
 					defense: "Resistance",
-					damageType: res.charAt(0).toUpperCase() + res.slice(1).toLowerCase(),
+					damage: cap(res),
+					cascades: {},
+					relations: {},
 				};
 			}
 		}
@@ -347,9 +453,11 @@ function d20plus2024OGLTranslator() {
 				const { id, base } = createIntegrantBase("Defense");
 				integrants[id] = {
 					...base,
-					name: imm,
+					name: `Immunity: ${cap(imm)}`,
 					defense: "Immunity",
-					damageType: imm.charAt(0).toUpperCase() + imm.slice(1).toLowerCase(),
+					damage: cap(imm),
+					cascades: {},
+					relations: {},
 				};
 			}
 		}
@@ -362,9 +470,11 @@ function d20plus2024OGLTranslator() {
 				const { id, base } = createIntegrantBase("Defense");
 				integrants[id] = {
 					...base,
-					name: vuln,
+					name: `Vulnerability: ${cap(vuln)}`,
 					defense: "Vulnerability",
-					damageType: vuln.charAt(0).toUpperCase() + vuln.slice(1).toLowerCase(),
+					damage: cap(vuln),
+					cascades: {},
+					relations: {},
 				};
 			}
 		}
@@ -377,23 +487,31 @@ function d20plus2024OGLTranslator() {
 				const { id, base } = createIntegrantBase("Defense");
 				integrants[id] = {
 					...base,
-					name: cond,
+					name: `Condition Immunity: ${cap(cond)}`,
 					defense: "Condition Immunity",
-					conditionType: cond.charAt(0).toUpperCase() + cond.slice(1).toLowerCase(),
+					condition: cap(cond),
+					cascades: {},
+					relations: {},
 				};
 			}
 		}
 
 		// Traits (as Features)
+		const traitDisplayOrder = [];
 		for (const [, trait] of Object.entries(repeatingTraits)) {
 			if (!trait.name) continue;
-			const { id, base } = createIntegrantBase("Feature");
+			const { id, base } = createIntegrantBase("Features");
 			integrants[id] = {
 				...base,
 				name: trait.name,
 				description: trait.description || trait.desc || "",
+				source: "Species",
+				cascades: {},
+				relations: {},
 			};
+			traitDisplayOrder.push(id);
 		}
+		store.features.speciesTraitsDisplayOrder = JSON.stringify(traitDisplayOrder);
 
 		// Actions/Attacks
 		const actionDisplayOrder = [];
@@ -554,6 +672,8 @@ function d20plus2024OGLTranslator() {
 		store.actions.mythicActionDisplayOrder = JSON.stringify(mythicActionDisplayOrder);
 		store.attacks.attackDisplayOrder = JSON.stringify(attackDisplayOrder);
 		store.spells.displayOrder = spellDisplayOrder.map(arr => JSON.stringify(arr));
+		store.spells.generalSpellSettings = store.spells.generalSpellSettings || {};
+		store.spells.generalSpellSettings.showPreparedBar = Object.values(repeatingSpells).some(sp => sp.spellname);
 
 		return store;
 	};
