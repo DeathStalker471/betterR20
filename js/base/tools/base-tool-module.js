@@ -501,10 +501,9 @@ function baseToolModule () {
 										break;
 									}
 									case "characters": {
-										const charSheetName = (typeof d20plus.importer?.shouldUse2024 === "function" && d20plus.importer.shouldUse2024())
-											? d20plus.cfg.getOrDefault("import", "importSheetFormat")
-											: entry.attributes.charactersheetname;
-										const charAttrs = {...entry.attributes, charactersheetname: charSheetName};
+										// Always honor the configured Import Sheet Format, regardless of which
+										// sheet it resolves to — don't just leave whatever the source entry had.
+										const charAttrs = {...entry.attributes, charactersheetname: d20plus.cfg.getOrDefault("import", "importSheetFormat")};
 
 										// 1. Save the old Character ID before we delete it!
 										const oldCharId = charAttrs.id;
