@@ -7,6 +7,22 @@ function d20plusNpcConverter () {
 		const CONVERTER_META_ATTR = "b20_converter_meta";
 		const CONVERTER_RECONCILE_DELAY_MS = 2500;
 
+		// "Convert to 2024 Copy" means 2024, unconditionally - it must NOT defer to the global
+		// Import Sheet Format config the way Overwrite JSON does, since that config might be
+		// sitting on a 2014 sheet for an unrelated reason (e.g. someone was just testing a 2014
+		// import) and silently converting "to 2024" into a 2014 copy would be exactly backwards
+		// from what the button promises. Prefer whatever 2024 sheet key is actually available in
+		// this campaign; only fall back to the config value if it already happens to be a 2024 key.
+		function getForced2024SheetKey () {
+			try {
+				const sheetsObj = d20.journal.characterSheetsManager?.sheets || {};
+				const found = Object.keys(sheetsObj).find(k => d20plus.import2024.IS_2024_SHEET.has(k));
+				if (found) return found;
+			} catch (e) { /* fall through to config */ }
+			const configured = d20plus.cfg.getOrDefault("import", "importSheetFormat");
+			return d20plus.import2024.IS_2024_SHEET.has(configured) ? configured : null;
+		}
+
 		function getConverterCharacterFromEvent (event) {
 			const $target = $(event.target);
 			const $characterRoot = $target.closest(`[data-characterid]`);
@@ -28,12 +44,25 @@ function d20plusNpcConverter () {
 				console.log("betterR20 NPC converter canConvertCharacter: false (no character)");
 				return false;
 			}
-			const is2014 = isNpc2014Sheet(character);
+			const isNpc = isNpc2014Sheet(character);
+			const isPc = !isNpc && isPc2014Sheet(character);
 			const is2024 = d20plus.import2024.isNpc2024Sheet(character);
-			const hasTranslator = !!d20plus.importer?.translateOGLTo2024Store;
-			const ok = is2014 && !is2024 && hasTranslator;
-			console.log(`betterR20 NPC converter canConvertCharacter("${character.get("name") || "?"}"): is2014=${is2014}, is2024=${is2024}, hasTranslator=${hasTranslator}, result=${ok}`);
+			const hasNpcTranslator = !!d20plus.importer?.translateOGLTo2024Store;
+			const hasPcTranslator = !!d20plus.importer?.translatePcOGLTo2024Store;
+			const ok = (isNpc || isPc) && !is2024 && (isNpc ? hasNpcTranslator : hasPcTranslator);
+			console.log(`betterR20 NPC converter canConvertCharacter("${character.get("name") || "?"}"): isNpc=${isNpc}, isPc=${isPc}, is2024=${is2024}, result=${ok}`);
 			return ok;
+		}
+
+		// A PC sheet has no npc="1" flag, but does have flat ability scores plus a class/race/level
+		// field - distinctive enough to tell it apart from a blank or unrelated character sheet.
+		function isPc2014Sheet (character) {
+			const attrMap = getConverterAttrMap(character);
+			if (`${attrMap.npc || ""}` === "1") return false;
+			const hasAbilityScores = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
+				.every(name => attrMap[name] !== undefined);
+			const hasClassOrRace = attrMap.class !== undefined || attrMap.race !== undefined || attrMap.level !== undefined;
+			return hasAbilityScores && hasClassOrRace;
 		}
 
 		function getConverterAttrMap (character) {
@@ -176,17 +205,33 @@ function d20plusNpcConverter () {
 		async function convertCharacter (character) {
 			character.attribs.fetch(character.attribs);
 
-			if (!isNpc2014Sheet(character)) throw new Error("The selected character is not a compatible 2014 NPC sheet.");
-			if (d20plus.import2024.isNpc2024Sheet(character)) throw new Error("The selected character already appears to be a 2024 NPC sheet.");
-			if (!d20plus.importer?.translateOGLTo2024Store) throw new Error("2024 import support is not available.");
+			const isNpc = isNpc2014Sheet(character);
+			const isPc = !isNpc && isPc2014Sheet(character);
+			if (!isNpc && !isPc) throw new Error("The selected character is not a compatible 2014 character sheet.");
+			if (d20plus.import2024.isNpc2024Sheet(character)) throw new Error("The selected character already appears to be a 2024 sheet.");
+			if (isNpc && !d20plus.importer?.translateOGLTo2024Store) throw new Error("2024 NPC import support is not available.");
+			if (isPc && !d20plus.importer?.translatePcOGLTo2024Store) throw new Error("2024 PC import support is not available.");
+			const targetSheetKey = getForced2024SheetKey();
+			if (!targetSheetKey) throw new Error("No 2024 sheet is available in this campaign to convert to.");
 
-			const store = d20plus.importer.translateOGLTo2024Store(character.attribs.toJSON());
-			window.__npcConverterLastSourceAttribs = cloneForDebug(character.attribs.toJSON());
-			window.__npcConverterLastStore = cloneForDebug(store);
-			logDebugJson("betterR20 NPC converter source attribs", window.__npcConverterLastSourceAttribs);
-			logDebugJson("betterR20 NPC converter translated 2024 store", window.__npcConverterLastStore);
+			const sourceAttribs = character.attribs.toJSON();
 			const sourceAttrMap = getConverterAttrMap(character);
-			normalizeConverterStoreFields(store, sourceAttrMap);
+			window.__npcConverterLastSourceAttribs = cloneForDebug(sourceAttribs);
+			logDebugJson("betterR20 NPC converter source attribs", window.__npcConverterLastSourceAttribs);
+
+			// NPCs: translateOGLTo2024Store builds the whole store synchronously up front (no
+			// character needed yet), then we write it onto the freshly-created character below.
+			// PCs: translatePcOGLTo2024Store instead needs a real, already-created character to
+			// write into directly (it interleaves several import2024* store round-trips), so it
+			// runs inside the create() success callback instead.
+			let npcStore = null;
+			if (isNpc) {
+				npcStore = d20plus.importer.translateOGLTo2024Store(sourceAttribs);
+				normalizeConverterStoreFields(npcStore, sourceAttrMap);
+				window.__npcConverterLastStore = cloneForDebug(npcStore);
+				logDebugJson("betterR20 NPC converter translated 2024 store", window.__npcConverterLastStore);
+			}
+
 			const sourceAttributes = {...character.attributes};
 			delete sourceAttributes.id;
 			const converterTags = buildConverterTags(sourceAttrMap);
@@ -195,7 +240,7 @@ function d20plusNpcConverter () {
 				d20.Campaign.characters.create({
 					...sourceAttributes,
 					name: getConvertedName(character),
-					charactersheetname: d20plus.cfg.getOrDefault("import", "importSheetFormat"),
+					charactersheetname: targetSheetKey,
 					inplayerjournals: sourceAttributes.inplayerjournals || "",
 					controlledby: sourceAttributes.controlledby || "",
 					tags: converterTags,
@@ -203,7 +248,7 @@ function d20plusNpcConverter () {
 				}, {
 					success: async (newCharacter) => {
 						try {
-							if (d20plus.importer._setDefaultTokenImage) {
+							if (isNpc && d20plus.importer._setDefaultTokenImage) {
 								await d20plus.importer._setDefaultTokenImage(
 									newCharacter,
 									{
@@ -215,11 +260,16 @@ function d20plusNpcConverter () {
 								);
 							}
 
-							save2024NpcState(newCharacter, store);
-							save2024NpcNames(newCharacter, sourceAttrMap);
+							if (isNpc) {
+								save2024NpcState(newCharacter, npcStore);
+								save2024NpcNames(newCharacter, sourceAttrMap);
+								writeConverterDisplayStats(newCharacter, npcStore, sourceAttrMap);
+							} else {
+								const pcSummary = await d20plus.importer.translatePcOGLTo2024Store(newCharacter, sourceAttribs);
+								logDebugJson("betterR20 NPC converter PC conversion summary", pcSummary);
+							}
 							persistConverterTags(newCharacter, converterTags);
 							saveConverterMeta(newCharacter, character);
-							writeConverterDisplayStats(newCharacter, store, sourceAttrMap);
 							window.__npcConverterLastCharacter = cloneForDebug(newCharacter?.attributes || newCharacter);
 							logDebugJson("betterR20 NPC converter created character", window.__npcConverterLastCharacter);
 
@@ -229,8 +279,10 @@ function d20plusNpcConverter () {
 							if (folderContext?.folderId) d20.journal.addItemToFolderStructure(newCharacter.id, folderContext.folderId);
 
 							if (newCharacter.view && typeof newCharacter.view.showNewVueFrame === "function") newCharacter.view.showNewVueFrame();
-							await waitAndReconcileConvertedState(newCharacter, store, sourceAttrMap);
-							persistConverterTags(newCharacter, converterTags);
+							if (isNpc) {
+								await waitAndReconcileConvertedState(newCharacter, npcStore, sourceAttrMap);
+								persistConverterTags(newCharacter, converterTags);
+							}
 							resolve(newCharacter);
 						} catch (e) {
 							reject(e);
@@ -246,14 +298,14 @@ function d20plusNpcConverter () {
 			if (!character) return alert("No character found.");
 
 			const charName = character.get("name") || "Unnamed character";
-			if (!window.confirm(`Create a new 2024 NPC copy of "${charName}"?`)) return;
+			if (!window.confirm(`Create a new 2024 copy of "${charName}"?`)) return;
 
 			try {
 				const converted = await convertCharacter(character);
-				alert(`Created "${converted.get("name")}" as a new 2024 NPC.`);
+				alert(`Created "${converted.get("name")}" as a new 2024 character.`);
 			} catch (e) {
 				console.error("betterR20 NPC converter error:", e);
-				alert(`Failed to convert "${charName}" to a 2024 NPC. See the console for details.`);
+				alert(`Failed to convert "${charName}" to 2024. See the console for details.`);
 			}
 		};
 
@@ -273,6 +325,22 @@ function d20plusNpcConverter () {
 				else $menu.append($entry);
 			};
 
+			// Same show/hide-on-right-click pattern base-journal.js already uses for
+			// .Vetools-make-tokenactions / .b20-change-avatar - toggles the menu entry based on
+			// whichever journal item was actually right-clicked, before the menu is shown. Only
+			// checks charactersheetname (a plain top-level model field, always available - no
+			// attribs fetch needed) - the full NPC-vs-PC-vs-incompatible check still runs for real
+			// at click time via canConvertCharacter, this is just "is it already 2024 or not".
+			$("#journalfolderroot").on("contextmenu", ".dd-content", function () {
+				const $itemHandle = $(this).parent();
+				const $entry = $(".Vetools-convert-npc-2024");
+				if (!$itemHandle.hasClass("character")) return $entry.hide();
+				const character = d20.Campaign.characters.get($itemHandle.data("itemid"));
+				const already2024 = character && d20plus.import2024.IS_2024_SHEET.has(character.get("charactersheetname"));
+				if (already2024) $entry.hide();
+				else $entry.show();
+			});
+
 			$("#journalitemmenu ul")
 				.off(window.mousedowntype, "li[data-action-type=convertnpc2024]")
 				.on(window.mousedowntype, "li[data-action-type=convertnpc2024]", async function () {
@@ -280,17 +348,17 @@ function d20plusNpcConverter () {
 					const character = getConverterCharacterFromJournalContext();
 					if (!character) return alert("No character found.");
 					await new Promise(resolve => character.attribs.fetch({success: resolve, error: resolve}));
-					if (!canConvertCharacter(character)) return alert("The selected character is not a compatible 2014 NPC sheet.");
+					if (!canConvertCharacter(character)) return alert("The selected character is not a compatible 2014 character sheet (NPC or PC).");
 
 					const charName = character.get("name") || "Unnamed character";
-					if (!window.confirm(`Create a new 2024 NPC copy of "${charName}"?`)) return;
+					if (!window.confirm(`Create a new 2024 copy of "${charName}"?`)) return;
 
 					try {
 						const converted = await convertCharacter(character);
-						alert(`Created "${converted.get("name")}" as a new 2024 NPC.`);
+						alert(`Created "${converted.get("name")}" as a new 2024 character.`);
 					} catch (e) {
 						console.error("betterR20 NPC converter error:", e);
-						alert(`Failed to convert "${charName}" to a 2024 NPC. See the console for details.`);
+						alert(`Failed to convert "${charName}" to 2024. See the console for details.`);
 					}
 				});
 
