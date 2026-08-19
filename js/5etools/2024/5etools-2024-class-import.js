@@ -7,7 +7,11 @@ function d20plus2024ClassImport() {
     // saves on the same "store" attribute, which raced against Roll20's own async sync of the
     // first save and threw inside their bundle (destroy/push happening before the previous
     // syncedSave's callback had resolved).
-    d20plus.importer.import2024Class = async function (charModel, data, _batchStore) {
+    // Non-interactive core: takes the target level as a parameter instead of prompting for it.
+    // import2024Class (below) is a thin wrapper that resolves the prompt then delegates here -
+    // this is what callers that already know the target level (e.g. the PC JSON converter) call
+    // directly, same pattern as import2024Subclass's existing forcedLevel parameter.
+    d20plus.importer.import2024ClassAtLevel = async function (charModel, data, targetLevel, _batchStore) {
         const clss = data.Vetoolscontent;
         if (!clss || !clss.classFeatures) return;
 
@@ -59,20 +63,13 @@ function d20plus2024ClassImport() {
             const existingLevels = Object.values(ints).filter(i => i.type === "Class Level" && (i.parentID === classId || i.classID === classId));
             const currentMax = existingLevels.length ? Math.max(...existingLevels.map(l => l.level)) : 0;
 
-            const levelInput = prompt(`${clss.name} is already on this character at level ${currentMax}. Level up to what level? (${currentMax + 1}-20)`, String(Math.min(20, currentMax + 1)));
-            if (levelInput === null) return;
-            const requested = Math.min(20, parseInt(levelInput, 10) || currentMax);
-            if (!Number.isInteger(requested) || requested <= currentMax) {
-                alert(`${clss.name} is already level ${currentMax} - enter a higher level to level up.`);
-                return;
-            }
+            const requested = Math.min(20, targetLevel || currentMax);
+            if (!Number.isInteger(requested) || requested <= currentMax) return; // already at/above target - nothing to do
             startLevel = currentMax + 1;
             maxLevel = requested;
             classChildren = JSON.parse(existingClassInt.childIDs || "[]");
         } else {
-            const levelInput = prompt(`Import ${clss.name} at what level? (1-20)`, "1");
-            if (levelInput === null) return;
-            maxLevel = Math.min(20, Math.max(1, parseInt(levelInput, 10) || 1));
+            maxLevel = Math.min(20, Math.max(1, targetLevel || 1));
             startLevel = 1;
             classChildren = [];
         }
@@ -326,6 +323,46 @@ function d20plus2024ClassImport() {
         } finally {
             if (!_batchStore) releaseLock();
         }
+    };
+
+    // Interactive wrapper: prompts for the target level (same messages as before this was split
+    // out), then delegates to the non-interactive core above. Peeking the store read-only here
+    // purely to build the right prompt message/default is a cheap duplicate of the core's own
+    // existing-class scan - the core re-derives it for real under its own lock, so this never
+    // needs to be kept in sync with what actually gets written.
+    d20plus.importer.import2024Class = async function (charModel, data, _batchStore) {
+        const clss = data.Vetoolscontent;
+        if (!clss || !clss.classFeatures) return;
+
+        let peekStore = _batchStore;
+        if (!peekStore) {
+            await d20plus.ut.fetchCharAttribs(charModel);
+            ({store: peekStore} = classCtx.getStore(charModel));
+            if (!peekStore) return;
+        }
+        const peekInts = peekStore.integrants.integrants;
+        const existingEntry = Object.entries(peekInts).find(([, i]) => i.type === "Class" && classCtx.splitDisplayName(i.name).bareName === clss.name.toLowerCase());
+
+        let targetLevel;
+        if (existingEntry) {
+            const existingLevels = Object.values(peekInts).filter(i => i.type === "Class Level" && (i.parentID === existingEntry[0] || i.classID === existingEntry[0]));
+            const currentMax = existingLevels.length ? Math.max(...existingLevels.map(l => l.level)) : 0;
+
+            const levelInput = prompt(`${clss.name} is already on this character at level ${currentMax}. Level up to what level? (${currentMax + 1}-20)`, String(Math.min(20, currentMax + 1)));
+            if (levelInput === null) return;
+            const requested = Math.min(20, parseInt(levelInput, 10) || currentMax);
+            if (!Number.isInteger(requested) || requested <= currentMax) {
+                alert(`${clss.name} is already level ${currentMax} - enter a higher level to level up.`);
+                return;
+            }
+            targetLevel = requested;
+        } else {
+            const levelInput = prompt(`Import ${clss.name} at what level? (1-20)`, "1");
+            if (levelInput === null) return;
+            targetLevel = Math.min(20, Math.max(1, parseInt(levelInput, 10) || 1));
+        }
+
+        return d20plus.importer.import2024ClassAtLevel(charModel, data, targetLevel, _batchStore);
     };
 
     // Entry point for the hijacked native "Level Up" button - it has no drag payload to work
