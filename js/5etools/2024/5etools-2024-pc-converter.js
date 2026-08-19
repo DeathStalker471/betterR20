@@ -336,7 +336,13 @@ function d20plus2024PcConverter() {
 		}
 
 		// ---- Leftover trait rows / feats: written as plain text "Features" stubs, same pattern
-		// feat-import.js already uses (no mechanical effects - see file docblock). ----
+		// feat-import.js already uses (no mechanical effects - see file docblock). Only for rows
+		// NOT already covered by a successful import2024Race/Background/ClassAtLevel call above -
+		// e.g. Dragonborn species traits already got written properly (with real mechanics, under
+		// Species Traits) by import2024Race, so re-stubbing them here from repeating_traits text
+		// would just duplicate them under Other. This only catches genuinely uncovered content:
+		// homebrew traits, non-English names that failed to resolve, or features from a class that
+		// itself failed to resolve (e.g. a class name in another language).
 		if (traitRows.length) {
 			const releaseLock = await pcCtx.pAcquireStoreLock(charModel);
 			try {
@@ -344,16 +350,23 @@ function d20plus2024PcConverter() {
 				const {attr: storeAttr, store: liveStore} = pcCtx.getStore(charModel);
 				if (liveStore) {
 					const liveInts = liveStore.integrants.integrants;
+					const existingNames = new Set(
+						Object.values(liveInts)
+							.filter(i => i.type === "Features" && i.name)
+							.map(i => i.name.trim().toLowerCase()),
+					);
 					let livePos = pcCtx.getNextArrayPos(liveStore);
 					const stubIds = [];
 					traitRows.forEach(row => {
 						if (!row.name) return;
+						if (existingNames.has(row.name.trim().toLowerCase())) return;
 						const {id, base} = pcCtx.makeIntegrantBase("Features", livePos++);
 						liveInts[id] = {
 							...base, name: row.name, recordName: row.name, description: row.description || "",
 							source: row.source || "Trait", parentID: "", childIDs: "[]", cascades: {}, relations: {},
 						};
 						stubIds.push(id);
+						existingNames.add(row.name.trim().toLowerCase());
 					});
 					if (stubIds.length) {
 						pcCtx.pushDisplayOrder(liveStore, "features", "otherDisplayOrder", stubIds);
