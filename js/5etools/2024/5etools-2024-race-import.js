@@ -1,10 +1,16 @@
 function d20plus2024RaceImport() {
 	const raceCtx = d20plus.import2024;
 
-	d20plus.importer.import2024Race = function (charModel, data) {
+	d20plus.importer.import2024Race = async function (charModel, data) {
 		const race = data.Vetoolscontent;
 		if (!race) return;
 
+		// Force-load attribs before reading the store - on a freshly-opened character sheet, Roll20
+		// may not have finished hydrating charModel.attribs yet, which could make getStore() silently
+		// miss the real store attribute and no-op this import for no visible reason.
+		const releaseLock = await raceCtx.pAcquireStoreLock(charModel);
+		try {
+		await d20plus.ut.fetchCharAttribs(charModel);
 		const {attr: storeAttr, store} = raceCtx.getStore(charModel);
 		if (!store) return;
 
@@ -156,6 +162,9 @@ function d20plus2024RaceImport() {
 		raceCtx.pushDisplayOrder(store, "features", "speciesTraitsDisplayOrder", speciesFeatureIds);
 
 		raceCtx.saveStore(charModel, storeAttr, store);
+		} finally {
+			releaseLock();
+		}
 	};
 }
 SCRIPT_EXTENSIONS.push(d20plus2024RaceImport);

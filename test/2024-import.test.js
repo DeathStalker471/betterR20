@@ -15,20 +15,20 @@ beforeAll(() => {
 // Sheet detection
 // ---------------------------------------------------------------------------
 describe('Sheet detection', () => {
-	test('is2024Sheet returns true for all known 2024 sheet keys', () => {
+	test('is2024Sheet returns true for all known 2024 sheet keys', async () => {
 		expect(ctx.d20plus.importer.is2024Sheet('dnd_2024')).toBe(true);
 		expect(ctx.d20plus.importer.is2024Sheet('DnD2024_Character_Sheet')).toBe(true);
 		expect(ctx.d20plus.importer.is2024Sheet('dnd2024')).toBe(true);
 		expect(ctx.d20plus.importer.is2024Sheet('dnd2024byroll20')).toBe(true);
 	});
 
-	test('is2024Sheet returns false for non-2024 sheets', () => {
+	test('is2024Sheet returns false for non-2024 sheets', async () => {
 		expect(ctx.d20plus.importer.is2024Sheet('ogl5e')).toBe(false);
 		expect(ctx.d20plus.importer.is2024Sheet('shaped_d20')).toBe(false);
 		expect(ctx.d20plus.importer.is2024Sheet('')).toBe(false);
 	});
 
-	test('shouldUse2024 reflects the cfg importSheetFormat setting', () => {
+	test('shouldUse2024 reflects the cfg importSheetFormat setting', async () => {
 		// env mock returns 'dnd_2024' for importSheetFormat → should be true
 		expect(ctx.d20plus.importer.shouldUse2024()).toBe(true);
 	});
@@ -42,7 +42,7 @@ describe('OGL → 2024 translation (translateOGLTo2024Store)', () => {
 		return { name, current, max: max !== undefined ? max : '' };
 	}
 
-	test('maps all six ability scores', () => {
+	test('maps all six ability scores', async () => {
 		const attribs = [
 			attrib('strength', '18'), attrib('dexterity', '14'),
 			attrib('constitution', '16'), attrib('intelligence', '10'),
@@ -55,7 +55,7 @@ describe('OGL → 2024 translation (translateOGLTo2024Store)', () => {
 		expect(scores.find(i => i.ability === 'Charisma').valueFormula.flatValue).toBe(8);
 	});
 
-	test('reads HP from the max field of the hp attribute', () => {
+	test('reads HP from the max field of the hp attribute', async () => {
 		const store = ctx.d20plus.importer.translateOGLTo2024Store([attrib('hp', '20', '45')]);
 		const hp    = Object.values(store.integrants.integrants).find(i => i.type === 'Hit Points');
 		expect(hp).toBeDefined();
@@ -63,32 +63,32 @@ describe('OGL → 2024 translation (translateOGLTo2024Store)', () => {
 		expect(store.hitpoints.currentHP).toBe(45);
 	});
 
-	test('maps npc_ac to an Armor Class integrant', () => {
+	test('maps npc_ac to an Armor Class integrant', async () => {
 		const store = ctx.d20plus.importer.translateOGLTo2024Store([attrib('npc_ac', '17')]);
 		const ac    = Object.values(store.integrants.integrants).find(i => i.type === 'Armor Class');
 		expect(ac).toBeDefined();
 		expect(ac.valueFormula.flatValue).toBe(17);
 	});
 
-	test('maps npc_challenge to store.npc.challengeRating', () => {
+	test('maps npc_challenge to store.npc.challengeRating', async () => {
 		const store = ctx.d20plus.importer.translateOGLTo2024Store([attrib('npc_challenge', '5')]);
 		expect(store.npc.challengeRating).toBe('5');
 	});
 
-	test('parses multi-speed npc_speed into Speed integrants', () => {
+	test('parses multi-speed npc_speed into Speed integrants', async () => {
 		const store  = ctx.d20plus.importer.translateOGLTo2024Store([attrib('npc_speed', '40 ft., fly 60 ft.')]);
 		const speeds = Object.values(store.integrants.integrants).filter(i => i.type === 'Speed');
 		expect(speeds.find(s => s.name === 'Walking' && s.valueFormula.flatValue === 40)).toBeDefined();
 		expect(speeds.find(s => s.name === 'Flying'  && s.valueFormula.flatValue === 60)).toBeDefined();
 	});
 
-	test('creates Sense integrants for darkvision in npc_senses', () => {
+	test('creates Sense integrants for darkvision in npc_senses', async () => {
 		const store  = ctx.d20plus.importer.translateOGLTo2024Store([attrib('npc_senses', 'darkvision 60 ft.')]);
 		const senses = Object.values(store.integrants.integrants).filter(i => i.type === 'Sense');
 		expect(senses.find(s => s.name === 'Darkvision' && s.valueFormula.flatValue === 60)).toBeDefined();
 	});
 
-	test('creates Defense integrants for resistances and immunities', () => {
+	test('creates Defense integrants for resistances and immunities', async () => {
 		const store    = ctx.d20plus.importer.translateOGLTo2024Store([
 			attrib('npc_resistances', 'fire, cold'),
 			attrib('npc_immunities',  'poison'),
@@ -98,7 +98,7 @@ describe('OGL → 2024 translation (translateOGLTo2024Store)', () => {
 		expect(defenses.filter(d => d.defense === 'Immunity')).toHaveLength(1);
 	});
 
-	test('maps a melee repeating action with attack flag to an Attack integrant', () => {
+	test('maps a melee repeating action with attack flag to an Attack integrant', async () => {
 		const attribs = [
 			attrib('repeating_npcaction_abc_name',           'Claw'),
 			attrib('repeating_npcaction_abc_attack_flag',    'on'),
@@ -112,7 +112,7 @@ describe('OGL → 2024 translation (translateOGLTo2024Store)', () => {
 		expect(attack.attack.type).toBe('Melee');
 	});
 
-	test('maps a non-attack action to an Action integrant', () => {
+	test('maps a non-attack action to an Action integrant', async () => {
 		const attribs = [
 			attrib('repeating_npcaction_xyz_name',        'Frightful Presence'),
 			attrib('repeating_npcaction_xyz_description', 'Each creature...'),
@@ -122,7 +122,7 @@ describe('OGL → 2024 translation (translateOGLTo2024Store)', () => {
 		expect(action).toBeDefined();
 	});
 
-	test('maps legendary actions', () => {
+	test('maps legendary actions', async () => {
 		const attribs = [
 			attrib('repeating_npcaction-l_leg1_name',        'Detect'),
 			attrib('repeating_npcaction-l_leg1_description', 'The dragon...'),
@@ -157,7 +157,7 @@ describe('Monster store builder (build2024Store)', () => {
 
 	function ints (store) { return Object.values(store.integrants.integrants); }
 
-	test('creates all six ability score integrants', () => {
+	test('creates all six ability score integrants', async () => {
 		const store  = ctx.d20plus.monsters.build2024Store(base, renderer);
 		const scores = ints(store).filter(i => i.type === 'Ability Score');
 		expect(scores).toHaveLength(6);
@@ -165,7 +165,7 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(scores.find(i => i.ability === 'Dexterity').valueFormula.flatValue).toBe(10);
 	});
 
-	test('creates HP integrant using hp.average', () => {
+	test('creates HP integrant using hp.average', async () => {
 		const store = ctx.d20plus.monsters.build2024Store(base, renderer);
 		const hp    = ints(store).find(i => i.type === 'Hit Points');
 		expect(hp).toBeDefined();
@@ -173,14 +173,14 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(store.hitpoints.currentHP).toBe(195);
 	});
 
-	test('creates Armor Class integrant', () => {
+	test('creates Armor Class integrant', async () => {
 		const store = ctx.d20plus.monsters.build2024Store(base, renderer);
 		const ac    = ints(store).find(i => i.type === 'Armor Class');
 		expect(ac).toBeDefined();
 		expect(ac.valueFormula.flatValue).toBe(19);
 	});
 
-	test('creates Speed integrants for walk, fly, swim', () => {
+	test('creates Speed integrants for walk, fly, swim', async () => {
 		const store  = ctx.d20plus.monsters.build2024Store(base, renderer);
 		const speeds = ints(store).filter(i => i.type === 'Speed');
 		expect(speeds.find(s => s.name === 'Walking' && s.valueFormula.flatValue === 40)).toBeDefined();
@@ -188,12 +188,12 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(speeds.find(s => s.name === 'Swimming' && s.valueFormula.flatValue === 40)).toBeDefined();
 	});
 
-	test('sets challenge rating on store.npc', () => {
+	test('sets challenge rating on store.npc', async () => {
 		const store = ctx.d20plus.monsters.build2024Store(base, renderer);
 		expect(store.npc.challengeRating).toBe('17');
 	});
 
-	test('creates a Sense integrant for darkvision', () => {
+	test('creates a Sense integrant for darkvision', async () => {
 		// Pass senses as a string to avoid cross-realm instanceof Array issues in the vm context.
 		const monster = { ...base, senses: 'darkvision 120 ft.' };
 		const store   = ctx.d20plus.monsters.build2024Store(monster, renderer);
@@ -202,41 +202,41 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(dv.valueFormula.flatValue).toBe(120);
 	});
 
-	test('creates Proficiency integrants for saving throws', () => {
+	test('creates Proficiency integrants for saving throws', async () => {
 		const monster = { ...base, save: { str: '+9', con: '+11' } };
 		const store   = ctx.d20plus.monsters.build2024Store(monster, renderer);
 		const saves   = ints(store).filter(i => i.type === 'Proficiency' && i.category === 'Saving Throw');
 		expect(saves).toHaveLength(2);
 	});
 
-	test('creates Proficiency integrants for skills', () => {
+	test('creates Proficiency integrants for skills', async () => {
 		const monster = { ...base, skill: { Perception: '+8', Stealth: '+6' } };
 		const store   = ctx.d20plus.monsters.build2024Store(monster, renderer);
 		const skills  = ints(store).filter(i => i.type === 'Proficiency' && i.category === 'Skill');
 		expect(skills).toHaveLength(2);
 	});
 
-	test('creates Defense integrants for resistances', () => {
+	test('creates Defense integrants for resistances', async () => {
 		const monster     = { ...base, resist: ['fire', 'cold'] };
 		const store       = ctx.d20plus.monsters.build2024Store(monster, renderer);
 		const resistances = ints(store).filter(i => i.type === 'Defense' && i.defense === 'Resistance');
 		expect(resistances.length).toBeGreaterThanOrEqual(2);
 	});
 
-	test('creates Defense integrants for condition immunities', () => {
+	test('creates Defense integrants for condition immunities', async () => {
 		const monster    = { ...base, conditionImmune: ['frightened', 'charmed'] };
 		const store      = ctx.d20plus.monsters.build2024Store(monster, renderer);
 		const conditions = ints(store).filter(i => i.type === 'Defense' && i.defense === 'Condition Immunity');
 		expect(conditions).toHaveLength(2);
 	});
 
-	test('creates Action integrant for non-attack actions', () => {
+	test('creates Action integrant for non-attack actions', async () => {
 		const monster = { ...base, action: [{ name: 'Multiattack', entries: ['The dragon makes three attacks.'] }] };
 		const store   = ctx.d20plus.monsters.build2024Store(monster, renderer);
 		expect(ints(store).find(i => i.name === 'Multiattack')).toBeDefined();
 	});
 
-	test('creates Attack + Damage integrants for attack actions', () => {
+	test('creates Attack + Damage integrants for attack actions', async () => {
 		const monster = {
 			...base,
 			action: [{
@@ -251,7 +251,7 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(ints(store).find(i => i.type === 'Damage')).toBeDefined();
 	});
 
-	test('creates legendary action integrants', () => {
+	test('creates legendary action integrants', async () => {
 		const monster = {
 			...base,
 			legendary:       [{ name: 'Detect', entries: ['The dragon detects...'] }],
@@ -261,7 +261,7 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(store.npc.legendaryActionCount).toBe(3);
 	});
 
-	test('creates Features integrants for monster traits', () => {
+	test('creates Features integrants for monster traits', async () => {
 		const monster = {
 			...base,
 			trait: [
@@ -274,7 +274,7 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(ints(store).find(i => i.type === 'Features' && i.name === 'Keen Smell')).toBeDefined();
 	});
 
-	test('creates Action integrants for bonus actions', () => {
+	test('creates Action integrants for bonus actions', async () => {
 		const monster = {
 			...base,
 			bonus: [{ name: 'Cunning Action', entries: ['The rogue takes the Dash, Disengage, or Hide action.'] }],
@@ -285,7 +285,7 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(ba.name).toBe('Cunning Action');
 	});
 
-	test('creates Action integrants for reactions', () => {
+	test('creates Action integrants for reactions', async () => {
 		const monster = {
 			...base,
 			reaction: [{ name: 'Parry', entries: ['The knight adds 2 to its AC against one melee attack.'] }],
@@ -296,7 +296,7 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(react.name).toBe('Parry');
 	});
 
-	test('creates Action integrants for mythic actions', () => {
+	test('creates Action integrants for mythic actions', async () => {
 		const monster = {
 			...base,
 			mythic: [{ name: 'Mythic Step', entries: ['The creature teleports up to 60 feet.'] }],
@@ -307,7 +307,7 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(mythic.name).toBe('Mythic Step');
 	});
 
-	test('creates an Action integrant for a spellcasting block', () => {
+	test('creates an Action integrant for a spellcasting block', async () => {
 		const monster = {
 			...base,
 			spellcasting: [{ name: 'Spellcasting', ability: 'int', entries: ['The mage casts spells...'] }],
@@ -318,21 +318,21 @@ describe('Monster store builder (build2024Store)', () => {
 		expect(scAction.actionType).toBe('Action');
 	});
 
-	test('creates Defense integrants for damage immunities', () => {
+	test('creates Defense integrants for damage immunities', async () => {
 		const monster = { ...base, immune: ['poison', 'fire'] };
 		const store   = ctx.d20plus.monsters.build2024Store(monster, renderer);
 		const imms    = ints(store).filter(i => i.type === 'Defense' && i.defense === 'Immunity');
 		expect(imms.length).toBeGreaterThanOrEqual(2);
 	});
 
-	test('creates Defense integrants for vulnerabilities', () => {
+	test('creates Defense integrants for vulnerabilities', async () => {
 		const monster = { ...base, vulnerable: ['bludgeoning', 'fire'] };
 		const store   = ctx.d20plus.monsters.build2024Store(monster, renderer);
 		const vulns   = ints(store).filter(i => i.type === 'Defense' && i.defense === 'Vulnerability');
 		expect(vulns.length).toBeGreaterThanOrEqual(2);
 	});
 
-	test('creates Language integrants from a language string', () => {
+	test('creates Language integrants from a language string', async () => {
 		// Pass as string to avoid cross-realm instanceof Array issue in the vm context
 		const monster = { ...base, languages: 'Common, Elvish, Draconic' };
 		const store   = ctx.d20plus.monsters.build2024Store(monster, renderer);
@@ -348,7 +348,7 @@ describe('Monster store builder (build2024Store)', () => {
 describe('Spell import (import2024Spell batch mode)', () => {
 	const nullModel = { attribs: { find: () => null } };
 
-	test('creates a Spell integrant for a basic levelled spell', () => {
+	test('creates a Spell integrant for a basic levelled spell', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Fireball',
@@ -360,7 +360,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(spell.school).toBe('Evocation');
 	});
 
-	test('places spell in the correct displayOrder slot', () => {
+	test('places spell in the correct displayOrder slot', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Cure Wounds',
@@ -369,7 +369,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(JSON.parse(store.spells.displayOrder[1])).toHaveLength(1);
 	});
 
-	test('places a cantrip in slot 0', () => {
+	test('places a cantrip in slot 0', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Fire Bolt',
@@ -378,7 +378,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(JSON.parse(store.spells.displayOrder[0])).toHaveLength(1);
 	});
 
-	test('builds Attack + Damage chain for a saving-throw spell with Vetoolscontent', () => {
+	test('builds Attack + Damage chain for a saving-throw spell with Vetoolscontent', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Fireball',
@@ -401,7 +401,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(all.find(i => i.type === 'Damage')).toBeDefined();
 	});
 
-	test('marks the save.onSucceed field when spell deals half on success', () => {
+	test('marks the save.onSucceed field when spell deals half on success', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Ice Storm',
@@ -422,7 +422,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(attack && attack.save && attack.save.onSucceed).toBeTruthy();
 	});
 
-	test('creates a Healing integrant for a spell with HL miscTag', () => {
+	test('creates a Healing integrant for a spell with HL miscTag', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Cure Wounds',
@@ -440,12 +440,86 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		}, store);
 		const heal = Object.values(store.integrants.integrants).find(i => i.type === 'Healing');
 		expect(heal).toBeDefined();
-		expect(heal.diceCount).toBe(1);
+		expect(heal._diceCount).toBe(1);
 		expect(heal.diceSize).toBe('d8');
 		expect(heal.isTemp).toBe(false);
 	});
 
-	test('sets isTemp on the Healing integrant for a THP spell', () => {
+	test('Heal (2014/PHB text): an untagged flat healing amount ("HL" tag, no THP) builds a Healing + Upcasting integrant, matching Roll20\'s own genuine compendium output (_bonus: 70, isTemp: false, upcast startingLevel: 7, "Heal Healing"/"Heal Healing Upcast" naming - a "HL" spell mechanizes the same as a "THP" one)', () => {
+		const store = makeBatchStore();
+		ctx.d20plus.importer.import2024Spell(nullModel, {
+			name: 'Heal',
+			data: { 'Level': '6', 'Components': 'V, S', 'School': 'Evocation', 'Casting Time': 'Action', 'Range': '60 feet', 'Duration': 'Instantaneous', 'data-description': '' },
+			Vetoolscontent: {
+				level: 6, school: 'V',
+				time:     [{ number: 1, unit: 'action' }],
+				range:    { type: 'point', distance: { amount: 60, type: 'feet' } },
+				duration: [{ type: 'instant' }],
+				components: { v: true, s: true },
+				miscTags:   ['HL', 'SGT'],
+				entries:    ['Choose a creature that you can see within range. A surge of positive energy washes through the creature, causing it to regain 70 hit points.'],
+				entriesHigherLevel: [{
+					type: 'entries', name: 'At Higher Levels',
+					entries: ['When you cast this spell using a spell slot of 7th level or higher, the amount of healing increases by 10 for each slot level above 6th.'],
+				}],
+			},
+		}, store);
+		const all = Object.values(store.integrants.integrants);
+		expect(all).toHaveLength(3); // Spell, Healing, Upcasting
+
+		const heal = all.find(i => i.type === 'Healing');
+		expect(heal).toBeDefined();
+		expect(heal._diceCount).toBeUndefined();
+		expect(heal.diceSize).toBe('');
+		expect(heal._bonus).toBe(70);
+		expect(heal.isTemp).toBe(false);
+		expect(heal.name).toBe('Heal Healing');
+
+		const upcast = all.find(i => i.type === 'Upcasting');
+		expect(upcast).toBeDefined();
+		expect(upcast.target).toBe('$._bonus');
+		expect(upcast.value).toBe(10);
+		expect(upcast.startingLevel).toBe(7);
+		expect(upcast.name).toBe('Heal Healing Upcast');
+	});
+
+	test('Heal (2024/XPHB text, verbatim from data/spells/spells-xphb.json): "restoring N Hit Points" prose + a {@scaledice base|N-M|flatValue} tagged upcast both parse correctly - this is what live Roll20 testing actually exercises on the 2024 sheet, and it uses completely different phrasing/tagging than the 2014 text above', async () => {
+		const store = makeBatchStore();
+		ctx.d20plus.importer.import2024Spell(nullModel, {
+			name: 'Heal',
+			data: { 'Level': '6', 'Components': 'V, S', 'School': 'Abjuration', 'Casting Time': 'Action', 'Range': '60 feet', 'Duration': 'Instantaneous', 'data-description': '' },
+			Vetoolscontent: {
+				level: 6, school: 'A',
+				time:     [{ number: 1, unit: 'action' }],
+				range:    { type: 'point', distance: { amount: 60, type: 'feet' } },
+				duration: [{ type: 'instant' }],
+				components: { v: true, s: true },
+				miscTags:   ['HL', 'SGT'],
+				entries:    ['Choose a creature that you can see within range. Positive energy washes through the target, restoring 70 {@variantrule Hit Points|XPHB}. This spell also ends the {@condition Blinded|XPHB}, {@condition Deafened|XPHB}, and {@condition Poisoned|XPHB} conditions on the target.'],
+				entriesHigherLevel: [{
+					type: 'entries', name: 'Using a Higher-Level Spell Slot',
+					entries: ['The healing increases by {@scaledice 70|6-9|10} for each spell slot level above 6.'],
+				}],
+			},
+		}, store);
+		const all = Object.values(store.integrants.integrants);
+		expect(all).toHaveLength(3); // Spell, Healing, Upcasting
+
+		const heal = all.find(i => i.type === 'Healing');
+		expect(heal).toBeDefined();
+		expect(heal._diceCount).toBeUndefined();
+		expect(heal.diceSize).toBe('');
+		expect(heal._bonus).toBe(70);
+		expect(heal.isTemp).toBe(false);
+
+		const upcast = all.find(i => i.type === 'Upcasting');
+		expect(upcast).toBeDefined();
+		expect(upcast.target).toBe('$._bonus');
+		expect(upcast.value).toBe(10);
+		expect(upcast.startingLevel).toBe(7);
+	});
+
+	test('sets isTemp on the Healing integrant for a THP spell', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'False Life',
@@ -466,7 +540,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(heal.isTemp).toBe(true);
 	});
 
-	test('creates an Attack with type Spell Attack for a ranged spell attack roll', () => {
+	test('creates an Attack with type Spell Attack for a ranged spell attack roll', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Guiding Bolt',
@@ -488,7 +562,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(attack.attack.type).toBe('Spell Attack');
 	});
 
-	test('creates only a Spell integrant for a utility spell with no damage, save, or attack', () => {
+	test('creates only a Spell integrant for a utility spell with no damage, save, or attack', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Mage Armor',
@@ -509,7 +583,118 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(all.find(i => i.type === 'Damage')).toBeUndefined();
 	});
 
-	test('creates multiple Damage integrants for a multi-damage-type spell', () => {
+	test('Armor of Agathys: reactive auto-hit damage + temporary HP built from untagged flat prose (2024/XPHB text, verbatim from data/spells/spells-xphb.json - ground-truth regression matching Roll20\'s own compendium output)', () => {
+		const store = makeBatchStore();
+		ctx.d20plus.importer.import2024Spell(nullModel, {
+			name: 'Armor of Agathys',
+			data: { 'Level': '1', 'Components': 'V, S, M', 'School': 'Abjuration', 'Casting Time': 'Bonus Action', 'Range': 'Self', 'Duration': '1 hour', 'data-description': '' },
+			Vetoolscontent: {
+				level: 1, school: 'A',
+				time:     [{ number: 1, unit: 'bonus' }],
+				range:    { type: 'point', distance: { type: 'self' } },
+				duration: [{ type: 'timed', duration: { type: 'hour', amount: 1 } }],
+				components: { v: true, s: true, m: 'a shard of blue glass' },
+				miscTags:      ['THP'],
+				damageInflict: ['cold'],
+				entries: ['Protective magical frost surrounds you. You gain 5 {@variantrule Temporary Hit Points|XPHB}. If a creature hits you with a melee attack roll before the spell ends, the creature takes 5 Cold damage. The spell ends early if you have no {@variantrule Temporary Hit Points|XPHB}.'],
+				entriesHigherLevel: [{
+					type: 'entries', name: 'Using a Higher-Level Spell Slot',
+					entries: ['The {@variantrule Temporary Hit Points|XPHB} and the Cold damage both increase by 5 for each spell slot level above 1.'],
+				}],
+			},
+		}, store);
+
+		const entries = Object.entries(store.integrants.integrants);
+
+		const [, attack] = entries.find(([, i]) => i.type === 'Attack');
+		expect(attack.autoHit).toBe(true);
+		// Matches Roll20's own compendium output exactly: named after the damage it deals, no
+		// "range" key (Combat tab pulls range from the parent Spell), childIDs is just [Damage id]
+		// (the Damage-side Upcasting integrant is nested under Damage, not a direct Attack child).
+		expect(attack.name).toBe('Armor of Agathys Cold Damage');
+		expect(attack.recordName).toBe('Armor of Agathys Attack');
+		expect(attack.range).toBeUndefined();
+		expect(attack.repeat).toBeUndefined();
+		expect(attack.cascades).toEqual({});
+
+		const [dmgId, dmg] = entries.find(([, i]) => i.type === 'Damage');
+		expect(dmg._diceCount).toBeUndefined();
+		expect(dmg.diceSize).toBe('');
+		expect(dmg._bonus).toBe(5);
+		expect(dmg.damageType).toBe('Cold');
+		expect(dmg.cascades).toEqual({});
+		expect(JSON.parse(attack.childIDs)).toEqual([dmgId]);
+
+		const [healId, heal] = entries.find(([, i]) => i.type === 'Healing');
+		expect(heal._diceCount).toBeUndefined();
+		expect(heal.diceSize).toBe('');
+		expect(heal._bonus).toBe(5);
+		expect(heal.isTemp).toBe(true);
+		expect(heal.name).toBe('Armor of Agathys Temporary HP');
+		expect(heal.parentID).toBe(attack.parentID); // both Attack and Healing hang off the Spell
+		expect(heal.cascades).toEqual({});
+
+		const upcasts = entries.filter(([, i]) => i.type === 'Upcasting').map(([, i]) => i);
+		const dmgUpcast = upcasts.find(u => u.parentID === dmgId);
+		expect(dmgUpcast).toBeDefined();
+		expect(dmgUpcast.target).toBe('$._bonus');
+		expect(dmgUpcast.value).toBe(5);
+		expect(dmgUpcast.startingLevel).toBe(2);
+		expect(dmgUpcast.cascades).toEqual({});
+
+		const healUpcast = upcasts.find(u => u.parentID === healId);
+		expect(healUpcast).toBeDefined();
+		expect(healUpcast.target).toBe('$._bonus');
+		expect(healUpcast.value).toBe(5);
+		expect(healUpcast.startingLevel).toBe(2);
+		expect(healUpcast.cascades).toEqual({});
+	});
+
+	test('Magic Missile: a real projectile attack (repeat count from "three darts") builds a different Attack shape than a reactive spell like Armor of Agathys - plain spell name (not "... Force Damage"), "... Free Attack" recordName, range included, and a dice-based Damage integrant using "_diceCount" (underscore-prefixed) - all confirmed against Roll20\'s own compendium output for Magic Missile', () => {
+		const store = makeBatchStore();
+		ctx.d20plus.importer.import2024Spell(nullModel, {
+			name: 'Magic Missile',
+			data: { 'Level': '1', 'Components': 'V, S', 'School': 'Evocation', 'Casting Time': 'Action', 'Range': '120 feet', 'Duration': 'Instantaneous', 'data-description': '' },
+			Vetoolscontent: {
+				level: 1, school: 'V',
+				time:     [{ number: 1, unit: 'action' }],
+				range:    { type: 'point', distance: { amount: 120, type: 'feet' } },
+				duration: [{ type: 'instant' }],
+				components: { v: true, s: true },
+				damageInflict: ['force'],
+				entries: ['You create three glowing darts of magical force. Each dart strikes a creature of your choice that you can see within range. A dart deals {@damage 1d4 + 1} Force damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.'],
+				entriesHigherLevel: [{
+					type: 'entries', name: 'Using a Higher-Level Spell Slot',
+					entries: ['The spell creates one more dart for each spell slot level above 1.'],
+				}],
+			},
+		}, store);
+
+		const entries = Object.entries(store.integrants.integrants);
+
+		const [attackId, attack] = entries.find(([, i]) => i.type === 'Attack');
+		expect(attack.autoHit).toBe(true);
+		expect(attack.name).toBe('Magic Missile');
+		expect(attack.recordName).toBe('Magic Missile Free Attack');
+		expect(attack.range).toBe('120 feet');
+		expect(attack.repeat).toBe(3);
+
+		const [dmgId, dmg] = entries.find(([, i]) => i.type === 'Damage');
+		expect(dmg._diceCount).toBe(1);
+		expect(dmg.diceSize).toBe('d4');
+		expect(dmg._bonus).toBe(1);
+		expect(dmg.damageType).toBe('Force');
+		expect(JSON.parse(attack.childIDs)).toEqual([dmgId, expect.any(String)]);
+
+		const upcast = entries.find(([id]) => JSON.parse(attack.childIDs).includes(id) && id !== dmgId)[1];
+		expect(upcast.type).toBe('Upcasting');
+		expect(upcast.target).toBe('$.repeat');
+		expect(upcast.value).toBe(1);
+		expect(upcast.startingLevel).toBe(2);
+		expect(upcast.parentID).toBe(attackId);
+	});
+
+	test('creates multiple Damage integrants for a multi-damage-type spell', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Ice Storm',
@@ -532,7 +717,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		expect(damages.find(d => d.damageType === 'Bludgeoning')).toBeDefined();
 	});
 
-	test('creates an Upcasting integrant for a spell with scaledamage in entriesHigherLevel', () => {
+	test('creates an Upcasting integrant for a spell with scaledamage in entriesHigherLevel', async () => {
 		const store = makeBatchStore();
 		ctx.d20plus.importer.import2024Spell(nullModel, {
 			name: 'Burning Hands',
@@ -554,7 +739,7 @@ describe('Spell import (import2024Spell batch mode)', () => {
 		const upcast = Object.values(store.integrants.integrants).find(i => i.type === 'Upcasting');
 		expect(upcast).toBeDefined();
 		expect(upcast.value).toBe(1);
-		expect(upcast.target).toBe('$.diceCount');
+		expect(upcast.target).toBe('$._diceCount');
 	});
 });
 
@@ -562,9 +747,9 @@ describe('Spell import (import2024Spell batch mode)', () => {
 // Item import
 // ---------------------------------------------------------------------------
 describe('Item import (import2024Item)', () => {
-	test('creates an Item integrant for a non-weapon item', () => {
+	test('creates an Item integrant for a non-weapon item', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Item(model, {
+		await ctx.d20plus.importer.import2024Item(model, {
 			name:    'Healing Potion',
 			content: '2d4+2 HP.',
 			data:    { 'Item Type': 'Potion', 'Weight': '0.5' },
@@ -575,9 +760,9 @@ describe('Item import (import2024Item)', () => {
 		expect(item.weight).toBeCloseTo(0.5);
 	});
 
-	test('creates Attack + Damage integrants for a melee weapon', () => {
+	test('creates Attack + Damage integrants for a melee weapon', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Item(model, {
+		await ctx.d20plus.importer.import2024Item(model, {
 			name:    'Longsword',
 			content: '',
 			data:    { 'Item Type': 'Melee Weapon', 'Damage': '1d8', 'Damage Type': 'Slashing', 'Weight': '3' },
@@ -589,9 +774,9 @@ describe('Item import (import2024Item)', () => {
 		expect(all.find(i => i.type === 'Item' && i.name === 'Longsword')).toBeDefined();
 	});
 
-	test('creates two Attack pairs for a versatile weapon', () => {
+	test('creates two Attack pairs for a versatile weapon', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Item(model, {
+		await ctx.d20plus.importer.import2024Item(model, {
 			name:    'Longsword',
 			content: '',
 			data:    { 'Item Type': 'Melee Weapon', 'Damage': '1d8', 'Alternate Damage': '1d10', 'Damage Type': 'Slashing', 'Weight': '3' },
@@ -601,9 +786,9 @@ describe('Item import (import2024Item)', () => {
 		expect(attacks.length).toBeGreaterThanOrEqual(2);
 	});
 
-	test('adds magic bonus to damage integrant', () => {
+	test('adds magic bonus to damage integrant', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Item(model, {
+		await ctx.d20plus.importer.import2024Item(model, {
 			name:    '+2 Longsword',
 			content: '',
 			data:    { 'Item Type': 'Melee Weapon', 'Damage': '1d8', 'Damage Type': 'Slashing', 'Weight': '3' },
@@ -613,9 +798,9 @@ describe('Item import (import2024Item)', () => {
 		expect(dmg._bonus).toBe(2);
 	});
 
-	test('creates a Ranged attack with Dexterity ability for a ranged weapon', () => {
+	test('creates a Ranged attack with Dexterity ability for a ranged weapon', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Item(model, {
+		await ctx.d20plus.importer.import2024Item(model, {
 			name:    'Shortbow',
 			content: '',
 			data:    { 'Item Type': 'Ranged Weapon', 'Damage': '1d6', 'Damage Type': 'Piercing', 'Weight': '2' },
@@ -627,9 +812,9 @@ describe('Item import (import2024Item)', () => {
 		expect(attack.attack.abilityBonus).toBe('Dexterity');
 	});
 
-	test('creates an extra Finesse attack pair with Dexterity for weapons with Finesse', () => {
+	test('creates an extra Finesse attack pair with Dexterity for weapons with Finesse', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Item(model, {
+		await ctx.d20plus.importer.import2024Item(model, {
 			name:    'Rapier',
 			content: '',
 			data:    { 'Item Type': 'Melee Weapon', 'Damage': '1d8', 'Damage Type': 'Piercing', 'Weight': '2' },
@@ -641,9 +826,9 @@ describe('Item import (import2024Item)', () => {
 		expect(attacks.find(a => a.attack && a.attack.abilityBonus === 'Dexterity')).toBeDefined();
 	});
 
-	test('creates an Item integrant with no Attack or Damage for armor', () => {
+	test('creates an Item integrant with no Attack or Damage for armor', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Item(model, {
+		await ctx.d20plus.importer.import2024Item(model, {
 			name:    'Chain Mail',
 			content: '',
 			data:    { 'Item Type': 'Heavy Armor', 'Weight': '55' },
@@ -660,9 +845,9 @@ describe('Item import (import2024Item)', () => {
 // Feat import
 // ---------------------------------------------------------------------------
 describe('Feat import (import2024Feat)', () => {
-	test('creates a Features integrant tagged as Feat', () => {
+	test('creates a Features integrant tagged as Feat', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, {
+		await ctx.d20plus.importer.import2024Feat(model, {
 			name:           'Alert',
 			Vetoolscontent: 'You gain a +5 bonus to initiative.',
 		});
@@ -672,9 +857,9 @@ describe('Feat import (import2024Feat)', () => {
 		expect(feat.description).toBe('You gain a +5 bonus to initiative.');
 	});
 
-	test('adds the feat id to featsDisplayOrder', () => {
+	test('adds the feat id to featsDisplayOrder', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Feat(model, { name: 'War Caster', Vetoolscontent: 'Concentration advantage.' });
+		await ctx.d20plus.importer.import2024Feat(model, { name: 'War Caster', Vetoolscontent: 'Concentration advantage.' });
 		const order = JSON.parse(model.getStore().features.featsDisplayOrder);
 		expect(order).toHaveLength(1);
 	});
@@ -684,9 +869,9 @@ describe('Feat import (import2024Feat)', () => {
 // Race import (import2024Race)
 // ---------------------------------------------------------------------------
 describe('Race import (import2024Race)', () => {
-	test('creates a Species integrant with the race name', () => {
+	test('creates a Species integrant with the race name', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Race(model, {
+		await ctx.d20plus.importer.import2024Race(model, {
 			Vetoolscontent: { name: 'Elf', size: ['M'], speed: 30, entries: [] },
 		});
 		const species = Object.values(model.getStore().integrants.integrants).find(i => i.type === 'Species');
@@ -694,9 +879,9 @@ describe('Race import (import2024Race)', () => {
 		expect(species.name).toBe('Elf');
 	});
 
-	test('creates Speed and Size child integrants with correct values', () => {
+	test('creates Speed and Size child integrants with correct values', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Race(model, {
+		await ctx.d20plus.importer.import2024Race(model, {
 			Vetoolscontent: { name: 'Dwarf', size: ['M'], speed: 25, entries: [] },
 		});
 		const all   = Object.values(model.getStore().integrants.integrants);
@@ -708,9 +893,9 @@ describe('Race import (import2024Race)', () => {
 		expect(size.size).toBe('Medium');
 	});
 
-	test('creates Features integrants from race.entries', () => {
+	test('creates Features integrants from race.entries', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Race(model, {
+		await ctx.d20plus.importer.import2024Race(model, {
 			Vetoolscontent: {
 				name: 'Half-Elf', size: ['M'], speed: 30,
 				entries: [
@@ -724,9 +909,9 @@ describe('Race import (import2024Race)', () => {
 		expect(features.find(f => f.name === 'Fey Ancestry')).toBeDefined();
 	});
 
-	test('creates Darkvision Sense as child of a darkvision entry', () => {
+	test('creates Darkvision Sense as child of a darkvision entry', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Race(model, {
+		await ctx.d20plus.importer.import2024Race(model, {
 			Vetoolscontent: {
 				name: 'Elf', size: ['M'], speed: 30, darkvision: 60,
 				entries: [{ name: 'Darkvision', entries: ['You can see in dim light...'] }],
@@ -741,9 +926,9 @@ describe('Race import (import2024Race)', () => {
 		expect(JSON.parse(dvFeature.childIDs)).toContain(sense.shortID);
 	});
 
-	test('creates standalone Darkvision feature when not present in entries', () => {
+	test('creates standalone Darkvision feature when not present in entries', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Race(model, {
+		await ctx.d20plus.importer.import2024Race(model, {
 			Vetoolscontent: { name: 'Tiefling', size: ['M'], speed: 30, darkvision: 60, entries: [] },
 		});
 		const all = Object.values(model.getStore().integrants.integrants);
@@ -751,9 +936,9 @@ describe('Race import (import2024Race)', () => {
 		expect(all.find(i => i.type === 'Sense'    && i.name === 'Darkvision')).toBeDefined();
 	});
 
-	test('adds species feature IDs to speciesTraitsDisplayOrder', () => {
+	test('adds species feature IDs to speciesTraitsDisplayOrder', async () => {
 		const model = makeCharModel();
-		ctx.d20plus.importer.import2024Race(model, {
+		await ctx.d20plus.importer.import2024Race(model, {
 			Vetoolscontent: {
 				name: 'Gnome', size: ['S'], speed: 25,
 				entries: [
@@ -766,9 +951,9 @@ describe('Race import (import2024Race)', () => {
 		expect(order).toHaveLength(2);
 	});
 
-	test('returns early without error when Vetoolscontent is absent', () => {
+	test('returns early without error when Vetoolscontent is absent', async () => {
 		const model = makeCharModel();
-		expect(() => ctx.d20plus.importer.import2024Race(model, {})).not.toThrow();
+		await ctx.d20plus.importer.import2024Race(model, {});
 		expect(Object.keys(model.getStore().integrants.integrants)).toHaveLength(0);
 	});
 });
@@ -909,43 +1094,43 @@ describe('Import router (import2024Data)', () => {
 		return { charModel, fallback };
 	}
 
-	test('routes Spells to import2024Spell', () => {
+	test('routes Spells to import2024Spell', async () => {
 		const spy = jest.spyOn(ctx.d20plus.importer, 'import2024Spell').mockImplementation(() => {});
 		route('Spells');
 		expect(spy).toHaveBeenCalledTimes(1);
 		spy.mockRestore();
 	});
 
-	test('routes Items to import2024Item', () => {
+	test('routes Items to import2024Item', async () => {
 		const spy = jest.spyOn(ctx.d20plus.importer, 'import2024Item').mockImplementation(() => {});
 		route('Items');
 		expect(spy).toHaveBeenCalledTimes(1);
 		spy.mockRestore();
 	});
 
-	test('routes Classes to import2024Class', () => {
+	test('routes Classes to import2024Class', async () => {
 		const spy = jest.spyOn(ctx.d20plus.importer, 'import2024Class').mockImplementation(() => {});
 		route('Classes');
 		expect(spy).toHaveBeenCalledTimes(1);
 		spy.mockRestore();
 	});
 
-	test('routes Races to import2024Race', () => {
+	test('routes Races to import2024Race', async () => {
 		const spy = jest.spyOn(ctx.d20plus.importer, 'import2024Race').mockImplementation(() => {});
 		route('Races');
 		expect(spy).toHaveBeenCalledTimes(1);
 		spy.mockRestore();
 	});
 
-	test('routes Feats to import2024Feat', () => {
+	test('routes Feats to import2024Feat', async () => {
 		const spy = jest.spyOn(ctx.d20plus.importer, 'import2024Feat').mockImplementation(() => {});
 		route('Feats');
 		expect(spy).toHaveBeenCalledTimes(1);
 		spy.mockRestore();
 	});
 
-	test('calls importDataFallback for unhandled categories', () => {
-		const { fallback } = route('Backgrounds');
+	test('calls importDataFallback for unhandled categories', async () => {
+		const { fallback } = route('Psionics');
 		expect(fallback).toHaveBeenCalledTimes(1);
 	});
 });

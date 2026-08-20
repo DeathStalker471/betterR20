@@ -58,7 +58,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/ABH/Fiendish Icon.webp"
-					}
+					},
+					"width": 850,
+					"height": 1035
 				}
 			]
 		},
@@ -120,7 +122,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/ABH/Harvester Devil.webp"
-					}
+					},
+					"width": 850,
+					"height": 1093
 				}
 			]
 		},
@@ -145,7 +149,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/ABH/Speaker Devil.webp"
-					}
+					},
+					"width": 850,
+					"height": 1105
 				}
 			]
 		},
@@ -182,7 +188,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/ABH/Vampire Infernalist.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1090
 				}
 			]
 		},

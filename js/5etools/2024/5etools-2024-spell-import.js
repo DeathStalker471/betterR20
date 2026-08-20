@@ -1,142 +1,11 @@
 function d20plus2024SpellImport() {
 	const spellCtx = d20plus.import2024;
+	const sp = d20plus.spellParsers;
 
-	// Returns the first {@damage XdY} (with optional flat bonus) found in a 5etools entries array, or null.
-	function parseSpell2024Damage (entries) {
-		for (const entry of (entries || [])) {
-			if (typeof entry !== "string") continue;
-			const m = entry.match(/\{@damage (\d+)d(\d+)(?:\s*([+-])\s*(\d+))?}/i);
-			if (m) return {
-				diceCount: parseInt(m[1], 10),
-				diceSize: "d" + m[2],
-				flatBonus: m[3] && m[4] ? (m[3] === "+" ? 1 : -1) * parseInt(m[4], 10) : 0,
-			};
-		}
-		return null;
-	}
-
-	// For spells with multiple damage types, parse each {@damage XdY} tag alongside the
-	// damage type keyword(s) that follow it in the text.
-	function parseAllSpell2024DamagesTyped (entries, damageInflict) {
-		const capWord = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
-		const knownTypes = (damageInflict || []).map(t => t.toLowerCase());
-		const tagRe = /\{@damage (\d+)d(\d+)(?:\s*([+-])\s*(\d+))?}/gi;
-
-		for (const entry of (entries || [])) {
-			if (typeof entry !== "string") continue;
-
-			const tags = [];
-			let m;
-			while ((m = tagRe.exec(entry)) !== null) {
-				tags.push({
-					diceCount: parseInt(m[1], 10),
-					diceSize: "d" + m[2],
-					flatBonus: m[3] && m[4] ? (m[3] === "+" ? 1 : -1) * parseInt(m[4], 10) : 0,
-					tagStart: m.index,
-					tagEnd: m.index + m[0].length,
-				});
-			}
-			if (!tags.length) continue;
-
-			const orTypeRe = knownTypes.length > 1
-				? new RegExp(`(${knownTypes.join("|")}) or (${knownTypes.join("|")})`)
-				: null;
-
-            return tags.map((tag, i) => {
-                const contextEnd = i + 1 < tags.length ? tags[i + 1].tagStart : entry.length;
-                const context = entry.slice(tag.tagEnd, contextEnd).toLowerCase();
-                let damageType;
-                const orMatch = orTypeRe && context.match(orTypeRe);
-                if (orMatch) {
-                    damageType = `${capWord(orMatch[1])} or ${capWord(orMatch[2])}`;
-                } else {
-                    const single = knownTypes.find(t => context.includes(t));
-                    damageType = capWord(single || knownTypes[i] || "");
-                }
-                return {diceCount: tag.diceCount, diceSize: tag.diceSize, flatBonus: tag.flatBonus, damageType};
-            });
-		}
-		return [];
-	}
-
-	// Returns {startingLevel, value, stepLevels} from {@scaledamage} tag, or null.
-	function parseSpell2024Upcast (entriesHigherLevel) {
-		for (const block of (entriesHigherLevel || [])) {
-			for (const entry of (block.entries || [])) {
-				if (typeof entry !== "string") continue;
-				const mc = entry.match(/\{@scaledamage [^|]+\|(\d+(?:,\d+)+)\|(\d+)d\d+}/i);
-				if (mc) {
-					const levels = mc[1].split(",").map(Number);
-					const startingLevel = levels[1];
-					const stepLevels = levels.length > 1 ? levels[1] - levels[0] : 2;
-					return {startingLevel, value: parseInt(mc[2], 10), stepLevels};
-				}
-				const mr = entry.match(/\{@scaledamage [^|]+\|(\d+)-\d+\|(\d+)d\d+}/i);
-				if (mr) {
-					const startingLevel = parseInt(mr[1], 10) + 1;
-					const wordNums = {one:1, two:2, three:3, four:4, five:5, six:6};
-					const sm = entry.match(/every\s+(one|two|three|four|five|six|\d+)\s+(?:spell\s+)?slot\s+levels?/i);
-					const stepLevels = sm ? (wordNums[sm[1].toLowerCase()] || parseInt(sm[1], 10) || 1) : 1;
-					return {startingLevel, value: parseInt(mr[2], 10), stepLevels};
-				}
-			}
-		}
-		return null;
-	}
-
-	// Returns {diceCount, diceSize, bonus} from {@heal XdY} or {@dice XdY + N} in spell entries, or null.
-	function parseSpell2024HealDice (entries) {
-		for (const entry of (entries || [])) {
-			if (typeof entry !== "string") continue;
-			const mh = entry.match(/\{@heal (\d+)d(\d+)}/i);
-			if (mh) return {diceCount: parseInt(mh[1], 10), diceSize: "d" + mh[2], bonus: 0};
-			const md = entry.match(/\{@dice (\d+)d(\d+)(?:\s*([+-])\s*(\d+))?}/i);
-			if (md) return {
-				diceCount: parseInt(md[1], 10),
-				diceSize: "d" + md[2],
-				bonus: md[3] && md[4] ? (md[3] === "+" ? 1 : -1) * parseInt(md[4], 10) : 0,
-			};
-		}
-		return null;
-	}
-
-	// Returns {value, startingLevel, stepLevels, targetBonus} for heal upcasting, or null.
-	function parseSpell2024HealUpcast (entriesHigherLevel) {
-		for (const block of (entriesHigherLevel || [])) {
-			for (const entry of (block.entries || [])) {
-				if (typeof entry !== "string") continue;
-				const mf = entry.match(/(\d+) additional (?:temporary )?hit points? for each (?:spell )?slot level above (\d+)/i);
-				if (mf) return {value: parseInt(mf[1], 10), startingLevel: parseInt(mf[2], 10) + 1, stepLevels: 1, targetBonus: true};
-			}
-		}
-		const scaled = parseSpell2024Upcast(entriesHigherLevel);
-		if (scaled) return {...scaled, targetBonus: false};
-		return null;
-	}
-
-	// Returns number of projectiles for auto-hit spells (e.g. 3 for Magic Missile), or null.
-	function parseSpell2024Repeat (entries) {
-		const wordNums = {one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10};
-		for (const entry of (entries || [])) {
-			if (typeof entry !== "string") continue;
-			const m = entry.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b[^.]*\b(?:dart|missile|bolt|beam|ray|orb|needle|lance|streak)s?\b/i);
-			if (m) return wordNums[m[1].toLowerCase()] || parseInt(m[1], 10) || 1;
-		}
-		return null;
-	}
-
-	// Returns true if the higher-level text describes adding more projectiles per slot.
-	function parseSpell2024RepeatUpcast (entriesHigherLevel) {
-		for (const block of (entriesHigherLevel || [])) {
-			for (const entry of (block.entries || [])) {
-				if (typeof entry !== "string") continue;
-				if (/one more|additional|extra/i.test(entry) && /dart|missile|bolt|beam|ray/i.test(entry)) return true;
-			}
-		}
-		return false;
-	}
-
-	// Returns sorted character-level thresholds for cantrip scaling, e.g. [5, 11, 17].
+	// Returns sorted character-level thresholds for cantrip scaling, e.g. [5, 11, 17]. Stays local
+	// (not shared) - the classic/OGL sheet has no per-level-threshold concept to consume this
+	// (see js/5etools-spell-parsers.js's parseCantripScalingFlag, which only tracks the boolean
+	// "does this cantrip scale at all" for that sheet's simpler dropdown).
 	function parseSpell2024CantripLevels (vc) {
 		const sld = Array.isArray(vc.scalingLevelDice) ? vc.scalingLevelDice[0] : vc.scalingLevelDice;
 		if (sld && sld.scaling) {
@@ -157,38 +26,186 @@ function d20plus2024SpellImport() {
 		return unique.length ? unique : [5, 11, 17];
 	}
 
-	// Maps a 5etools areaTags entry to the 2024 sheet shape name.
-	function areaTagTo2024Shape (tag) {
-		const map = {S: "Sphere", C: "Cone", L: "Line", Q: "Square", Y: "Cylinder", H: "Hemisphere", W: "Wall", R: "Rectangle"};
-		return map[tag] || "";
+	// Returns {value, startingLevel, stepLevels, targetBonus} for damage upcasting, or null. Tries
+	// dice-based scaling first, then flat per-level bonus (Armor of Agathys-style: "the damage
+	// increases by 5 for each slot level above 1st", no {@scaledamage}/{@scaledice} tag at all).
+	// targetBonus:true -> "$._bonus" (flat amount per slot); false -> "$.diceCount" (dice per slot).
+	// Confirmed against Roll20's own compendium output for Armor of Agathys via the browser console
+	// (dumped the character's "store" attribute): its damage Upcasting integrant has
+	// `target: "$._bonus", value: 5, startingLevel: 2` - the +1 below (2014 text says "above 1st",
+	// the bonus first actually applies at 2nd level) matches that exactly.
+	function getDamageUpcastData (entriesHigherLevel) {
+		const scaled = sp.parseUpcastDice(entriesHigherLevel);
+		if (scaled) return {value: scaled.diceCount, startingLevel: scaled.startingLevel, stepLevels: scaled.stepLevels, targetBonus: false};
+		const flatTag = sp.parseFlatUpcastTag(entriesHigherLevel);
+		if (flatTag) return {value: flatTag.value, startingLevel: flatTag.startingLevel, stepLevels: flatTag.stepLevels, targetBonus: true};
+		const flat = sp.parseFlatUpcastBonus(entriesHigherLevel);
+		if (flat) return {value: parseInt(flat.value, 10), startingLevel: parseInt(flat.startingLevel, 10) + 1, stepLevels: 1, targetBonus: true};
+		return null;
 	}
 
-	// Extracts AoE size text from entry strings.
-	function parseSpell2024AoeSize (entries) {
-		for (const entry of (entries || [])) {
-			if (typeof entry !== "string") continue;
-			const m = entry.match(/(\d+)[- ]foot[- ](?:radius|wide|long|tall|cone|line|cube)/i);
-			if (m) return m[0].replace(/-/g, " ").toLowerCase();
+	// Same idea as getDamageUpcastData, for the Healing/Temporary-HP chain. The middle tier
+	// (parseFlatUpcastTag) is needed for Heal's 2024/XPHB rewrite: "{@scaledice 70|6-9|10}" is a
+	// tagged scaling expression, but its value ("10") is a flat number, not "NdM" dice notation, so
+	// parseUpcastDice correctly doesn't match it and parseFlatUpcastBonus (plain untagged prose)
+	// doesn't either since the amount sits inside a tag rather than bare text - confirmed against
+	// two independent Roll20 compendium dumps for Heal (2014 PHB and 2024 Basic Rules) that both
+	// show `target: "$._bonus", value: 10, startingLevel: 7`.
+	function getHealUpcastData (entriesHigherLevel) {
+		const scaled = sp.parseUpcastDice(entriesHigherLevel);
+		if (scaled) return {value: scaled.diceCount, startingLevel: scaled.startingLevel, stepLevels: scaled.stepLevels, targetBonus: false};
+		const flatTag = sp.parseFlatUpcastTag(entriesHigherLevel);
+		if (flatTag) return {value: flatTag.value, startingLevel: flatTag.startingLevel, stepLevels: flatTag.stepLevels, targetBonus: true};
+		const flat = sp.parseFlatUpcastBonus(entriesHigherLevel);
+		if (flat) return {value: parseInt(flat.value, 10), startingLevel: parseInt(flat.startingLevel, 10) + 1, stepLevels: 1, targetBonus: true};
+		return null;
+	}
+
+	// Returns {diceCount, diceSize, flatBonus} for spell damage, or null. Tries the tagged
+	// {@damage} dice parser first, then falls back to a flat untagged number in prose (Armor of
+	// Agathys: "takes 5 cold damage", no {@damage} tag at all). In the flat case diceCount/diceSize
+	// are omitted (not set to null/"") - confirmed against Roll20's own compendium output for Armor
+	// of Agathys (browser console dump of the character's "store" attribute) that a no-dice Damage
+	// integrant entirely omits the diceCount key rather than nulling it.
+	function getDamageDiceOrFlat (entries) {
+		const diced = sp.parseFirstDamage(entries);
+		if (diced) return diced;
+		const flat = sp.parseFlatDamageFallback(entries);
+		if (flat) return {flatBonus: parseInt(flat.amount, 10)};
+		return null;
+	}
+
+	// Same idea as getDamageDiceOrFlat, for the Healing/Temporary-HP chain. Applies to both "HL"
+	// and "THP" spells - an earlier version of this restricted the flat-prose fallback to THP-only
+	// after a ground-truth dump for Heal showed zero mechanical automation, but that dump turned
+	// out to be a false negative (no compendiumPageID field - it wasn't actually sourced from
+	// Roll20's compendium). A second, genuine compendium dump for Heal confirmed Roll20 *does*
+	// mechanize plain "regains N hit points" prose into a real Healing integrant, matching what
+	// this fallback already produced field-for-field (_bonus: 70, isTemp: false, upcast
+	// startingLevel: 7 from "above 6th" + 1).
+	function getHealDiceOrFlat (entries) {
+		const diced = sp.parseHealDice(entries);
+		if (diced) return diced;
+		const flat = sp.parseFlatHealFallback(entries);
+		if (flat) return {bonus: parseInt(flat, 10)};
+		return null;
+	}
+
+	// Build duration/casting-time from JSON rather than Parser.spDurationToFull/spTimeListToFull -
+	// those return raw HTML anchor tags, unsuitable for a plain-text sheet field.
+	function parseDuration2024 (durArr) {
+		if (!durArr || !durArr.length) return "Instantaneous";
+		const du = durArr[0];
+		if (du.type === "instantaneous") return "Instantaneous";
+		if (du.type === "permanent") return "Until Dispelled";
+		if (du.type === "special") return "Special";
+		if (du.type === "timed" && du.duration) {
+			const amt = du.duration.amount;
+			const unit = du.duration.type;
+			const plural = amt !== 1 ? "s" : "";
+			if (du.concentration) return `Concentration, up to ${amt} ${unit}${plural}`;
+			return `${amt} ${unit}${plural}`;
 		}
-		return "";
+		return "Instantaneous";
+	}
+
+	function parseCastingTime2024 (timeArr) {
+		if (!timeArr || !timeArr.length) return "Action";
+		const t = timeArr[0];
+		if (t.unit === "action") return "Action";
+		if (t.unit === "bonus") return "Bonus Action";
+		if (t.unit === "reaction") return "Reaction";
+		if (t.unit === "minute") return t.number === 1 ? "1 Minute" : `${t.number} Minutes`;
+		if (t.unit === "hour") return t.number === 1 ? "1 Hour" : `${t.number} Hours`;
+		if (t.unit === "day") return t.number === 1 ? "1 Day" : `${t.number} Days`;
+		return "Action";
+	}
+
+	// "auto" (not "Strength"/"Dexterity"/"none") is the value Roll20's own compendium uses to add
+	// the caster's spellcasting modifier to damage/healing - confirmed against live ground-truth
+	// dumps of native Flame Blade ("...plus your spellcasting ability modifier") and Cure Wounds
+	// imports this session. Shared by the main damage/heal chain and the multi-damage-entry chain
+	// below, and by the Charactermancer spell builder via d20plus.import2024.spellPlan.
+	function hasCastingModDamage (entries) {
+		return (entries || []).some(e => typeof e === "string" && e.includes("spellcasting ability modifier"));
+	}
+
+	// Returns {isAutoHit, rawRepeat, repeatCount, rayRepeat, isMultiRay, isRepeatUpcast} - the
+	// "does this spell auto-hit / repeat as multiple projectiles" shape (Magic Missile's 3 darts,
+	// Armor of Agathys' reactive proc, Scorching Ray's multiple rays). Extracted so the
+	// Charactermancer spell builder gets the same repeat/projectile handling as regular import
+	// instead of having none at all.
+	function parseSpellAttackShape (vc, isCantripScaling) {
+		const hasSave = vc && vc.savingThrow && vc.savingThrow.length;
+		const hasSpellAtk = vc && vc.spellAttack && vc.spellAttack.length;
+		const hasDamage = vc && vc.damageInflict && vc.damageInflict.length;
+		const isAutoHit = !!(hasDamage && !hasSave && !hasSpellAtk);
+		const rawRepeat = isAutoHit ? sp.parseRepeatCount(vc.entries) : null;
+		const repeatCount = rawRepeat || 1;
+		const rayRepeat = (!isCantripScaling && hasSpellAtk) ? sp.parseRepeatCount(vc.entries) : null;
+		const isMultiRay = rayRepeat !== null;
+		const isRepeatUpcast = !isCantripScaling && (isAutoHit || isMultiRay) && sp.parseRepeatUpcast(vc.entriesHigherLevel);
+		return {isAutoHit, rawRepeat, repeatCount, rayRepeat, isMultiRay, isRepeatUpcast};
+	}
+
+	// Parses each `scalingLevelDice` array entry (e.g. Booming Blade's "on moving"/"on hit" pair,
+	// Green-Flame Blade's "on hit"/"secondary creature" pair) into the data needed to build one
+	// Attack+Damage(+Upcasting) chain per entry - one call site for both import2024Spell (below)
+	// and the Charactermancer spell builder, so multi-instance cantrips get identical handling in
+	// both places instead of the Charactermancer builder's own (pre-fix, buggy) re-parsing.
+	function parseMultiDamageEntries (scalingLevelDice, cantripLevels, damageType) {
+		return (scalingLevelDice || []).map(sldEntry => {
+			// The base value isn't always keyed at level 1 - e.g. Booming Blade's "on hit" bonus
+			// damage only starts at level 5, so `scaling` has no "1" key at all. Use whichever level
+			// is actually the first one present instead of assuming "1".
+			const scalingLevelKeys = Object.keys(sldEntry.scaling).map(Number).sort((a, b) => a - b);
+			const baseLevel = scalingLevelKeys[0] ?? 1;
+			const baseDiceStr = sldEntry.scaling[String(baseLevel)];
+			// Some scaling entries aren't dice at all - e.g. Green-Flame Blade's secondary-target
+			// damage at level 1 is "{{spellcasting_mod}}" (5etools' literal template placeholder for
+			// a flat "+ your spellcasting modifier" value, not a dice string).
+			const baseDiceM = baseDiceStr && baseDiceStr.match(/(\d+)d(\d+)/i);
+			const isFlatOnly = !baseDiceM;
+			const diceCount = baseDiceM ? parseInt(baseDiceM[1], 10) : undefined;
+			const diceSize = baseDiceM ? "d" + baseDiceM[2] : "";
+			const ability = Object.values(sldEntry.scaling).some(v => typeof v === "string" && v.includes("spellcasting_mod")) ? "auto" : "none";
+			// Levels at or below this entry's own base level are already baked into baseDiceStr -
+			// re-applying them as Upcasting bumps would double-count. Skipped entirely when flat:
+			// Upcasting's "$._diceCount" target assumes an existing die to increment, but a flat
+			// entry *gains* a die at a later level rather than incrementing one.
+			const upcastLevels = isFlatOnly ? [] : cantripLevels.filter(lvl => lvl > baseLevel);
+			const onFailText = isFlatOnly ? `Takes ${sldEntry.label}.` : `Takes ${baseDiceStr} ${damageType} damage.`;
+			return {label: sldEntry.label, baseLevel, isFlatOnly, diceCount, diceSize, damageType, ability, upcastLevels, onFailText};
+		});
 	}
 
 	// _batchStore: if provided, mutate it in place and skip the read/save (batch mode for monster import).
-	d20plus.importer.import2024Spell = function (charModel, spellData, _batchStore) {
+	d20plus.importer.import2024Spell = async function (charModel, spellData, _batchStore) {
 		const d = spellData.data;
 		const vc = spellData.Vetoolscontent || null;
 
+		// Batch mode (called from monster import) mutates the caller's own in-progress store and
+		// doesn't do its own getStore/saveStore, so it doesn't need the lock - the caller already
+		// holds it for the whole batch.
+		const releaseLock = _batchStore ? null : await spellCtx.pAcquireStoreLock(charModel);
+		try {
 		let storeAttr, store;
 		if (_batchStore) {
 			storeAttr = null;
 			store = _batchStore;
 		} else {
+			// Force-load attribs before reading the store - on a freshly-opened character sheet,
+			// Roll20 may not have finished hydrating charModel.attribs yet, which previously made
+			// getStore() silently miss the real store attribute (the actual cause of the race, not
+			// just a symptom to bail out on). Same helper base-chat.js already relies on for this.
+			await d20plus.ut.fetchCharAttribs(charModel);
 			const s = spellCtx.getStore(charModel);
+			// Bail rather than fabricate a blank scaffold when the store attribute still isn't found
+			// after the fetch above (e.g. a genuinely new character with no store yet) - saving a
+			// scaffold here would overwrite the character's entire real data with just this one spell.
+			if (!s.store) return;
 			storeAttr = s.attr;
-			store = s.store ? JSON.parse(JSON.stringify(s.store)) : {
-				integrants: {integrants: {}},
-				spells: {displayOrder: ["[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"]},
-			};
+			store = JSON.parse(JSON.stringify(s.store));
 		}
 		if (!store.integrants) store.integrants = {integrants: {}};
 		if (!store.integrants.integrants) store.integrants.integrants = {};
@@ -216,42 +233,14 @@ function d20plus2024SpellImport() {
 
 		// Range and duration as full strings
 		const range = vc ? Parser.spRangeToFull(vc.range) : (d["Range"] || "");
-
-		function parseDuration2024 (durArr) {
-			if (!durArr || !durArr.length) return "Instantaneous";
-			const du = durArr[0];
-			if (du.type === "instantaneous") return "Instantaneous";
-			if (du.type === "permanent") return "Until Dispelled";
-			if (du.type === "special") return "Special";
-			if (du.type === "timed" && du.duration) {
-				const amt = du.duration.amount;
-				const unit = du.duration.type;
-				const plural = amt !== 1 ? "s" : "";
-				if (du.concentration) return `Concentration, up to ${amt} ${unit}${plural}`;
-				return `${amt} ${unit}${plural}`;
-			}
-			return "Instantaneous";
-		}
 		const duration = vc ? parseDuration2024(vc.duration) : (d["Duration"] || "");
-
-		function parseCastingTime2024 (timeArr) {
-			if (!timeArr || !timeArr.length) return "Action";
-			const t = timeArr[0];
-			if (t.unit === "action") return "Action";
-			if (t.unit === "bonus") return "Bonus Action";
-			if (t.unit === "reaction") return "Reaction";
-			if (t.unit === "minute") return t.number === 1 ? "1 Minute" : `${t.number} Minutes`;
-			if (t.unit === "hour") return t.number === 1 ? "1 Hour" : `${t.number} Hours`;
-			if (t.unit === "day") return t.number === 1 ? "1 Day" : `${t.number} Days`;
-			return "Action";
-		}
 		const castingTimeBase = vc ? parseCastingTime2024(vc.time) : (d["Casting Time"] || "Action");
 		const isRitual = vc ? !!(vc.meta && vc.meta.ritual) : (d["Ritual"] || "") === "Yes";
 		const castingTime = isRitual ? `${castingTimeBase} or Ritual` : castingTimeBase;
 
 		// AoE
-		const aoeShape = vc && vc.areaTags && vc.areaTags.length ? areaTagTo2024Shape(vc.areaTags[0]) : "";
-		const aoeSize = vc ? parseSpell2024AoeSize(vc.entries) : "";
+		const aoeShape = vc && vc.areaTags && vc.areaTags.length ? sp.areaTagToShape(vc.areaTags[0]) : "";
+		const aoeSize = vc ? sp.parseAoeSize(vc.entries) : "";
 		const aoe = {shape: aoeShape, size: aoeSize};
 
 		// Determine whether to build the Attack/Damage chain
@@ -260,18 +249,16 @@ function d20plus2024SpellImport() {
 		const hasDamage = vc && vc.damageInflict && vc.damageInflict.length;
 		const isCantripScaling = vc && vc.level === 0 && (vc.miscTags || []).includes("SCL");
 
-		const rawRepeat = (hasDamage && !hasSave && !hasSpellAtk) ? parseSpell2024Repeat(vc.entries) : null;
-		const isAutoHit = rawRepeat !== null;
-		const repeatCount = rawRepeat || 1;
-
-		const rayRepeat = (!isCantripScaling && hasSpellAtk) ? parseSpell2024Repeat(vc.entries) : null;
-		const isMultiRay = rayRepeat !== null;
+		// autoHit means "no save/attack roll" - true for both projectile spells (Magic Missile) and
+		// reactive/automatic damage spells (Armor of Agathys), not just ones with a projectile word
+		// in their text. Confirmed against Roll20's own compendium output: Armor of Agathys' Attack
+		// integrant has autoHit:true despite never mentioning darts/rays/beams.
+		const {isAutoHit, rawRepeat, repeatCount, rayRepeat, isMultiRay, isRepeatUpcast} = parseSpellAttackShape(vc, isCantripScaling);
 
 		const buildChain = hasSave || hasSpellAtk || isAutoHit;
 
-		const parsed = buildChain ? parseSpell2024Damage(vc.entries) : null;
-		const isRepeatUpcast = !isCantripScaling && (isAutoHit || isMultiRay) && parseSpell2024RepeatUpcast(vc.entriesHigherLevel);
-		const upcast = (!isCantripScaling && buildChain && !isRepeatUpcast) ? parseSpell2024Upcast(vc.entriesHigherLevel) : null;
+		const parsed = (buildChain && hasDamage) ? getDamageDiceOrFlat(vc.entries) : null;
+		const upcast = (!isCantripScaling && buildChain && !isRepeatUpcast) ? getDamageUpcastData(vc.entriesHigherLevel) : null;
 		const scalingLevelDice = vc ? vc.scalingLevelDice : undefined;
 		const isDiceScaling = isCantripScaling && !!scalingLevelDice;
 		const isMultiDamage = isDiceScaling && Array.isArray(scalingLevelDice) && scalingLevelDice.length > 1;
@@ -280,8 +267,8 @@ function d20plus2024SpellImport() {
 
 		const hasTHP = vc && (vc.miscTags || []).includes("THP");
 		const hasHeal = vc && (vc.miscTags || []).includes("HL");
-		const healParsed = (hasTHP || hasHeal) ? parseSpell2024HealDice(vc.entries) : null;
-		const healUpcastData = healParsed ? parseSpell2024HealUpcast(vc.entriesHigherLevel) : null;
+		const healParsed = (hasTHP || hasHeal) ? getHealDiceOrFlat(vc.entries) : null;
+		const healUpcastData = healParsed ? getHealUpcastData(vc.entriesHigherLevel) : null;
 
 		// Generate all IDs + arrayPositions upfront so parents can reference children
 		let pos = spellCtx.getNextArrayPos(store);
@@ -289,7 +276,7 @@ function d20plus2024SpellImport() {
 		let attackId, attackBase, dmgId, dmgBase, upcastId, upcastBase;
 		let cantripUpcastEntries = [];
 		const multiDmgTypes = (!isCantripScaling && !isMultiDamage && hasDamage && vc.damageInflict && vc.damageInflict.length > 1)
-			? parseAllSpell2024DamagesTyped(vc.entries, vc.damageInflict)
+			? sp.parseAllTypedDamages(vc.entries, vc.damageInflict)
 			: [];
 		const isMultiDmgType = multiDmgTypes.length > 1;
 		let extraDmgEntries = [];
@@ -329,19 +316,20 @@ function d20plus2024SpellImport() {
 				startingLevel: isRepeat ? levelIdx + 1 : upcast.startingLevel,
 				level: isRepeat ? 1 : (upcast.stepLevels || 1),
 				mode: "Per X Spell Level",
-				target: isRepeat ? "$.repeat" : "$.diceCount",
+				target: isRepeat ? "$.repeat" : (upcast.targetBonus ? "$._bonus" : "$._diceCount"),
 				value: isRepeat ? 1 : upcast.value,
 				changeMode: "Add",
 				parentID: isRepeat ? attackId : dmgId,
 				childIDs: "[]",
+				cascades: {},
 				relations: {},
 			};
 		}
 
 		if (dmgId) {
 			const firstParsed = isMultiDmgType ? multiDmgTypes[0] : parsed;
-			const diceCount = firstParsed ? firstParsed.diceCount : (parsed ? parsed.diceCount : 1);
-			const diceSize  = firstParsed ? firstParsed.diceSize  : (parsed ? parsed.diceSize  : "d6");
+			const isFlatOnly = !!firstParsed && firstParsed.diceCount === undefined;
+			const diceSize  = isFlatOnly ? "" : (firstParsed ? firstParsed.diceSize : "d6");
 			const dmgType   = isMultiDmgType ? multiDmgTypes[0].damageType : cap(vc.damageInflict[0]);
 			const dmgName   = isMultiDmgType ? `${spellData.name} ${dmgType} Damage` : `${spellData.name} Damage`;
 			const dmgUpcastChildIds = isDiceScaling ? cantripUpcastEntries.map(e => e.id) : [];
@@ -353,16 +341,20 @@ function d20plus2024SpellImport() {
 				...dmgBase,
 				name: dmgName,
 				recordName: dmgName,
-				ability: "none",
-				diceCount,
+				ability: hasCastingModDamage(vc.entries) ? "auto" : "none",
 				diceSize,
 				damageType: dmgType,
 				overrideCrit: false,
 				critDiceSize: "",
 				parentID: attackId,
 				childIDs: dmgChildIds,
+				cascades: {},
 				relations: {},
 			};
+			// "_diceCount" (underscore-prefixed), not "diceCount" - confirmed against Roll20's own
+			// Magic Missile compendium output, the first ground-truth dump this session with a real
+			// (non-flat) dice-based Damage integrant to check the field name against.
+			if (!isFlatOnly) dmgIntegrant._diceCount = firstParsed ? firstParsed.diceCount : 1;
 			if (firstParsed && firstParsed.flatBonus) dmgIntegrant._bonus = firstParsed.flatBonus;
 			store.integrants.integrants[dmgId] = dmgIntegrant;
 
@@ -373,13 +365,14 @@ function d20plus2024SpellImport() {
 					name: eName,
 					recordName: eName,
 					ability: "none",
-					diceCount: ep.diceCount,
+					_diceCount: ep.diceCount,
 					diceSize: ep.diceSize,
 					damageType: ep.damageType,
 					overrideCrit: false,
 					critDiceSize: "",
 					parentID: attackId,
 					childIDs: "[]",
+					cascades: {},
 					relations: {},
 				};
 				if (ep.flatBonus) store.integrants.integrants[id]._bonus = ep.flatBonus;
@@ -396,11 +389,12 @@ function d20plus2024SpellImport() {
 				mode: "Specific Character Level",
 				level,
 				startingLevel: 0,
-				target: isDice ? "$.diceCount" : "$.repeat",
+				target: isDice ? "$._diceCount" : "$.repeat",
 				value: 1,
 				changeMode: "Add",
 				parentID: isDice ? dmgId : attackId,
 				childIDs: "[]",
+				cascades: {},
 				relations: {},
 			};
 		}
@@ -408,24 +402,41 @@ function d20plus2024SpellImport() {
 		if (attackId) {
 			const diceCount = parsed ? parsed.diceCount : 1;
 			const diceSize = parsed ? parsed.diceSize : "d6";
+			const diceLabel = (parsed && parsed.diceCount === undefined) ? `${parsed.flatBonus}` : `${diceCount}${diceSize}`;
 			const damageType = hasDamage ? cap(vc.damageInflict[0]) : "";
 
 			let atkIntegrant;
 			if (isAutoHit) {
-				const childIds = upcastId ? [dmgId, upcastId] : [dmgId];
+				// upcastId is only a direct child of Attack when it's parented there (the repeat-count
+				// upcast case, e.g. Magic Missile gaining darts) - a dice/bonus upcast on the Damage
+				// value itself is parented to Damage instead (see the upcastId integrant above), so it
+				// must not also be listed here or it'd appear as a child of both. Confirmed via Roll20's
+				// own compendium output for both Armor of Agathys and Magic Missile: Attack's childIDs
+				// only ever includes 2 entries when isRepeatUpcast is the active upcast mode.
+				const childIds = (upcastId && isRepeatUpcast) ? [dmgId, upcastId] : [dmgId];
+				// Two ground-truth compendium dumps disagree on name/recordName/range, and the
+				// distinguishing factor is whether this is a real projectile attack (a repeat count
+				// word was found in the text, e.g. Magic Missile's "three darts") vs a reactive/
+				// passive proc with no such word (Armor of Agathys). Projectile case: name is just the
+				// plain spell name, recordName is "... Free Attack", range is included (e.g. "120
+				// feet" - it's meaningfully attacking at range). Reactive case: name includes the
+				// damage type ("Armor of Agathys Cold Damage"), recordName is "... Attack" (no
+				// "Free"), and range is omitted entirely (the spell's own range is "Self" - "attacking
+				// yourself at range Self" isn't meaningful attack-range info).
+				const isProjectile = rawRepeat !== null;
 				atkIntegrant = {
 					...attackBase,
-					name: spellData.name,
-					recordName: `${spellData.name} Free Attack`,
+					name: isProjectile ? spellData.name : (damageType ? `${spellData.name} ${damageType} Damage` : spellData.name),
+					recordName: isProjectile ? `${spellData.name} Free Attack` : `${spellData.name} Attack`,
 					actionType: castingTime,
-					range,
+					...(isProjectile ? {range} : {}),
 					autoHit: true,
-					repeat: repeatCount,
 					parentID: spellId,
 					childIDs: JSON.stringify(childIds),
 					cascades: {},
 					relations: {},
 				};
+				if (repeatCount > 1) atkIntegrant.repeat = repeatCount;
 			} else {
 				let atkType;
 				if (hasSave) atkType = "Spell Save";
@@ -458,7 +469,7 @@ function d20plus2024SpellImport() {
 							const allDmgParts = multiDmgTypes.map(p => `${p.diceCount}${p.diceSize} ${p.damageType}`);
 							onFailText = `Takes ${allDmgParts.join(" damage and ")} damage.`;
 						} else {
-							onFailText = `Takes ${diceCount}${diceSize} ${damageType} damage.`;
+							onFailText = `Takes ${diceLabel} ${damageType} damage.`;
 						}
 					}
 					atkIntegrant.save = {
@@ -475,21 +486,22 @@ function d20plus2024SpellImport() {
 		const multiDamageAtkIds = [];
 		if (isMultiDamage) {
 			const damageType = cap(vc.damageInflict[0]);
+			const multiDamageEntries = parseMultiDamageEntries(scalingLevelDice, cantripLevels, damageType);
 
-			for (const sldEntry of scalingLevelDice) {
-				const baseDiceStr = sldEntry.scaling["1"] || "1d8";
-				const baseDiceM = baseDiceStr.match(/(\d+)d(\d+)/i);
-				const baseDiceCount = baseDiceM ? parseInt(baseDiceM[1], 10) : 1;
-				const baseDiceSize = baseDiceM ? "d" + baseDiceM[2] : "d8";
+			for (const parsedEntry of multiDamageEntries) {
+				const {label, isFlatOnly, diceCount, diceSize, ability, upcastLevels, onFailText} = parsedEntry;
 
-				const suffix = `(${baseDiceStr})`;
+				// Use 5etools' own human-readable label (e.g. "fire damage to secondary creature")
+				// rather than the raw scaling value - the value is meant for level lookups, not
+				// display, and using it directly is what let "{{spellcasting_mod}}" leak into names.
+				const suffix = `(${label})`;
 				const dmgName = `${spellData.name} ${suffix} Damage`;
 				const atkName = `${spellData.name} ${suffix}`;
 				const atkRecordName = `${spellData.name} ${suffix} Attack`;
 
 				const {id: mAtkId, base: mAtkBase} = spellCtx.makeIntegrantBase("Attack", pos++);
 				const {id: mDmgId, base: mDmgBase} = spellCtx.makeIntegrantBase("Damage", pos++);
-				const mUpcastEntries = cantripLevels.map(lvl => {
+				const mUpcastEntries = upcastLevels.map(lvl => {
 					const {id, base} = spellCtx.makeIntegrantBase("Upcasting", pos++);
 					return {id, base, level: lvl};
 				});
@@ -502,7 +514,7 @@ function d20plus2024SpellImport() {
 						mode: "Specific Character Level",
 						level,
 						startingLevel: 0,
-						target: "$.diceCount",
+						target: "$._diceCount",
 						value: 1,
 						changeMode: "Add",
 						parentID: mDmgId,
@@ -511,13 +523,12 @@ function d20plus2024SpellImport() {
 					};
 				}
 
-				store.integrants.integrants[mDmgId] = {
+				const mDmgIntegrant = {
 					...mDmgBase,
 					name: dmgName,
 					recordName: dmgName,
-					ability: "none",
-					diceCount: baseDiceCount,
-					diceSize: baseDiceSize,
+					ability,
+					diceSize,
 					damageType,
 					overrideCrit: false,
 					critDiceSize: "",
@@ -525,6 +536,8 @@ function d20plus2024SpellImport() {
 					childIDs: JSON.stringify(mUpcastEntries.map(e => e.id)),
 					relations: {},
 				};
+				if (!isFlatOnly) mDmgIntegrant._diceCount = diceCount;
+				store.integrants.integrants[mDmgId] = mDmgIntegrant;
 
 				const mAtkIntegrant = {
 					...mAtkBase,
@@ -541,7 +554,7 @@ function d20plus2024SpellImport() {
 				if (hasSave) {
 					mAtkIntegrant.save = {
 						saveAbility: cap(vc.savingThrow[0]),
-						onFail: `Takes ${baseDiceStr} ${damageType} damage.`,
+						onFail: onFailText,
 					};
 					if (onSucceedHalf) mAtkIntegrant.save.onSucceed = "Half as much damage.";
 				}
@@ -550,40 +563,49 @@ function d20plus2024SpellImport() {
 			}
 		}
 
-		// Healing chain (False Life, Cure Wounds, etc.)
+		// Healing chain (False Life, Cure Wounds, etc.). Labels/suffixes below match Roll20's own
+		// compendium naming exactly, confirmed against two separate ground-truth dumps: Armor of
+		// Agathys ("Armor of Agathys Temporary HP" / "... Temporary HP Upcasting" - THP, "Upcasting"
+		// suffix) and Heal ("Heal Healing" / "Heal Healing Upcast" - non-THP, "Upcast" suffix, no
+		// "Hit Points" anywhere in the name despite the field itself being about hit points).
 		if (healParsed) {
-			const healLabel = hasTHP ? "Temporary Hit Points" : "Hit Points";
+			const healLabel = hasTHP ? "Temporary HP" : "Healing";
+			const healUpcastSuffix = hasTHP ? "Upcasting" : "Upcast";
 			if (healUpcastId) {
 				store.integrants.integrants[healUpcastId] = {
 					...healUpcastBase,
-					name: `${spellData.name} ${healLabel} Upcast`,
-					recordName: `${spellData.name} ${healLabel} Upcast`,
+					name: `${spellData.name} ${healLabel} ${healUpcastSuffix}`,
+					recordName: `${spellData.name} ${healLabel} ${healUpcastSuffix}`,
 					startingLevel: healUpcastData.startingLevel,
 					level: healUpcastData.stepLevels || 1,
 					mode: "Per X Spell Level",
-					target: healUpcastData.targetBonus ? "$._bonus" : "$.diceCount",
+					target: healUpcastData.targetBonus ? "$._bonus" : "$._diceCount",
 					value: healUpcastData.value,
 					changeMode: "Add",
 					parentID: healId,
 					childIDs: "[]",
+					cascades: {},
 					relations: {},
 				};
 			}
-			store.integrants.integrants[healId] = {
+			const healIsFlatOnly = healParsed.diceCount === undefined;
+			const healIntegrant = {
 				...healBase,
 				name: `${spellData.name} ${healLabel}`,
 				recordName: `${spellData.name} ${healLabel}`,
-				_bonus: healParsed.bonus,
-				ability: "none",
-				diceCount: healParsed.diceCount,
-				diceSize: healParsed.diceSize,
+				_bonus: healParsed.bonus || 0,
+				ability: hasCastingModDamage(vc.entries) ? "auto" : "none",
+				diceSize: healIsFlatOnly ? "" : healParsed.diceSize,
 				overrideCrit: false,
 				critDiceSize: "",
 				isTemp: !!hasTHP,
 				parentID: spellId,
 				childIDs: healUpcastId ? JSON.stringify([healUpcastId]) : "[]",
+				cascades: {},
 				relations: {},
 			};
+			if (!healIsFlatOnly) healIntegrant._diceCount = healParsed.diceCount;
+			store.integrants.integrants[healId] = healIntegrant;
 		}
 
 		// Spell integrant (always created)
@@ -621,6 +643,25 @@ function d20plus2024SpellImport() {
 		store.spells.displayOrder[levelIdx] = JSON.stringify(order);
 
 		if (!_batchStore) spellCtx.saveStore(charModel, storeAttr, store);
+		} finally {
+			if (releaseLock) releaseLock();
+		}
+	};
+
+	// Shared 2024-sheet spell-parsing primitives, reused by the standalone Charactermancer script
+	// (js/5etools/2024/5etools-2024-charactermancer.js) so both consumers build spell
+	// integrants/records from identical logic instead of maintaining a second implementation.
+	d20plus.import2024.spellPlan = {
+		parseDamage: getDamageDiceOrFlat,
+		parseHeal: getHealDiceOrFlat,
+		parseDamageUpcast: getDamageUpcastData,
+		parseHealUpcast: getHealUpcastData,
+		parseCantripLevels: parseSpell2024CantripLevels,
+		parseDuration: parseDuration2024,
+		parseCastingTime: parseCastingTime2024,
+		parseAttackShape: parseSpellAttackShape,
+		parseMultiDamageEntries,
+		hasCastingModDamage,
 	};
 }
 SCRIPT_EXTENSIONS.push(d20plus2024SpellImport);

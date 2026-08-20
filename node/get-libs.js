@@ -31,32 +31,89 @@ const _LIBS = new Set([
 	"utils-dataloader.js",
 ]);
 
-async function build (input, output) {
+// Source filename (in `SRC_PATH/js/`) to bundle from, when it no longer matches the `lib/` output
+// name 1:1. 5etools split `scalecreature.js` into a `js/scalecreature/*.js` directory of modules;
+// `js/shim-esmodules.js` is their own aggregator that imports the classes we need and attaches
+// them to `globalThis`, so it's the correct rollup entry point for our `lib/scalecreature.js`.
+const _SRC_OVERRIDES = {
+	"scalecreature.js": "shim-esmodules.js",
+};
+
+// `Renderer.get().baseUrl` is a singleton shared with rendered-link generation, which our
+// importer code repeatedly points at `LINK_BASE_URL` ("https://5e.tools/") so handout links
+// open a real page instead of the raw CDN. That leaks into these vendor call sites, which use
+// the same property purely to fetch JSON data and need the CDN base (`DATA_URL`) regardless of
+// what the link renderer is currently pointed at. Patched here (instead of by hand in the
+// generated lib/ file) so it survives re-running this script against a newer 5etools checkout.
+const _PATCHES = {
+	"utils.js": [
+		{
+			find: "this._P_INDEX = this._P_INDEX || DataUtil.loadJSON(`${Renderer.get().baseUrl}data/${this._DIR}/${this._isFluff ? `fluff-` : \"\"}index.json`);",
+			replace: "this._P_INDEX = this._P_INDEX || DataUtil.loadJSON(`${DATA_URL}${this._DIR}/${this._isFluff ? `fluff-` : \"\"}index.json`);",
+		},
+		{
+			find: "let data = await fnLoad(`${Renderer.get().baseUrl}data/${this._DIR}/${file}`);",
+			replace: "let data = await fnLoad(`${DATA_URL}${this._DIR}/${file}`);",
+		},
+		{
+			find: "this._SPELL_SOURCE_LOOKUP = await DataUtil.loadRawJSON(`${Renderer.get().baseUrl}data/generated/gendata-spell-source-lookup.json`);",
+			replace: "this._SPELL_SOURCE_LOOKUP = await DataUtil.loadRawJSON(`${DATA_URL}generated/gendata-spell-source-lookup.json`);",
+		},
+	],
+};
+
+function applyPatches (name, code) {
+	const patches = _PATCHES[name];
+	if (!patches) return code;
+	for (const {find, replace} of patches) {
+		if (!code.includes(find)) {
+			throw new Error(`Patch failed for "${name}": expected text not found. Upstream source has likely changed - review and update the patch in node/get-libs.js.\nExpected:\n${find}`);
+		}
+		code = code.split(find).join(replace);
+	}
+	return code;
+}
+
+async function build (input, output, name) {
 	const bundle = await rollup({
 		input,
 		onLog: (lvl, log, handler) => log.code !== "EVAL" && handler(lvl, log),
 	});
 
-	await bundle.write({
-		file: output,
+	const {output: [{code}]} = await bundle.generate({
 		format: "es",
 		inlineDynamicImports: true, // Add this line to fix the error
 	});
+
+	fs.writeFileSync(output, applyPatches(name, code));
+}
+
+function reportSkipped (skipped) {
+	if (!skipped.length) return;
+	msg.warn(`\n/!\\ ${skipped.length} lib(s) were NOT updated (source not found upstream):`);
+	skipped.forEach(({name, srcName}) => msg.warn(`  ${name} (expected source: ${srcName})`));
+	msg.warn(`Upstream layout has likely changed - update node/get-libs.js (_LIBS/_SRC_OVERRIDES). These files are now stale relative to upstream.\n`);
+	process.exitCode = 1;
 }
 
 async function main () {
 	const siteJsRoot = path.join(SRC_PATH, "js");
-	const files = fs.readdirSync(siteJsRoot);
+	const skipped = [];
 
-	for (const name of files) {
-		if (!_LIBS.has(name)) continue;
+	for (const name of _LIBS) {
+		const srcName = _SRC_OVERRIDES[name] || name;
+		const src = path.join(siteJsRoot, srcName);
+		if (!fs.existsSync(src)) {
+			skipped.push({name, srcName});
+			continue;
+		}
 
-		const src = path.join(siteJsRoot, name);
 		const bundle = path.join("lib", name);
-		await build(src, bundle);
+		await build(src, bundle, name);
 	}
 
 	msg.log("Successfully processed libs");
+	reportSkipped(skipped);
 }
 
 require.main === module && main().then(() => msg.log("Done!"));

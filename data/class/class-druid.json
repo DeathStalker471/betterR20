@@ -1325,6 +1325,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1379,6 +1380,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1423,6 +1425,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1475,6 +1478,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1560,6 +1564,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1629,6 +1634,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -1707,6 +1713,7 @@
 				"_preserve": {
 					"page": true,
 					"otherSources": true,
+					"referenceSources": true,
 					"srd": true,
 					"basicRules": true,
 					"reprintedAs": true
@@ -2492,7 +2499,7 @@
 						},
 						{
 							"type": "entries",
-							"name": "Rules While Transformed",
+							"name": "Rules While Shape-Shifted",
 							"entries": [
 								"While in a form, you retain your personality, memories, and ability to speak, and the following rules apply:",
 								{
@@ -2603,12 +2610,18 @@
 					"type": "entries",
 					"entries": [
 						{
-							"type": "refClassFeature",
-							"classFeature": "Potent Spellcasting|Druid|XPHB|7"
-						},
-						{
-							"type": "refClassFeature",
-							"classFeature": "Primal Strike|Druid|XPHB|7"
+							"type": "options",
+							"count": 1,
+							"entries": [
+								{
+									"type": "refClassFeature",
+									"classFeature": "Potent Spellcasting|Druid|XPHB|7"
+								},
+								{
+									"type": "refClassFeature",
+									"classFeature": "Primal Strike|Druid|XPHB|7"
+								}
+							]
 						}
 					]
 				}
@@ -4441,7 +4454,7 @@
 			"level": 10,
 			"header": 2,
 			"entries": [
-				"You are immune to the {@condition Poisoned|XPHB} condition, and you have {@variantrule Resistance|XPHB} to a damage type associated with your current land choice in the Circle Spells feature, as shown in the {@skill Nature|XPHB}'s Ward table.",
+				"You are immune to the {@condition Poisoned|XPHB} condition, and you have {@variantrule Resistance|XPHB} to a damage type associated with your current land choice in the Circle Spells feature, as shown in the Nature's Ward table.",
 				{
 					"type": "entries",
 					"entries": [
@@ -4492,7 +4505,7 @@
 			"level": 14,
 			"header": 2,
 			"entries": [
-				"As a {@action Magic|XPHB} action, you can expend a use of your Wild Shape and cause spectral trees and vines to appear in a 15-foot {@variantrule Cube [Area of Effect]|XPHB|Cube} on the ground within 120 feet of yourself. They last there for 1 minute or until you have the {@condition Incapacitated|XPHB} condition or die. You and your allies have {@variantrule Cover|XPHB|Half Cover} while in that area, and your allies gain the current {@variantrule Resistance|XPHB} of your {@skill Nature|XPHB}'s Ward while there.",
+				"As a {@action Magic|XPHB} action, you can expend a use of your Wild Shape and cause spectral trees and vines to appear in a 15-foot {@variantrule Cube [Area of Effect]|XPHB|Cube} on the ground within 120 feet of yourself. They last there for 1 minute or until you have the {@condition Incapacitated|XPHB} condition or die. You and your allies have {@variantrule Cover|XPHB|Half Cover} while in that area, and your allies gain the current {@variantrule Resistance|XPHB} of your Nature's Ward while there.",
 				"As a {@variantrule Bonus Action|XPHB}, you can move the {@variantrule Cube [Area of Effect]|XPHB|Cube} up to 60 feet to ground within 120 feet of yourself."
 			]
 		},

@@ -76,7 +76,7 @@
 				{
 					"name": "Spring Attack",
 					"entries": [
-						"The achaierai takes the Disengage action."
+						"The achaierai takes the {@action Disengage} action."
 					]
 				}
 			],
@@ -745,6 +745,7 @@
 		{
 			"name": "Bhaal, Ravager",
 			"shortName": "ravager",
+			"isNamedCreature": true,
 			"source": "MaBJoV",
 			"page": 95,
 			"size": [
@@ -958,6 +959,7 @@
 		{
 			"name": "Bhaal, Slayer",
 			"shortName": "slayer",
+			"isNamedCreature": true,
 			"source": "MaBJoV",
 			"page": 93,
 			"size": [
@@ -1246,25 +1248,28 @@
 				{
 					"name": "Vampire Weaknesses",
 					"entries": [
-						"Bodhi Irenicus has the following flaws:"
-					]
-				},
-				{
-					"name": "Elvish Song",
-					"entries": [
-						"Bodhi can't abide a song performed in the elvish language. A creature that can speak the elvish language can use an action to sing an elven song. If Bodhi is within 60 feet of the singer and can hear the song, she has disadvantage on attacks and saving throws."
-					]
-				},
-				{
-					"name": "Stake to the Heart",
-					"entries": [
-						"If a piercing weapon made of wood is driven into Bodhi's heart while she is {@condition incapacitated} in her resting place, Bodhi is {@condition paralyzed} until the stake is removed."
-					]
-				},
-				{
-					"name": "Sunlight Hypersensitivity",
-					"entries": [
-						"Bodhi takes 20 radiant damage when she starts her turn in sunlight. While in sunlight, she has disadvantage on attack rolls and ability checks."
+						"Bodhi Irenicus has the following flaws:",
+						{
+							"type": "list",
+							"style": "list-hang-subtrait",
+							"items": [
+								{
+									"type": "itemSub",
+									"name": "Elvish Song",
+									"entry": "Bodhi can't abide a song performed in the elvish language. A creature that can speak the elvish language can use an action to sing an elven song. If Bodhi is within 60 feet of the singer and can hear the song, she has disadvantage on attacks and saving throws."
+								},
+								{
+									"type": "itemSub",
+									"name": "Stake to the Heart",
+									"entry": "If a piercing weapon made of wood is driven into Bodhi's heart while she is {@condition incapacitated} in her resting place, Bodhi is {@condition paralyzed} until the stake is removed."
+								},
+								{
+									"type": "itemSub",
+									"name": "Sunlight Hypersensitivity",
+									"entry": "Bodhi takes 20 radiant damage when she starts her turn in sunlight. While in sunlight, she has disadvantage on attack rolls and ability checks."
+								}
+							]
+						}
 					]
 				}
 			],
@@ -1343,8 +1348,7 @@
 			"damageTags": [
 				"B",
 				"N",
-				"P",
-				"R"
+				"P"
 			],
 			"miscTags": [
 				"HPR",
@@ -1477,7 +1481,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"Borivik can take the Disengage or Hide action."
+						"Borivik can take the {@action Disengage} or {@action Hide} action."
 					]
 				}
 			],
@@ -2162,7 +2166,7 @@
 					],
 					"daily": {
 						"2e": [
-							"{@spell armor of agathys}",
+							"{@spell armor of Agathys}",
 							"{@spell cone of cold}",
 							"{@spell darkness}",
 							"{@spell fear}",
@@ -2577,7 +2581,7 @@
 				13,
 				{
 					"ac": 18,
-					"condition": "with {@item staff of power} and  {@spell mage armor}",
+					"condition": "with {@item staff of power} and {@spell mage armor}",
 					"braces": true
 				}
 			],
@@ -3182,7 +3186,7 @@
 				{
 					"name": "Adhesive Slime",
 					"entries": [
-						"The farastu secretes a thick, tarlike slime and it can choose to use this slime to secure enemies that it has {@condition grappled} or to make weapons become attached to it. It is able to end the adhesion with a bonus action, causing all items and creatures secured to it to be released. The adhesion also ends after the farastu dies."
+						"The farastu secretes a thick, tar-like slime and it can choose to use this slime to secure enemies that it has {@condition grappled} or to make weapons become attached to it. It is able to end the adhesion with a bonus action, causing all items and creatures secured to it to be released. The adhesion also ends after the farastu dies."
 					]
 				},
 				{
@@ -3804,7 +3808,7 @@
 				{
 					"name": "Cunning Action",
 					"entries": [
-						"Imoen takes the Dash, Disengage, or Hide action."
+						"Imoen takes the {@action Dash}, {@action Disengage}, or {@action Hide} action."
 					]
 				}
 			],
@@ -4894,7 +4898,7 @@
 				{
 					"name": "Beak (Raven or Hybrid Form Only)",
 					"entries": [
-						"{@atk mw} {@hit 8} to hit, reach 5 ft., one target. {@h}1 piercing damage in raven form, or 6 ({@damage 1d4 + 4}) piercing damage in hybrid form. If the target is Humanoid, it must succeed on a {@dc 15} Constitution saving throw or be cursed with wereraven lycanthropy."
+						"{@atk mw} {@hit 8} to hit, reach 5 ft., one target. {@h}1 piercing damage in raven form, or 6 ({@damage 1d4 + 4}) piercing damage in hybrid form. If the target is Humanoid, it must succeed on a {@dc 15} Constitution saving throw or be cursed with wereraven {@variantrule Player Characters as Lycanthropes|MM|lycanthropy}."
 					]
 				},
 				{
@@ -5311,7 +5315,7 @@
 				{
 					"name": "Greatsword",
 					"entries": [
-						"{@atk mw} {@hit 9} to hit, reach 5 ft., one target. {@h}12 ({@damage 2d6 + 5}) slashing damage"
+						"{@atk mw} {@hit 9} to hit, reach 5 ft., one target. {@h}12 ({@damage 2d6 + 5}) slashing damage."
 					]
 				}
 			],
@@ -6604,7 +6608,7 @@
 				{
 					"name": "Special Equipment",
 					"entries": [
-						"Saemon wears a {@item quiver of ehlonna} (holding {@item handaxe|PHB|40 handaxes})."
+						"Saemon wears a {@item quiver of Ehlonna} (holding {@item handaxe|PHB|40 handaxes})."
 					]
 				}
 			],
@@ -6646,7 +6650,7 @@
 				{
 					"name": "Animate Objects (Costs 3 Actions)",
 					"entries": [
-						"Saemon casts {@spell animate objects}, targeting up to 10 handaxes he has thrown at enemies. If there are not 10 handaxes available, then he provides the remaining handaxes from his quiver of ehlonna. Handaxes are Tiny objects."
+						"Saemon casts {@spell animate objects}, targeting up to 10 handaxes he has thrown at enemies. If there are not 10 handaxes available, then he provides the remaining handaxes from his {@item quiver of Ehlonna}. Handaxes are Tiny objects."
 					]
 				}
 			],
@@ -8103,7 +8107,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"The tasloi can take the Disengage or Hide action as a bonus action on each of its turns."
+						"The tasloi can take the {@action Disengage} or {@action Hide} action as a bonus action on each of its turns."
 					]
 				}
 			],
@@ -8206,7 +8210,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"The tasloi can take the Disengage or Hide action as a bonus action on each of its turns."
+						"The tasloi can take the {@action Disengage} or {@action Hide} action as a bonus action on each of its turns."
 					]
 				}
 			],
@@ -8473,7 +8477,7 @@
 				{
 					"name": "Shadow Stealth",
 					"entries": [
-						"While in dim light or darkness, Valygar can take the Hide action as a bonus action."
+						"While in dim light or darkness, Valygar can take the {@action Hide} action as a bonus action."
 					]
 				}
 			],
@@ -8577,7 +8581,7 @@
 				{
 					"name": "Animal Companions",
 					"entries": [
-						"Vellin is accompanied by Akela ({@creature wolf} with 18 hit points). Vellin can mount or dismount Akela using 5 feet of movement. While mounted, Vellin can order Akela to Dash, Disengage, and Dodge. In addition, Vellin has an {@creature owl} companion with 3 hit points. On Vellin's turn, the owl can perform a flyby on a creature of Vellin's choice. The next attack that Vellin makes against that creature has advantage."
+						"Vellin is accompanied by Akela ({@creature wolf} with 18 hit points). Vellin can mount or dismount Akela using 5 feet of movement. While mounted, Vellin can order Akela to {@action Dash}, {@action Disengage}, and {@action Dodge}. In addition, Vellin has an {@creature owl} companion with 3 hit points. On Vellin's turn, the owl can perform a flyby on a creature of Vellin's choice. The next attack that Vellin makes against that creature has advantage."
 					]
 				},
 				{
@@ -8623,7 +8627,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"Vellin can take the Disengage or Hide action."
+						"Vellin can take the {@action Disengage} or {@action Hide} action."
 					]
 				}
 			],
@@ -8666,7 +8670,11 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"drow"
+					{
+						"tag": "elf",
+						"prefix": "Drow",
+						"prefixHidden": true
+					}
 				]
 			},
 			"alignment": [
@@ -9633,6 +9641,9 @@
 			],
 			"spellcastingTags": [
 				"O"
+			],
+			"miscTags": [
+				"AOE"
 			],
 			"conditionInflictSpell": [
 				"poisoned"

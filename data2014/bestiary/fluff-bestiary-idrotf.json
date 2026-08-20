@@ -18,6 +18,26 @@
 			]
 		},
 		{
+			"name": "Arveiaturace",
+			"source": "IDRotF",
+			"entries": [
+				"Known to Ten-Towners as the White Wyrm, Arveiaturace is an ancient white dragon that lairs atop the Reghed Glacier. She remains the most fearsome predator in Icewind Dale, although age has clouded her eyes with cataracts, limiting the range of her vision to 60 feet. Her blindsight, hearing, and sense of smell are undiminished, however. Fortunately for the residents of the dale, she prefers the taste of reindeer, walrus, and polar bear flesh to that of humanoids. The dragon has a healthy respect for humanoids and has never threatened Ten-Towns directly, though it wouldn't take much to provoke her into doing so.",
+				"At one time, Arveiaturace served a wizard named Meltharond, whose frozen corpse remains strapped to a saddle on the dragon's back. Arveiaturace has never acknowledged his death and still speaks to his body as if he were alive. He was, while he lived, her only friend and confidant."
+			],
+			"images": [
+				{
+					"type": "image",
+					"href": {
+						"type": "internal",
+						"path": "bestiary/IDRotF/Arveiaturace.webp"
+					},
+					"title": "Arveiaturace the White Wyrm and Her Mysterious Rider",
+					"width": 1700,
+					"height": 1126
+				}
+			]
+		},
+		{
 			"name": "Auril (First Form)",
 			"source": "IDRotF",
 			"_copy": {
@@ -45,7 +65,9 @@
 							"href": {
 								"type": "internal",
 								"path": "bestiary/IDRotF/Auril (First Form).webp"
-							}
+							},
+							"width": 609,
+							"height": 1000
 						}
 					}
 				}
@@ -80,7 +102,9 @@
 							"href": {
 								"type": "internal",
 								"path": "bestiary/IDRotF/Auril (Second Form).webp"
-							}
+							},
+							"width": 571,
+							"height": 1000
 						}
 					}
 				}
@@ -115,7 +139,9 @@
 							"href": {
 								"type": "internal",
 								"path": "bestiary/IDRotF/Auril (Third Form).webp"
-							}
+							},
+							"width": 766,
+							"height": 1000
 						}
 					}
 				}
@@ -153,7 +179,7 @@
 							"type": "entries",
 							"name": "Lair Actions",
 							"entries": [
-								"Auril dwells on Solstice, a frozen island hidden among the titanic icebergs in the Sea of Moving Ice. Few creatures know of this island, let alone how to reach it. See {@adventure chapter 5|IDRotF|15} for information about the {@area regional effects|534|x} that encompass the island.",
+								"Auril dwells on Solstice, a frozen island hidden among the titanic icebergs in the Sea of Moving Ice. Few creatures know of this island, let alone how to reach it. See {@adventure chapter 5|IDRotF|15} for information about the {@adventure regional effects|IDRotF|15|Regional Effects} that encompass the island.",
 								"While she's on the island, the Frostmaiden can take one of the following lair actions on initiative count 20 (losing initiative ties):",
 								{
 									"type": "list",
@@ -183,7 +209,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Auril the Frostmaiden.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1136
 				}
 			]
 		},
@@ -233,7 +261,9 @@
 						"type": "internal",
 						"path": "bestiary/IDRotF/Avarice.webp"
 					},
-					"title": "Avarice, her raven familiar, and her gargoyles"
+					"title": "Avarice, her raven familiar, and her gargoyles",
+					"width": 1700,
+					"height": 1250
 				}
 			]
 		},
@@ -254,7 +284,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Awakened White Moose.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1136
 				}
 			]
 		},
@@ -277,7 +309,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Bjornhild Solvigsdottir.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1423
 				}
 			]
 		},
@@ -324,7 +358,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Chardalyn Berserker.webp"
-					}
+					},
+					"width": 713,
+					"height": 1000
 				}
 			]
 		},
@@ -351,7 +387,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Chardalyn Dragon.webp"
-					}
+					},
+					"width": 1000,
+					"height": 643
 				}
 			]
 		},
@@ -454,21 +492,27 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Chwinga.webp"
-					}
+					},
+					"width": 746,
+					"height": 1000
 				},
 				{
 					"type": "image",
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Chwinga-2.webp"
-					}
+					},
+					"width": 850,
+					"height": 1087
 				},
 				{
 					"type": "image",
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Chwinga-3.webp"
-					}
+					},
+					"width": 850,
+					"height": 869
 				}
 			]
 		},
@@ -507,7 +551,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Coldlight Walker.webp"
-					}
+					},
+					"width": 364,
+					"height": 1000
 				}
 			]
 		},
@@ -519,7 +565,7 @@
 					"type": "entries",
 					"entries": [
 						"Demos magen wear armor, wield weapons, and typically serve as guards.",
-						"Magen are magical, humanlike beings created by a wizard spell (see the {@spell create magen|idrotf} spell in appendix D) or by other arcane methods.",
+						"Magen are magical, humanlike beings created by a wizard spell (see the {@spell create magen|IDRotF} spell in appendix D) or by other arcane methods.",
 						"Though magen look like humanoids with green skin, they are constructs. When one is wounded, its blood is seen to have the color and consistency of mercury. They exist purely through magical means. When one is killed, its body disappears in a burst of harmless fire and a cloud of smoke that quickly dissipates."
 					]
 				}
@@ -530,7 +576,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Demos Magen.webp"
-					}
+					},
+					"width": 897,
+					"height": 1000
 				}
 			]
 		},
@@ -588,7 +636,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Dzaans Simulacrum.webp"
-					}
+					},
+					"width": 1704,
+					"height": 1363
 				}
 			]
 		},
@@ -609,7 +659,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Fox.webp"
-					}
+					},
+					"width": 1000,
+					"height": 799
 				}
 			]
 		},
@@ -654,7 +706,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Frost Druid.webp"
-					}
+					},
+					"width": 666,
+					"height": 1000
 				}
 			]
 		},
@@ -675,7 +729,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Frost Giant Skeleton.webp"
-					}
+					},
+					"width": 381,
+					"height": 1000
 				}
 			]
 		},
@@ -687,7 +743,7 @@
 					"type": "entries",
 					"entries": [
 						"Galvan magen can fly. They also store static electricity, which they discharge as lightning bolts.",
-						"Magen are magical, humanlike beings created by a wizard spell (see the {@spell create magen|idrotf} spell in appendix D) or by other arcane methods.",
+						"Magen are magical, humanlike beings created by a wizard spell (see the {@spell create magen|IDRotF} spell in appendix D) or by other arcane methods.",
 						"Though magen look like humanoids with green skin, they are constructs. When one is wounded, its blood is seen to have the color and consistency of mercury. They exist purely through magical means. When one is killed, its body disappears in a burst of harmless fire and a cloud of smoke that quickly dissipates."
 					]
 				}
@@ -698,7 +754,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Galvan Magen.webp"
-					}
+					},
+					"width": 477,
+					"height": 1000
 				}
 			]
 		},
@@ -719,7 +777,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Giant Walrus.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1136
 				}
 			]
 		},
@@ -757,7 +817,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Gnoll Vampire.webp"
-					}
+					},
+					"width": 882,
+					"height": 1000
 				}
 			]
 		},
@@ -791,7 +853,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Gnome Ceremorph.webp"
-					}
+					},
+					"width": 859,
+					"height": 1000
 				}
 			]
 		},
@@ -814,7 +878,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Gnome Squidling.webp"
-					}
+					},
+					"width": 797,
+					"height": 1000
 				}
 			]
 		},
@@ -835,7 +901,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Goliath Warrior.webp"
-					}
+					},
+					"width": 774,
+					"height": 1000
 				}
 			]
 		},
@@ -857,7 +925,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Goliath Werebear.webp"
-					}
+					},
+					"width": 761,
+					"height": 1000
 				}
 			]
 		},
@@ -880,7 +950,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Grandolpha Muzgardt.webp"
-					}
+					},
+					"width": 836,
+					"height": 1000
 				}
 			]
 		},
@@ -914,7 +986,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Hare.webp"
-					}
+					},
+					"width": 780,
+					"height": 1000
 				}
 			]
 		},
@@ -952,7 +1026,7 @@
 					"entries": [
 						"Hypnos magen are telepathic and use their power of suggestion to control others. Their creators use them to force enemies to withdraw or surrender.",
 						"A hypnos magen carries no weapons, relying entirely on its psychic abilities to manipulate and harm other creatures.",
-						"Magen are magical, humanlike beings created by a wizard spell (see the {@spell create magen|idrotf} spell in appendix D) or by other arcane methods.",
+						"Magen are magical, humanlike beings created by a wizard spell (see the {@spell create magen|IDRotF} spell in appendix D) or by other arcane methods.",
 						"Though magen look like humanoids with green skin, they are constructs. When one is wounded, its blood is seen to have the color and consistency of mercury. They exist purely through magical means. When one is killed, its body disappears in a burst of harmless fire and a cloud of smoke that quickly dissipates."
 					]
 				}
@@ -963,7 +1037,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Hypnos Magen.webp"
-					}
+					},
+					"width": 293,
+					"height": 1000
 				}
 			]
 		},
@@ -1024,7 +1100,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Ice Troll.webp"
-					}
+					},
+					"width": 810,
+					"height": 1000
 				}
 			]
 		},
@@ -1046,7 +1124,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Icewind Kobold.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1136
 				}
 			]
 		},
@@ -1108,7 +1188,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Kadroth.webp"
-					}
+					},
+					"width": 700,
+					"height": 1500
 				}
 			]
 		},
@@ -1130,7 +1212,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Kingsport.webp"
-					}
+					},
+					"width": 759,
+					"height": 1000
 				}
 			]
 		},
@@ -1138,12 +1222,8 @@
 			"name": "Knight of the Black Sword",
 			"source": "IDRotF",
 			"entries": [
-				{
-					"type": "entries",
-					"entries": [
-						"Fanatics are often part of a cult's leadership, using their charisma and dogma to influence and prey on those of weak will. Most are interested in personal power above all else."
-					]
-				}
+				"The Knights of the Black Sword are a secret society of cultists devoted to Levistus, the archdevil who rules Stygia, the sixth layer of the Nine Hells, from the confines of an ice prison from which he cannot escape.",
+				"Most of the cultists are Icewind Dale natives who would have perished in the wilderness had Levistus not intervened on their behalf. The cultists' stories are all the same: the archdevil reached out to them in their minds as they were freezing to death, offering a second chance at life in exchange for their absolute devotion. After they agreed to follow Levistus, a pale glow caught their eye in the snow nearby, leading to the discovery of a sword-shaped amulet of chardalyn. Each of these amulets has an inner radiance that provides warmth and aid, protecting its wearer against the cold while guiding them safely back to civilization. Once its wearer reaches Ten-Towns, the talisman loses its inner radiance, yet the cultists keep their amulets as signs of their devotion to the archduke of Stygia (see the \"{@adventure Chardalyn Amulets|IDRotF|4|Chardalyn Amulets}\" sidebar)."
 			]
 		},
 		{
@@ -1164,7 +1244,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Knucklehead Trout.webp"
-					}
+					},
+					"width": 764,
+					"height": 1000
 				}
 			]
 		},
@@ -1185,7 +1267,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Kobold Vampire Spawn.webp"
-					}
+					},
+					"width": 850,
+					"height": 683
 				}
 			]
 		},
@@ -1207,7 +1291,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Living Bigbys Hand.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1136
 				}
 			]
 		},
@@ -1229,7 +1315,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Living Blade of Disaster.webp"
-					}
+					},
+					"width": 1000,
+					"height": 988
 				}
 			]
 		},
@@ -1252,7 +1340,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Living Demiplane.webp"
-					}
+					},
+					"width": 914,
+					"height": 1000
 				}
 			]
 		},
@@ -1274,7 +1364,9 @@
 						"type": "internal",
 						"path": "bestiary/IDRotF/Lonelywood Banshee.webp"
 					},
-					"credit": "Tomas Giorello"
+					"credit": "Tomas Giorello",
+					"width": 606,
+					"height": 1000
 				}
 			]
 		},
@@ -1309,7 +1401,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Mountain Goat.webp"
-					}
+					},
+					"width": 919,
+					"height": 1000
 				}
 			]
 		},
@@ -1359,7 +1453,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Nass Lantomirs Ghost.webp"
-					}
+					},
+					"width": 882,
+					"height": 1000
 				}
 			]
 		},
@@ -1384,7 +1480,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Prisoner 237.webp"
-					}
+					},
+					"width": 798,
+					"height": 1000
 				}
 			]
 		},
@@ -1497,7 +1595,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Seal.webp"
-					}
+					},
+					"width": 1000,
+					"height": 943
 				}
 			]
 		},
@@ -1518,7 +1618,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Sephek Kaltro.webp"
-					}
+					},
+					"width": 528,
+					"height": 1000
 				}
 			]
 		},
@@ -1539,7 +1641,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Snow Golem.webp"
-					}
+					},
+					"width": 716,
+					"height": 1000
 				}
 			]
 		},
@@ -1560,7 +1664,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Snowy Owlbear.webp"
-					}
+					},
+					"width": 942,
+					"height": 1000
 				}
 			]
 		},
@@ -1573,7 +1679,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Spellix Romwod.webp"
-					}
+					},
+					"width": 960,
+					"height": 1000
 				}
 			]
 		},
@@ -1594,7 +1702,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Sperm Whale.webp"
-					}
+					},
+					"width": 1000,
+					"height": 1000
 				}
 			]
 		},
@@ -1615,7 +1725,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Spitting Mimic.webp"
-					}
+					},
+					"width": 589,
+					"height": 1000
 				}
 			]
 		},
@@ -1662,7 +1774,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Tomb Tapper.webp"
-					}
+					},
+					"width": 605,
+					"height": 1000
 				}
 			]
 		},
@@ -1713,7 +1827,9 @@
 						"type": "internal",
 						"path": "bestiary/IDRotF/Vellynne Harpell.webp"
 					},
-					"title": "Vellynne Harpell and her kobold minions"
+					"title": "Vellynne Harpell and her kobold minions",
+					"width": 1700,
+					"height": 1136
 				}
 			]
 		},
@@ -1762,7 +1878,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Verbeeg Marauder.webp"
-					}
+					},
+					"width": 735,
+					"height": 1000
 				}
 			]
 		},
@@ -1809,6 +1927,14 @@
 									"entries": [
 										"Xardorok wears the following nonmagical items fashioned from chardalyn: a nine-spired crown (two intact spires representing his two surviving sons, and seven partially broken-off spires representing his seven dead children), a suit of chain mail, and a spiked gauntlet."
 									]
+								},
+								"While in the Deep Duerra's Temple ({@adventure X29|IDRotF|13|X29. Deep Duerra's Temple}) Xardorok has the following additional trait:",
+								{
+									"type": "entries",
+									"name": "Psychic Conquest",
+									"entries": [
+										"Xardorok deals an extra 5 ({@damage 1d10}) psychic damage to any creature he hits with a weapon attack, and he regains a number of hit points equal to the amount of psychic damage dealt."
+									]
 								}
 							]
 						}
@@ -1821,7 +1947,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Xardorok Sunblight.webp"
-					}
+					},
+					"width": 830,
+					"height": 1000
 				}
 			]
 		},
@@ -1842,7 +1970,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Yeti Tyke.webp"
-					}
+					},
+					"width": 1700,
+					"height": 1136
 				}
 			]
 		},
@@ -1863,7 +1993,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Young Griffon (Medium).webp"
-					}
+					},
+					"width": 651,
+					"height": 1000
 				}
 			]
 		},
@@ -1884,7 +2016,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Young Griffon (Small).webp"
-					}
+					},
+					"width": 651,
+					"height": 1000
 				}
 			]
 		},
@@ -1905,7 +2039,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/IDRotF/Young Griffon (Tiny).webp"
-					}
+					},
+					"width": 651,
+					"height": 1000
 				}
 			]
 		}

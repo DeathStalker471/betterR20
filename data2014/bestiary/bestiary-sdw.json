@@ -194,6 +194,7 @@
 					]
 				}
 			],
+			"tokenCustom": true,
 			"senseTags": [
 				"B"
 			],
@@ -869,7 +870,7 @@
 				{
 					"name": "Indomitable (1/Day)",
 					"entries": [
-						"The warriorcan reroll a saving throw that it fails, but it must use the new result."
+						"The warrior can reroll a saving throw that it fails, but it must use the new result."
 					]
 				},
 				{

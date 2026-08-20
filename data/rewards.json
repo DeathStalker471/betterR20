@@ -157,6 +157,27 @@
 			]
 		},
 		{
+			"name": "Blasphemous Charm",
+			"source": "RHW",
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"hunger of hadar|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"You can use this Charm as a {@action Magic|XPHB} action to cast {@spell Hunger of Hadar|XPHB} without requiring Material components. You can't gain this Charm again while you have it."
+			]
+		},
+		{
 			"name": "Blessing of Bloody Might",
 			"source": "BMT",
 			"page": 171,
@@ -287,6 +308,7 @@
 		{
 			"name": "Blessing of the Lone Champion",
 			"source": "DrDe",
+			"page": 6,
 			"type": "Blessing",
 			"entries": [
 				"You gain the following benefits:",
@@ -1052,6 +1074,7 @@
 		{
 			"name": "Charm of Argonnessen",
 			"source": "EFA",
+			"page": 51,
 			"type": "Charm",
 			"additionalSpells": [
 				{
@@ -1073,6 +1096,7 @@
 		{
 			"name": "Charm of Ashtakala",
 			"source": "EFA",
+			"page": 51,
 			"type": "Charm",
 			"additionalSpells": [
 				{
@@ -1133,6 +1157,7 @@
 		{
 			"name": "Charm of Cozmioko's Glory",
 			"source": "DrDe",
+			"page": 192,
 			"type": "Charm",
 			"additionalSpells": [
 				{
@@ -1246,6 +1271,7 @@
 		{
 			"name": "Charm of Dhakaan",
 			"source": "EFA",
+			"page": 51,
 			"type": "Charm",
 			"additionalSpells": [
 				{
@@ -1296,6 +1322,27 @@
 			]
 		},
 		{
+			"name": "Charm of Electromancy",
+			"source": "RHW",
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"3": [
+									"telekinesis|xphb"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This Charm has 3 charges. You can expend 1 charge from this Charm to cast the {@spell Telekinesis|XPHB} spell. Once all its charges are expended, the Charm vanishes from you."
+			]
+		},
+		{
 			"name": "Charm of Euryale",
 			"source": "BMT",
 			"page": 62,
@@ -1303,6 +1350,35 @@
 			"entries": [
 				"As an action, you can unleash a petrifying wave of magic from your eyes in a 30-foot cone. Each creature in that area must make a {@dc 15} Constitution saving throw. On a failed save, a creature has the {@condition petrified} condition for 1 hour. On a successful save, a creature is partially turned to stone and has the {@condition restrained} condition. A {@condition restrained} creature can repeat the save at the end of each of its turns, ending the effect on itself on a success.",
 				"Once you use this charm, it vanishes from you."
+			]
+		},
+		{
+			"name": "Charm of Exorcism",
+			"source": "RHW",
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"dispel evil and good|xphb",
+									"remove curse|xphb"
+								]
+							}
+						}
+					},
+					"ability": {
+						"choose": [
+							"int",
+							"wis",
+							"cha"
+						]
+					}
+				}
+			],
+			"entries": [
+				"You can use the Charm as a {@action Magic|XPHB} action to cast {@spell Dispel Evil and Good|XPHB} or {@spell Remove Curse|XPHB} without requiring Material components. The Charm lasts for 7 days or until you use it. Intelligence, Wisdom, or Charisma is your spellcasting ability for the Charm's spells (choose each time you gain this Charm)."
 			]
 		},
 		{
@@ -1413,6 +1489,7 @@
 		{
 			"name": "Charm of Khyber",
 			"source": "EFA",
+			"page": 51,
 			"type": "Charm",
 			"entries": [
 				"While you have this Charm, you have {@sense Darkvision|XPHB} with a range of 120 feet. You can expend the Charm to gain {@sense Truesight|XPHB} with a range of 60 feet for 1 minute."
@@ -1447,6 +1524,35 @@
 			],
 			"entries": [
 				"This charm allows you to cast the {@spell lightning bolt} spell (save {@dc 15}) as an action, no components required. Once used, this charm vanishes from you."
+			]
+		},
+		{
+			"name": "Charm of Malediction",
+			"source": "RHW",
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"hex|xphb#3",
+									"bestow curse|xphb"
+								]
+							}
+						}
+					},
+					"ability": {
+						"choose": [
+							"int",
+							"wis",
+							"cha"
+						]
+					}
+				}
+			],
+			"entries": [
+				"You can use the Charm as a {@action Magic|XPHB} action to cast {@spell Hex|XPHB} (level 3 version) or {@spell Bestow Curse|XPHB} without requiring Material components. The Charm lasts for 7 days or until you use it. Intelligence, Wisdom, or Charisma is your spellcasting ability for the Charm's spells (choose each time you gain this Charm)."
 			]
 		},
 		{
@@ -1609,6 +1715,35 @@
 			]
 		},
 		{
+			"name": "Charm of the Black Rose",
+			"source": "RHW",
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"dissonant whispers|xphb#5"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"You can expend this charm to gain one of the following effects:",
+				{
+					"type": "list",
+					"items": [
+						"You have {@variantrule Advantage|XPHB} on ability checks made to influence {@creature Lord Soth of Sithicus|RHW|Lord Soth's} attitude for 24 hours.",
+						"You cast {@spell Dissonant Whispers|XPHB} (level 5 version, spell save {@dc 17})."
+					]
+				},
+				"The Charm vanishes once you use either effect."
+			]
+		},
+		{
 			"name": "Charm of the Comet",
 			"source": "BMT",
 			"page": 62,
@@ -1733,6 +1868,28 @@
 			"type": "Charm",
 			"entries": [
 				"This charm allows you to use an action to eat a mouthful of flesh from a humanoid that has been dead no longer than 1 day. When you do, you regain {@dice 3d8 + 3} hit points. Once used three times, the charm goes away."
+			]
+		},
+		{
+			"name": "Charm of the Heroes' Feast",
+			"source": "CM",
+			"page": 128,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"heroes' feast"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"This charm allows you to cast the {@spell heroes' feast} spell as an action, no components required. Once used, this charm goes away."
 			]
 		},
 		{
@@ -2181,8 +2338,31 @@
 			]
 		},
 		{
+			"name": "Charm of Water Breathing",
+			"source": "ToR",
+			"page": 213,
+			"type": "Charm",
+			"additionalSpells": [
+				{
+					"innate": {
+						"_": {
+							"limited": {
+								"1": [
+									"water breathing"
+								]
+							}
+						}
+					}
+				}
+			],
+			"entries": [
+				"The charm allows the character to cast the {@spell water breathing} spell, after which its magic fades."
+			]
+		},
+		{
 			"name": "Charm of Xen'drik",
 			"source": "EFA",
+			"page": 51,
 			"type": "Charm",
 			"entries": [
 				"While you have this Charm, you know the {@language Giant|XPHB} language. As a Bonus Action, you can expend the Charm to change your Strength score to 25 for 1 hour."
@@ -3055,7 +3235,7 @@
 							"name": "Burden",
 							"page": 194,
 							"entries": [
-								"The character is cursed with {@creature loup garou|VRGR} lycanthropy (see {@book chapter 5|VRGR|5})."
+								"The character is cursed with {@creature loup garou|VRGR} {@variantrule Player Characters as Lycanthropes|MM|lycanthropy} (see {@book chapter 5|VRGR|5})."
 							]
 						},
 						{
@@ -3442,6 +3622,7 @@
 		{
 			"name": "Manifest Charm of Daanvi, the Perfect Order",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"You can expend the Charm (no action required) to end the {@condition Blinded|XPHB}, {@condition Deafened|XPHB}, {@condition Paralyzed|XPHB}, or {@condition Poisoned|XPHB} condition on yourself."
@@ -3450,6 +3631,7 @@
 		{
 			"name": "Manifest Charm of Dolurrh, the Realm of the Dead",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you use a spell slot to cast a spell from the Necromancy school, you can expend the Charm (no action required) to treat the spell as if it were cast using a spell slot 1 level above the slot expended."
@@ -3458,6 +3640,7 @@
 		{
 			"name": "Manifest Charm of Fernia, the Sea of Fire",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you use a spell slot to cast a spell that deals Fire damage, you can expend the Charm (no action required) to treat the spell as if it were cast using a spell slot 1 level above the slot expended."
@@ -3466,6 +3649,7 @@
 		{
 			"name": "Manifest Charm of Irian, the Eternal Dawn",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you use a spell slot to cast a spell that restores Hit Points or deals Radiant damage, you can expend the Charm (no action required) to treat the spell as if it were cast using a spell slot 1 level above the slot expended."
@@ -3474,6 +3658,7 @@
 		{
 			"name": "Manifest Charm of Lamannia, the Twilight Forest",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you use a spell slot to cast a spell that conjures or summons a Beast, an Elemental, or a Fey (including {@spell Conjure Animals|XPHB}, {@spell Conjure Elemental|XPHB}, {@spell Conjure Fey|XPHB}, {@spell Conjure Minor Elementals|XPHB}, {@spell Conjure Woodland Beings|XPHB}, {@spell Find Steed|XPHB}, {@spell Summon Beast|XPHB}, {@spell Summon Elemental|XPHB}, or {@spell Summon Fey|XPHB}), you can expend the Charm (no action required) to treat the spell as if it were cast using a spell slot 1 level above the slot expended."
@@ -3482,6 +3667,7 @@
 		{
 			"name": "Manifest Charm of Mabar, the Endless Night",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you use a spell slot to cast a spell that animates or summons an Undead (including {@spell Animate Dead|XPHB}, {@spell Create Undead|XPHB}, or {@spell Summon Undead|XPHB}), you can expend the Charm (no action required) to treat the spell as if it were cast using a spell slot 1 level above the slot expended."
@@ -3490,6 +3676,7 @@
 		{
 			"name": "Manifest Charm of Risia, the Plain of Ice",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you use a spell slot to cast a spell that deals Cold damage, you can expend the Charm (no action required) to treat the spell as if it were cast using a spell slot 1 level above the slot expended."
@@ -3498,6 +3685,7 @@
 		{
 			"name": "Manifest Charm of Shavarath, the Battleground",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you score a Critical Hit, you can expend the Charm (no action required) to deal an extra 10 damage of one of the types dealt by the attack."
@@ -3506,6 +3694,7 @@
 		{
 			"name": "Manifest Charm of Syrania, the Azure Sky",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"You can expend the Charm as a Bonus Action to gain a Fly Speed equal to your Speed for 1 minute."
@@ -3514,6 +3703,7 @@
 		{
 			"name": "Manifest Charm of Thelanis, the Faerie Court",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you cast a spell from the Enchantment or Illusion school, you can expend the Charm (no action required) to give one target of the spell Disadvantage on its saving throw against the spell."
@@ -3522,6 +3712,7 @@
 		{
 			"name": "Manifest Charm of Xoriat, the Realm of Delirium",
 			"source": "EFA",
+			"page": 50,
 			"type": "Charm",
 			"entries": [
 				"When you use a spell slot to cast a spell, you can expend the Charm (no action required) to roll on the {@table Wild Magic Surge|XPHB|Wild Magic Surge table} in the {@book Player's Handbook|XPHB}."

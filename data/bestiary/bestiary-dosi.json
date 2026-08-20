@@ -585,7 +585,7 @@
 				{
 					"name": "Cunning Action",
 					"entries": [
-						"Tarak takes the Dash, Disengage, or Hide action."
+						"Tarak takes the {@action Dash}, {@action Disengage}, or {@action Hide} action."
 					]
 				}
 			],
@@ -697,13 +697,9 @@
 			"name": "Violet Fungus",
 			"source": "DoSI",
 			"page": 48,
-			"otherSources": [
-				{
-					"source": "PaBTSO"
-				},
-				{
-					"source": "BMT"
-				}
+			"referenceSources": [
+				"BMT",
+				"PaBTSO"
 			],
 			"_copy": {
 				"name": "Violet Fungus",

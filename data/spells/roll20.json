@@ -27,8 +27,6 @@
 		"data": {
 			"Damage": "2d4",
 			"Damage Type": "Force",
-			"Secondary Damage": "5d4",
-			"Secondary Damage Type": "Force",
 			"Spell Attack": "Ranged"
 		}
 	},
@@ -135,8 +133,6 @@
 			"Save": "Constitution",
 			"Damage": "8d8",
 			"Damage Type": "Force",
-			"Secondary Damage": "8d8",
-			"Secondary Damage Type": "Force",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1"
@@ -151,7 +147,8 @@
 			"Damage Type": "Force",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -163,7 +160,8 @@
 			"Damage Type": "Force",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "10 foot radius Sphere"
 		}
 	},
 	{
@@ -175,7 +173,8 @@
 			"Damage Type": "Force",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "30 foot Cone"
 		}
 	},
 	{
@@ -184,7 +183,8 @@
 		"data": {
 			"Save": "Strength",
 			"Damage": "5d10",
-			"Damage Type": "Force"
+			"Damage Type": "Force",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -226,6 +226,144 @@
 			"Damage": "10d12",
 			"Damage Type": "Necrotic",
 			"Save Success": "Half damage"
+		}
+	},
+	{
+		"name": "Backlash",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "4d6",
+			"Damage Type": "Force",
+			"Save Success": "Half damage",
+			"Add Casting Modifier": "Yes",
+			"Higher Spell Slot Die": "d6",
+			"Higher Spell Slot Dice": "1"
+		}
+	},
+	{
+		"name": "Blade of Disaster",
+		"source": "FRHoF",
+		"data": {
+			"Damage": "10d6",
+			"Damage Type": "Force",
+			"Spell Attack": "Melee"
+		}
+	},
+	{
+		"name": "Cacophonic Shield",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "3d6",
+			"Damage Type": "Thunder",
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d6",
+			"Higher Spell Slot Dice": "1"
+		}
+	},
+	{
+		"name": "Conjure Constructs",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Dexterity"
+		}
+	},
+	{
+		"name": "Death Armor",
+		"source": "FRHoF",
+		"data": {
+			"Damage": "2d4",
+			"Damage Type": "Necrotic"
+		}
+	},
+	{
+		"name": "Dirge",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "3d10",
+			"Damage Type": "Necrotic",
+			"Save Success": "Half damage"
+		}
+	},
+	{
+		"name": "Doomtide",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Wisdom",
+			"Damage": "5d6",
+			"Damage Type": "Psychic",
+			"Save Success": "Half damage",
+			"Target": "20 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Holy Star of Mystra",
+		"source": "FRHoF",
+		"data": {
+			"Add Casting Modifier": "Yes"
+		}
+	},
+	{
+		"name": "Laeral's Silver Lance",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Strength",
+			"Damage": "3d10",
+			"Damage Type": "Force",
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d10",
+			"Higher Spell Slot Dice": "1",
+			"Target": "120 foot long Line"
+		}
+	},
+	{
+		"name": "Simbul's Synostodweomer",
+		"source": "FRHoF",
+		"data": {
+			"Add Casting Modifier": "Yes"
+		}
+	},
+	{
+		"name": "Songal's Elemental Suffusion",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Dexterity"
+		}
+	},
+	{
+		"name": "Spellfire Flare",
+		"source": "FRHoF",
+		"data": {
+			"Damage": "2d10",
+			"Damage Type": "Radiant",
+			"Spell Attack": "Ranged"
+		}
+	},
+	{
+		"name": "Spellfire Storm",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "4d10",
+			"Damage Type": "Radiant",
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d10",
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Cylinder"
+		}
+	},
+	{
+		"name": "Wardaway",
+		"source": "FRHoF",
+		"data": {
+			"Save": "Constitution",
+			"Damage": "2d4",
+			"Damage Type": "Force",
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d4",
+			"Higher Spell Slot Dice": "2"
 		}
 	},
 	{
@@ -273,7 +411,8 @@
 			"Damage Type": "Cold",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "30 foot Cone"
 		}
 	},
 	{
@@ -332,7 +471,8 @@
 		"source": "HWCS",
 		"data": {
 			"Damage": "2d4",
-			"Damage Type": "Piercing"
+			"Damage Type": "Piercing",
+			"Target": "5 foot Cube"
 		}
 	},
 	{
@@ -342,8 +482,6 @@
 			"Save": "Constitution",
 			"Damage": "1d8",
 			"Damage Type": "Radiant",
-			"Secondary Damage": "4d8",
-			"Secondary Damage Type": "Radiant",
 			"Spell Attack": "Ranged"
 		}
 	},
@@ -354,7 +492,8 @@
 			"Save": "Constitution",
 			"Damage": "2d8",
 			"Damage Type": "Cold",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "15 foot Cone"
 		}
 	},
 	{
@@ -365,6 +504,13 @@
 			"Damage": "1d6",
 			"Damage Type": "Acid",
 			"data-Cantrip Scaling": "dice"
+		}
+	},
+	{
+		"name": "Alarm",
+		"source": "PHB",
+		"data": {
+			"Target": "20 foot Cube"
 		}
 	},
 	{
@@ -383,10 +529,34 @@
 		}
 	},
 	{
+		"name": "Antilife Shell",
+		"source": "PHB",
+		"data": {
+			"Target": "10 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Antimagic Field",
+		"source": "PHB",
+		"data": {
+			"Target": "10 foot radius Sphere"
+		}
+	},
+	{
 		"name": "Antipathy/Sympathy",
 		"source": "PHB",
 		"data": {
-			"Save": "Wisdom"
+			"Save": "Wisdom",
+			"Target": "200 foot Cube"
+		}
+	},
+	{
+		"name": "Armor of Agathys",
+		"source": "PHB",
+		"data": {
+			"Damage": "5",
+			"Damage Type": "Cold",
+			"Higher Spell Slot Bonus": "5"
 		}
 	},
 	{
@@ -402,10 +572,26 @@
 		}
 	},
 	{
+		"name": "Aura of Life",
+		"source": "PHB",
+		"data": {
+			"Healing": "1",
+			"Target": "30 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Aura of Purity",
+		"source": "PHB",
+		"data": {
+			"Target": "30 foot radius Sphere"
+		}
+	},
+	{
 		"name": "Aura of Vitality",
 		"source": "PHB",
 		"data": {
-			"Healing": "2d6"
+			"Healing": "2d6",
+			"Target": "30 foot radius Sphere"
 		}
 	},
 	{
@@ -442,11 +628,11 @@
 		"source": "PHB",
 		"data": {
 			"Damage": "4d8",
-			"Damage Type": "Force",
-			"Secondary Damage": "2d6",
-			"Secondary Damage Type": "Bludgeoning",
+			"Damage Type": "Bludgeoning, force",
 			"Spell Attack": "Melee",
-			"Add Casting Modifier": "Yes"
+			"Add Casting Modifier": "Yes",
+			"Higher Spell Slot Die": "d8",
+			"Higher Spell Slot Dice": "2"
 		}
 	},
 	{
@@ -506,7 +692,8 @@
 			"Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "15 foot Cone"
 		}
 	},
 	{
@@ -516,18 +703,18 @@
 			"Save": "Dexterity",
 			"Damage": "3d10",
 			"Damage Type": "Lightning",
-			"Secondary Damage": "1d10",
-			"Secondary Damage Type": "Lightning",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
 		"name": "Calm Emotions",
 		"source": "PHB",
 		"data": {
-			"Save": "Charisma"
+			"Save": "Charisma",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -577,7 +764,8 @@
 			"Damage Type": "Necrotic",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "2"
+			"Higher Spell Slot Dice": "2",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
@@ -599,7 +787,15 @@
 			"Damage Type": "Poison",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Color Spray",
+		"source": "PHB",
+		"data": {
+			"Target": "15 foot Cone"
 		}
 	},
 	{
@@ -632,14 +828,16 @@
 			"Damage Type": "Cold",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "60 foot Cone"
 		}
 	},
 	{
 		"name": "Confusion",
 		"source": "PHB",
 		"data": {
-			"Save": "Wisdom"
+			"Save": "Wisdom",
+			"Target": "10 foot radius Sphere"
 		}
 	},
 	{
@@ -648,7 +846,8 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "3d8",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "60 foot Cone"
 		}
 	},
 	{
@@ -657,7 +856,8 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "8d8",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "40 foot radius Cylinder"
 		}
 	},
 	{
@@ -683,9 +883,8 @@
 			"Save": "Strength",
 			"Damage": "2d8",
 			"Damage Type": "Bludgeoning",
-			"Secondary Damage": "2d8",
-			"Secondary Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "100 foot Cube"
 		}
 	},
 	{
@@ -709,7 +908,8 @@
 		"source": "PHB",
 		"data": {
 			"Damage": "1d4",
-			"Damage Type": "Radiant"
+			"Damage Type": "Radiant",
+			"Target": "30 foot radius Sphere"
 		}
 	},
 	{
@@ -723,6 +923,20 @@
 		}
 	},
 	{
+		"name": "Darkness",
+		"source": "PHB",
+		"data": {
+			"Target": "15 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Daylight",
+		"source": "PHB",
+		"data": {
+			"Target": "60 foot radius Sphere"
+		}
+	},
+	{
 		"name": "Delayed Blast Fireball",
 		"source": "PHB",
 		"data": {
@@ -733,7 +947,8 @@
 			"Secondary Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -744,7 +959,7 @@
 			"Damage": "5d6",
 			"Damage Type": "Thunder",
 			"Secondary Damage": "5d6",
-			"Secondary Damage Type": "Necrotic"
+			"Secondary Damage Type": "Radiant or Necrotic"
 		}
 	},
 	{
@@ -844,7 +1059,8 @@
 			"Save": "Constitution",
 			"Damage": "5d6",
 			"Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "100 foot radius Circle"
 		}
 	},
 	{
@@ -861,7 +1077,9 @@
 		"source": "PHB",
 		"data": {
 			"Damage": "1d4",
-			"Damage Type": "Acid, cold, fire, lightning, thunder"
+			"Damage Type": "Acid, cold, fire, lightning, thunder",
+			"Higher Spell Slot Die": "d4",
+			"Higher Spell Slot Dice": "2"
 		}
 	},
 	{
@@ -919,14 +1137,16 @@
 		"name": "Faerie Fire",
 		"source": "PHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Target": "20 foot Cube"
 		}
 	},
 	{
 		"name": "Fear",
 		"source": "PHB",
 		"data": {
-			"Save": "Wisdom"
+			"Save": "Wisdom",
+			"Target": "30 foot Cone"
 		}
 	},
 	{
@@ -975,7 +1195,8 @@
 			"Save": "Dexterity",
 			"Damage": "7d10",
 			"Damage Type": "Fire",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "10 foot Cube"
 		}
 	},
 	{
@@ -987,7 +1208,8 @@
 			"Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -1007,12 +1229,13 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "4d6",
-			"Damage Type": "Radiant",
+			"Damage Type": "Fire",
 			"Secondary Damage": "4d6",
-			"Secondary Damage Type": "Fire",
+			"Secondary Damage Type": "Radiant",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "10 foot radius Cylinder"
 		}
 	},
 	{
@@ -1024,7 +1247,8 @@
 			"Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -1032,6 +1256,13 @@
 		"source": "PHB",
 		"data": {
 			"Save": "Constitution"
+		}
+	},
+	{
+		"name": "Fog Cloud",
+		"source": "PHB",
+		"data": {
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -1046,7 +1277,8 @@
 		"name": "Forcecage",
 		"source": "PHB",
 		"data": {
-			"Save": "Charisma"
+			"Save": "Charisma",
+			"Target": "20 foot Cube"
 		}
 	},
 	{
@@ -1056,6 +1288,13 @@
 			"Save": "Wisdom",
 			"Damage": "5d10",
 			"Damage Type": "Psychic"
+		}
+	},
+	{
+		"name": "Globe of Invulnerability",
+		"source": "PHB",
+		"data": {
+			"Target": "10 foot radius Sphere"
 		}
 	},
 	{
@@ -1088,7 +1327,9 @@
 		"name": "Guardian of Faith",
 		"source": "PHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Damage": "20",
+			"Damage Type": "Radiant"
 		}
 	},
 	{
@@ -1129,6 +1370,13 @@
 		}
 	},
 	{
+		"name": "Hallucinatory Terrain",
+		"source": "PHB",
+		"data": {
+			"Target": "150 foot Cube"
+		}
+	},
+	{
 		"name": "Harm",
 		"source": "PHB",
 		"data": {
@@ -1136,6 +1384,14 @@
 			"Damage": "14d6",
 			"Damage Type": "Necrotic",
 			"Save Success": "Half damage"
+		}
+	},
+	{
+		"name": "Heal",
+		"source": "PHB",
+		"data": {
+			"Healing": "70",
+			"Higher Spell Slot Bonus": "10"
 		}
 	},
 	{
@@ -1211,7 +1467,8 @@
 		"name": "Holy Aura",
 		"source": "PHB",
 		"data": {
-			"Save": "Constitution"
+			"Save": "Constitution",
+			"Target": "30 foot radius Sphere"
 		}
 	},
 	{
@@ -1222,7 +1479,8 @@
 			"Damage": "2d6",
 			"Damage Type": "Cold",
 			"Secondary Damage": "2d6",
-			"Secondary Damage Type": "Acid"
+			"Secondary Damage Type": "Acid",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -1236,7 +1494,8 @@
 		"name": "Hypnotic Pattern",
 		"source": "PHB",
 		"data": {
-			"Save": "Wisdom"
+			"Save": "Wisdom",
+			"Target": "30 foot Cube"
 		}
 	},
 	{
@@ -1245,12 +1504,13 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "2d8",
-			"Damage Type": "Cold",
+			"Damage Type": "Bludgeoning",
 			"Secondary Damage": "4d6",
-			"Secondary Damage Type": "Bludgeoning",
+			"Secondary Damage Type": "Cold",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Cylinder"
 		}
 	},
 	{
@@ -1267,7 +1527,8 @@
 			"Save": "Dexterity",
 			"Damage": "10d8",
 			"Damage Type": "Fire",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -1290,7 +1551,15 @@
 			"Damage Type": "Piercing",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Leomund's Tiny Hut",
+		"source": "PHB",
+		"data": {
+			"Target": "10 foot radius Hemisphere"
 		}
 	},
 	{
@@ -1314,13 +1583,9 @@
 			"Save": "Dexterity",
 			"Damage": "4d8",
 			"Damage Type": "Lightning",
-			"Secondary Damage": "2d8",
-			"Secondary Damage Type": "Lightning",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1",
-			"Secondary Higher Spell Slot Die": "d8",
-			"Secondary Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1"
 		}
 	},
 	{
@@ -1339,7 +1604,8 @@
 		"name": "Magic Circle",
 		"source": "PHB",
 		"data": {
-			"Save": "Charisma"
+			"Save": "Charisma",
+			"Target": "10 foot radius Cylinder"
 		}
 	},
 	{
@@ -1416,7 +1682,8 @@
 			"Damage Type": "Fire",
 			"Secondary Damage": "20d6",
 			"Secondary Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "40 foot radius Sphere"
 		}
 	},
 	{
@@ -1435,7 +1702,8 @@
 			"Damage Type": "Radiant",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "5 foot radius Cylinder"
 		}
 	},
 	{
@@ -1457,6 +1725,13 @@
 		}
 	},
 	{
+		"name": "Move Earth",
+		"source": "PHB",
+		"data": {
+			"Target": "40 foot Square"
+		}
+	},
+	{
 		"name": "Otiluke's Freezing Sphere",
 		"source": "PHB",
 		"data": {
@@ -1465,7 +1740,8 @@
 			"Damage Type": "Cold",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
@@ -1556,10 +1832,9 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "10d6",
-			"Damage Type": "Poison",
-			"Secondary Damage": "10d6",
-			"Secondary Damage Type": "Acid",
-			"Save Success": "Half damage"
+			"Damage Type": "Acid, cold, fire, lightning, poison",
+			"Save Success": "Half damage",
+			"Target": "60 foot Cone"
 		}
 	},
 	{
@@ -1568,9 +1843,7 @@
 		"data": {
 			"Save": "Constitution",
 			"Damage": "10d6",
-			"Damage Type": "Poison",
-			"Secondary Damage": "10d6",
-			"Secondary Damage Type": "Acid",
+			"Damage Type": "Acid, cold, fire, force, lightning, poison",
 			"Save Success": "Half damage"
 		}
 	},
@@ -1582,6 +1855,13 @@
 			"Damage Type": "Fire",
 			"Spell Attack": "Ranged",
 			"data-Cantrip Scaling": "dice"
+		}
+	},
+	{
+		"name": "Purify Food and Drink",
+		"source": "PHB",
+		"data": {
+			"Target": "5 foot radius Sphere"
 		}
 	},
 	{
@@ -1621,17 +1901,11 @@
 		}
 	},
 	{
-		"name": "Reincarnate",
-		"source": "PHB",
-		"data": {
-			"Healing": "d100"
-		}
-	},
-	{
 		"name": "Reverse Gravity",
 		"source": "PHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Target": "50 foot radius Cylinder"
 		}
 	},
 	{
@@ -1696,7 +1970,8 @@
 			"Damage Type": "Thunder",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "10 foot radius Sphere"
 		}
 	},
 	{
@@ -1710,17 +1985,33 @@
 		}
 	},
 	{
+		"name": "Silence",
+		"source": "PHB",
+		"data": {
+			"Target": "20 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Sleep",
+		"source": "PHB",
+		"data": {
+			"Target": "20 foot radius Sphere"
+		}
+	},
+	{
 		"name": "Sleet Storm",
 		"source": "PHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Target": "20 foot tall Cylinder"
 		}
 	},
 	{
 		"name": "Slow",
 		"source": "PHB",
 		"data": {
-			"Save": "Wisdom"
+			"Save": "Wisdom",
+			"Target": "40 foot Cube"
 		}
 	},
 	{
@@ -1728,7 +2019,8 @@
 		"source": "PHB",
 		"data": {
 			"Damage": "2d4",
-			"Damage Type": "Piercing"
+			"Damage Type": "Piercing",
+			"Target": "20 foot radius Circle"
 		}
 	},
 	{
@@ -1770,7 +2062,8 @@
 		"name": "Stinking Cloud",
 		"source": "PHB",
 		"data": {
-			"Save": "Constitution"
+			"Save": "Constitution",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -1779,9 +2072,7 @@
 		"data": {
 			"Save": "Constitution",
 			"Damage": "2d6",
-			"Damage Type": "Thunder",
-			"Secondary Damage": "1d6",
-			"Secondary Damage Type": "Acid",
+			"Damage Type": "Acid, bludgeoning, cold, lightning, thunder",
 			"Save Success": "Half damage"
 		}
 	},
@@ -1799,7 +2090,8 @@
 			"Save": "Constitution",
 			"Damage": "6d8",
 			"Damage Type": "Radiant",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "5 foot wide Line"
 		}
 	},
 	{
@@ -1809,7 +2101,8 @@
 			"Save": "Constitution",
 			"Damage": "12d6",
 			"Damage Type": "Radiant",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
@@ -1819,7 +2112,8 @@
 			"Save": "Constitution",
 			"Damage": "10d10",
 			"Damage Type": "Necrotic",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
@@ -1865,7 +2159,8 @@
 			"Damage Type": "Thunder",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "15 foot Cube"
 		}
 	},
 	{
@@ -1882,8 +2177,6 @@
 			"Save": "Strength",
 			"Damage": "6d10",
 			"Damage Type": "Bludgeoning",
-			"Secondary Damage": "5d10",
-			"Secondary Damage Type": "Bludgeoning",
 			"Save Success": "Half damage"
 		}
 	},
@@ -1915,8 +2208,6 @@
 			"Save": "Dexterity",
 			"Damage": "5d8",
 			"Damage Type": "Fire",
-			"Secondary Damage": "5d8",
-			"Secondary Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1"
@@ -1929,9 +2220,9 @@
 			"Save": "Dexterity",
 			"Damage": "10d6",
 			"Damage Type": "Cold",
-			"Secondary Damage": "5d6",
-			"Secondary Damage Type": "Cold",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d6",
+			"Higher Spell Slot Dice": "2"
 		}
 	},
 	{
@@ -1947,9 +2238,7 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "7d8",
-			"Damage Type": "Slashing",
-			"Secondary Damage": "7d8",
-			"Secondary Damage Type": "Piercing",
+			"Damage Type": "Piercing, slashing",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1"
@@ -1961,7 +2250,8 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "2d4",
-			"Damage Type": "Fire"
+			"Damage Type": "Fire",
+			"Target": "20 foot Cube"
 		}
 	},
 	{
@@ -1970,7 +2260,8 @@
 		"data": {
 			"Save": "Wisdom",
 			"Damage": "4d10",
-			"Damage Type": "Psychic"
+			"Damage Type": "Psychic",
+			"Target": "30 foot radius Sphere"
 		}
 	},
 	{
@@ -1988,8 +2279,7 @@
 		"source": "PHB",
 		"data": {
 			"Damage": "1d10",
-			"Damage Type": "Necrotic",
-			"Healing": "2d4"
+			"Damage Type": "Necrotic"
 		}
 	},
 	{
@@ -2018,7 +2308,8 @@
 		"name": "Zone of Truth",
 		"source": "PHB",
 		"data": {
-			"Save": "Charisma"
+			"Save": "Charisma",
+			"Target": "15 foot radius Sphere"
 		}
 	},
 	{
@@ -2058,8 +2349,6 @@
 		"data": {
 			"Damage": "1d8",
 			"Damage Type": "Thunder",
-			"Secondary Damage": "1d8",
-			"Secondary Damage Type": "Thunder",
 			"Spell Attack": "Melee",
 			"data-Cantrip Scaling": "dice"
 		}
@@ -2094,8 +2383,6 @@
 			"Save": "Intelligence",
 			"Damage": "1d6",
 			"Damage Type": "Psychic",
-			"Secondary Damage": "1d6",
-			"Secondary Damage Type": "Psychic",
 			"data-Cantrip Scaling": "dice"
 		}
 	},
@@ -2147,7 +2434,8 @@
 			"Save": "Constitution",
 			"Damage": "12d8",
 			"Damage Type": "Necrotic",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "30 foot Cube"
 		}
 	},
 	{
@@ -2217,10 +2505,18 @@
 		}
 	},
 	{
+		"name": "Control Flames",
+		"source": "XGE",
+		"data": {
+			"Target": "5 foot Cube"
+		}
+	},
+	{
 		"name": "Control Winds",
 		"source": "XGE",
 		"data": {
-			"Save": "Strength"
+			"Save": "Strength",
+			"Target": "100 foot Cube"
 		}
 	},
 	{
@@ -2230,7 +2526,8 @@
 			"Save": "Dexterity",
 			"Damage": "1d8",
 			"Damage Type": "Fire",
-			"data-Cantrip Scaling": "dice"
+			"data-Cantrip Scaling": "dice",
+			"Target": "5 foot Cube"
 		}
 	},
 	{
@@ -2263,7 +2560,8 @@
 			"Save": "Constitution",
 			"Damage": "4d10",
 			"Damage Type": "Radiant",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "30 foot radius Cylinder"
 		}
 	},
 	{
@@ -2275,7 +2573,15 @@
 			"Damage Type": "Acid, cold, fire, lightning, poison",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "15 foot Cone"
+		}
+	},
+	{
+		"name": "Druid Grove",
+		"source": "XGE",
+		"data": {
+			"Target": "30 foot Cube"
 		}
 	},
 	{
@@ -2348,7 +2654,8 @@
 			"Damage Type": "Bludgeoning",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d12",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot Cube"
 		}
 	},
 	{
@@ -2383,7 +2690,8 @@
 			"Healing": "1d6",
 			"Add Casting Modifier": "Yes",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "5 foot Cube"
 		}
 	},
 	{
@@ -2393,8 +2701,6 @@
 			"Save": "Constitution",
 			"Damage": "2d8",
 			"Damage Type": "Radiant",
-			"Secondary Damage": "4d8",
-			"Secondary Damage Type": "Radiant",
 			"Save Success": "Half damage"
 		}
 	},
@@ -2419,7 +2725,8 @@
 			"Save": "Wisdom",
 			"Damage": "7d6",
 			"Damage Type": "Acid, cold, fire, lightning, necrotic, poison",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "60 foot Cone"
 		}
 	},
 	{
@@ -2448,7 +2755,8 @@
 		"name": "Investiture of Flame",
 		"source": "XGE",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Target": "30 foot radius Line"
 		}
 	},
 	{
@@ -2489,7 +2797,8 @@
 			"Save": "Wisdom",
 			"Damage": "8d8",
 			"Damage Type": "Psychic",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
@@ -2498,7 +2807,8 @@
 		"data": {
 			"Save": "Strength",
 			"Damage": "6d6",
-			"Damage Type": "Bludgeoning"
+			"Damage Type": "Bludgeoning",
+			"Target": "30 foot radius Circle"
 		}
 	},
 	{
@@ -2525,8 +2835,6 @@
 			"Save": "Strength",
 			"Damage": "2d6",
 			"Damage Type": "Bludgeoning",
-			"Secondary Damage": "2d6",
-			"Secondary Damage Type": "Bludgeoning",
 			"Save Success": "Half damage"
 		}
 	},
@@ -2561,6 +2869,13 @@
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1"
+		}
+	},
+	{
+		"name": "Mold Earth",
+		"source": "XGE",
+		"data": {
+			"Target": "5 foot Cube"
 		}
 	},
 	{
@@ -2604,7 +2919,8 @@
 		"name": "Pyrotechnics",
 		"source": "XGE",
 		"data": {
-			"Save": "Constitution"
+			"Save": "Constitution",
+			"Target": "5 foot Cube"
 		}
 	},
 	{
@@ -2631,12 +2947,20 @@
 		}
 	},
 	{
+		"name": "Shape Water",
+		"source": "XGE",
+		"data": {
+			"Target": "5 foot Cube"
+		}
+	},
+	{
 		"name": "Sickening Radiance",
 		"source": "XGE",
 		"data": {
 			"Save": "Constitution",
 			"Damage": "4d10",
-			"Damage Type": "Radiant"
+			"Damage Type": "Radiant",
+			"Target": "30 foot radius Sphere"
 		}
 	},
 	{
@@ -2655,7 +2979,8 @@
 			"Damage Type": "Cold",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "5 foot radius Sphere"
 		}
 	},
 	{
@@ -2680,14 +3005,11 @@
 		"data": {
 			"Save": "Strength",
 			"Damage": "2d6",
-			"Damage Type": "Lightning",
-			"Secondary Damage": "4d6",
-			"Secondary Damage Type": "Bludgeoning",
+			"Damage Type": "Bludgeoning, lightning",
 			"Spell Attack": "Ranged",
 			"Higher Spell Slot Die": "d6",
 			"Higher Spell Slot Dice": "1",
-			"Secondary Higher Spell Slot Die": "d6",
-			"Secondary Higher Spell Slot Dice": "1"
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -2704,15 +3026,15 @@
 			"Save": "Intelligence",
 			"Damage": "8d6",
 			"Damage Type": "Psychic",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
 		"name": "Temple of the Gods",
 		"source": "XGE",
 		"data": {
-			"Save": "Charisma",
-			"Healing": "d4"
+			"Save": "Charisma"
 		}
 	},
 	{
@@ -2771,7 +3093,8 @@
 			"Save": "Strength",
 			"Damage": "4d8",
 			"Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "40 foot Cube"
 		}
 	},
 	{
@@ -2784,7 +3107,8 @@
 			"Secondary Damage": "5d4",
 			"Secondary Damage Type": "Acid",
 			"Higher Spell Slot Die": "d4",
-			"Higher Spell Slot Dice": "2"
+			"Higher Spell Slot Dice": "2",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -2794,8 +3118,6 @@
 			"Save": "Constitution",
 			"Damage": "4d8",
 			"Damage Type": "Radiant",
-			"Secondary Damage": "4d8",
-			"Secondary Damage Type": "Radiant",
 			"Save Success": "Half damage",
 			"Spell Attack": "Ranged",
 			"Higher Spell Slot Die": "d8",
@@ -2806,7 +3128,8 @@
 		"name": "Watery Sphere",
 		"source": "XGE",
 		"data": {
-			"Save": "Strength"
+			"Save": "Strength",
+			"Target": "5 foot radius Sphere"
 		}
 	},
 	{
@@ -2816,7 +3139,8 @@
 			"Save": "Dexterity",
 			"Damage": "10d6",
 			"Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "10 foot radius Cylinder"
 		}
 	},
 	{
@@ -2835,10 +3159,9 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "4d6",
-			"Damage Type": "Slashing",
-			"Secondary Damage": "3d8",
-			"Secondary Damage Type": "Bludgeoning",
-			"Spell Attack": "Ranged"
+			"Damage Type": "Bludgeoning, slashing",
+			"Spell Attack": "Ranged",
+			"Target": "60 foot Cube"
 		}
 	},
 	{
@@ -2901,6 +3224,15 @@
 		"source": "XPHB",
 		"data": {
 			"Add Casting Modifier": "Yes"
+		}
+	},
+	{
+		"name": "Armor of Agathys",
+		"source": "XPHB",
+		"data": {
+			"Damage": "5",
+			"Damage Type": "Cold",
+			"Higher Spell Slot Bonus": "5"
 		}
 	},
 	{
@@ -3027,18 +3359,18 @@
 			"Save": "Dexterity",
 			"Damage": "3d10",
 			"Damage Type": "Lightning",
-			"Secondary Damage": "1d10",
-			"Secondary Damage Type": "Lightning",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
 		"name": "Calm Emotions",
 		"source": "XPHB",
 		"data": {
-			"Save": "Charisma"
+			"Save": "Charisma",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3095,7 +3427,8 @@
 			"Damage Type": "Necrotic",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "2"
+			"Higher Spell Slot Dice": "2",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
@@ -3117,7 +3450,8 @@
 			"Damage Type": "Poison",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3164,7 +3498,8 @@
 		"name": "Confusion",
 		"source": "XPHB",
 		"data": {
-			"Save": "Wisdom"
+			"Save": "Wisdom",
+			"Target": "10 foot radius Sphere"
 		}
 	},
 	{
@@ -3194,7 +3529,8 @@
 		"name": "Conjure Celestial",
 		"source": "XPHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Target": "10 foot radius Cylinder"
 		}
 	},
 	{
@@ -3203,9 +3539,9 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "8d8",
-			"Damage Type": "Cold",
+			"Damage Type": "Lightning",
 			"Secondary Damage": "4d8",
-			"Secondary Damage Type": "Lightning",
+			"Secondary Damage Type": "Thunder",
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1",
 			"Secondary Higher Spell Slot Die": "d8",
@@ -3240,7 +3576,8 @@
 			"Save": "Dexterity",
 			"Damage": "8d8",
 			"Damage Type": "Force",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "40 foot radius Cylinder"
 		}
 	},
 	{
@@ -3280,7 +3617,8 @@
 			"Save": "Strength",
 			"Damage": "2d8",
 			"Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "100 foot Cube"
 		}
 	},
 	{
@@ -3325,6 +3663,20 @@
 		}
 	},
 	{
+		"name": "Darkness",
+		"source": "XPHB",
+		"data": {
+			"Target": "15 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Daylight",
+		"source": "XPHB",
+		"data": {
+			"Target": "60 foot radius Sphere"
+		}
+	},
+	{
 		"name": "Delayed Blast Fireball",
 		"source": "XPHB",
 		"data": {
@@ -3335,7 +3687,8 @@
 			"Secondary Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3346,7 +3699,7 @@
 			"Damage": "5d6",
 			"Damage Type": "Thunder",
 			"Secondary Damage": "5d6",
-			"Secondary Damage Type": "Necrotic",
+			"Secondary Damage Type": "Radiant or Necrotic",
 			"Save Success": "Half damage"
 		}
 	},
@@ -3471,7 +3824,8 @@
 			"Save": "Constitution",
 			"Damage": "12d6",
 			"Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "100 foot radius Circle"
 		}
 	},
 	{
@@ -3544,7 +3898,8 @@
 		"name": "Faerie Fire",
 		"source": "XPHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Target": "10 foot radius Cube"
 		}
 	},
 	{
@@ -3591,7 +3946,8 @@
 			"Save": "Dexterity",
 			"Damage": "7d10",
 			"Damage Type": "Fire",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "10 foot Cube"
 		}
 	},
 	{
@@ -3603,7 +3959,8 @@
 			"Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3624,12 +3981,13 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "5d6",
-			"Damage Type": "Radiant",
+			"Damage Type": "Fire",
 			"Secondary Damage": "5d6",
-			"Secondary Damage Type": "Fire",
+			"Secondary Damage Type": "Radiant",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "10 foot radius Cylinder"
 		}
 	},
 	{
@@ -3641,7 +3999,8 @@
 			"Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3649,6 +4008,13 @@
 		"source": "XPHB",
 		"data": {
 			"Save": "Constitution"
+		}
+	},
+	{
+		"name": "Fog Cloud",
+		"source": "XPHB",
+		"data": {
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3663,7 +4029,8 @@
 		"name": "Forcecage",
 		"source": "XPHB",
 		"data": {
-			"Save": "Charisma"
+			"Save": "Charisma",
+			"Target": "20 foot Cube"
 		}
 	},
 	{
@@ -3723,7 +4090,9 @@
 		"name": "Guardian of Faith",
 		"source": "XPHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Damage": "20",
+			"Damage Type": "Radiant"
 		}
 	},
 	{
@@ -3852,7 +4221,8 @@
 			"Secondary Damage": "2d6",
 			"Secondary Damage Type": "Acid",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3890,10 +4260,11 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "2d10",
-			"Damage Type": "Cold",
+			"Damage Type": "Bludgeoning",
 			"Secondary Damage": "4d6",
-			"Secondary Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Secondary Damage Type": "Cold",
+			"Save Success": "Half damage",
+			"Target": "20 foot radius Cylinder"
 		}
 	},
 	{
@@ -3910,7 +4281,8 @@
 			"Save": "Dexterity",
 			"Damage": "10d8",
 			"Damage Type": "Fire",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3934,7 +4306,8 @@
 			"Damage Type": "Piercing",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -3943,12 +4316,13 @@
 		"data": {
 			"Save": "Constitution",
 			"Damage": "2d10",
-			"Damage Type": "Thunder",
+			"Damage Type": "Radiant",
 			"Secondary Damage": "2d10",
-			"Secondary Damage Type": "Radiant",
+			"Secondary Damage Type": "Thunder",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "10 foot radius Cylinder"
 		}
 	},
 	{
@@ -3983,14 +4357,16 @@
 			"Damage Type": "Lightning",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "100 foot long Line"
 		}
 	},
 	{
 		"name": "Magic Circle",
 		"source": "XPHB",
 		"data": {
-			"Save": "Charisma"
+			"Save": "Charisma",
+			"Target": "10 foot radius Cylinder"
 		}
 	},
 	{
@@ -4067,7 +4443,8 @@
 			"Damage Type": "Fire",
 			"Secondary Damage": "20d6",
 			"Secondary Damage Type": "Bludgeoning",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "40 foot radius Sphere"
 		}
 	},
 	{
@@ -4108,7 +4485,8 @@
 			"Damage Type": "Radiant",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d10",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "5 foot radius Cylinder"
 		}
 	},
 	{
@@ -4131,6 +4509,13 @@
 		}
 	},
 	{
+		"name": "Move Earth",
+		"source": "XPHB",
+		"data": {
+			"Target": "40 foot Square"
+		}
+	},
+	{
 		"name": "Otiluke's Freezing Sphere",
 		"source": "XPHB",
 		"data": {
@@ -4139,7 +4524,8 @@
 			"Damage Type": "Cold",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d6",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
@@ -4250,6 +4636,13 @@
 		}
 	},
 	{
+		"name": "Purify Food and Drink",
+		"source": "XPHB",
+		"data": {
+			"Target": "5 foot radius Sphere"
+		}
+	},
+	{
 		"name": "Ray of Enfeeblement",
 		"source": "XPHB",
 		"data": {
@@ -4285,17 +4678,11 @@
 		}
 	},
 	{
-		"name": "Reincarnate",
-		"source": "XPHB",
-		"data": {
-			"Healing": "1d10"
-		}
-	},
-	{
 		"name": "Reverse Gravity",
 		"source": "XPHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Target": "50 foot radius Cylinder"
 		}
 	},
 	{
@@ -4360,7 +4747,8 @@
 			"Damage Type": "Thunder",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
-			"Higher Spell Slot Dice": "1"
+			"Higher Spell Slot Dice": "1",
+			"Target": "10 foot radius Sphere"
 		}
 	},
 	{
@@ -4391,17 +4779,26 @@
 		}
 	},
 	{
+		"name": "Silence",
+		"source": "XPHB",
+		"data": {
+			"Target": "20 foot radius Sphere"
+		}
+	},
+	{
 		"name": "Sleep",
 		"source": "XPHB",
 		"data": {
-			"Save": "Wisdom"
+			"Save": "Wisdom",
+			"Target": "5 foot radius Sphere"
 		}
 	},
 	{
 		"name": "Sleet Storm",
 		"source": "XPHB",
 		"data": {
-			"Save": "Dexterity"
+			"Save": "Dexterity",
+			"Target": "40 foot tall Cylinder"
 		}
 	},
 	{
@@ -4427,7 +4824,8 @@
 		"source": "XPHB",
 		"data": {
 			"Damage": "2d4",
-			"Damage Type": "Piercing"
+			"Damage Type": "Piercing",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -4490,7 +4888,8 @@
 		"name": "Stinking Cloud",
 		"source": "XPHB",
 		"data": {
-			"Save": "Constitution"
+			"Save": "Constitution",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -4499,9 +4898,7 @@
 		"data": {
 			"Save": "Constitution",
 			"Damage": "2d6",
-			"Damage Type": "Thunder",
-			"Secondary Damage": "4d6",
-			"Secondary Damage Type": "Acid",
+			"Damage Type": "Acid, bludgeoning, cold, lightning, thunder",
 			"Save Success": "Half damage"
 		}
 	},
@@ -4519,7 +4916,8 @@
 			"Save": "Constitution",
 			"Damage": "6d8",
 			"Damage Type": "Radiant",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "5 foot wide Line"
 		}
 	},
 	{
@@ -4529,7 +4927,8 @@
 			"Save": "Constitution",
 			"Damage": "12d6",
 			"Damage Type": "Radiant",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "60 foot radius Sphere"
 		}
 	},
 	{
@@ -4549,7 +4948,8 @@
 			"Save": "Intelligence",
 			"Damage": "8d6",
 			"Damage Type": "Psychic",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -4657,8 +5057,6 @@
 			"Save": "Strength",
 			"Damage": "6d10",
 			"Damage Type": "Bludgeoning",
-			"Secondary Damage": "5d10",
-			"Secondary Damage Type": "Bludgeoning",
 			"Save Success": "Half damage"
 		}
 	},
@@ -4693,7 +5091,8 @@
 			"Secondary Damage": "5d4",
 			"Secondary Damage Type": "Acid",
 			"Higher Spell Slot Die": "d4",
-			"Higher Spell Slot Dice": "2"
+			"Higher Spell Slot Dice": "2",
+			"Target": "20 foot radius Sphere"
 		}
 	},
 	{
@@ -4703,8 +5102,6 @@
 			"Save": "Dexterity",
 			"Damage": "5d8",
 			"Damage Type": "Fire",
-			"Secondary Damage": "5d8",
-			"Secondary Damage Type": "Fire",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1"
@@ -4717,9 +5114,9 @@
 			"Save": "Dexterity",
 			"Damage": "10d6",
 			"Damage Type": "Cold",
-			"Secondary Damage": "5d6",
-			"Secondary Damage Type": "Cold",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Higher Spell Slot Die": "d6",
+			"Higher Spell Slot Dice": "2"
 		}
 	},
 	{
@@ -4735,9 +5132,7 @@
 		"data": {
 			"Save": "Dexterity",
 			"Damage": "7d8",
-			"Damage Type": "Slashing",
-			"Secondary Damage": "7d8",
-			"Secondary Damage Type": "Piercing",
+			"Damage Type": "Piercing, slashing",
 			"Save Success": "Half damage",
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1"
@@ -4759,9 +5154,8 @@
 			"Save": "Wisdom",
 			"Damage": "10d10",
 			"Damage Type": "Psychic",
-			"Secondary Damage": "5d10",
-			"Secondary Damage Type": "Psychic",
-			"Save Success": "Half damage"
+			"Save Success": "Half damage",
+			"Target": "30 foot radius Sphere"
 		}
 	},
 	{
@@ -4779,8 +5173,7 @@
 		"source": "XPHB",
 		"data": {
 			"Damage": "1d10",
-			"Damage Type": "Necrotic",
-			"Healing": "2d4"
+			"Damage Type": "Necrotic"
 		}
 	},
 	{
@@ -4789,8 +5182,6 @@
 		"data": {
 			"Damage": "2d12",
 			"Damage Type": "Lightning",
-			"Secondary Damage": "1d12",
-			"Secondary Damage Type": "Lightning",
 			"Spell Attack": "Ranged",
 			"Higher Spell Slot Die": "d12",
 			"Higher Spell Slot Dice": "1"
@@ -4831,7 +5222,8 @@
 		"name": "Zone of Truth",
 		"source": "XPHB",
 		"data": {
-			"Save": "Charisma"
+			"Save": "Charisma",
+			"Target": "15 foot radius Sphere"
 		}
 	}]
 }

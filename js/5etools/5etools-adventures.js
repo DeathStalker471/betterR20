@@ -136,13 +136,21 @@ function d20plusAdventure () {
 	}
 
 	// Fetch item data using the same pipeline as the normal item button (loads mastery/property refs).
-	// `homebrewItems`, if given, is checked first for names not resolved from the official CDN.
-	async function fetchItemData (itemNames, homebrewItems) {
+	// `homebrewData`, if given, is checked first for names not resolved from the official CDN.
+	// Its itemProperty/itemType/itemEntry/itemMastery arrays (if present) must be registered via
+	// addPrereleaseBrewPropertiesAndTypesFrom before any homebrew item gets rendered/enhanced -
+	// otherwise a homebrew item referencing its own book's custom mastery (e.g. a 2024-style
+	// weapon mastery unique to that sourcebook, "{@itemMastery Piercing Shot|SomeBrewSource}")
+	// throws "not found" from Renderer.item._getMastery, since that mastery only exists in the
+	// brew's own data, never on the official CDN. Safe to call even when nothing in the brew
+	// actually needs it - _addMastery/_addProperty/etc. no-op on already-registered entries.
+	async function fetchItemData (itemNames, homebrewData) {
 		if (!itemNames.length) return [];
 		const nameSet = new Set(itemNames);
 		const result = [];
-		if (homebrewItems?.length) {
-			homebrewItems.forEach(it => {
+		if (homebrewData?.item?.length) {
+			Renderer.item.addPrereleaseBrewPropertiesAndTypesFrom({data: homebrewData});
+			homebrewData.item.forEach(it => {
 				const nameLower = it.name.toLowerCase();
 				if (nameSet.has(nameLower)) {
 					result.push(it);
@@ -770,9 +778,15 @@ function d20plusAdventure () {
 			// "mapPlayer" entries carry their own title as the generic literal "Player Version"
 			// (5etools schema), so they can't be keyed into `foundryMaps` directly - resolve
 			// via `mapParent.id`, which points back at the sibling "map" entry's real title.
+			// They also carry no `mapRegions` of their own (only the sibling "map" entry does),
+			// so token-placement centroids need the same mapParent fallback.
 			const idToTitle = {};
+			const idToMapRegions = {};
 			mapEntries.forEach(e => {
-				if (e.imageType === "map" && e.id) idToTitle[e.id] = e.title || e.name;
+				if (e.imageType === "map" && e.id) {
+					idToTitle[e.id] = e.title || e.name;
+					if (e.mapRegions?.length) idToMapRegions[e.id] = e.mapRegions;
+				}
 			});
 			const mapObjects = [];
 			for (const e of mapEntries) {
@@ -786,6 +800,9 @@ function d20plusAdventure () {
 				const wallLookupTitle = e.imageType === "mapPlayer" && e.mapParent?.id
 					? idToTitle[e.mapParent.id]
 					: null;
+				if (e.imageType === "mapPlayer" && !e.mapRegions?.length && e.mapParent?.id) {
+					e.mapRegions = idToMapRegions[e.mapParent.id];
+				}
 				mapObjects.push(buildMapObject(e, foundryMaps, paintedGridSize, wallLookupTitle));
 			}
 			if (mapObjects.length) savedMaps = await importMaps(mapObjects);
@@ -807,7 +824,7 @@ function d20plusAdventure () {
 					.catch(e => { d20plus.ut.log("Creature fetch error: " + e); return []; })
 				: Promise.resolve([]),
 			(toImport.includes("Items") && hasItems)
-				? fetchItemData(extractItemRefs(sections), opts.homebrewData?.item)
+				? fetchItemData(extractItemRefs(sections), opts.homebrewData)
 					.catch(e => { d20plus.ut.log("Item fetch error: " + e); return []; })
 				: Promise.resolve([]),
 		]);
@@ -973,7 +990,15 @@ function d20plusAdventure () {
 			useType = hasAdventure ? "Adventure" : "Book";
 		}
 
-		const homebrewData = {monster: data.monster, item: data.item};
+		const homebrewData = {
+			monster: data.monster,
+			item: data.item,
+			itemProperty: data.itemProperty,
+			itemType: data.itemType,
+			itemEntry: data.itemEntry,
+			itemTypeAdditionalEntries: data.itemTypeAdditionalEntries,
+			itemMastery: data.itemMastery,
+		};
 
 		if (useType === "Adventure") {
 			await loadContent(null, {

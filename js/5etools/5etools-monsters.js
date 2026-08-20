@@ -176,7 +176,10 @@ function d20plusMonsters () {
 	 * (lair actions and regional effects) can get their data more efficiently
 	 */
 	d20plus.monsters.pLoadLegGroups = async function () {
-		await DataUtil.monster.pPreloadLegendaryGroups();
+		// 5etools renamed this from `pPreloadLegendaryGroups` when it moved data loading behind
+		// the new `DataLoader` cache; `getLegendaryGroup()`'s internals moved with it, so this
+		// rename is the only change needed on our side.
+		await DataUtil.monster.pPreloadLegendaryGroupsSite();
 	}
 
 	// Import Monsters button was clicked

@@ -662,16 +662,11 @@
 			"isNamedCreature": true,
 			"source": "SKT",
 			"page": 96,
-			"otherSources": [
-				{
-					"source": "DC"
-				},
-				{
-					"source": "SLW"
-				},
-				{
-					"source": "SDW"
-				}
+			"referenceSources": [
+				"DC",
+				"OoW",
+				"SDW",
+				"SLW"
 			],
 			"_copy": {
 				"name": "Ancient Green Dragon",
@@ -1027,10 +1022,8 @@
 			"name": "Crag Cat",
 			"source": "SKT",
 			"page": 240,
-			"otherSources": [
-				{
-					"source": "IDRotF"
-				}
+			"referenceSources": [
+				"IDRotF"
 			],
 			"size": [
 				"L"
@@ -1238,7 +1231,7 @@
 				{
 					"name": "Greatsword",
 					"entries": [
-						"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}10 ({@damage 2d6 + 3}) slashing damage"
+						"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}10 ({@damage 2d6 + 3}) slashing damage."
 					]
 				},
 				{
@@ -3652,7 +3645,7 @@
 			"type": "elemental",
 			"alignment": [
 				"C",
-				"E"
+				"N"
 			],
 			"ac": [
 				16
@@ -3710,7 +3703,7 @@
 			"cr": "23",
 			"spellcasting": [
 				{
-					"name": "Spellcasting",
+					"name": "Innate Spellcasting",
 					"type": "spellcasting",
 					"headerEntries": [
 						"Maegera casts {@spell fireball} (spell save {@dc 19}), requiring no material components and using Charisma as the spellcasting ability."
@@ -3761,7 +3754,7 @@
 				{
 					"name": "Slam",
 					"entries": [
-						"{@atk mw} {@hit 12} to hit, reach 15 ft., one target. {@h}15 ({@damage 3d6 + 5}) bludgeoning damage plus 35 ({@damage 10d6}) fire damage"
+						"{@atk mw} {@hit 12} to hit, reach 15 ft., one target. {@h}15 ({@damage 3d6 + 5}) bludgeoning damage plus 35 ({@damage 10d6}) fire damage,"
 					]
 				}
 			],
@@ -3806,7 +3799,7 @@
 				"F"
 			],
 			"spellcastingTags": [
-				"O"
+				"I"
 			],
 			"miscTags": [
 				"AOE",
@@ -3992,7 +3985,7 @@
 				{
 					"name": "Club",
 					"entries": [
-						"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d4 + 1}) bludgeoning damage"
+						"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d4 + 1}) bludgeoning damage."
 					]
 				},
 				{
@@ -4193,7 +4186,7 @@
 				{
 					"name": "Cunning Action",
 					"entries": [
-						"On each of his turns, Narth can use a bonus action to take the Dash, Disengage, or Hide action."
+						"On each of his turns, Narth can use a bonus action to take the {@action Dash}, {@action Disengage}, or {@action Hide} action."
 					]
 				},
 				{
@@ -4920,7 +4913,10 @@
 			"speed": {
 				"walk": 30
 			},
-			"cr": "0",
+			"cr": {
+				"cr": "0",
+				"xp": 0
+			},
 			"trait": null,
 			"action": null,
 			"traitTags": [],
@@ -5499,7 +5495,8 @@
 				"tags": [
 					{
 						"tag": "human",
-						"prefix": "Illuskan"
+						"prefix": "Illuskan",
+						"prefixHidden": true
 					}
 				]
 			},
@@ -5535,6 +5532,15 @@
 			"name": "Sheep",
 			"source": "SKT",
 			"page": 142,
+			"otherSources": [
+				{
+					"source": "IDRotF",
+					"page": 76
+				}
+			],
+			"referenceSources": [
+				"IDRotF"
+			],
 			"_copy": {
 				"name": "Goat",
 				"source": "MM",
@@ -6060,7 +6066,7 @@
 				{
 					"name": "Ink Cloud (Costs 3 Actions)",
 					"entries": [
-						"While underwater, Slarkrethel expels an ink cloud in a 60-foot radius. The cloud spreads around corners, and that area is heavily obscured to creatures other than Slarkrethel. Each creature other than Slarkrethel that ends its turn there must succeed on a {@dc 23} Constitution saving throw, taking 16 ({@damage 3d10}) poison damage on a failed save, or half as much damage on a successful one. A strong current disperses the cloud, which otherwise disappears at the end of Slarkrethel's next turn."
+						"While underwater, Slarkrethel expels an ink cloud in a 60-foot radius. The cloud spreads around corners, and that area is {@quickref Vision and Light||2||heavily obscured} to creatures other than Slarkrethel. Each creature other than Slarkrethel that ends its turn there must succeed on a {@dc 23} Constitution saving throw, taking 16 ({@damage 3d10}) poison damage on a failed save, or half as much damage on a successful one. A strong current disperses the cloud, which otherwise disappears at the end of Slarkrethel's next turn."
 					]
 				}
 			],
@@ -6230,7 +6236,8 @@
 				"tags": [
 					{
 						"tag": "human",
-						"prefix": "Shou"
+						"prefix": "Shou",
+						"prefixHidden": true
 					}
 				]
 			},
@@ -6612,10 +6619,8 @@
 			"name": "Tressym",
 			"source": "SKT",
 			"page": 242,
-			"otherSources": [
-				{
-					"source": "IMR"
-				}
+			"referenceSources": [
+				"IMR"
 			],
 			"size": [
 				"T"
@@ -6803,6 +6808,9 @@
 			"isNamedCreature": true,
 			"source": "SKT",
 			"page": 254,
+			"referenceSources": [
+				"WDMM"
+			],
 			"size": [
 				"M"
 			],

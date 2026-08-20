@@ -128,6 +128,12 @@ function initHTMLroll20EditorsMisc () {
 								<button class='btn character-json-import'>Overwrite JSON</button>
 								<a class='showtip pictos' title='Export or overwrite this character as JSON. Overwriting will replace this sheet&#39;s data.'>?</a>
 							</div>
+							<$ if(!window.d20plus?.import2024?.IS_2024_SHEET?.has(this.get("charactersheetname"))) { $>
+							<div style="margin-top: 8px;">
+								<button class='btn character-npc-convert-2024'>Convert 2014 to 2024 Copy</button>
+								<a class='showtip pictos' title='Create a new Journal character using the 2024 sheet store format (NPC or PC), reusing this 2014 character&#39;s available data.'>?</a>
+							</div>
+							<$ } $>
 							<div class='clear'></div>
 							<$ if(window.is_gm) { $>
 							<hr>
@@ -154,7 +160,6 @@ function initHTMLroll20EditorsMisc () {
 							</input>
 						</div>
 					</div>
-					<$ if(!window.ADVANCED_SHEET) { $>
 					<div class='row-fluid'>
 						<div class='span12'>
 							<hr>
@@ -172,7 +177,6 @@ function initHTMLroll20EditorsMisc () {
 							<$ } $>
 						</div>
 					</div>
-					<$ } $>
 				</div>
 			</div>
 		</div>

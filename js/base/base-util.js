@@ -68,12 +68,22 @@ function baseUtil () {
 
 		const isStreamer = !!d20plus.cfg.get("chat", "streamerChatTag");
 		const scriptName = isStreamer ? "Script" : "betteR20";
+
+		// GitHub's "releases/latest/download/<asset>" URL 302s to an objects.githubusercontent.com
+		// asset that doesn't send Access-Control-Allow-Origin, so the browser blocks it as CORS.
+		// The releases API on api.github.com always sends permissive CORS, so use that instead
+		// whenever B20_REPO_URL points at a GitHub releases download URL.
+		const releaseMatch = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/latest\/download\/$/i.exec(B20_REPO_URL);
+		const versionUrl = releaseMatch
+			? `https://api.github.com/repos/${releaseMatch[1]}/${releaseMatch[2]}/releases/latest`
+			: `${B20_REPO_URL}betteR20-version`;
+
 		$.ajax({
-			url: `${B20_REPO_URL}betteR20-version`,
+			url: versionUrl,
 			success: (data) => {
-				if (data) {
+				const avail = releaseMatch ? data?.tag_name?.replace(/^v/i, "") : data;
+				if (avail) {
 					const curr = d20plus.version;
-					const avail = data;
 					const cmp = d20plus.ut.cmpVersions(curr, avail);
 					if (cmp < 0) {
 						setTimeout(() => {
@@ -116,18 +126,22 @@ function baseUtil () {
 		const classname = !legacyStyle ? "userscript-b20intro" : "userscript-hackerintro";
 		const scriptName = isStreamer ? "Script" : d20plus.scriptName;
 		const vttesVersion = window.r20es?.hooks?.welcomeScreen?.config?.previousVersion;
+		const charmanStatus = d20plus.charactermancerLoaded
+			? `Charactermancer ${d20plus.charactermancerVersion || ""} loaded`
+			: "Charactermancer not loaded";
 		const data = [
 			d20plus.scriptName,
 			(vttesVersion && `v${vttesVersion}`) || "not",
 			d20plus.ut.WIKI_URL,
+			charmanStatus,
 		];
-		const welcomeTemplate = (b20v, vttv, faq) => `
+		const welcomeTemplate = (b20v, vttv, faq, charman) => `
 			<div class="${classname}">
 				<img src="" class="userscript-b20img" style="content: unset; width:30px;position: relative;top: 10px;float: right;margin-left:-20px">
 				<h1 style="display: inline-block;line-height: 25px;margin-top: 5px; font-size: 22px;">
-					betteR20 
+					betteR20
 					<span style=" font-size: 13px ; font-weight: normal">by 5etools</span>
-					<p style="font-size: 11px;line-height: 15px;font-family: monospace;color: rgb(32, 194, 14);">VTTES ${vttv} detected<br>${b20v} loaded</p>
+					<p style="font-size: 11px;line-height: 15px;font-family: monospace;color: rgb(32, 194, 14);">VTTES ${vttv} detected<br>${b20v} loaded<br>${charman}</p>
 				</h1>
 				<p>Need help? Visit our <a href="${faq}/index.php/BetteR20_FAQ"><strong>wiki</strong></a> or join our <a href="https://discord.gg/nGvRCDs"><strong>Discord</strong></a>.</p>
 				<span title="You'd think this would be obvious.">
@@ -148,6 +162,9 @@ function baseUtil () {
 			$boringProgress.before(`<span><span>&gt;</span>vtt enhancement suite detected</span>`)
 		} else {
 			d20plus.ut.showHardDickMessage(scriptName);
+		}
+		if (d20plus.charactermancerLoaded) {
+			$boringProgress.before(`<span><span>&gt;</span>charactermancer ${d20plus.charactermancerVersion || ""} loaded</span>`);
 		}
 		d20plus.betaFeaturesEnabled && !isStreamer && d20plus.ut.sendHackerChat(`
 			<div class="userscript-b20intro" style="border: 1px solid; background-color: #582124;">

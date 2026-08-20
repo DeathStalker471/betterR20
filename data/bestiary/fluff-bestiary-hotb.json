@@ -17,7 +17,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Curate.webp"
-					}
+					},
+					"width": 964,
+					"height": 1000
 				}
 			]
 		},
@@ -38,7 +40,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Gray Ooze Glob.webp"
-					}
+					},
+					"width": 987,
+					"height": 1000
 				}
 			]
 		},
@@ -59,7 +63,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Ivlis.webp"
-					}
+					},
+					"width": 1000,
+					"height": 878
 				}
 			]
 		},
@@ -81,7 +87,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Jacko.webp"
-					}
+					},
+					"width": 1000,
+					"height": 776
 				}
 			]
 		},
@@ -103,7 +111,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Kuo-Toa Marauder.webp"
-					}
+					},
+					"width": 1000,
+					"height": 647
 				}
 			]
 		},
@@ -124,7 +134,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Lizardfolk Warden.webp"
-					}
+					},
+					"width": 993,
+					"height": 1000
 				}
 			]
 		},
@@ -146,7 +158,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Narthus.webp"
-					}
+					},
+					"width": 1000,
+					"height": 909
 				}
 			]
 		},
@@ -167,7 +181,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Pral.webp"
-					}
+					},
+					"width": 1000,
+					"height": 906
 				}
 			]
 		},
@@ -188,7 +204,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Sprite Skirmisher.webp"
-					}
+					},
+					"width": 1000,
+					"height": 833
 				}
 			]
 		},
@@ -210,7 +228,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Vinx.webp"
-					}
+					},
+					"width": 960,
+					"height": 1000
 				}
 			]
 		},
@@ -231,7 +251,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/HotB/Wight Lifedrinker.webp"
-					}
+					},
+					"width": 872,
+					"height": 1000
 				}
 			]
 		}

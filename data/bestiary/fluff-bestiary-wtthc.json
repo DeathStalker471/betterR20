@@ -17,7 +17,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Ankheg (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 925
 				}
 			]
 		},
@@ -30,7 +32,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Barbed Devil (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 688
 				}
 			]
 		},
@@ -51,7 +55,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Bearded Devil (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 771
 				}
 			]
 		},
@@ -72,7 +78,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Commoner (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 646
 				}
 			]
 		},
@@ -93,7 +101,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Corrupted Rat.webp"
-					}
+					},
+					"width": 1000,
+					"height": 799
 				}
 			]
 		},
@@ -115,7 +125,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Cultist of Demogorgon.webp"
-					}
+					},
+					"width": 879,
+					"height": 1000
 				}
 			]
 		},
@@ -137,7 +149,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Dardew.webp"
-					}
+					},
+					"width": 1000,
+					"height": 858
 				}
 			]
 		},
@@ -158,7 +172,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Demobat.webp"
-					}
+					},
+					"width": 1000,
+					"height": 957
 				}
 			]
 		},
@@ -180,7 +196,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Demodog.webp"
-					}
+					},
+					"width": 1000,
+					"height": 642
 				}
 			]
 		},
@@ -203,7 +221,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Demodragon.webp"
-					}
+					},
+					"width": 1000,
+					"height": 791
 				}
 			]
 		},
@@ -225,7 +245,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Demogorgon Spawn.webp"
-					}
+					},
+					"width": 892,
+					"height": 1000
 				}
 			]
 		},
@@ -238,7 +260,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Dretch (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 832
 				}
 			]
 		},
@@ -259,7 +283,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Flizzlebin.webp"
-					}
+					},
+					"width": 854,
+					"height": 1000
 				}
 			]
 		},
@@ -280,7 +306,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Giant Corrupted Rat.webp"
-					}
+					},
+					"width": 1000,
+					"height": 799
 				}
 			]
 		},
@@ -301,7 +329,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Giant Spider (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 686
 				}
 			]
 		},
@@ -322,7 +352,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Gnoll Warrior (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 961
 				}
 			]
 		},
@@ -344,7 +376,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Goblin Warrior (Stranger Things).webp"
-					}
+					},
+					"width": 999,
+					"height": 1000
 				}
 			]
 		},
@@ -365,7 +399,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Guard (Stranger Things).webp"
-					}
+					},
+					"width": 839,
+					"height": 1000
 				}
 			]
 		},
@@ -378,7 +414,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Hell Hound (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 672
 				}
 			]
 		},
@@ -391,7 +429,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Imp Trickster.webp"
-					}
+					},
+					"width": 899,
+					"height": 1000
 				}
 			]
 		},
@@ -404,7 +444,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Korex.webp"
-					}
+					},
+					"width": 1000,
+					"height": 783
 				}
 			]
 		},
@@ -417,7 +459,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Medusa (Stranger Things).webp"
-					}
+					},
+					"width": 879,
+					"height": 1000
 				}
 			]
 		},
@@ -430,7 +474,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Myconid Adult (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 842
 				}
 			]
 		},
@@ -452,7 +498,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Needle Blight (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 896
 				}
 			]
 		},
@@ -473,7 +521,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Rilly June.webp"
-					}
+					},
+					"width": 1000,
+					"height": 905
 				}
 			]
 		},
@@ -494,7 +544,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Scarecrow (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 757
 				}
 			]
 		},
@@ -507,7 +559,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Shadow (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 768
 				}
 			]
 		},
@@ -528,7 +582,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Shrieker Fungus (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 872
 				}
 			]
 		},
@@ -541,7 +597,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Swarm of Corrupted Rats.webp"
-					}
+					},
+					"width": 1000,
+					"height": 708
 				}
 			]
 		},
@@ -563,7 +621,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Vine Blight Tangler.webp"
-					}
+					},
+					"width": 1000,
+					"height": 790
 				}
 			]
 		},
@@ -584,7 +644,9 @@
 					"href": {
 						"type": "internal",
 						"path": "bestiary/WttHC/Violet Fungus (Stranger Things).webp"
-					}
+					},
+					"width": 1000,
+					"height": 829
 				}
 			]
 		}

@@ -181,7 +181,7 @@
 				{
 					"name": "Ritual Sickle",
 					"entries": [
-						"{@atkr m} {@hit 4}, reach 5 ft.  {@h}{@damage 1d4 + 2} Slashing damage plus 1 Necrotic damage."
+						"{@atkr m} {@hit 4}, reach 5 ft. {@h}{@damage 1d4 + 2} Slashing damage plus 1 Necrotic damage."
 					]
 				}
 			],
@@ -267,7 +267,7 @@
 				{
 					"name": "Fiery Claw",
 					"entries": [
-						"{@atkr m} {@hit 7}, reach 5 ft.  {@h}8 ({@damage 1d8 + 4}) Slashing damage plus 7 ({@damage 2d6}) Fire damage."
+						"{@atkr m} {@hit 7}, reach 5 ft. {@h}8 ({@damage 1d8 + 4}) Slashing damage plus 7 ({@damage 2d6}) Fire damage."
 					]
 				},
 				{
@@ -324,7 +324,7 @@
 			"type": {
 				"type": "fiend",
 				"tags": [
-					"Demon"
+					"demon"
 				]
 			},
 			"alignment": [
@@ -367,7 +367,7 @@
 				{
 					"name": "Bite",
 					"entries": [
-						"{@atkr m} {@hit 5} (with {@variantrule Advantage|XPHB} if the target is {@condition Grappled|XPHB} by a Demobat), reach 5 ft.  {@h}10 ({@damage 2d6 + 3}) Piercing damage."
+						"{@atkr m} {@hit 5} (with {@variantrule Advantage|XPHB} if the target is {@condition Grappled|XPHB} by a Demobat), reach 5 ft. {@h}10 ({@damage 2d6 + 3}) Piercing damage."
 					]
 				},
 				{
@@ -406,7 +406,7 @@
 			"type": {
 				"type": "fiend",
 				"tags": [
-					"Demon"
+					"demon"
 				]
 			},
 			"alignment": [
@@ -491,7 +491,7 @@
 			"type": {
 				"type": "fiend",
 				"tags": [
-					"Demon"
+					"demon"
 				]
 			},
 			"ac": [
@@ -560,7 +560,7 @@
 				{
 					"name": "Bite",
 					"entries": [
-						"{@atkr m} {@hit 7}, reach 10 ft.  {@h}11 ({@damage 2d6 + 4}) Piercing damage plus 4 ({@damage 1d8}) Acid damage."
+						"{@atkr m} {@hit 7}, reach 10 ft. {@h}11 ({@damage 2d6 + 4}) Piercing damage plus 4 ({@damage 1d8}) Acid damage."
 					]
 				},
 				{
@@ -604,7 +604,7 @@
 			"type": {
 				"type": "fiend",
 				"tags": [
-					"Demon"
+					"demon"
 				]
 			},
 			"alignment": [
@@ -735,7 +735,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Gnome"
+					"gnome"
 				]
 			},
 			"alignment": [
@@ -971,7 +971,7 @@
 			"type": {
 				"type": "fiend",
 				"tags": [
-					"Devil"
+					"devil"
 				]
 			},
 			"alignment": [
@@ -1079,7 +1079,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Elf"
+					"elf"
 				]
 			},
 			"alignment": [
@@ -1151,7 +1151,7 @@
 				{
 					"name": "Skitter",
 					"entries": [
-						"Korex takes the Dash or Disengage action."
+						"Korex takes the {@action Dash|XPHB} or {@action Disengage|XPHB} action."
 					]
 				}
 			],
@@ -1225,7 +1225,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Halfling"
+					"halfling"
 				]
 			},
 			"alignment": [
@@ -1397,7 +1397,7 @@
 				{
 					"name": "Death Burst",
 					"entries": [
-						"The rat explodes when it dies. {@actSave con} {@dc 10}, each creature in a 10-foot {@variantrule Emanation [Area of Effect]|XPHB|Emanation} originating from the rat. {@actSaveFail} {@damage 2d4} Acid {@variantrule Damage|XPHB}. {@actSaveSuccess} Half damage."
+						"The rat explodes when it dies. {@actSave con} {@dc 10}, each creature in a 10-foot {@variantrule Emanation [Area of Effect]|XPHB|Emanation} originating from the rat. {@actSaveFail} {@damage 2d4} Acid Damage. {@actSaveSuccess} Half damage."
 					]
 				},
 				{

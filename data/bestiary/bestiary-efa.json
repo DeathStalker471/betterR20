@@ -18,7 +18,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Halfling"
+					"halfling"
 				]
 			},
 			"alignment": [
@@ -116,7 +116,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Halfling"
+					"halfling"
 				]
 			},
 			"alignment": [
@@ -177,7 +177,7 @@
 				{
 					"name": "Multiattack",
 					"entries": [
-						"The underboss makes three attacks, using {@condition Poisoned|XPHB} Blade or Arcane Firearm in any combination."
+						"The underboss makes three attacks, using Poisoned Blade or Arcane Firearm in any combination."
 					]
 				},
 				{
@@ -229,10 +229,8 @@
 			"name": "Cannith Artificer",
 			"source": "EFA",
 			"page": 80,
-			"otherSources": [
-				{
-					"source": "FFotR"
-				}
+			"referenceSources": [
+				"FFotR"
 			],
 			"size": [
 				"S",
@@ -241,7 +239,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Human"
+					"human"
 				]
 			},
 			"alignment": [
@@ -371,7 +369,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Gnoll"
+					"gnoll"
 				]
 			},
 			"alignment": [
@@ -488,7 +486,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Gnoll"
+					"gnoll"
 				]
 			},
 			"alignment": [
@@ -909,13 +907,13 @@
 				{
 					"name": "Flail",
 					"entries": [
-						"{@atkr m} {@hit 6}, reach 5 ft.  {@h}8 ({@damage 1d8 + 4}) Bludgeoning damage\u2014plus 7 ({@damage 2d6}) Necrotic damage if the commander is Bloodied\u2014and the target has {@variantrule Disadvantage|XPHB} on its next attack roll before the start of the commander's next turn."
+						"{@atkr m} {@hit 6}, reach 5 ft. {@h}8 ({@damage 1d8 + 4}) Bludgeoning damage\u2014plus 7 ({@damage 2d6}) Necrotic damage if the commander is Bloodied\u2014and the target has {@variantrule Disadvantage|XPHB} on its next attack roll before the start of the commander's next turn."
 					]
 				},
 				{
 					"name": "Javelin",
 					"entries": [
-						"{@atkr m,r} {@hit 6}, reach 5 ft. or range 30/120 ft.  {@h}7 ({@damage 1d6 + 4}) Piercing damage\u2014plus 7 ({@damage 2d6}) Necrotic damage if the commander is {@status Bloodied|XPHB}."
+						"{@atkr m,r} {@hit 6}, reach 5 ft. or range 30/120 ft. {@h}7 ({@damage 1d6 + 4}) Piercing damage\u2014plus 7 ({@damage 2d6}) Necrotic damage if the commander is {@status Bloodied|XPHB}."
 					]
 				}
 			],
@@ -1044,7 +1042,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Halfling"
+					"halfling"
 				]
 			},
 			"alignment": [
@@ -1136,7 +1134,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"The troubleshooter takes the Disengage or Hide action."
+						"The troubleshooter takes the {@action Disengage|XPHB} or {@action Hide|XPHB} action."
 					]
 				}
 			],
@@ -1270,7 +1268,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Halfling"
+					"halfling"
 				]
 			},
 			"alignment": [
@@ -1390,7 +1388,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Dwarf"
+					"dwarf"
 				]
 			},
 			"alignment": [
@@ -1545,7 +1543,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Khoravar"
+					"khoravar"
 				]
 			},
 			"alignment": [
@@ -1701,7 +1699,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Khoravar"
+					"khoravar"
 				]
 			},
 			"alignment": [
@@ -1749,8 +1747,10 @@
 					"name": "Spellcasting",
 					"type": "spellcasting",
 					"headerEntries": [
-						"The inquisitive casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save {@dc 13}):",
-						"At Will : Guidance"
+						"The inquisitive casts one of the following spells, requiring no Material components and using Wisdom as the spellcasting ability (spell save {@dc 13}):"
+					],
+					"will": [
+						"{@spell Guidance|XPHB}"
 					],
 					"daily": {
 						"1e": [
@@ -1836,7 +1836,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Human"
+					"human"
 				]
 			},
 			"alignment": [
@@ -1968,7 +1968,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Human"
+					"human"
 				]
 			},
 			"alignment": [
@@ -2086,7 +2086,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Elf"
+					"elf"
 				]
 			},
 			"alignment": [
@@ -2215,7 +2215,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Gnome"
+					"gnome"
 				]
 			},
 			"alignment": [
@@ -2265,9 +2265,11 @@
 						"{@spell Mage Armor|XPHB} (included in AC)",
 						"{@spell Message|XPHB}"
 					],
-					"footerEntries": [
-						"1/Da y: Sending"
-					],
+					"daily": {
+						"1e": [
+							"{@spell Sending|XPHB}"
+						]
+					},
 					"ability": "int",
 					"displayAs": "action"
 				}
@@ -2336,6 +2338,7 @@
 		{
 			"name": "Steel Defender",
 			"source": "EFA",
+			"page": 19,
 			"summonedByClass": "Artificer|EFA",
 			"size": [
 				"M"
@@ -2665,8 +2668,8 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Human",
-					"Orc"
+					"human",
+					"orc"
 				]
 			},
 			"alignment": [
@@ -2784,7 +2787,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Elf"
+					"elf"
 				]
 			},
 			"alignment": [
@@ -2874,7 +2877,7 @@
 				{
 					"name": "Shadow Cowl",
 					"entries": [
-						"{@actSave wis} {@dc 17}, one creature the shadow walker can see within 120 feet. {@actSaveFail} 14 ({@damage 4d6}) Necrotic damage, and the target has the  {@condition Blinded|XPHB} condition until the start of the shadow walker's next turn."
+						"{@actSave wis} {@dc 17}, one creature the shadow walker can see within 120 feet. {@actSaveFail} 14 ({@damage 4d6}) Necrotic damage, and the target has the {@condition Blinded|XPHB} condition until the start of the shadow walker's next turn."
 					]
 				}
 			],
@@ -2922,7 +2925,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Human"
+					"human"
 				]
 			},
 			"alignment": [
@@ -3075,7 +3078,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Elf"
+					"elf"
 				]
 			},
 			"alignment": [
@@ -3180,7 +3183,7 @@
 			"type": {
 				"type": "humanoid",
 				"tags": [
-					"Elf"
+					"elf"
 				]
 			},
 			"alignment": [

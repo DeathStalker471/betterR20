@@ -11,7 +11,9 @@
 						"path": "traps/BMT/Balance and Ruin.webp"
 					},
 					"title": "Diagram 4.5: Balance and Ruin",
-					"credit": "Mike Schley"
+					"credit": "Mike Schley",
+					"width": 850,
+					"height": 1186
 				}
 			]
 		},
@@ -43,7 +45,9 @@
 						"path": "traps/XDMG/Poisoned Darts.webp"
 					},
 					"title": "Bobby and Hank barely avoid a fusillade of poisoned darts!",
-					"credit": "Linda Lithen"
+					"credit": "Linda Lithen",
+					"width": 1700,
+					"height": 1120
 				}
 			]
 		},
@@ -58,7 +62,9 @@
 						"path": "traps/BMT/Surface of the Sun.webp"
 					},
 					"title": "Diagram 4.6: Surface of the Sun",
-					"credit": "Mike Schley"
+					"credit": "Mike Schley",
+					"width": 850,
+					"height": 1189
 				}
 			]
 		},
@@ -73,7 +79,9 @@
 						"path": "traps/BMT/Test of the Empty Moon.webp"
 					},
 					"title": "Diagram 4.7: Test of the Empty Moon",
-					"credit": "Mike Schley"
+					"credit": "Mike Schley",
+					"width": 850,
+					"height": 1188
 				}
 			]
 		}
@@ -90,7 +98,9 @@
 						"path": "hazards/XDMG/Green Slime.webp"
 					},
 					"title": "Sheila discovers that green slime is more dangerous than it looks",
-					"credit": "Diana Cearley"
+					"credit": "Diana Cearley",
+					"width": 1700,
+					"height": 1107
 				}
 			]
 		},
@@ -105,7 +115,9 @@
 						"path": "hazards/XDMG/Webs.webp"
 					},
 					"title": "When caught in a web, it's best to get out before the spider shows up",
-					"credit": "Robson Michel"
+					"credit": "Robson Michel",
+					"width": 1700,
+					"height": 1119
 				}
 			]
 		},
@@ -120,7 +132,9 @@
 						"path": "hazards/NF/Witchbriars.webp"
 					},
 					"title": "A patch of witchbriars snags a Netherese peasant and mage",
-					"credit": "Zuzanna Wuzyk"
+					"credit": "Zuzanna Wuzyk",
+					"width": 1700,
+					"height": 1165
 				}
 			]
 		}

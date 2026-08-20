@@ -20,6 +20,7 @@ const betteR20Core = function () {
 			await d20plus.js.pAddApiScripts();
 
 			JqueryUtil.initEnhancements();
+			d20plus.engine.patchJqote();
 
 			if (window.is_gm) await d20plus.cfg.pLoadConfig();
 			else await d20plus.cfg.pLoadPlayerConfig();

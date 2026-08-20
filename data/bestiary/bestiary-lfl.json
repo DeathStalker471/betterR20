@@ -63,7 +63,7 @@
 				{
 					"name": "Ephemeral Movement",
 					"entries": [
-						"The incarnation can move through other creatures and objects as if they were {@variantrule Difficult Terrain|XPHB}, and its movement doesn't provoke Opportunity Attacks. It takes 5 ({@damage 1d10}) Force damage if it ends its turn inside an object."
+						"The incarnation can move through other creatures and objects as if they were {@variantrule Difficult Terrain|XPHB}, and its movement doesn't provoke {@action Opportunity Attack|XPHB|Opportunity Attacks}. It takes 5 ({@damage 1d10}) Force damage if it ends its turn inside an object."
 					]
 				},
 				{
@@ -582,7 +582,7 @@
 				{
 					"name": "Multiattack",
 					"entries": [
-						"The merrow makes three attacks, using Coral Scepter and {@condition Poisoned|XPHB} Longbow in any combination."
+						"The merrow makes three attacks, using Coral Scepter and Poisoned Longbow in any combination."
 					]
 				},
 				{
@@ -698,7 +698,7 @@
 				{
 					"name": "Nimble Escape",
 					"entries": [
-						"The noggle takes the Disengage or Hide action."
+						"The noggle takes the {@action Disengage|XPHB} or {@action Hide|XPHB} action."
 					]
 				}
 			],

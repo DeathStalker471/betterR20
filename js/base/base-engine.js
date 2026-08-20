@@ -1,6 +1,53 @@
 function d20plusEngine () {
 	d20plus.engine = {};
 
+	d20plus.engine.patchJqote = () => {
+		// Safe-guard $.jqotenc against undefined/null values which crash templates in newer Roll20 updates
+		const patchJqotenc = (jqObj) => {
+			if (!jqObj) return;
+			try {
+				let jqotencVal = jqObj.jqotenc;
+				Object.defineProperty(jqObj, "jqotenc", {
+					get () {
+						return jqotencVal;
+					},
+					set (val) {
+						if (val && val._isVeWrapped) {
+							jqotencVal = val;
+							return;
+						}
+						if (typeof val === "function") {
+							jqotencVal = function (str) {
+								if (str == null) return "";
+								try {
+									return val.call(this, str);
+								} catch (e) {
+									return String(str).replace(/&(?!\w+;)/g, "&#38;").split("<").join("&#60;").split(">").join("&#62;").split('"').join("&#34;").split("'").join("&#39;");
+								}
+							};
+							jqotencVal._isVeWrapped = true;
+						} else {
+							jqotencVal = val;
+						}
+					},
+					configurable: true,
+					enumerable: true,
+				});
+				if (jqotencVal) {
+					jqObj.jqotenc = jqotencVal;
+				}
+			} catch (e) {
+				// eslint-disable-next-line no-console
+				console.warn("Failed to patch $.jqotenc:", e);
+			}
+		};
+
+		patchJqotenc(globalThis.jQuery);
+		if (globalThis.$ !== globalThis.jQuery) {
+			patchJqotenc(globalThis.$);
+		}
+	};
+
 	d20plus.engine.addProFeatures = () => {
 		d20plus.ut.log("Add Pro features");
 
