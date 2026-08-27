@@ -54,7 +54,8 @@ function baseCharacterIo () {
 		delete safeAttributes.id;
 		delete safeAttributes.inplayerjournals;
 		delete safeAttributes.controlledby;
-		if (typeof d20plus.cfg?.getOrDefault === "function") safeAttributes.charactersheetname = d20plus.cfg.getOrDefault("import", "importSheetFormat");
+		const cfgSheetName = typeof d20plus.cfg?.getOrDefault === "function" ? d20plus.cfg.getOrDefault("import", "importSheetFormat") : null;
+		if (cfgSheetName) safeAttributes.charactersheetname = cfgSheetName;
 		character.set(safeAttributes);
 		character.save();
 
