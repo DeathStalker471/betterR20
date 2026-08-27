@@ -2,7 +2,7 @@
 // @name         betteR20-beta-charactermancer-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.7-beta-testing
+// @version      1.36.1.8-beta-testing
 // @updateURL    https://deathstalker471.github.io/betterR20/betteR20-charactermancer.meta.js
 // @downloadURL  https://deathstalker471.github.io/betterR20/betteR20-charactermancer.user.js
 // @description  Charactermancer for betteR20 (can be disabled independently in Tampermonkey)
@@ -2962,5 +2962,5 @@ function d20plus2024Charactermancer () {
   const strip = (str) => str.replace(/use strict/, "").substring(str.indexOf("\n") + 1, str.lastIndexOf("\n")) + "\n";
   unsafeWindow.eval("(function() {\n" + strip(d20plus2024Charactermancer.toString()) + "\n})()");
   unsafeWindow.d20plus.charactermancerLoaded = true;
-  unsafeWindow.d20plus.charactermancerVersion = "1.36.1.7-beta-testing";
+  unsafeWindow.d20plus.charactermancerVersion = "1.36.1.8-beta-testing";
 })();
