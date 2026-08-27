@@ -50,10 +50,12 @@ function baseCharacterIo () {
 		}
 
 		const safeAttributes = {...(entry.attributes || {})};
+		const oldCharId = safeAttributes.id;
 		delete safeAttributes.id;
 		delete safeAttributes.inplayerjournals;
 		delete safeAttributes.controlledby;
-		if (typeof d20plus.cfg?.getOrDefault === "function") safeAttributes.charactersheetname = d20plus.cfg.getOrDefault("import", "importSheetFormat");
+		const cfgSheetName = typeof d20plus.cfg?.getOrDefault === "function" ? d20plus.cfg.getOrDefault("import", "importSheetFormat") : null;
+		if (cfgSheetName) safeAttributes.charactersheetname = cfgSheetName;
 		character.set(safeAttributes);
 		character.save();
 
@@ -80,11 +82,25 @@ function baseCharacterIo () {
 			entry.abilities.map(a => character.abilities.push(a)).forEach(s => s.save());
 		}
 
-		character.updateBlobs({
-			bio: entry.blobBio,
-			gmnotes: entry.blobGmNotes,
-			defaulttoken: entry.blobDefaultToken,
-		});
+		// Rebase the token blob so `represents` etc. point at the target character, not the exported one
+		let tokenBlob = entry.blobDefaultToken;
+		if (tokenBlob && oldCharId) tokenBlob = tokenBlob.split(oldCharId).join(character.id);
+
+		const blobs = {};
+		if (entry.blobBio != null) blobs.bio = entry.blobBio;
+		if (entry.blobGmNotes != null) blobs.gmnotes = entry.blobGmNotes;
+		if (tokenBlob != null) blobs.defaulttoken = tokenBlob;
+
+		if (Object.keys(blobs).length) {
+			Object.entries(blobs).forEach(([key, data]) => { character._blobcache[key] = data; });
+			character.updateBlobs(blobs);
+			// Explicit blob timestamps tell Roll20 to use the uploaded blobs (see base-art.js)
+			const now = (new Date()).getTime();
+			character.save(Object.keys(blobs).reduce((stamps, key) => {
+				stamps[key] = now;
+				return stamps;
+			}, {}));
+		}
 
 		if (character.view && character.view.updateSheetValues) character.view.updateSheetValues();
 
