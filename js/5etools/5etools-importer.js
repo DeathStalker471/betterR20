@@ -1215,6 +1215,9 @@ function d20plusImporter () {
 						if (~$stsRemain.text().indexOf("(cancelled)")) $stsRemain.text(`${$stsRemain.text()} (cancelled)`);
 						d20plus.ut.log(`Import cancelled`);
 						setTimeout(() => {
+							// Refresh first - bindDropLocations() scans the rendered DOM, which doesn't
+							// show freshly-imported items yet without this.
+							d20.journal.refreshJournalList();
 							d20plus.bindDropLocations();
 						}, 250);
 					} else {
@@ -1226,6 +1229,9 @@ function d20plusImporter () {
 						$stsRemain.text("0");
 						d20plus.ut.log(`Import complete`);
 						setTimeout(() => {
+							// Refresh first - bindDropLocations() scans the rendered DOM, which doesn't
+							// show freshly-imported items yet without this.
+							d20.journal.refreshJournalList();
 							d20plus.bindDropLocations();
 						}, 250);
 						if (options.callback) options.callback();
