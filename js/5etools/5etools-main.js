@@ -734,6 +734,10 @@ const betteR205etoolsMain = function () {
 			// region BEGIN ROLL20 CODE
 			v.view.compendiumDragOver = function (e, t) {
 				if (this.popoutWindow) return
+				// On a freshly-created character, the sheet's child iframe/window may not have
+				// finished initializing yet - childWindow stays undefined until it does, so bail
+				// out the same way bindCompendiumDropTarget already does for $compendiumDropTarget.
+				if (!this.childWindow) return;
 				this.$currentDropTarget = this.childWindow.d20.compendiumDragOver(e, t)
 
 				// Cache the last drop target, since it has a habit of disappearing every other loop.
