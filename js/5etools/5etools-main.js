@@ -759,6 +759,11 @@ const betteR205etoolsMain = function () {
 						e.childWindow.d20.deactivateDrop()
 					},
 					drop(t, i) {
+						// Overlapping droppable zones can both fire for the same physical drop (this
+						// callback sets dropHandled below, but never checked it - so a second matching
+						// zone would run the whole import a second time for one drag).
+						if (t.originalEvent.dropHandled) return;
+
 						const characterid = $(".characterdialog").has(t.target).attr("data-characterid");
 						const character = d20.Campaign.characters.get(characterid).view;
 						const $hlpr = $(i.helper[0]);
