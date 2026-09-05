@@ -17,6 +17,10 @@ function d20plus2024Router() {
 			d20plus.importer.import2024Feat(charModel, data);
 		} else if (category === "Backgrounds") {
 			d20plus.importer.import2024Background(charModel, data);
+		} else if (category === "Optional Features") {
+			d20plus.importer.import2024OptionalFeature(charModel, data);
+		} else if (category === "Psionics") {
+			d20plus.importer.import2024Psionic(charModel, data);
 		} else {
 			importDataFallback(charView, data, event);
 		}

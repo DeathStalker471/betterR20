@@ -1129,8 +1129,22 @@ describe('Import router (import2024Data)', () => {
 		spy.mockRestore();
 	});
 
+	test('routes Optional Features to import2024OptionalFeature', async () => {
+		const spy = jest.spyOn(ctx.d20plus.importer, 'import2024OptionalFeature').mockImplementation(() => {});
+		route('Optional Features');
+		expect(spy).toHaveBeenCalledTimes(1);
+		spy.mockRestore();
+	});
+
+	test('routes Psionics to import2024Psionic', async () => {
+		const spy = jest.spyOn(ctx.d20plus.importer, 'import2024Psionic').mockImplementation(() => {});
+		route('Psionics');
+		expect(spy).toHaveBeenCalledTimes(1);
+		spy.mockRestore();
+	});
+
 	test('calls importDataFallback for unhandled categories', async () => {
-		const { fallback } = route('Psionics');
+		const { fallback } = route('Bogus Category');
 		expect(fallback).toHaveBeenCalledTimes(1);
 	});
 });

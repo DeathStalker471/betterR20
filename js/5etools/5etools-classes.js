@@ -405,9 +405,26 @@ function d20plusClass () {
 			if (d20plus.sheet === "ogl") {
 				setTimeout(() => {
 					attrs.addOrUpdate("pb", d20plus.classes.getProfBonusFromLevel(Number(maxLevel)));
-					attrs.addOrUpdate("class", clss.name);
+					// The "class" field is now a fixed <select> with no free-text option, and the
+					// character sheet renders in a cross-origin iframe - there's no way to read its
+					// actual options from our code to tell whether a given name is even listed. The
+					// sheet's own "custom_class" toggle + free-text "cust_classname" fallback is
+					// built for exactly this, so use it unconditionally instead of guessing.
+					attrs.addOrUpdate("custom_class", "1");
+					attrs.addOrUpdate("cust_classname", clss.name);
 					attrs.addOrUpdate("level", maxLevel);
 					attrs.addOrUpdate("base_level", String(maxLevel));
+					// The visible "CLASS & LEVEL" text is a separate "class_display" attribute that
+					// the sheet's own worker only recomputes on change:base_level/multiclass*/arcane_*
+					// - not on change:class/custom_class/cust_classname/subclass - so writing those
+					// alone never updates it. Compute it ourselves using the sheet's own formula
+					// (Roll20/roll20-character-sheets, DD5thEditionLegacy/src/js/sheetworkers.js).
+					const subclass = attrs.findByName("subclass").current;
+					attrs.addOrUpdate("class_display", `${subclass ? `${subclass} ` : ""}${clss.name} ${maxLevel}`);
+					// This runs 500ms after the rest of importClass already returned and called its
+					// own notifySheetWorkers() - these writes need their own notify, or the sheet
+					// never gets told about them.
+					attrs.notifySheetWorkers();
 				}, 500);
 			} else if (d20plus.sheet === "shaped") {
 				const isSupportedClass = clss.source === "PHB" || ["Artificer", "Ranger (Revised)"].includes(clss.name);
@@ -619,6 +636,18 @@ function d20plusClass () {
 
 		const levels = d20plus.ut.getNumberRange("What levels?", 1, 20);
 		if (!levels || !levels.size) return;
+
+		if (d20plus.sheet === "ogl") {
+			attrs.addOrUpdate("subclass", sc.name);
+			// Recompute "class_display" using the sheet's own formula (see importClassGeneral) -
+			// it never reacts to change:subclass, so it needs to be written directly here too.
+			const customClass = attrs.findByName("custom_class").current;
+			const className = customClass && customClass !== "0"
+				? attrs.findByName("cust_classname").current
+				: attrs.findByName("class").current;
+			const baseLevel = attrs.findByName("base_level").current || "1";
+			attrs.addOrUpdate("class_display", `${sc.name} ${className} ${baseLevel}`);
+		}
 
 		const renderer = new Renderer();
 		renderer.setBaseUrl(LINK_BASE_URL);

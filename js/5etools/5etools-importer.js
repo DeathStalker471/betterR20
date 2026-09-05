@@ -760,8 +760,12 @@ function d20plusImporter () {
 
 	d20plus.importer.makePlayerDraggable = function (importId, name) {
 		const $appTo = $(`#d20plus-playerimport`).find(`.Vetools-player-imported`);
+		// Roll20's own drag-activate handler reads data-pagename off every ".compendium-item" and
+		// unconditionally does `.split("%3A")` on it - our synthetic item never had one, which threw
+		// "$(...).attr(...) is undefined" on drag start. The value's contents don't matter since our
+		// own drop handler (hasClass("handout")) intercepts before Roll20's native code ever reads it.
 		const $li = $(`
-		<li class="journalitem dd-item handout ui-draggable compendium-item Vetools-draggable player-imported" data-playerimportid="${importId}">
+		<li class="journalitem dd-item handout ui-draggable compendium-item Vetools-draggable player-imported" data-playerimportid="${importId}" data-pagename="Vetools%3A${encodeURIComponent(name)}">
 			<div class="dd-handle dd-sortablehandle">Drag</div>
 			<div class="dd-content">
 				<div class="token"><img src="/images/handout.png" draggable="false" alt=""></div>
@@ -1215,6 +1219,9 @@ function d20plusImporter () {
 						if (~$stsRemain.text().indexOf("(cancelled)")) $stsRemain.text(`${$stsRemain.text()} (cancelled)`);
 						d20plus.ut.log(`Import cancelled`);
 						setTimeout(() => {
+							// Refresh first - bindDropLocations() scans the rendered DOM, which doesn't
+							// show freshly-imported items yet without this.
+							d20.journal.refreshJournalList();
 							d20plus.bindDropLocations();
 						}, 250);
 					} else {
@@ -1226,6 +1233,9 @@ function d20plusImporter () {
 						$stsRemain.text("0");
 						d20plus.ut.log(`Import complete`);
 						setTimeout(() => {
+							// Refresh first - bindDropLocations() scans the rendered DOM, which doesn't
+							// show freshly-imported items yet without this.
+							d20.journal.refreshJournalList();
 							d20plus.bindDropLocations();
 						}, 250);
 						if (options.callback) options.callback();
