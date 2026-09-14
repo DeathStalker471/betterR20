@@ -230,6 +230,9 @@ function d20plus2024MonsterImport() {
 		store.npc.acNotes = "";
 		store.npc.gear = "";
 		if (data.hp && data.hp.formula) store.npc.rollHP = data.hp.formula.replace(/\s/g, "");
+		// Reuses 5etools' own precomputed Passive Perception (same source the OGL path already
+		// uses) rather than re-deriving it from Wisdom + proficiency.
+		if (data.passive != null) store.npc.passivePerception = String(data.passive);
 		if (data.environment && data.environment.length) {
 			store.npc.habitat = data.environment.map(e => e.charAt(0).toUpperCase() + e.slice(1)).join(", ");
 		}
