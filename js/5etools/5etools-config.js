@@ -10,11 +10,15 @@ function tools5eConfig () {
 			"_type": "_SHEET_ATTRIBUTE",
 			"_player": true,
 		},
-		"bar1_pc": {
-			"name": "Bar 1 (PC)",
-			"default": "",
-			"_type": "_SHEET_ATTRIBUTE_PC",
-		},
+		// bar1_pc/bar2_pc/bar3_pc: no code path creates a token for a PC-character import
+		// (getSetAvatarImage - the only place bar config gets applied - is only ever called
+		// from monster/object/vehicle imports), so these have nothing to attach to. Disabled
+		// rather than removed in case a PC-import token-creation path gets added later.
+		// "bar1_pc": {
+		// 	"name": "Bar 1 (PC)",
+		// 	"default": "",
+		// 	"_type": "_SHEET_ATTRIBUTE_PC",
+		// },
 		"bar1_max": {
 			"name": "Set Bar 1 Max",
 			"default": true,
@@ -33,11 +37,11 @@ function tools5eConfig () {
 			"_type": "_SHEET_ATTRIBUTE",
 			"_player": true,
 		},
-		"bar2_pc": {
-			"name": "Bar 2 (PC)",
-			"default": "",
-			"_type": "_SHEET_ATTRIBUTE_PC",
-		},
+		// "bar2_pc": {
+		// 	"name": "Bar 2 (PC)",
+		// 	"default": "",
+		// 	"_type": "_SHEET_ATTRIBUTE_PC",
+		// },
 		"bar2_max": {
 			"name": "Set Bar 2 Max",
 			"default": false,
@@ -56,11 +60,11 @@ function tools5eConfig () {
 			"_type": "_SHEET_ATTRIBUTE",
 			"_player": true,
 		},
-		"bar3_pc": {
-			"name": "Bar 3 (PC)",
-			"default": "",
-			"_type": "_SHEET_ATTRIBUTE_PC",
-		},
+		// "bar3_pc": {
+		// 	"name": "Bar 3 (PC)",
+		// 	"default": "",
+		// 	"_type": "_SHEET_ATTRIBUTE_PC",
+		// },
 		"bar3_max": {
 			"name": "Set Bar 3 Max",
 			"default": false,
