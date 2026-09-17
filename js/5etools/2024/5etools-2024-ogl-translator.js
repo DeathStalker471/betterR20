@@ -591,7 +591,7 @@ function d20plus2024OGLTranslator() {
 				};
 
 				attackDisplayOrder.push(attackIntId);
-				tokenActionMeta.actions.push({ id: attackIntId, name: action.name });
+				tokenActionMeta.actions.push({ id: attackIntId, name: action.name, isAttack: true });
 			} else {
 				const { id: actionIntId, base: actionBase } = createIntegrantBase("Action");
 				integrants[actionIntId] = {
@@ -601,7 +601,7 @@ function d20plus2024OGLTranslator() {
 					description: action.description || "",
 				};
 				actionDisplayOrder.push(actionIntId);
-				tokenActionMeta.actions.push({ id: actionIntId, name: action.name });
+				tokenActionMeta.actions.push({ id: actionIntId, name: action.name, isAttack: false, desc: action.description || "" });
 			}
 		}
 
@@ -620,7 +620,9 @@ function d20plus2024OGLTranslator() {
 				description: legendary.description || legendary.desc || "",
 			};
 			legendaryActionDisplayOrder.push(id);
-			tokenActionMeta.legendaryActions.push({ id, name: legendary.name });
+			// Never a true Attack integrant on this path - always baked (see comment
+			// on tokenActionMeta.actions above for why isAttack matters).
+			tokenActionMeta.legendaryActions.push({ id, name: legendary.name, isAttack: false, desc: legendary.description || legendary.desc || "" });
 		}
 
 		// Mythic Actions
@@ -635,7 +637,7 @@ function d20plus2024OGLTranslator() {
 				description: mythic.description || mythic.desc || "",
 			};
 			mythicActionDisplayOrder.push(id);
-			tokenActionMeta.mythicActions.push({ id, name: mythic.name });
+			tokenActionMeta.mythicActions.push({ id, name: mythic.name, isAttack: false, desc: mythic.description || mythic.desc || "" });
 		}
 
 		// Reactions
@@ -650,7 +652,7 @@ function d20plus2024OGLTranslator() {
 				description: reaction.description || reaction.desc || "",
 			};
 			reactionDisplayOrder.push(id);
-			tokenActionMeta.reactions.push({ id, name: reaction.name });
+			tokenActionMeta.reactions.push({ id, name: reaction.name, isAttack: false, desc: reaction.description || reaction.desc || "" });
 		}
 
 		// Spells
@@ -693,17 +695,10 @@ function d20plus2024OGLTranslator() {
 		store.spells.generalSpellSettings = store.spells.generalSpellSettings || {};
 		store.spells.generalSpellSettings.showPreparedBar = Object.values(repeatingSpells).some(sp => sp.spellname);
 
-		// The repeating_npc* legacy accessor orders rows alphabetically by name
-		// within each category (confirmed live), not by creation order.
-		const assignAlphabeticalPositions = (entries) => {
-			entries.sort((a, b) => a.name.localeCompare(b.name));
-			entries.forEach((entry, i) => { entry.pos = i; });
-		};
-		assignAlphabeticalPositions(tokenActionMeta.actions);
-		assignAlphabeticalPositions(tokenActionMeta.bonusActions);
-		assignAlphabeticalPositions(tokenActionMeta.reactions);
-		assignAlphabeticalPositions(tokenActionMeta.legendaryActions);
-		assignAlphabeticalPositions(tokenActionMeta.mythicActions);
+		// Position numbers are NOT assigned here - see the comment in build2024Store
+		// (5etools-2024-monster-import.js) for why: only true Attack-type integrants are
+		// positionally addressable at all, and import2024TokenActions computes their
+		// positions from the live store instead.
 
 		// Transient bookkeeping for import2024TokenActions — the caller must
 		// strip this before persisting the store attribute.

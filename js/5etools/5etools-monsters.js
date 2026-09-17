@@ -458,24 +458,30 @@ function d20plusMonsters () {
 						].map(a => character.attribs.push(a));
 						toSave.forEach(s => s.syncedSave());
 
-						if (typeof d20plus.monsters.import2024Spells === "function") {
-							d20plus.monsters.import2024Spells(character, data);
-						}
+						// import2024Spells fetches spell data and saves the resulting integrants
+						// (including the Attack-type integrant a spell's own attack/save mechanic
+						// generates) asynchronously - import2024TokenActions addresses those by
+						// position, so it must not run until that save has actually happened.
+						const spellsDone = typeof d20plus.monsters.import2024Spells === "function"
+							? d20plus.monsters.import2024Spells(character, data)
+							: Promise.resolve();
 
-						if (typeof d20plus.monsters.import2024TokenActions === "function") {
-							const vulnerabilitiesText = data.vulnerable
-								? d20plus.importer.getCleanText(Parser.getFullImmRes(data.vulnerable))
-								: "";
-							const languagesText = data.languages
-								? (data.languages instanceof Array ? data.languages.join(", ") : data.languages)
-								: "";
-							d20plus.monsters.import2024TokenActions(character, tokenActionMeta, {
-								legendaryActionCount: data.legendaryActions || 3,
-								sensesText: sensesStr,
-								languagesText,
-								vulnerabilitiesText,
-							});
-						}
+						Promise.resolve(spellsDone).then(() => {
+							if (typeof d20plus.monsters.import2024TokenActions === "function") {
+								const vulnerabilitiesText = data.vulnerable
+									? d20plus.importer.getCleanText(Parser.getFullImmRes(data.vulnerable))
+									: "";
+								const languagesText = data.languages
+									? (data.languages instanceof Array ? data.languages.join(", ") : data.languages)
+									: "";
+								d20plus.monsters.import2024TokenActions(character, tokenActionMeta, {
+									legendaryActionCount: data.legendaryActions || 3,
+									sensesText: sensesStr,
+									languagesText,
+									vulnerabilitiesText,
+								});
+							}
+						});
 
 						if (renderFluff) {
 							setTimeout(() => {
