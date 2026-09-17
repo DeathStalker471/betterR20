@@ -162,6 +162,22 @@ function d20plus2024MonsterImport() {
 		let arrayPosition = 100;
 		const integrants = store.integrants.integrants;
 
+		// Tracks {id (shortID), name} for every trait/action/bonus/reaction/
+		// legendary/mythic/spellcasting integrant we create below, so token-action
+		// macros can address them live. Each entry's `pos` (the 0-based index the
+		// repeating_npc* legacy accessor's "action" sub-field actually needs) is
+		// filled in afterwards by assignAlphabeticalPositions — confirmed live
+		// that this accessor orders rows ALPHABETICALLY BY NAME within each
+		// category, not by creation order (actionDisplayOrder is deliberately
+		// left empty, so there's no explicit order for it to follow instead).
+		// E.g. a dragon with actions Lightning Breath/Multiattack/Rend resolved
+		// position 0 to "Lightning Breath" and position 2 to "Rend" — exactly
+		// alphabetical, not creation order.
+		const tokenActionMeta = {
+			traits: [], actions: [], bonusActions: [], reactions: [],
+			legendaryActions: [], mythicActions: [], spellcasting: [],
+		};
+
 		// Ability Scores
 		const abilities = [
 			{ key: "str", name: "Strength" },
@@ -391,6 +407,7 @@ function d20plus2024MonsterImport() {
 					relations: {},
 				};
 				traitDisplayOrder.push(id);
+				tokenActionMeta.traits.push({ id, name, desc: text });
 			}
 		}
 		store.features.speciesTraitsDisplayOrder = JSON.stringify(traitDisplayOrder);
@@ -415,10 +432,17 @@ function d20plus2024MonsterImport() {
 					relations: {},
 				};
 				actionDisplayOrder.push(id);
+				// Spellcasting shares the repeating_npc* accessor family with
+				// whichever category it displays as, so it competes for a
+				// position in that same alphabetical ordering (see
+				// assignAlphabeticalPositions below).
+				const scCategory = sc.displayAs === "bonus" ? "bonusActions" : sc.displayAs === "reaction" ? "reactions" : "actions";
+				const scBaseAction = scCategory === "bonusActions" ? "repeating_npcbonusaction" : scCategory === "reactions" ? "repeating_npcreaction" : "repeating_npcaction";
+				tokenActionMeta.spellcasting.push({ id, name: scName, baseAction: scBaseAction, _posCategory: scCategory });
 			}
 		}
 
-		const buildAttackIntegrants = (actionData, actionType, displayOrder) => {
+		const buildAttackIntegrants = (actionData, actionType, displayOrder, metaCategory) => {
 			const name = d20plus.importer.getCleanText(renderer.render(actionData.name));
 			const text = d20plus.importer.getCleanText(renderer.render({ entries: actionData.entries }, 1));
 			const attackInfo = extractMonsterAttackInfo(actionData.entries);
@@ -466,6 +490,7 @@ function d20plus2024MonsterImport() {
 					relations: {},
 				};
 				attackDisplayOrder.push(attackIntId);
+				tokenActionMeta[metaCategory].push({ id: attackIntId, name });
 			} else {
 				const { id, base } = monsterCtx.makeIntegrantBase("Action", arrayPosition++);
 				integrants[id] = {
@@ -478,38 +503,59 @@ function d20plus2024MonsterImport() {
 					relations: {},
 				};
 				displayOrder.push(id);
+				tokenActionMeta[metaCategory].push({ id, name });
 			}
 		};
 
 		if (data.action) {
-			for (const action of data.action) buildAttackIntegrants(action, "Action", actionDisplayOrder);
+			for (const action of data.action) buildAttackIntegrants(action, "Action", actionDisplayOrder, "actions");
 		}
 
 		const bonusActionDisplayOrder = [];
 		if (data.bonus) {
-			for (const bonus of data.bonus) buildAttackIntegrants(bonus, "Bonus Action", bonusActionDisplayOrder);
+			for (const bonus of data.bonus) buildAttackIntegrants(bonus, "Bonus Action", bonusActionDisplayOrder, "bonusActions");
 		}
 
 		const reactionDisplayOrder = [];
 		if (data.reaction) {
-			for (const reaction of data.reaction) buildAttackIntegrants(reaction, "Reaction", reactionDisplayOrder);
+			for (const reaction of data.reaction) buildAttackIntegrants(reaction, "Reaction", reactionDisplayOrder, "reactions");
 		}
 
 		const legendaryActionDisplayOrder = [];
 		if (data.legendary) {
             store.npc.legendaryActionCount = data.legendaryActions || 3;
-			for (const legendary of data.legendary) buildAttackIntegrants(legendary, "Legendary", legendaryActionDisplayOrder);
+			for (const legendary of data.legendary) buildAttackIntegrants(legendary, "Legendary", legendaryActionDisplayOrder, "legendaryActions");
 		}
 
 		const mythicActionDisplayOrder = [];
 		if (data.mythic) {
-			for (const mythic of data.mythic) buildAttackIntegrants(mythic, "Mythic", mythicActionDisplayOrder);
+			for (const mythic of data.mythic) buildAttackIntegrants(mythic, "Mythic", mythicActionDisplayOrder, "mythicActions");
 		}
 
 		// Leave all display orders as "[]" — the 2024 sheet auto-discovers integrants
 		// by type/actionType in stat block mode (matches native compendium behaviour).
 		// Explicitly populating them causes the sheet to use a lookup that fails to
 		// match integrants by shortID, so bonus/reaction actions don't appear.
+
+		// The repeating_npc* legacy accessor orders rows alphabetically by name
+		// within each category (confirmed live), not by creation order. Mutates
+		// each entry in place with a `pos` field. A spellcasting entry competes
+		// for a position in whichever category it's tagged with (_posCategory).
+		const assignAlphabeticalPositions = (...groups) => {
+			const merged = [].concat(...groups);
+			merged.sort((a, b) => a.name.localeCompare(b.name));
+			merged.forEach((entry, i) => { entry.pos = i; });
+		};
+		const spellcastingFor = (category) => tokenActionMeta.spellcasting.filter(sc => sc._posCategory === category);
+		assignAlphabeticalPositions(tokenActionMeta.actions, spellcastingFor("actions"));
+		assignAlphabeticalPositions(tokenActionMeta.bonusActions, spellcastingFor("bonusActions"));
+		assignAlphabeticalPositions(tokenActionMeta.reactions, spellcastingFor("reactions"));
+		assignAlphabeticalPositions(tokenActionMeta.legendaryActions);
+		assignAlphabeticalPositions(tokenActionMeta.mythicActions);
+
+		// Transient bookkeeping for import2024TokenActions — the caller must strip
+		// this before persisting the store attribute (see 5etools-monsters.js).
+		store.__tokenActionMeta = tokenActionMeta;
 
 		return store;
 	};

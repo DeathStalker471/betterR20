@@ -218,6 +218,18 @@ function d20plus2024OGLTranslator() {
 		let arrayPosition = 100;
 		const integrants = store.integrants.integrants;
 
+		// Mirrors build2024Store's bookkeeping — tracks {id (shortID), name} for
+		// every trait/action/bonus/reaction/legendary/mythic integrant created
+		// below. Each entry's `pos` (the 0-based index the repeating_npc* legacy
+		// accessor's "action" sub-field actually needs) is filled in afterwards,
+		// alphabetically by name within each category — confirmed live that this
+		// accessor orders rows that way, not by creation order (see base-macro.js
+		// and build2024Store).
+		const tokenActionMeta = {
+			traits: [], actions: [], bonusActions: [], reactions: [],
+			legendaryActions: [], mythicActions: [], spellcasting: [],
+		};
+
 		const createIntegrantBase = (type) => {
 			const id = generate2024Id();
 			return {
@@ -510,6 +522,7 @@ function d20plus2024OGLTranslator() {
 				relations: {},
 			};
 			traitDisplayOrder.push(id);
+			tokenActionMeta.traits.push({ id, name: trait.name, desc: trait.description || trait.desc || "" });
 		}
 		store.features.speciesTraitsDisplayOrder = JSON.stringify(traitDisplayOrder);
 
@@ -578,6 +591,7 @@ function d20plus2024OGLTranslator() {
 				};
 
 				attackDisplayOrder.push(attackIntId);
+				tokenActionMeta.actions.push({ id: attackIntId, name: action.name });
 			} else {
 				const { id: actionIntId, base: actionBase } = createIntegrantBase("Action");
 				integrants[actionIntId] = {
@@ -587,6 +601,7 @@ function d20plus2024OGLTranslator() {
 					description: action.description || "",
 				};
 				actionDisplayOrder.push(actionIntId);
+				tokenActionMeta.actions.push({ id: actionIntId, name: action.name });
 			}
 		}
 
@@ -605,6 +620,7 @@ function d20plus2024OGLTranslator() {
 				description: legendary.description || legendary.desc || "",
 			};
 			legendaryActionDisplayOrder.push(id);
+			tokenActionMeta.legendaryActions.push({ id, name: legendary.name });
 		}
 
 		// Mythic Actions
@@ -619,6 +635,7 @@ function d20plus2024OGLTranslator() {
 				description: mythic.description || mythic.desc || "",
 			};
 			mythicActionDisplayOrder.push(id);
+			tokenActionMeta.mythicActions.push({ id, name: mythic.name });
 		}
 
 		// Reactions
@@ -633,6 +650,7 @@ function d20plus2024OGLTranslator() {
 				description: reaction.description || reaction.desc || "",
 			};
 			reactionDisplayOrder.push(id);
+			tokenActionMeta.reactions.push({ id, name: reaction.name });
 		}
 
 		// Spells
@@ -674,6 +692,22 @@ function d20plus2024OGLTranslator() {
 		store.spells.displayOrder = spellDisplayOrder.map(arr => JSON.stringify(arr));
 		store.spells.generalSpellSettings = store.spells.generalSpellSettings || {};
 		store.spells.generalSpellSettings.showPreparedBar = Object.values(repeatingSpells).some(sp => sp.spellname);
+
+		// The repeating_npc* legacy accessor orders rows alphabetically by name
+		// within each category (confirmed live), not by creation order.
+		const assignAlphabeticalPositions = (entries) => {
+			entries.sort((a, b) => a.name.localeCompare(b.name));
+			entries.forEach((entry, i) => { entry.pos = i; });
+		};
+		assignAlphabeticalPositions(tokenActionMeta.actions);
+		assignAlphabeticalPositions(tokenActionMeta.bonusActions);
+		assignAlphabeticalPositions(tokenActionMeta.reactions);
+		assignAlphabeticalPositions(tokenActionMeta.legendaryActions);
+		assignAlphabeticalPositions(tokenActionMeta.mythicActions);
+
+		// Transient bookkeeping for import2024TokenActions — the caller must
+		// strip this before persisting the store attribute.
+		store.__tokenActionMeta = tokenActionMeta;
 
 		return store;
 	};

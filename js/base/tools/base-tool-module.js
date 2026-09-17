@@ -529,9 +529,26 @@ function baseToolModule () {
 													// Proceed with saving using the rebased data
 													character.attribs.reset();
 													const isNpc = rebasedAttribs.some(a => a.name === "npc" && String(a.current) === "1");
-													if (typeof d20plus.importer?.shouldUse2024 === "function" && d20plus.importer.shouldUse2024() && isNpc) {
+													const isNpc2024 = typeof d20plus.importer?.shouldUse2024 === "function" && d20plus.importer.shouldUse2024() && isNpc;
+													let tokenActionMeta2024 = null;
+													let tokenActionExtra2024 = null;
+													if (isNpc2024) {
 														// 2024 sheet: convert OGL attribs to 2024 store format
 														const store2024 = d20plus.importer.translateOGLTo2024Store(rebasedAttribs);
+														tokenActionMeta2024 = store2024.__tokenActionMeta;
+														delete store2024.__tokenActionMeta;
+
+														const attrLookup = name => {
+															const found = rebasedAttribs.find(a => a.name === name);
+															return found ? found.current : "";
+														};
+														tokenActionExtra2024 = {
+															legendaryActionCount: store2024.npc && store2024.npc.legendaryActionCount,
+															sensesText: attrLookup("npc_senses"),
+															languagesText: attrLookup("npc_languages"),
+															vulnerabilitiesText: attrLookup("npc_vulnerabilities"),
+														};
+
 														const toSave = [
 															{ name: "appState", current: "npc" },
 															{ name: "store", current: store2024 },
@@ -546,7 +563,11 @@ function baseToolModule () {
 														success: function () {
 															character.abilities.models.slice().forEach(ability => ability.destroy());
 															if (d20plus.cfg.getOrDefault("import", "tokenactions")) {
-																d20plus.importer._createTokenActionsFromCharacter(character);
+																if (isNpc2024) {
+																	d20plus.monsters.import2024TokenActions(character, tokenActionMeta2024, tokenActionExtra2024);
+																} else {
+																	d20plus.importer._createTokenActionsFromCharacter(character);
+																}
 															}
 														},
 													});
