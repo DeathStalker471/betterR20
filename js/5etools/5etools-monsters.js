@@ -450,6 +450,8 @@ function d20plusMonsters () {
 					// Check if 2024 import is available (only in 5etools build)
 					if (typeof d20plus.monsters?.shouldUse2024 === "function" && d20plus.monsters.shouldUse2024()) {
 						const store = d20plus.monsters.build2024Store(data, renderer);
+						const tokenActionMeta = store.__tokenActionMeta;
+						delete store.__tokenActionMeta;
 						const toSave = [
 							{ name: "appState", current: "npc" },
 							{ name: "store", current: store },  // Store as object, NOT stringified
@@ -458,6 +460,21 @@ function d20plusMonsters () {
 
 						if (typeof d20plus.monsters.import2024Spells === "function") {
 							d20plus.monsters.import2024Spells(character, data);
+						}
+
+						if (typeof d20plus.monsters.import2024TokenActions === "function") {
+							const vulnerabilitiesText = data.vulnerable
+								? d20plus.importer.getCleanText(Parser.getFullImmRes(data.vulnerable))
+								: "";
+							const languagesText = data.languages
+								? (data.languages instanceof Array ? data.languages.join(", ") : data.languages)
+								: "";
+							d20plus.monsters.import2024TokenActions(character, tokenActionMeta, {
+								legendaryActionCount: data.legendaryActions || 3,
+								sensesText: sensesStr,
+								languagesText,
+								vulnerabilitiesText,
+							});
 						}
 
 						if (renderFluff) {
