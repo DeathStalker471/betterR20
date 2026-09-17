@@ -432,13 +432,10 @@ function d20plus2024MonsterImport() {
 					relations: {},
 				};
 				actionDisplayOrder.push(id);
-				// Spellcasting shares the repeating_npc* accessor family with
-				// whichever category it displays as, so it competes for a
-				// position in that same alphabetical ordering (see
-				// assignAlphabeticalPositions below).
-				const scCategory = sc.displayAs === "bonus" ? "bonusActions" : sc.displayAs === "reaction" ? "reactions" : "actions";
-				const scBaseAction = scCategory === "bonusActions" ? "repeating_npcbonusaction" : scCategory === "reactions" ? "repeating_npcreaction" : "repeating_npcaction";
-				tokenActionMeta.spellcasting.push({ id, name: scName, baseAction: scBaseAction, _posCategory: scCategory });
+				// This is always a plain "Action"-type integrant (a summary, never a real
+				// attack/save), so it has nothing live to address positionally - it gets
+				// baked as name+description text, same as a Trait (see import2024TokenActions).
+				tokenActionMeta.spellcasting.push({ id, name: scName, desc: scText });
 			}
 		}
 
@@ -490,7 +487,13 @@ function d20plus2024MonsterImport() {
 					relations: {},
 				};
 				attackDisplayOrder.push(attackIntId);
-				tokenActionMeta[metaCategory].push({ id: attackIntId, name });
+				// isAttack: true - this has a real attack-roll/damage chain, so
+				// import2024TokenActions addresses it by its live position among
+				// same-actionType Attack integrants (see that file for why: Roll20's
+				// repeating_npcaction-family accessor only indexes true Attack integrants,
+				// sorted alphabetically by name - not creation order, and not plain
+				// Action-type entries like Multiattack).
+				tokenActionMeta[metaCategory].push({ id: attackIntId, name, isAttack: true });
 			} else {
 				const { id, base } = monsterCtx.makeIntegrantBase("Action", arrayPosition++);
 				integrants[id] = {
@@ -503,7 +506,9 @@ function d20plus2024MonsterImport() {
 					relations: {},
 				};
 				displayOrder.push(id);
-				tokenActionMeta[metaCategory].push({ id, name });
+				// isAttack: false - a plain descriptive Action (e.g. Multiattack) has no
+				// live roll to address, so it gets baked as name+description text instead.
+				tokenActionMeta[metaCategory].push({ id, name, isAttack: false, desc: text });
 			}
 		};
 
@@ -537,21 +542,14 @@ function d20plus2024MonsterImport() {
 		// Explicitly populating them causes the sheet to use a lookup that fails to
 		// match integrants by shortID, so bonus/reaction actions don't appear.
 
-		// The repeating_npc* legacy accessor orders rows alphabetically by name
-		// within each category (confirmed live), not by creation order. Mutates
-		// each entry in place with a `pos` field. A spellcasting entry competes
-		// for a position in whichever category it's tagged with (_posCategory).
-		const assignAlphabeticalPositions = (...groups) => {
-			const merged = [].concat(...groups);
-			merged.sort((a, b) => a.name.localeCompare(b.name));
-			merged.forEach((entry, i) => { entry.pos = i; });
-		};
-		const spellcastingFor = (category) => tokenActionMeta.spellcasting.filter(sc => sc._posCategory === category);
-		assignAlphabeticalPositions(tokenActionMeta.actions, spellcastingFor("actions"));
-		assignAlphabeticalPositions(tokenActionMeta.bonusActions, spellcastingFor("bonusActions"));
-		assignAlphabeticalPositions(tokenActionMeta.reactions, spellcastingFor("reactions"));
-		assignAlphabeticalPositions(tokenActionMeta.legendaryActions);
-		assignAlphabeticalPositions(tokenActionMeta.mythicActions);
+		// Position numbers are NOT assigned here. Roll20's repeating_npcaction-family
+		// accessor only indexes true Attack-type integrants (never plain Action-type ones
+		// like Multiattack or this monster's own Spellcasting summary), sorted alphabetically
+		// by name - and critically, a spell's own attack/save mechanic generates an
+		// additional Attack integrant (via import2024Spell) *after* this function returns,
+		// so any position computed here could never account for those. See
+		// import2024TokenActions (5etools-2024-monster-tokenactions.js), which computes
+		// positions from the live store once spells actually exist.
 
 		// Transient bookkeeping for import2024TokenActions — the caller must strip
 		// this before persisting the store attribute (see 5etools-monsters.js).
@@ -564,8 +562,12 @@ function d20plus2024MonsterImport() {
 		return monsterCtx.IS_2024_SHEET.has(d20plus.cfg.getOrDefault("import", "importSheetFormat"));
 	};
 
+	// Returns a Promise resolving once spells (and any Attack integrants a spell's own
+	// attack/save mechanic generates) are actually fetched and saved into the store - callers
+	// that need those integrants to exist (e.g. import2024TokenActions, which addresses spell-
+	// derived attacks by position) must await this rather than assume it's done synchronously.
 	d20plus.monsters.import2024Spells = function (charModel, monsterData) {
-		if (!monsterData.spellcasting || !monsterData.spellcasting.length) return;
+		if (!monsterData.spellcasting || !monsterData.spellcasting.length) return Promise.resolve();
 
 		const SLOT_KEYS = ["constant", "will", "rest", "restLong", "restShort", "daily", "weekly"];
 
@@ -605,8 +607,9 @@ function d20plus2024MonsterImport() {
 			});
 		});
 
-		if (!toLoad.length) return;
+		if (!toLoad.length) return Promise.resolve();
 
+		return new Promise(resolveDone => {
 		setTimeout(() => {
 			Promise.all(toLoad.map(({name, source}) => {
 				const urlKey = Object.keys(spellDataUrls).find(src => src.toLowerCase() === source.toLowerCase());
@@ -714,9 +717,11 @@ function d20plus2024MonsterImport() {
 				monsterCtx.saveStore(charModel, storeAttr, store);
 				} finally {
 					releaseLock();
+					resolveDone();
 				}
 			});
 		}, 500);
+		});
 	};
 }
 SCRIPT_EXTENSIONS.push(d20plus2024MonsterImport);
