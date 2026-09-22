@@ -15079,23 +15079,50 @@ function d20plusEngine () {
 	// Roll20's Page Settings dialog is now a Vue component with no open/close event we can
 	// hook into, so watch for its "Backdrop Color" block and inject our Thumbnail section next to it.
 	d20plus.engine.enhanceVuePageThumbnail = () => {
+		const MAPIMAGE_CLASS = "b20-mapimage-section";
 		const SECTION_CLASS = "b20-thumbnail-section";
 		const GRIDFIX_CLASS = "b20-gridfix-section";
 
+		// Styled to match this panel's own design system (same CSS variables/fonts its
+		// native inputs and buttons use - see its <style scoped> block) rather than generic
+		// ad-hoc styling, since these sections are injected as plain elements that don't
+		// carry the Vue component's scoped data-v-* attribute and so never actually match
+		// its scoped selectors themselves.
 		if (!document.getElementById("b20-thumbnail-style")) {
 			document.head.insertAdjacentHTML("beforeend", `<style id="b20-thumbnail-style">
-				.${SECTION_CLASS} { display: flex; flex-direction: column; gap: 8px; }
-				.${SECTION_CLASS} .b20-thumbnail-row { display: flex; align-items: center; gap: 8px; }
+				.${MAPIMAGE_CLASS}, .${SECTION_CLASS}, .${GRIDFIX_CLASS} { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+				.${MAPIMAGE_CLASS} .b20-row, .${SECTION_CLASS} .b20-row, .${GRIDFIX_CLASS} .b20-row { display: flex; align-items: center; gap: 6px; }
 				.${SECTION_CLASS} .b20-thumbnail-preview { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; background: rgba(128,128,128,.2); flex-shrink: 0; }
-				.${SECTION_CLASS} .b20-thumbnail-url { flex: 1; min-width: 0; padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(128,128,128,.4); box-sizing: border-box; font: inherit; }
-				.b20-thumbnail-btn { padding: 6px 14px; border-radius: 4px; border: 1px solid rgba(128,128,128,.4); background: rgba(128,128,128,.12); color: inherit; cursor: pointer; font: inherit; font-size: 13px; }
-				.b20-thumbnail-btn:hover { background: rgba(128,128,128,.25); }
-				.${GRIDFIX_CLASS} .b20-thumbnail-row { display: flex; align-items: center; gap: 8px; }
+				.b20-mapimage-url, .b20-thumbnail-url, .b20-gridfix-factor {
+					font-family: var(--font-family-proxima-nova, inherit); font-size: 13px; font-weight: 600; line-height: normal;
+					padding: 8px; border-radius: 4px; border: 1px solid var(--primary-input-border, rgba(128,128,128,.4));
+					background: var(--vtt-component-background-color, transparent); color: inherit; box-sizing: border-box;
+				}
+				.b20-mapimage-url, .b20-thumbnail-url { flex: 1; min-width: 0; }
+				.b20-gridfix-factor { width: 64px; flex: none; }
+				.b20-thumbnail-btn {
+					font-family: var(--font-family-proxima-nova, inherit); font-size: 13px; font-weight: 600;
+					padding: 8px 14px; border-radius: 4px; border: none; background: rgba(80,87,110,.1);
+					color: var(--vtt-submenu-header, inherit); cursor: pointer; white-space: nowrap;
+				}
+				.b20-thumbnail-btn:hover { background: rgba(80,87,110,.2); }
 				.${GRIDFIX_CLASS} .b20-gridfix-desc { font-size: 12px; opacity: .75; margin: 0; }
-				.${GRIDFIX_CLASS} .b20-gridfix-factor { width: 64px; padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(128,128,128,.4); box-sizing: border-box; font: inherit; }
-				.${GRIDFIX_CLASS} { position: relative; z-index: 10000; }
+				/* Native .divider-svg gets this margin from a scoped rule that only matches
+				   elements carrying the Vue component's data-v-* attribute - ours don't have
+				   it, so without this the dividers we insert collapse to zero height. */
+				.divider-svg { margin: 16px 0px; }
 			</style>`);
 		}
+
+		const $divider = () => $(`<div class="divider-svg" style="border-color: var(--vtt-submenu-divider-color); border-bottom-style: solid; border-bottom-width: 1px; width: 100%;"></div>`);
+
+		// Shared by Map Image (to know what it's replacing/creating), Thumbnail's "Reload
+		// Default" and Grid Correction's redraw nudge.
+		const getMainMapGraphic = () => {
+			const mapGraphics = d20.Campaign.activePage()?.thegraphics?.filter(g => g.get("layer") === "map") || [];
+			if (!mapGraphics.length) return null;
+			return mapGraphics.reduce((a, b) => (a.get("width") * a.get("height") >= b.get("width") * b.get("height")) ? a : b);
+		};
 
 		const inject = () => {
 			if (document.querySelector(`.${SECTION_CLASS}`)) return;
@@ -15104,21 +15131,67 @@ function d20plusEngine () {
 			const $section = $(backdrop).closest(".section");
 			if (!$section.length) return;
 
+			// Map Image — replaces the actual background graphic on the Map layer (creates one,
+			// sized to the loaded image, if the page doesn't have one yet), not just the small
+			// settings-panel thumbnail preview below.
+			const $mapImageSection = $(`
+				<div class="section ${MAPIMAGE_CLASS}">
+					<h4 class="title large-title">Map Image</h4>
+					<div class="b20-row">
+						<input class="b20-mapimage-url" type="text" placeholder="Image URL">
+						<button type="button" class="b20-thumbnail-btn b20-mapimage-apply">Apply</button>
+					</div>
+				</div>
+			`);
+			$section.after($divider(), $mapImageSection);
+
+			const $mapUrl = $mapImageSection.find(".b20-mapimage-url");
+			const existingMain = getMainMapGraphic();
+			if (existingMain) $mapUrl.val(existingMain.get("imgsrc") || "");
+
+			$mapImageSection.find(".b20-mapimage-apply").on("click", () => {
+				const url = $mapUrl.val().trim();
+				if (!url) return;
+				const page = d20.Campaign.activePage();
+				if (!page) return;
+				const main = getMainMapGraphic();
+				if (main) {
+					main.save({imgsrc: url});
+					return;
+				}
+				const img = new Image();
+				img.onload = () => {
+					const pageWidthPx = (page.get("width") || 25) * 70;
+					const pageHeightPx = (page.get("height") || 25) * 70;
+					page.thegraphics?.create({
+						imgsrc: url,
+						layer: "map",
+						width: img.naturalWidth,
+						height: img.naturalHeight,
+						left: pageWidthPx / 2,
+						top: pageHeightPx / 2,
+						page_id: page.id,
+					});
+				};
+				img.onerror = () => alert("Could not load an image from that URL.");
+				img.src = url;
+			});
+
 			const $newSection = $(`
 				<div class="section ${SECTION_CLASS}">
 					<h4 class="title large-title">Thumbnail</h4>
-					<div class="b20-thumbnail-row">
+					<div class="b20-row">
 						<img class="b20-thumbnail-preview" style="display:none;">
 						<input class="b20-thumbnail-url" type="text" placeholder="Image URL">
 					</div>
-					<div class="b20-thumbnail-row">
+					<div class="b20-row">
+						<button type="button" class="b20-thumbnail-btn b20-thumbnail-apply">Apply</button>
 						<button type="button" class="b20-thumbnail-btn b20-thumbnail-upload">Upload</button>
 						<button type="button" class="b20-thumbnail-btn b20-thumbnail-reload">Reload Default</button>
 					</div>
 				</div>
 			`);
-			const $divider = $(`<div class="divider-svg" style="border-color: var(--vtt-submenu-divider-color); border-bottom-style: solid; border-bottom-width: 1px; width: 100%;"></div>`);
-			$section.after($divider, $newSection);
+			$mapImageSection.after($divider(), $newSection);
 
 			const $preview = $newSection.find(".b20-thumbnail-preview");
 			const $url = $newSection.find(".b20-thumbnail-url");
@@ -15134,6 +15207,11 @@ function d20plusEngine () {
 				const val = $url.val();
 				$preview.attr("src", val).toggle(!!val);
 			}).on("change", () => setThumbnail($url.val()));
+
+			// Typing a URL alone relied on the input's blur-triggered "change" event to save,
+			// which doesn't fire in every situation (e.g. the field never loses focus) - an
+			// explicit Apply button, same as Map Image, guarantees it actually saves.
+			$newSection.find(".b20-thumbnail-apply").on("click", () => setThumbnail($url.val()));
 
 			$newSection.find(".b20-thumbnail-upload").on("click", () => {
 				const $input = $(`<input type="file" accept="image/*">`).appendTo("body").hide();
@@ -15154,10 +15232,8 @@ function d20plusEngine () {
 			});
 
 			$newSection.find(".b20-thumbnail-reload").on("click", () => {
-				const activePage = d20.Campaign.activePage();
-				const mapGraphics = activePage?.thegraphics?.filter(g => g.get("layer") === "map") || [];
-				if (!mapGraphics.length) return alert("No background image found on the Map layer.");
-				const main = mapGraphics.reduce((a, b) => (a.get("width") * a.get("height") >= b.get("width") * b.get("height")) ? a : b);
+				const main = getMainMapGraphic();
+				if (!main) return alert("No background image found on the Map layer.");
 				const imgsrc = main.get("imgsrc");
 				if (!imgsrc) return;
 				$url.val(imgsrc);
@@ -15177,14 +15253,14 @@ function d20plusEngine () {
 				<div class="section ${GRIDFIX_CLASS}">
 					<h4 class="title large-title">Grid Correction</h4>
 					<p class="b20-gridfix-desc">If map squares don't match the Roll20 grid, enter how many map squares fit across ONE SIDE of a Roll20 square (not the total count) - e.g. enter 2 if you see a 2x2 arrangement of 4 map squares inside one Roll20 square, or 3 for a 3x3 arrangement of 9.</p>
-					<div class="b20-thumbnail-row">
+					<div class="b20-row">
 						<input class="b20-gridfix-factor" type="number" min="1" step="any" value="1">
 						<button type="button" class="b20-thumbnail-btn b20-gridfix-apply">Apply Correction</button>
 						<button type="button" class="b20-thumbnail-btn b20-gridfix-revert">Revert to Stock</button>
 					</div>
 				</div>
 			`);
-			$newSection.after($gridFixSection);
+			$newSection.after($divider(), $gridFixSection);
 
 			// scale_number / snapping_increment is invariant across any number of Apply clicks
 			// (both divide by the same factor each time), and always equals the original stock
@@ -15199,10 +15275,9 @@ function d20plusEngine () {
 			// fires `change` - a true no-op save wouldn't - which triggers a redraw that picks up
 			// the new grid pitch too. Confirmed via console testing this does not corrupt the
 			// graphic (its saved state came back identical/correct afterward).
-			const nudgeRedraw = (activePage) => {
-				const mapGraphics = activePage.thegraphics?.filter(g => g.get("layer") === "map") || [];
-				if (!mapGraphics.length) return;
-				const main = mapGraphics.reduce((a, b) => (a.get("width") * a.get("height") >= b.get("width") * b.get("height")) ? a : b);
+			const nudgeRedraw = () => {
+				const main = getMainMapGraphic();
+				if (!main) return;
 				const top = main.get("top");
 				main.save({top: top + 1});
 				main.save({top});
@@ -15237,7 +15312,7 @@ function d20plusEngine () {
 					snapping_increment: newSnappingIncrement,
 					scale_number: newScaleNumber,
 				});
-				nudgeRedraw(activePage);
+				nudgeRedraw();
 				setVueInput("pageSettings-pd-tab-cellSize", newSnappingIncrement);
 				setVueInput("pageSettings-pd-tab-scale", newScaleNumber);
 			});
@@ -15253,7 +15328,7 @@ function d20plusEngine () {
 					snapping_increment: 1,
 					scale_number: stockScaleNumber,
 				});
-				nudgeRedraw(activePage);
+				nudgeRedraw();
 				setVueInput("pageSettings-pd-tab-cellSize", 1);
 				setVueInput("pageSettings-pd-tab-scale", stockScaleNumber);
 			});
