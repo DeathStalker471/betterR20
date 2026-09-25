@@ -16645,7 +16645,12 @@ function baseMenu () {
             setTimeout(() => {
                 d20.engine.select(it);
                 let toRoll = ``;
-                if (d20plus.sheet === "ogl") {
+                // d20plus.sheet stays "ogl" on 2024 sheets (they're detected separately), and the
+                // OGL "Initiative" ability doesn't exist there - so nothing ever reached the tracker.
+                const charSheetName = d20.Campaign.characters.get((it._model || it.model)?.get("represents"))?.get("charactersheetname");
+                if (d20plus.importer?.is2024Sheet?.(charSheetName)) {
+                    toRoll = `[[1d20+@{selected|initiative_bonus} &{tracker}]]`;
+                } else if (d20plus.sheet === "ogl") {
                     toRoll = `%{selected|Initiative}`;
                 } else if (d20plus.sheet === "shaped") {
                     toRoll = `@{selected|output_option} &{template:5e-shaped} {{ability=1}} {{title=INITIATIVE}} {{roll1=[[@{selected|initiative_formula}]]}}`;
@@ -16655,6 +16660,12 @@ function baseMenu () {
             }, index * 100); // 100ms delay between each roll
         });
     };
+
+    // d20plus.sheet stays "ogl" on 2024 sheets (they're detected separately), and the OGL NPC
+    // roll templates below rely on OGL-only attributes (npc_name_flag, wtype, rtype) that don't exist there.
+    const isToken2024 = (it) => d20plus.importer?.is2024Sheet?.(
+        d20.Campaign.characters.get((it._model || it.model)?.get("represents"))?.get("charactersheetname"),
+    );
 
     d20plus.menu.massRollSaves = function() {
         const options = ["str", "dex", "con", "int", "wis", "cha"].map(it => Parser.attAbvToFull(it));
@@ -16673,7 +16684,10 @@ function baseMenu () {
                     sel.forEach((it, index) => {
                         setTimeout(() => {
                             d20.engine.select(it);
-                            if (d20plus.sheet === "ogl") {
+                            if (isToken2024(it)) {
+                                const short = val.substring(0, 3).toLowerCase();
+                                d20.textchat.doChatInput(`${getTokenWhisperPart()}&{template:default} {{name=@{selected|token_name}}} {{rname=${val} Save}} {{r1=[[1d20+@{selected|npc_${short}_save}]]}}`);
+                            } else if (d20plus.sheet === "ogl") {
                                 const short = val.substring(0, 3);
                                 const toRoll = `${getTokenWhisperPart()}@{selected|wtype}&{template:npc} @{selected|npc_name_flag} {{type=Save}} @{selected|rtype} + [[@{selected|npc_${short.toLowerCase()}_save}]][${short.toUpperCase()}]]]}} {{rname=${val} Save}} {{r1=[[1d20 + [[@{selected|npc_${short.toLowerCase()}_save}]][${short.toUpperCase()}]]]}}`;
                                 d20.textchat.doChatInput(toRoll);
@@ -16715,7 +16729,10 @@ function baseMenu () {
                     sel.forEach((it, index) => {
                         setTimeout(() => {
                             d20.engine.select(it);
-                            if (d20plus.sheet === "ogl") {
+                            if (isToken2024(it)) {
+                                const slugged = val.replace(/\s/g, "_").toLowerCase();
+                                d20.textchat.doChatInput(`${getTokenWhisperPart()}&{template:default} {{name=@{selected|token_name}}} {{rname=${val}}} {{r1=[[1d20+@{selected|npc_${slugged}}]]}}`);
+                            } else if (d20plus.sheet === "ogl") {
                                 const slugged = val.replace(/\s/g, "_").toLowerCase();
                                 const toRoll = `${getTokenWhisperPart()}@{selected|wtype}&{template:npc} @{selected|npc_name_flag} {{type=Skill}} @{selected|rtype} + [[@{selected|npc_${slugged}}]]]]}}; {{rname=${val}}}; {{r1=[[1d20 + [[@{selected|npc_${slugged}}]]]]}}`;
                                 d20.textchat.doChatInput(toRoll);
