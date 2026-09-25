@@ -3915,6 +3915,22 @@ function baseToolModule () {
 
 					const charIdMap = {};
 					const importedPageIds = [];
+					// Old (module) character id -> name, so tokens can still be linked by name when
+					// their character wasn't imported in this same run (charIdMap only covers this run).
+					const oldCharIdToName = {};
+					(data.characters || []).forEach(c => {
+						if (c?.attributes?.id && c.attributes.name) oldCharIdToName[c.attributes.id] = c.attributes.name.toLowerCase();
+					});
+					// Character creation completes in async callbacks; the token relink pass has to wait
+					// for all of them or tokens for the late ones never get linked.
+					let pendingChars = 0;
+					// Bar links point at attribute IDs from the module's original characters, which
+					// don't exist after import (new characters get new attribute IDs) - a dangling link
+					// leaves the bar unable to read anything. Drop the link, keep the static value/max,
+					// so each imported token has independent bars like monster-import tokens do.
+					const stripBarLinks = obj => {
+						["bar1_link", "bar2_link", "bar3_link"].forEach(k => { if (k in obj) obj[k] = ""; });
+					};
 					const doImport = () => {
 						if (isCancelled) {
 							$name.text("Import cancelled.");
@@ -3954,6 +3970,7 @@ function baseToolModule () {
 											// Process graphics with URL fixes
 											entry.graphics?.forEach(it => {
 												fixImageUrls(it);
+												stripBarLinks(it);
 												it.page_id = savedMap.id;
 												savedMap.thegraphics && savedMap.thegraphics.create(it);
 											});
@@ -4018,9 +4035,12 @@ function baseToolModule () {
 										const oldCharId = charAttrs.id;
 										delete charAttrs.id;
 
+										pendingChars++;
 										d20.Campaign.characters.create(charAttrs,
 											{
+												error: function () { pendingChars--; },
 												success: function (character) {
+													pendingChars--;
 													const newCharId = character.id;
 													charIdMap[oldCharId] = newCharId;
 
@@ -4033,6 +4053,13 @@ function baseToolModule () {
 													let tokenStr = entry.blobDefaultToken;
 													if (tokenStr) {
 														tokenStr = tokenStr.split(oldCharId).join(newCharId);
+														try {
+															const tokenObj = JSON.parse(tokenStr);
+															stripBarLinks(tokenObj);
+															tokenStr = JSON.stringify(tokenObj);
+														} catch (e) {
+															// leave the blob as-is if it isn't plain JSON
+														}
 													}
 
 													// Proceed with saving using the rebased data
@@ -4112,6 +4139,7 @@ function baseToolModule () {
 							$remain.text(`${queue.length} remaining.`);
 							if (importedPageIds.length) {
 								setTimeout(async () => {
+									for (let i = 0; i < 60 && pendingChars > 0; ++i) await new Promise(r => setTimeout(r, 500));
 									// Build name->newCharId lookup for tokens where represents was never set
 									const charNameMap = {};
 									Object.values(charIdMap).forEach(newId => {
@@ -4132,6 +4160,9 @@ function baseToolModule () {
 											if (oldRepresents && charIdMap[oldRepresents]) {
 												// Token had an old char ID -- remap to new ID
 												g.save({represents: charIdMap[oldRepresents]});
+											} else if (oldRepresents && oldCharIdToName[oldRepresents] && charNameMap[oldCharIdToName[oldRepresents]]) {
+												// Character wasn't imported in this run - link to an existing one of the same name
+												g.save({represents: charNameMap[oldCharIdToName[oldRepresents]]});
 											} else if (!oldRepresents) {
 												// Token has no represents -- try matching by name
 												const tokenName = (g.get("name") || "").toLowerCase();
