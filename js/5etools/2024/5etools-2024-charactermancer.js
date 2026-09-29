@@ -2545,6 +2545,10 @@ function d20plus2024Charactermancer () {
 		const isLanguages = body.includes("Proficiencies") && /Language/.test(body);
 		if (!isBooks && !isClasses && !isSubclasses && !isSubraces && !isRaces && !isBgs && !isFeats && !isItems && !isLists && !isSpells && !isSpellsForClass && !isLanguages) return _origFetch.apply(this, args);
 
+		// Do not show unowned content so it can be imported instead
+		if (body.includes("showUnownedContent: true")) {
+			args[1] = body.replace("showUnownedContent: true", "showUnownedContent: false");
+		}
 
 		const response = await _origFetch.apply(this, args);
 		let data;
