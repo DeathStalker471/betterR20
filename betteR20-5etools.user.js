@@ -38897,6 +38897,23 @@ function d20plus2024MonsterImport() {
 						damageType: m[2].charAt(0).toUpperCase() + m[2].slice(1).toLowerCase(),
 					});
 				}
+
+				// Fixed/no-dice damage (e.g. Raven's Beak: "{@h}1 piercing damage.") has no
+				// {@damage} tag at all - fall back to the bare number when the tagged pattern
+				// above found nothing, so these still import as a rollable Attack instead of
+				// falling through to a plain-text Action.
+				if (result.damages.length === 0) {
+					const flatPattern = /(\d+)\s+(\w+)\s*damage/gi;
+					let fm;
+					while ((fm = flatPattern.exec(hitSection)) !== null) {
+						result.damages.push({
+							diceCount: 0,
+							diceSize: "",
+							bonus: parseInt(fm[1], 10),
+							damageType: fm[2].charAt(0).toUpperCase() + fm[2].slice(1).toLowerCase(),
+						});
+					}
+				}
 			}
 		}
 
@@ -39213,6 +39230,40 @@ function d20plus2024MonsterImport() {
 			}
 		}
 
+		// Spell Attack-type monster attacks (e.g. a mage's melee/ranged spell attack) use the
+		// monster's spellcasting ability as the tie-break/default when nothing else resolves it.
+		const spellAbilityKey = data.spellcasting && data.spellcasting[0] && data.spellcasting[0].ability
+			? data.spellcasting[0].ability.toLowerCase()
+			: null;
+
+		// 5etools monster text never states which ability produced an attack's to-hit bonus - only
+		// a flat {@hit N} total - so reverse-engineer it from toHit - profBonus matched against the
+		// monster's six ability mods. Mirrors the STR/DEX-only version of this technique already
+		// used for PC weapons on the OGL sheet (5etools-importer.js ~L2429-2494), widened to all six
+		// abilities to also catch non-weapon Dex-based attacks (Shadow/Specter) and spellcasting-
+		// ability-based attacks (mages).
+		const abilityKeys = ["str", "dex", "con", "int", "wis", "cha"];
+		const abilityMod = key => Math.floor(((data[key] != null ? data[key] : 10) - 10) / 2);
+		const resolveAttackAbility = (toHit, attackType) => {
+			const defaultKey = attackType === "Melee" ? "str" : "dex"; // existing sheet default: Ranged & Spell Attack both fell back to Dex
+			const target = toHit - profBonus; // assumes attack.proficiencyLevel = "Proficient" (set below)
+			const matches = abilityKeys.filter(k => abilityMod(k) === target);
+
+			if (matches.length === 0) return saveAbilityMap[defaultKey]; // non-standard to-hit - don't regress the current behavior
+			if (matches.length === 1) return saveAbilityMap[matches[0]];
+
+			// Tie (e.g. Skeleton's Shortsword: Dex +2 and Con +2 both match). Weapon-attack ability
+			// in 5e is never actually Con/Int/Wis/Cha without a feat not reflected in base
+			// statblocks, so prefer, in order: the monster's spellcasting ability (Spell Attack
+			// only), the type default (Str/Melee, Dex/Ranged), then Dex, then Str, before falling
+			// through to whatever's left. This is why Dex is prioritized over Con for ties - Con is
+			// never the right answer here.
+			const priority = [attackType === "Spell Attack" ? spellAbilityKey : null, defaultKey, "dex", "str", "con", "int", "wis", "cha"]
+				.filter(Boolean);
+			const winner = priority.find(k => matches.includes(k));
+			return saveAbilityMap[winner || matches[0]];
+		};
+
 		const buildAttackIntegrants = (actionData, actionType, displayOrder, metaCategory) => {
 			const name = d20plus.importer.getCleanText(renderer.render(actionData.name));
 			const text = d20plus.importer.getCleanText(renderer.render({ entries: actionData.entries }, 1));
@@ -39251,6 +39302,7 @@ function d20plus2024MonsterImport() {
 					attack: {
 						type: attackInfo.attackType,
 						proficiencyLevel: "Proficient",
+						abilityBonus: resolveAttackAbility(attackInfo.toHit, attackInfo.attackType),
 					},
 					_reach: attackInfo.attackType === "Melee",
 					_reachText: "",
