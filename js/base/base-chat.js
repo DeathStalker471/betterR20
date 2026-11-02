@@ -72,9 +72,16 @@ function baseChat () {
 
 	function availableLanguages (charId) {
 		const char = d20.Campaign.characters.get(charId);
-		const firstCharSheet = d20.journal.characterSheetsManager.getAllSheets().first();
-		const langId = firstCharSheet.availableAttributes.repeating_proficiencies_prof_type;
 		if (!char) return [];
+		let langId;
+		if (!d20.engine?.canvas) {
+			// In Jumpgate
+			const firstCharSheet = d20.journal.characterSheetsManager.getAllSheets().first();
+			langId = firstCharSheet?.availableAttributes?.repeating_proficiencies_prof_type;
+		} else {
+			// Not in Jumpgate
+			langId = d20.journal.customSheets.availableAttributes.repeating_proficiencies_prof_type;
+		}
 		if (!char.attribs.length) {
 			const fetched = d20plus.ut.fetchCharAttribs(char);
 			fetched.then(d20plus.chat.refreshLanguages);
