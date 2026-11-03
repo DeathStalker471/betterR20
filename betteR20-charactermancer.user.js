@@ -2160,15 +2160,50 @@ function d20plus2024Charactermancer () {
 			const resist  = subrace._expandedResist || [];
 			const dmgRaw  = vars.damageType || "";
 			const dmgType = dmgRaw.charAt(0).toUpperCase() + dmgRaw.slice(1);
-			const area    = vars.area || "15-foot cone";
-			const saveAbil = vars.savingThrow || "Dexterity";
 
 			recs.push({name: "Draconic Ancestry", level: "1",
 				payload: pay({type: "Features", name: "Draconic Ancestry",
-					description: `Your draconic ancestry is ${vars.color || subrace.name}. Your damage type is ${dmgType}, and your breath weapon covers a ${area}.`})});
+					description: `Your draconic ancestry is ${vars.color || subrace.name}. Your damage type is ${dmgType}.`})});
+
+			// Breath Weapon - mirrors Roll20's own native compendium-built structure as closely as
+			// possible (confirmed live against a real compendium-imported Dragonborn, not guessed):
+			// a Resource tracking uses = proficiency bonus (refills on Long Rest), and TWO Attack
+			// records - one per shape (Cone/Line) - since the real rule lets the player choose the
+			// shape each use rather than having one fixed shape. The save always uses Dexterity with
+			// an explicit DC formula (8 + Constitution modifier + proficiency bonus) - the race data
+			// has no "savingThrow"/"area" variables to read, those were always undefined here.
+			// Deliberately NOT modeling the level-5/11/17 damage scaling: the real race data has no
+			// structured scaling field for it either (race traits are prose-only, unlike spells'
+			// entriesHigherLevel/scalingLevelDice), and Roll20's own native build has no Upcasting
+			// child for it - matching that rather than inventing a mechanism Roll20 itself doesn't
+			// use here.
 			recs.push({name: "Breath Weapon", level: "1",
 				payload: pay({type: "Features", name: "Breath Weapon",
-					description: `You can use your action to exhale ${dmgType.toLowerCase()} energy in a ${area}. Each creature must make a ${saveAbil} saving throw (DC 8 + Con modifier + proficiency bonus). A creature takes 2d6 damage on a failed save, or half on a success. Damage increases to 3d6 at 6th, 4d6 at 11th, 5d6 at 16th level.`})});
+					description: "When you take the Attack action on your turn, you can replace one of your attacks with an exhalation of magical energy in either a 15-foot Cone or a 30-foot Line that is 5 feet wide (choose the shape each time). Each creature in that area must make a Dexterity saving throw (DC 8 plus your Constitution modifier and Proficiency Bonus). On a failed save, a creature takes 1d10 damage of the type determined by your Draconic Ancestry trait. On a successful save, a creature takes half as much damage. This damage increases by 1d10 when you reach character levels 5 (2d10), 11 (3d10), and 17 (4d10).\nYou can use this Breath Weapon a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."})});
+
+			recs.push({name: "Breath Weapon Resource", parent: "Breath Weapon", payload: pay({
+				type: "Resource", name: "Draconic Breath Weapon",
+				maxValueFormula: {customFormula: "@{pb}"},
+				recoveryRate: {"Long Rest": {type: "Full"}},
+			})});
+
+			const saveFormula = {flatValue: 8, ability: {ability: "Constitution", add: true, multiplier: 1}, proficiency: {add: true}};
+			for (const [shape, size] of [["Line", "30 ft*"], ["Cone", "15 ft"]]) {
+				const atkName = `Breath Weapon (${shape})`;
+				recs.push({name: atkName, parent: "Breath Weapon", payload: pay({
+					type: "Attack", name: atkName,
+					actionType: "Action",
+					aoe: {shape, size},
+					attack: {type: "Attack Save"},
+					save: {saveAbility: "Dexterity", saveFormula, onFail: "1d10 damage determined by Draconic Ancestry"},
+				})});
+				recs.push({name: `${atkName} Damage`, parent: atkName, payload: pay({
+					type: "Damage", ability: "none",
+					damageType: "Draconic Ancestry",
+					diceCount: 1, diceSize: "d10",
+				})});
+			}
+
 			for (const r of resist) {
 				const rt = r.charAt(0).toUpperCase() + r.slice(1);
 				recs.push({name: `${rt} Resistance`, level: "1",

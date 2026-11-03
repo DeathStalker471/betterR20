@@ -16134,125 +16134,93 @@ function baseMenu () {
 			};
 		}
 
-		// Function to add Mass Roll to Jumpgate's context menu
-		function addMassRollToMenu() {
-			const contextMenu = document.querySelector('.context-menu');
-			if (!contextMenu) return;
-
-			// Check if already added - if so, exit early to avoid infinite loop
-			if (contextMenu.querySelector('.mass-roll-button')) return;
-
-			// Check if GM
-			if (!window.is_gm) return;
-
-			// Only show Mass Roll when right-clicking on a token (not empty canvas)
-			// Use icon identifiers (language-independent) rather than translated label text
-			const hasTokenOptions = Array.from(contextMenu.querySelectorAll('.grimoire__roll20-icon')).some(
-				icon => icon.textContent === 'characterSheet' || icon.textContent === 'turnOrderAdd'
-			);
-			if (!hasTokenOptions) {
-				return;
-			}
-
-			// Create Mass Roll button matching native Roll20 structure
-			const massRollBtn = document.createElement('button');
-			massRollBtn.className = 'mass-roll-button';
-			massRollBtn.type = 'button';
-			massRollBtn.setAttribute('data-v-2aed8a8e', '');
-			massRollBtn.setAttribute('data-v-060adf8b', '');
-
-			massRollBtn.innerHTML = `
-				<div data-v-2aed8a8e="" class="submenu-button-outer">
-					<div data-v-2aed8a8e="" class="submenu-button-inner">
-						<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-								<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">Mass Roll</span>
-							</div>
-						</div>
-					</div>
-					<span data-v-2aed8a8e="" class="submenu-button-icon">
-						<span data-v-2f0bc668="" data-v-2aed8a8e="" class="grimoire__roll20-icon" style="--7353a950: 0.875rem;">chevronRight</span>
-					</span>
-				</div>
-				<div data-v-2aed8a8e="" class="submenu" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 0px, 0px); display: none;" x-placement="right-start"></div>
-			`;
-
-			const submenu = massRollBtn.querySelector('.submenu');
-
-			// Helper to create submenu item matching native structure
-			function createSubmenuItem(label, iconName, onClick) {
-				const btn = document.createElement('button');
-				btn.type = 'button';
-				btn.setAttribute('data-v-2aed8a8e', '');
-				btn.setAttribute('data-v-060adf8b', '');
-				btn.innerHTML = `
-					<div data-v-2aed8a8e="" class="submenu-button-outer">
-						<div data-v-2aed8a8e="" class="submenu-button-inner">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-								${iconName ? `<span data-v-2f0bc668="" data-v-060adf8b="" class="grimoire__roll20-icon" style="--7353a950: inherit;">${iconName}</span>` : ''}
-								<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-									<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">${label}</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				btn.addEventListener('click', onClick);
-				return btn;
-			}
-
-			// Create submenu items using only confirmed working icons
-			const initBtn = createSubmenuItem('Initiative', 'turnOrderAdd', () => {
-				d20plus.menu.massRollInitiative();
-				closeContextMenu();
-			});
-
-			const savesBtn = createSubmenuItem('Save', 'check', () => {
-				d20plus.menu.massRollSaves();
-				closeContextMenu();
-			});
-
-			const skillsBtn = createSubmenuItem('Skill', 'star', () => {
-				d20plus.menu.massRollSkills();
-				closeContextMenu();
-			});
-
-			const macroBtn = createSubmenuItem('Macro', null, () => {
-				d20plus.menu.massRollMacro();
-				closeContextMenu();
-			});
-
-			submenu.appendChild(initBtn);
-			submenu.appendChild(savesBtn);
-			submenu.appendChild(skillsBtn);
-			submenu.appendChild(macroBtn);
-
-			// Click handler to toggle submenu
-			massRollBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				// Calculate position to place submenu to the right
-				const rect = massRollBtn.getBoundingClientRect();
-				const contextRect = contextMenu.getBoundingClientRect();
-
-				// Position submenu to the right of the button
-				const x = rect.width;
-				const y = rect.top - contextRect.top;
-
-				submenu.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
-
-				// Toggle display
-				const isVisible = submenu.style.display === 'block';
-				submenu.style.display = isVisible ? 'none' : 'block';
-			});
-
-			// Insert at the beginning
-			contextMenu.insertBefore(massRollBtn, contextMenu.firstChild);
-		}
-
 		function closeContextMenu() {
 			const menu = document.querySelector('.context-menu');
 			if (menu) menu.style.display = 'none';
+		}
+
+		// Self-contained styling for our injected menu items, independent of Roll20's own
+		// Vue-scoped CSS classes/hashes - those regenerate on every Roll20 deploy (confirmed:
+		// the hashes this code used to hardcode went stale and broke the whole menu's layout),
+		// so we don't reuse any of Roll20's internal styling at all, only its ".context-menu"
+		// insertion point.
+		function ensureB20MenuStyles() {
+			if (document.getElementById('b20-menu-styles')) return;
+			const style = document.createElement('style');
+			style.id = 'b20-menu-styles';
+			style.textContent = `
+				.b20-menu-item { position: relative; }
+				.b20-menu-btn {
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+					width: 100%;
+					padding: 6px 12px;
+					background: transparent;
+					border: none;
+					color: #1a1a1a;
+					font-size: 13px;
+					font-family: inherit;
+					text-align: left;
+					cursor: pointer;
+					white-space: nowrap;
+				}
+				.b20-menu-btn:hover { background: #e8e8e8; }
+				.b20-menu-chevron { margin-left: 16px; opacity: 0.6; }
+				.b20-submenu-panel {
+					position: absolute;
+					top: 0;
+					left: 100%;
+					min-width: 170px;
+					background: #ffffff;
+					border: 1px solid rgba(0, 0, 0, 0.15);
+					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+					border-radius: 4px;
+					padding: 4px 0;
+					display: none;
+					z-index: 10000;
+				}
+				.b20-submenu-panel.b20-open { display: block; }
+			`;
+			document.head.appendChild(style);
+		}
+
+		// Builds one menu row. With a submenu, clicking toggles its own panel (positioned
+		// purely via CSS "left: 100%" relative to this item, no Roll20-layout-dependent math);
+		// without one, clicking runs onClick directly.
+		function createB20MenuItem(label, onClick, {hasSubmenu = false} = {}) {
+			const wrap = document.createElement('div');
+			wrap.className = 'b20-menu-item';
+
+			const btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'b20-menu-btn';
+			btn.innerHTML = `<span>${label}</span>${hasSubmenu ? '<span class="b20-menu-chevron">›</span>' : ''}`;
+			wrap.appendChild(btn);
+
+			let panel = null;
+			if (hasSubmenu) {
+				panel = document.createElement('div');
+				panel.className = 'b20-submenu-panel';
+				wrap.appendChild(panel);
+
+				btn.addEventListener('click', (e) => {
+					e.stopPropagation();
+					// Close any sibling open submenu so only one branch is open at a time
+					Array.from(wrap.parentElement?.children || []).forEach(sibling => {
+						if (sibling === wrap) return;
+						sibling.querySelector?.(':scope > .b20-submenu-panel.b20-open')?.classList.remove('b20-open');
+					});
+					panel.classList.toggle('b20-open');
+				});
+			} else if (onClick) {
+				btn.addEventListener('click', (e) => {
+					e.stopPropagation();
+					onClick();
+				});
+			}
+
+			return {wrap, btn, panel};
 		}
 
 		// Function to add Better20 Tools submenu
@@ -16260,167 +16228,55 @@ function baseMenu () {
 			const contextMenu = document.querySelector('.context-menu');
 			if (!contextMenu) return;
 
-			// Check if already added
-			// if (contextMenu.querySelector('.better20-tools-button')) return;
-
 			if (!window.is_gm) return;
 
 			// Remove any existing instance before adding fresh one (prevents duplicates)
-			contextMenu.querySelectorAll('.better20-tools-button').forEach(el => el.remove());
+			contextMenu.querySelectorAll('.b20-tools-root').forEach(el => el.remove());
+			ensureB20MenuStyles();
 
-			// Create Better20 Tools button with submenu
-			const toolsBtn = document.createElement('button');
-			toolsBtn.className = 'better20-tools-button';
-			toolsBtn.type = 'button';
-			toolsBtn.setAttribute('data-v-2aed8a8e', '');
-			toolsBtn.setAttribute('data-v-060adf8b', '');
+			const {wrap: toolsWrap, panel: toolsPanel} = createB20MenuItem('Better20 Tools', null, {hasSubmenu: true});
+			toolsWrap.classList.add('b20-tools-root');
 
-			toolsBtn.innerHTML = `
-				<div data-v-2aed8a8e="" class="submenu-button-outer">
-					<div data-v-2aed8a8e="" class="submenu-button-inner">
-						<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-								<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">Better20 Tools</span>
-							</div>
-						</div>
-					</div>
-					<span data-v-2aed8a8e="" class="submenu-button-icon">
-						<span data-v-2f0bc668="" data-v-2aed8a8e="" class="grimoire__roll20-icon" style="--7353a950: 0.875rem;">chevronRight</span>
-					</span>
-				</div>
-				<div data-v-2aed8a8e="" class="submenu" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 0px, 0px); display: none;" x-placement="right-start"></div>
-			`;
+			const addItem = (label, onClick) => {
+				const {wrap} = createB20MenuItem(label, () => {
+					onClick();
+					closeContextMenu();
+				});
+				toolsPanel.appendChild(wrap);
+			};
 
-			const submenu = toolsBtn.querySelector('.submenu');
-
-			// Helper to create submenu item
-			function createSubmenuItem(label, onClick) {
-				const btn = document.createElement('button');
-				btn.type = 'button';
-				btn.setAttribute('data-v-2aed8a8e', '');
-				btn.setAttribute('data-v-060adf8b', '');
-				btn.innerHTML = `
-					<div data-v-2aed8a8e="" class="submenu-button-outer">
-						<div data-v-2aed8a8e="" class="submenu-button-inner">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-								<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-									<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">${label}</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				btn.addEventListener('click', onClick);
-				return btn;
-			}
-
-			// Add Mass Roll with nested submenu
-			const massRollBtn = document.createElement('button');
-			massRollBtn.type = 'button';
-			massRollBtn.className = 'mass-roll-nested-btn';
-			massRollBtn.setAttribute('data-v-2aed8a8e', '');
-			massRollBtn.setAttribute('data-v-060adf8b', '');
-			massRollBtn.innerHTML = `
-				<div data-v-2aed8a8e="" class="submenu-button-outer">
-					<div data-v-2aed8a8e="" class="submenu-button-inner">
-						<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-								<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">Mass Roll</span>
-							</div>
-						</div>
-					</div>
-					<span data-v-2aed8a8e="" class="submenu-button-icon">
-						<span data-v-2f0bc668="" data-v-2aed8a8e="" class="grimoire__roll20-icon" style="--7353a950: 0.875rem;">chevronRight</span>
-					</span>
-				</div>
-				<div data-v-2aed8a8e="" class="submenu" data-mass-roll-submenu="true" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 0px, 0px); display: none;" x-placement="right-start"></div>
-			`;
-
-			const massRollSubmenu = massRollBtn.querySelector('[data-mass-roll-submenu]');
-
-			// Add items to Mass Roll submenu
-			const initBtn = createSubmenuItem('Initiative', () => {
-				d20plus.menu.massRollInitiative();
-				closeContextMenu();
-			});
-			massRollSubmenu.appendChild(initBtn);
-
-			const savesBtn = createSubmenuItem('Save', () => {
-				d20plus.menu.massRollSaves();
-				closeContextMenu();
-			});
-			massRollSubmenu.appendChild(savesBtn);
-
-			const skillsBtn = createSubmenuItem('Skill', () => {
-				d20plus.menu.massRollSkills();
-				closeContextMenu();
-			});
-			massRollSubmenu.appendChild(skillsBtn);
-
-			const customMacroBtn = createSubmenuItem('Macro', () => {
-				d20plus.menu.massRollMacro();
-				closeContextMenu();
-			});
-			massRollSubmenu.appendChild(customMacroBtn);
-
-			// Click handler for Mass Roll to toggle its submenu
-			massRollBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				// Simple positioning: just to the right of the button
-				const btnRect = massRollBtn.getBoundingClientRect();
-
-				// Position submenu to the right of the button at the same vertical level
-				const x = btnRect.width;
-				const y = 0;
-
-				massRollSubmenu.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
-				massRollSubmenu.style.display = massRollSubmenu.style.display === 'block' ? 'none' : 'block';
+			// Mass Roll nested submenu
+			const {wrap: massRollWrap, panel: massRollPanel} = createB20MenuItem('Mass Roll', null, {hasSubmenu: true});
+			toolsPanel.appendChild(massRollWrap);
+			[
+				['Initiative', () => d20plus.menu.massRollInitiative()],
+				['Save', () => d20plus.menu.massRollSaves()],
+				['Skill', () => d20plus.menu.massRollSkills()],
+				['Macro', () => d20plus.menu.massRollMacro()],
+			].forEach(([label, fn]) => {
+				const {wrap} = createB20MenuItem(label, () => {
+					fn();
+					closeContextMenu();
+				});
+				massRollPanel.appendChild(wrap);
 			});
 
-			submenu.appendChild(massRollBtn);
-
-			// Add Set Light
-			const lightBtn = createSubmenuItem('Set Light', () => {
-				d20plus.menu.setTokenLight();
-				closeContextMenu();
-			});
-			submenu.appendChild(lightBtn);
-
-			// Add Flight Height
-			const flightBtn = createSubmenuItem('Flight Height', () => {
-				d20plus.menu.setFlightHeight();
-				closeContextMenu();
-			});
-			submenu.appendChild(flightBtn);
-
-			// Add Copy Token ID
-			const copyBtn = createSubmenuItem('Copy Token ID', () => {
-				d20plus.menu.copyTokenId();
-				closeContextMenu();
-			});
-			submenu.appendChild(copyBtn);
-
-			// Add Edit Token Images
-			const editBtn = createSubmenuItem('Edit Token Images', () => {
-				d20plus.menu.editToken();
-				closeContextMenu();
-			});
-			submenu.appendChild(editBtn);
+			addItem('Set Light', () => d20plus.menu.setTokenLight());
+			addItem('Flight Height', () => d20plus.menu.setFlightHeight());
+			addItem('Copy Token ID', () => d20plus.menu.copyTokenId());
+			addItem('Edit Token Images', () => d20plus.menu.editToken());
 
 			// Add Toggle Grid
 			const activePage = d20.Campaign && d20.Campaign.activePage ? d20.Campaign.activePage() : null;
 			if (activePage) {
 				const gridEnabled = activePage.get("showgrid");
-				const gridToggleBtn = createSubmenuItem(gridEnabled ? 'Disable Grid' : 'Enable Grid', () => {
+				addItem(gridEnabled ? 'Disable Grid' : 'Enable Grid', () => {
 					const page = d20.Campaign && d20.Campaign.activePage ? d20.Campaign.activePage() : null;
 					if (page) {
 						page.set("showgrid", !page.get("showgrid"));
 						page.save();
 					}
-					closeContextMenu();
 				});
-				submenu.appendChild(gridToggleBtn);
 			}
 
 			// Add Animate Token (only if animations exist)
@@ -16428,48 +16284,17 @@ function baseMenu () {
 				&& typeof d20plus.anim.animatorTool._anims === 'object'
 				&& Object.keys(d20plus.anim.animatorTool._anims).length > 0;
 
-			if (hasAnims) {
-				const animBtn = createSubmenuItem('Animate Token', () => {
-					d20plus.menu.tokenAnimate();
-					closeContextMenu();
-				});
-				submenu.appendChild(animBtn);
-			}
+			if (hasAnims) addItem('Animate Token', () => d20plus.menu.tokenAnimate());
 
 			// Add Trigger Scene (only if scenes exist)
 			const hasScenes = d20plus.anim?.animatorTool?._scenes
 				&& typeof d20plus.anim.animatorTool._scenes === 'object'
 				&& Object.keys(d20plus.anim.animatorTool._scenes).length > 0;
 
-			if (hasScenes) {
-				const sceneBtn = createSubmenuItem('Trigger Scene', () => {
-					d20plus.menu.triggerScene();
-					closeContextMenu();
-				});
-				submenu.appendChild(sceneBtn);
-			}
-
-			// Click handler to toggle submenu
-			toolsBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				// Calculate position to place submenu to the right
-				const rect = toolsBtn.getBoundingClientRect();
-				const contextRect = contextMenu.getBoundingClientRect();
-
-				// Position submenu to the right of the button
-				const x = rect.width;
-				const y = rect.top - contextRect.top;
-
-				submenu.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
-
-				// Toggle display
-				const isVisible = submenu.style.display === 'block';
-				submenu.style.display = isVisible ? 'none' : 'block';
-			});
+			if (hasScenes) addItem('Trigger Scene', () => d20plus.menu.triggerScene());
 
 			// Insert at the beginning
-			contextMenu.insertBefore(toolsBtn, contextMenu.firstChild);
+			contextMenu.insertBefore(toolsWrap, contextMenu.firstChild);
 		}
 
 		// Function to add Grid Toggle to canvas right-click menu
@@ -16483,29 +16308,13 @@ function baseMenu () {
 			if (!activePage) return;
 
 			// Remove any existing instance before adding fresh one (prevents duplicates)
-			contextMenu.querySelectorAll('.better20-grid-toggle-button').forEach(el => el.remove());
+			contextMenu.querySelectorAll('.b20-grid-toggle-root').forEach(el => el.remove());
+			ensureB20MenuStyles();
 
 			const gridEnabled = activePage.get("showgrid");
 			const label = gridEnabled ? 'Disable Grid' : 'Enable Grid';
 
-			const gridBtn = document.createElement('button');
-			gridBtn.className = 'better20-grid-toggle-button';
-			gridBtn.type = 'button';
-			gridBtn.setAttribute('data-v-2aed8a8e', '');
-			gridBtn.setAttribute('data-v-060adf8b', '');
-			gridBtn.innerHTML = `
-				<div data-v-2aed8a8e="" class="submenu-button-outer">
-					<div data-v-2aed8a8e="" class="submenu-button-inner">
-						<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-								<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">${label}</span>
-							</div>
-						</div>
-					</div>
-				</div>
-			`;
-
-			gridBtn.addEventListener('click', () => {
+			const {wrap} = createB20MenuItem(label, () => {
 				const page = d20.Campaign && d20.Campaign.activePage ? d20.Campaign.activePage() : null;
 				if (page) {
 					page.set("showgrid", !page.get("showgrid"));
@@ -16513,8 +16322,9 @@ function baseMenu () {
 				}
 				closeContextMenu();
 			});
+			wrap.classList.add('b20-grid-toggle-root');
 
-			contextMenu.appendChild(gridBtn);
+			contextMenu.appendChild(wrap);
 		}
 
 		// Track menu visibility so we only run setup on open, not on every style mutation
@@ -16535,10 +16345,10 @@ function baseMenu () {
 
 				if (hasTokenOptions) {
 					addBetter20ToolsToMenu();
-					const existingGridToggle = menu.querySelector('.better20-grid-toggle-button');
+					const existingGridToggle = menu.querySelector('.b20-grid-toggle-root');
 					if (existingGridToggle) existingGridToggle.remove();
 				} else {
-					const existingBetter20 = menu.querySelector('.better20-tools-button');
+					const existingBetter20 = menu.querySelector('.b20-tools-root');
 					if (existingBetter20) existingBetter20.remove();
 					addGridToggleToMenu();
 				}

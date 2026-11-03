@@ -17621,125 +17621,93 @@ function baseMenu () {
 			};
 		}
 
-		// Function to add Mass Roll to Jumpgate's context menu
-		function addMassRollToMenu() {
-			const contextMenu = document.querySelector('.context-menu');
-			if (!contextMenu) return;
-
-			// Check if already added - if so, exit early to avoid infinite loop
-			if (contextMenu.querySelector('.mass-roll-button')) return;
-
-			// Check if GM
-			if (!window.is_gm) return;
-
-			// Only show Mass Roll when right-clicking on a token (not empty canvas)
-			// Use icon identifiers (language-independent) rather than translated label text
-			const hasTokenOptions = Array.from(contextMenu.querySelectorAll('.grimoire__roll20-icon')).some(
-				icon => icon.textContent === 'characterSheet' || icon.textContent === 'turnOrderAdd'
-			);
-			if (!hasTokenOptions) {
-				return;
-			}
-
-			// Create Mass Roll button matching native Roll20 structure
-			const massRollBtn = document.createElement('button');
-			massRollBtn.className = 'mass-roll-button';
-			massRollBtn.type = 'button';
-			massRollBtn.setAttribute('data-v-2aed8a8e', '');
-			massRollBtn.setAttribute('data-v-060adf8b', '');
-
-			massRollBtn.innerHTML = `
-				<div data-v-2aed8a8e="" class="submenu-button-outer">
-					<div data-v-2aed8a8e="" class="submenu-button-inner">
-						<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-								<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">Mass Roll</span>
-							</div>
-						</div>
-					</div>
-					<span data-v-2aed8a8e="" class="submenu-button-icon">
-						<span data-v-2f0bc668="" data-v-2aed8a8e="" class="grimoire__roll20-icon" style="--7353a950: 0.875rem;">chevronRight</span>
-					</span>
-				</div>
-				<div data-v-2aed8a8e="" class="submenu" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 0px, 0px); display: none;" x-placement="right-start"></div>
-			`;
-
-			const submenu = massRollBtn.querySelector('.submenu');
-
-			// Helper to create submenu item matching native structure
-			function createSubmenuItem(label, iconName, onClick) {
-				const btn = document.createElement('button');
-				btn.type = 'button';
-				btn.setAttribute('data-v-2aed8a8e', '');
-				btn.setAttribute('data-v-060adf8b', '');
-				btn.innerHTML = `
-					<div data-v-2aed8a8e="" class="submenu-button-outer">
-						<div data-v-2aed8a8e="" class="submenu-button-inner">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-								${iconName ? `<span data-v-2f0bc668="" data-v-060adf8b="" class="grimoire__roll20-icon" style="--7353a950: inherit;">${iconName}</span>` : ''}
-								<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-									<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">${label}</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				btn.addEventListener('click', onClick);
-				return btn;
-			}
-
-			// Create submenu items using only confirmed working icons
-			const initBtn = createSubmenuItem('Initiative', 'turnOrderAdd', () => {
-				d20plus.menu.massRollInitiative();
-				closeContextMenu();
-			});
-
-			const savesBtn = createSubmenuItem('Save', 'check', () => {
-				d20plus.menu.massRollSaves();
-				closeContextMenu();
-			});
-
-			const skillsBtn = createSubmenuItem('Skill', 'star', () => {
-				d20plus.menu.massRollSkills();
-				closeContextMenu();
-			});
-
-			const macroBtn = createSubmenuItem('Macro', null, () => {
-				d20plus.menu.massRollMacro();
-				closeContextMenu();
-			});
-
-			submenu.appendChild(initBtn);
-			submenu.appendChild(savesBtn);
-			submenu.appendChild(skillsBtn);
-			submenu.appendChild(macroBtn);
-
-			// Click handler to toggle submenu
-			massRollBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				// Calculate position to place submenu to the right
-				const rect = massRollBtn.getBoundingClientRect();
-				const contextRect = contextMenu.getBoundingClientRect();
-
-				// Position submenu to the right of the button
-				const x = rect.width;
-				const y = rect.top - contextRect.top;
-
-				submenu.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
-
-				// Toggle display
-				const isVisible = submenu.style.display === 'block';
-				submenu.style.display = isVisible ? 'none' : 'block';
-			});
-
-			// Insert at the beginning
-			contextMenu.insertBefore(massRollBtn, contextMenu.firstChild);
-		}
-
 		function closeContextMenu() {
 			const menu = document.querySelector('.context-menu');
 			if (menu) menu.style.display = 'none';
+		}
+
+		// Self-contained styling for our injected menu items, independent of Roll20's own
+		// Vue-scoped CSS classes/hashes - those regenerate on every Roll20 deploy (confirmed:
+		// the hashes this code used to hardcode went stale and broke the whole menu's layout),
+		// so we don't reuse any of Roll20's internal styling at all, only its ".context-menu"
+		// insertion point.
+		function ensureB20MenuStyles() {
+			if (document.getElementById('b20-menu-styles')) return;
+			const style = document.createElement('style');
+			style.id = 'b20-menu-styles';
+			style.textContent = `
+				.b20-menu-item { position: relative; }
+				.b20-menu-btn {
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+					width: 100%;
+					padding: 6px 12px;
+					background: transparent;
+					border: none;
+					color: #1a1a1a;
+					font-size: 13px;
+					font-family: inherit;
+					text-align: left;
+					cursor: pointer;
+					white-space: nowrap;
+				}
+				.b20-menu-btn:hover { background: #e8e8e8; }
+				.b20-menu-chevron { margin-left: 16px; opacity: 0.6; }
+				.b20-submenu-panel {
+					position: absolute;
+					top: 0;
+					left: 100%;
+					min-width: 170px;
+					background: #ffffff;
+					border: 1px solid rgba(0, 0, 0, 0.15);
+					box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+					border-radius: 4px;
+					padding: 4px 0;
+					display: none;
+					z-index: 10000;
+				}
+				.b20-submenu-panel.b20-open { display: block; }
+			`;
+			document.head.appendChild(style);
+		}
+
+		// Builds one menu row. With a submenu, clicking toggles its own panel (positioned
+		// purely via CSS "left: 100%" relative to this item, no Roll20-layout-dependent math);
+		// without one, clicking runs onClick directly.
+		function createB20MenuItem(label, onClick, {hasSubmenu = false} = {}) {
+			const wrap = document.createElement('div');
+			wrap.className = 'b20-menu-item';
+
+			const btn = document.createElement('button');
+			btn.type = 'button';
+			btn.className = 'b20-menu-btn';
+			btn.innerHTML = `<span>${label}</span>${hasSubmenu ? '<span class="b20-menu-chevron">›</span>' : ''}`;
+			wrap.appendChild(btn);
+
+			let panel = null;
+			if (hasSubmenu) {
+				panel = document.createElement('div');
+				panel.className = 'b20-submenu-panel';
+				wrap.appendChild(panel);
+
+				btn.addEventListener('click', (e) => {
+					e.stopPropagation();
+					// Close any sibling open submenu so only one branch is open at a time
+					Array.from(wrap.parentElement?.children || []).forEach(sibling => {
+						if (sibling === wrap) return;
+						sibling.querySelector?.(':scope > .b20-submenu-panel.b20-open')?.classList.remove('b20-open');
+					});
+					panel.classList.toggle('b20-open');
+				});
+			} else if (onClick) {
+				btn.addEventListener('click', (e) => {
+					e.stopPropagation();
+					onClick();
+				});
+			}
+
+			return {wrap, btn, panel};
 		}
 
 		// Function to add Better20 Tools submenu
@@ -17747,167 +17715,55 @@ function baseMenu () {
 			const contextMenu = document.querySelector('.context-menu');
 			if (!contextMenu) return;
 
-			// Check if already added
-			// if (contextMenu.querySelector('.better20-tools-button')) return;
-
 			if (!window.is_gm) return;
 
 			// Remove any existing instance before adding fresh one (prevents duplicates)
-			contextMenu.querySelectorAll('.better20-tools-button').forEach(el => el.remove());
+			contextMenu.querySelectorAll('.b20-tools-root').forEach(el => el.remove());
+			ensureB20MenuStyles();
 
-			// Create Better20 Tools button with submenu
-			const toolsBtn = document.createElement('button');
-			toolsBtn.className = 'better20-tools-button';
-			toolsBtn.type = 'button';
-			toolsBtn.setAttribute('data-v-2aed8a8e', '');
-			toolsBtn.setAttribute('data-v-060adf8b', '');
+			const {wrap: toolsWrap, panel: toolsPanel} = createB20MenuItem('Better20 Tools', null, {hasSubmenu: true});
+			toolsWrap.classList.add('b20-tools-root');
 
-			toolsBtn.innerHTML = `
-				<div data-v-2aed8a8e="" class="submenu-button-outer">
-					<div data-v-2aed8a8e="" class="submenu-button-inner">
-						<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-								<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">Better20 Tools</span>
-							</div>
-						</div>
-					</div>
-					<span data-v-2aed8a8e="" class="submenu-button-icon">
-						<span data-v-2f0bc668="" data-v-2aed8a8e="" class="grimoire__roll20-icon" style="--7353a950: 0.875rem;">chevronRight</span>
-					</span>
-				</div>
-				<div data-v-2aed8a8e="" class="submenu" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 0px, 0px); display: none;" x-placement="right-start"></div>
-			`;
+			const addItem = (label, onClick) => {
+				const {wrap} = createB20MenuItem(label, () => {
+					onClick();
+					closeContextMenu();
+				});
+				toolsPanel.appendChild(wrap);
+			};
 
-			const submenu = toolsBtn.querySelector('.submenu');
-
-			// Helper to create submenu item
-			function createSubmenuItem(label, onClick) {
-				const btn = document.createElement('button');
-				btn.type = 'button';
-				btn.setAttribute('data-v-2aed8a8e', '');
-				btn.setAttribute('data-v-060adf8b', '');
-				btn.innerHTML = `
-					<div data-v-2aed8a8e="" class="submenu-button-outer">
-						<div data-v-2aed8a8e="" class="submenu-button-inner">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-								<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-									<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">${label}</span>
-								</div>
-							</div>
-						</div>
-					</div>
-				`;
-				btn.addEventListener('click', onClick);
-				return btn;
-			}
-
-			// Add Mass Roll with nested submenu
-			const massRollBtn = document.createElement('button');
-			massRollBtn.type = 'button';
-			massRollBtn.className = 'mass-roll-nested-btn';
-			massRollBtn.setAttribute('data-v-2aed8a8e', '');
-			massRollBtn.setAttribute('data-v-060adf8b', '');
-			massRollBtn.innerHTML = `
-				<div data-v-2aed8a8e="" class="submenu-button-outer">
-					<div data-v-2aed8a8e="" class="submenu-button-inner">
-						<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-								<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">Mass Roll</span>
-							</div>
-						</div>
-					</div>
-					<span data-v-2aed8a8e="" class="submenu-button-icon">
-						<span data-v-2f0bc668="" data-v-2aed8a8e="" class="grimoire__roll20-icon" style="--7353a950: 0.875rem;">chevronRight</span>
-					</span>
-				</div>
-				<div data-v-2aed8a8e="" class="submenu" data-mass-roll-submenu="true" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 0px, 0px); display: none;" x-placement="right-start"></div>
-			`;
-
-			const massRollSubmenu = massRollBtn.querySelector('[data-mass-roll-submenu]');
-
-			// Add items to Mass Roll submenu
-			const initBtn = createSubmenuItem('Initiative', () => {
-				d20plus.menu.massRollInitiative();
-				closeContextMenu();
-			});
-			massRollSubmenu.appendChild(initBtn);
-
-			const savesBtn = createSubmenuItem('Save', () => {
-				d20plus.menu.massRollSaves();
-				closeContextMenu();
-			});
-			massRollSubmenu.appendChild(savesBtn);
-
-			const skillsBtn = createSubmenuItem('Skill', () => {
-				d20plus.menu.massRollSkills();
-				closeContextMenu();
-			});
-			massRollSubmenu.appendChild(skillsBtn);
-
-			const customMacroBtn = createSubmenuItem('Macro', () => {
-				d20plus.menu.massRollMacro();
-				closeContextMenu();
-			});
-			massRollSubmenu.appendChild(customMacroBtn);
-
-			// Click handler for Mass Roll to toggle its submenu
-			massRollBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				// Simple positioning: just to the right of the button
-				const btnRect = massRollBtn.getBoundingClientRect();
-
-				// Position submenu to the right of the button at the same vertical level
-				const x = btnRect.width;
-				const y = 0;
-
-				massRollSubmenu.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
-				massRollSubmenu.style.display = massRollSubmenu.style.display === 'block' ? 'none' : 'block';
+			// Mass Roll nested submenu
+			const {wrap: massRollWrap, panel: massRollPanel} = createB20MenuItem('Mass Roll', null, {hasSubmenu: true});
+			toolsPanel.appendChild(massRollWrap);
+			[
+				['Initiative', () => d20plus.menu.massRollInitiative()],
+				['Save', () => d20plus.menu.massRollSaves()],
+				['Skill', () => d20plus.menu.massRollSkills()],
+				['Macro', () => d20plus.menu.massRollMacro()],
+			].forEach(([label, fn]) => {
+				const {wrap} = createB20MenuItem(label, () => {
+					fn();
+					closeContextMenu();
+				});
+				massRollPanel.appendChild(wrap);
 			});
 
-			submenu.appendChild(massRollBtn);
-
-			// Add Set Light
-			const lightBtn = createSubmenuItem('Set Light', () => {
-				d20plus.menu.setTokenLight();
-				closeContextMenu();
-			});
-			submenu.appendChild(lightBtn);
-
-			// Add Flight Height
-			const flightBtn = createSubmenuItem('Flight Height', () => {
-				d20plus.menu.setFlightHeight();
-				closeContextMenu();
-			});
-			submenu.appendChild(flightBtn);
-
-			// Add Copy Token ID
-			const copyBtn = createSubmenuItem('Copy Token ID', () => {
-				d20plus.menu.copyTokenId();
-				closeContextMenu();
-			});
-			submenu.appendChild(copyBtn);
-
-			// Add Edit Token Images
-			const editBtn = createSubmenuItem('Edit Token Images', () => {
-				d20plus.menu.editToken();
-				closeContextMenu();
-			});
-			submenu.appendChild(editBtn);
+			addItem('Set Light', () => d20plus.menu.setTokenLight());
+			addItem('Flight Height', () => d20plus.menu.setFlightHeight());
+			addItem('Copy Token ID', () => d20plus.menu.copyTokenId());
+			addItem('Edit Token Images', () => d20plus.menu.editToken());
 
 			// Add Toggle Grid
 			const activePage = d20.Campaign && d20.Campaign.activePage ? d20.Campaign.activePage() : null;
 			if (activePage) {
 				const gridEnabled = activePage.get("showgrid");
-				const gridToggleBtn = createSubmenuItem(gridEnabled ? 'Disable Grid' : 'Enable Grid', () => {
+				addItem(gridEnabled ? 'Disable Grid' : 'Enable Grid', () => {
 					const page = d20.Campaign && d20.Campaign.activePage ? d20.Campaign.activePage() : null;
 					if (page) {
 						page.set("showgrid", !page.get("showgrid"));
 						page.save();
 					}
-					closeContextMenu();
 				});
-				submenu.appendChild(gridToggleBtn);
 			}
 
 			// Add Animate Token (only if animations exist)
@@ -17915,48 +17771,17 @@ function baseMenu () {
 				&& typeof d20plus.anim.animatorTool._anims === 'object'
 				&& Object.keys(d20plus.anim.animatorTool._anims).length > 0;
 
-			if (hasAnims) {
-				const animBtn = createSubmenuItem('Animate Token', () => {
-					d20plus.menu.tokenAnimate();
-					closeContextMenu();
-				});
-				submenu.appendChild(animBtn);
-			}
+			if (hasAnims) addItem('Animate Token', () => d20plus.menu.tokenAnimate());
 
 			// Add Trigger Scene (only if scenes exist)
 			const hasScenes = d20plus.anim?.animatorTool?._scenes
 				&& typeof d20plus.anim.animatorTool._scenes === 'object'
 				&& Object.keys(d20plus.anim.animatorTool._scenes).length > 0;
 
-			if (hasScenes) {
-				const sceneBtn = createSubmenuItem('Trigger Scene', () => {
-					d20plus.menu.triggerScene();
-					closeContextMenu();
-				});
-				submenu.appendChild(sceneBtn);
-			}
-
-			// Click handler to toggle submenu
-			toolsBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				// Calculate position to place submenu to the right
-				const rect = toolsBtn.getBoundingClientRect();
-				const contextRect = contextMenu.getBoundingClientRect();
-
-				// Position submenu to the right of the button
-				const x = rect.width;
-				const y = rect.top - contextRect.top;
-
-				submenu.style.transform = `translate3d(${x}px, ${y}px, 0px)`;
-
-				// Toggle display
-				const isVisible = submenu.style.display === 'block';
-				submenu.style.display = isVisible ? 'none' : 'block';
-			});
+			if (hasScenes) addItem('Trigger Scene', () => d20plus.menu.triggerScene());
 
 			// Insert at the beginning
-			contextMenu.insertBefore(toolsBtn, contextMenu.firstChild);
+			contextMenu.insertBefore(toolsWrap, contextMenu.firstChild);
 		}
 
 		// Function to add Grid Toggle to canvas right-click menu
@@ -17970,29 +17795,13 @@ function baseMenu () {
 			if (!activePage) return;
 
 			// Remove any existing instance before adding fresh one (prevents duplicates)
-			contextMenu.querySelectorAll('.better20-grid-toggle-button').forEach(el => el.remove());
+			contextMenu.querySelectorAll('.b20-grid-toggle-root').forEach(el => el.remove());
+			ensureB20MenuStyles();
 
 			const gridEnabled = activePage.get("showgrid");
 			const label = gridEnabled ? 'Disable Grid' : 'Enable Grid';
 
-			const gridBtn = document.createElement('button');
-			gridBtn.className = 'better20-grid-toggle-button';
-			gridBtn.type = 'button';
-			gridBtn.setAttribute('data-v-2aed8a8e', '');
-			gridBtn.setAttribute('data-v-060adf8b', '');
-			gridBtn.innerHTML = `
-				<div data-v-2aed8a8e="" class="submenu-button-outer">
-					<div data-v-2aed8a8e="" class="submenu-button-inner">
-						<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 4px;">
-							<div data-v-2aed8a8e="" style="display: flex; align-items: center; gap: 8px;">
-								<span data-v-2aed8a8e="" style="flex: 1 1 0%; text-align: start;">${label}</span>
-							</div>
-						</div>
-					</div>
-				</div>
-			`;
-
-			gridBtn.addEventListener('click', () => {
+			const {wrap} = createB20MenuItem(label, () => {
 				const page = d20.Campaign && d20.Campaign.activePage ? d20.Campaign.activePage() : null;
 				if (page) {
 					page.set("showgrid", !page.get("showgrid"));
@@ -18000,8 +17809,9 @@ function baseMenu () {
 				}
 				closeContextMenu();
 			});
+			wrap.classList.add('b20-grid-toggle-root');
 
-			contextMenu.appendChild(gridBtn);
+			contextMenu.appendChild(wrap);
 		}
 
 		// Track menu visibility so we only run setup on open, not on every style mutation
@@ -18022,10 +17832,10 @@ function baseMenu () {
 
 				if (hasTokenOptions) {
 					addBetter20ToolsToMenu();
-					const existingGridToggle = menu.querySelector('.better20-grid-toggle-button');
+					const existingGridToggle = menu.querySelector('.b20-grid-toggle-root');
 					if (existingGridToggle) existingGridToggle.remove();
 				} else {
-					const existingBetter20 = menu.querySelector('.better20-tools-button');
+					const existingBetter20 = menu.querySelector('.b20-tools-root');
 					if (existingBetter20) existingBetter20.remove();
 					addGridToggleToMenu();
 				}
@@ -38506,6 +38316,41 @@ function d20plus2024MonsterImport() {
 		return null;
 	}
 
+	const SAVE_ABILITY_FULL = {str: "Strength", dex: "Dexterity", con: "Constitution", int: "Intelligence", wis: "Wisdom", cha: "Charisma"};
+
+	// Shared by both the {@damage}-tag pattern and the bare-flat-number fallback - extracts
+	// every damage clause from a section of text (text after {@h} for attack-roll damage, or
+	// after {@actSaveFail} for saving-throw damage).
+	function extractDamagesFromSection(section) {
+		const damages = [];
+		const dmgPattern = /\{@damage\s+([^}]+)}\)\s*(\w+)\s*damage/gi;
+		let m;
+		while ((m = dmgPattern.exec(section)) !== null) {
+			const parsed = parse2024MonsterDamage(m[1]);
+			if (parsed) damages.push({
+				...parsed,
+				damageType: m[2].charAt(0).toUpperCase() + m[2].slice(1).toLowerCase(),
+			});
+		}
+
+		// Fixed/no-dice damage (e.g. Raven's Beak: "{@h}1 piercing damage.") has no {@damage}
+		// tag at all - fall back to the bare number when the tagged pattern above found
+		// nothing, so these still import as a rollable Attack instead of a plain-text Action.
+		if (damages.length === 0) {
+			const flatPattern = /(\d+)\s+(\w+)\s*damage/gi;
+			let fm;
+			while ((fm = flatPattern.exec(section)) !== null) {
+				damages.push({
+					diceCount: 0,
+					diceSize: "",
+					bonus: parseInt(fm[1], 10),
+					damageType: fm[2].charAt(0).toUpperCase() + fm[2].slice(1).toLowerCase(),
+				});
+			}
+		}
+		return damages;
+	}
+
 	function extractMonsterAttackInfo(entries) {
 		const result = {
 			isAttack: false,
@@ -38515,6 +38360,12 @@ function d20plus2024MonsterImport() {
 			reach: 5,
 			reachText: "5 ft.",
 			range: "",
+			// Saving-throw-based damage (breath weapons and similar recharge abilities) - not
+			// an attack roll at all, so handled as an independent branch from isAttack/toHit.
+			isSave: false,
+			saveAbility: null,
+			saveDC: null,
+			onSucceedHalf: false,
 		};
 
 		for (const entry of (entries || [])) {
@@ -38558,34 +38409,23 @@ function d20plus2024MonsterImport() {
 
 			// Damages: {@damage XdY+Z} tags in the hit section (after {@h})
 			const hitSection = entry.split(/\{@h}/i)[1];
-			if (hitSection) {
-				const dmgPattern = /\{@damage\s+([^}]+)}\)\s*(\w+)\s*damage/gi;
-				let m;
-				while ((m = dmgPattern.exec(hitSection)) !== null) {
-					const parsed = parse2024MonsterDamage(m[1]);
-					if (parsed) result.damages.push({
-						...parsed,
-						damageType: m[2].charAt(0).toUpperCase() + m[2].slice(1).toLowerCase(),
-					});
-				}
+			if (hitSection) result.damages.push(...extractDamagesFromSection(hitSection));
 
-				// Fixed/no-dice damage (e.g. Raven's Beak: "{@h}1 piercing damage.") has no
-				// {@damage} tag at all - fall back to the bare number when the tagged pattern
-				// above found nothing, so these still import as a rollable Attack instead of
-				// falling through to a plain-text Action.
-				if (result.damages.length === 0) {
-					const flatPattern = /(\d+)\s+(\w+)\s*damage/gi;
-					let fm;
-					while ((fm = flatPattern.exec(hitSection)) !== null) {
-						result.damages.push({
-							diceCount: 0,
-							diceSize: "",
-							bonus: parseInt(fm[1], 10),
-							damageType: fm[2].charAt(0).toUpperCase() + fm[2].slice(1).toLowerCase(),
-						});
-					}
-				}
+			// Saving-throw damage (e.g. breath weapons): {@actSave dex} {@dc N}, ... {@actSaveFail}
+			// X ({@damage NdM}) Type damage. {@actSaveSuccess} Half damage.
+			const saveMatch = entry.match(/\{@actSave\s+(\w+)}/i);
+			if (saveMatch) {
+				result.isSave = true;
+				result.saveAbility = SAVE_ABILITY_FULL[saveMatch[1].toLowerCase()] || null;
 			}
+			const dcMatch = entry.match(/\{@dc\s+(\d+)}/i);
+			if (dcMatch) result.saveDC = parseInt(dcMatch[1], 10);
+
+			const failSection = entry.split(/\{@actSaveFail\b[^}]*}/i)[1];
+			if (failSection) result.damages.push(...extractDamagesFromSection(failSection));
+
+			const successSection = entry.split(/\{@actSaveSuccess\b[^}]*}/i)[1];
+			if (successSection && /\bhalf\b/i.test(successSection)) result.onSucceedHalf = true;
 		}
 
 		return result;
@@ -38935,6 +38775,33 @@ function d20plus2024MonsterImport() {
 			return saveAbilityMap[winner || matches[0]];
 		};
 
+		// Shared by both attack-roll and saving-throw Attack integrants: builds one Damage
+		// child per parsed damage clause, parented to attackIntId.
+		const buildDamageIntegrants = (attackIntId, name, damages) => {
+			const damageIds = [];
+			for (let i = 0; i < damages.length; i++) {
+				const dmg = damages[i];
+				const { id: dmgId, base: dmgBase } = monsterCtx.makeIntegrantBase("Damage", arrayPosition++);
+				integrants[dmgId] = {
+					...dmgBase,
+					name: i === 0 ? `${name} Damage` : `${name} Damage ${i + 1}`,
+					damageType: dmg.damageType,
+					diceCount: dmg.diceCount,
+					diceSize: dmg.diceSize,
+					_bonus: dmg.bonus,
+					ability: "none",
+					overrideCrit: false,
+					critDiceSize: "",
+					parentID: attackIntId,
+					childIDs: "[]",
+					cascades: {},
+					relations: {},
+				};
+				damageIds.push(dmgId);
+			}
+			return damageIds;
+		};
+
 		const buildAttackIntegrants = (actionData, actionType, displayOrder, metaCategory) => {
 			const name = d20plus.importer.getCleanText(renderer.render(actionData.name));
 			const text = d20plus.importer.getCleanText(renderer.render({ entries: actionData.entries }, 1));
@@ -38942,28 +38809,7 @@ function d20plus2024MonsterImport() {
 
 			if (attackInfo.isAttack && attackInfo.damages.length > 0) {
 				const { id: attackIntId, base: attackBase } = monsterCtx.makeIntegrantBase("Attack", arrayPosition++);
-				const damageIds = [];
-
-				for (let i = 0; i < attackInfo.damages.length; i++) {
-					const dmg = attackInfo.damages[i];
-					const { id: dmgId, base: dmgBase } = monsterCtx.makeIntegrantBase("Damage", arrayPosition++);
-					integrants[dmgId] = {
-						...dmgBase,
-						name: i === 0 ? `${name} Damage` : `${name} Damage ${i + 1}`,
-						damageType: dmg.damageType,
-						diceCount: dmg.diceCount,
-						diceSize: dmg.diceSize,
-						_bonus: dmg.bonus,
-						ability: "none",
-						overrideCrit: false,
-						critDiceSize: "",
-						parentID: attackIntId,
-						childIDs: "[]",
-						cascades: {},
-						relations: {},
-					};
-					damageIds.push(dmgId);
-				}
+				const damageIds = buildDamageIntegrants(attackIntId, name, attackInfo.damages);
 
 				integrants[attackIntId] = {
 					...attackBase,
@@ -38990,6 +38836,48 @@ function d20plus2024MonsterImport() {
 				// repeating_npcaction-family accessor only indexes true Attack integrants,
 				// sorted alphabetically by name - not creation order, and not plain
 				// Action-type entries like Multiattack).
+				tokenActionMeta[metaCategory].push({ id: attackIntId, name, isAttack: true });
+			} else if (!attackInfo.isAttack && attackInfo.isSave && attackInfo.saveAbility && attackInfo.damages.length > 0) {
+				// Saving-throw damage (breath weapons and similar recharge abilities) - no
+				// attack roll at all, so no abilityBonus/proficiencyLevel. Shape confirmed live
+				// against Roll20's own native Dragonborn Breath Weapon (compendium-built, not
+				// ours): a non-spell save uses attack.type "Attack Save" (not "Spell Save",
+				// which is spell-specific), and an explicit DC is set via save.saveFormula -
+				// there's no bare save.dc field.
+				const { id: attackIntId, base: attackBase } = monsterCtx.makeIntegrantBase("Attack", arrayPosition++);
+				const damageIds = buildDamageIntegrants(attackIntId, name, attackInfo.damages);
+
+				const dmg = attackInfo.damages[0];
+				const dmgDesc = dmg.diceCount > 0
+					? `${dmg.diceCount}${dmg.diceSize}${dmg.bonus ? ` + ${dmg.bonus}` : ""}`
+					: `${dmg.bonus}`;
+				const save = {
+					saveAbility: attackInfo.saveAbility,
+					onFail: `Takes ${dmgDesc} ${dmg.damageType} damage.`,
+				};
+				if (attackInfo.onSucceedHalf) save.onSucceed = "Half as much damage.";
+				// 5etools already prints the exact DC via {@dc N}, so encode it as a pure flat
+				// saveFormula (no ability/proficiency component) rather than reverse-engineering
+				// which ability it came from - guaranteed correct regardless of whether the
+				// monster's stats cleanly reproduce 8 + PB + abilityMod.
+				if (attackInfo.saveDC != null) save.saveFormula = {flatValue: attackInfo.saveDC};
+
+				integrants[attackIntId] = {
+					...attackBase,
+					name: name,
+					actionType,
+					description: text,
+					attack: { type: "Attack Save" },
+					save,
+					_reach: true,
+					_reachText: "",
+					range: attackInfo.range,
+					childIDs: JSON.stringify(damageIds),
+					parentID: "",
+					cascades: {},
+					relations: {},
+				};
+				attackDisplayOrder.push(attackIntId);
 				tokenActionMeta[metaCategory].push({ id: attackIntId, name, isAttack: true });
 			} else {
 				const { id, base } = monsterCtx.makeIntegrantBase("Action", arrayPosition++);
@@ -44075,8 +43963,12 @@ function d20plus2024ItemImport() {
 			LD: "Loading", H: "Heavy", S: "Special",
 		};
 
-		// Normalise vc.property entries by stripping source suffixes (e.g. "V|XPHB" → "V")
-		const vcProps = (vc.property || []).map(p => p.split("|")[0]);
+		// Normalise vc.property entries by stripping source suffixes (e.g. "V|XPHB" → "V").
+		// A property is usually a plain string, but some (e.g. Lance's conditional "Two-Handed
+		// unless mounted") are instead an object like {uid: "2H|XPHB", note: "..."} - reading
+		// .uid in that case, since a bare object has no .split and previously threw here,
+		// silently aborting the whole item import (that's why Lance could never be drag-dropped).
+		const vcProps = (vc.property || []).map(p => (typeof p === "string" ? p : p.uid || "").split("|")[0]);
 		const hasProp = (key) => vcProps.includes(key);
 		const isVersatile = hasProp("V") || !!d["Alternate Damage"];
 		const itemType = (d["Item Type"] || "").toLowerCase();
@@ -44525,6 +44417,67 @@ function d20plus2024RaceImport() {
 					relations: {},
 				};
 				featChildren.push(senseId);
+			}
+
+			// Breath Weapon (Dragonborn) → build real Resource+Attack(x2)+Damage mechanics instead
+			// of only a text Feature. Mirrors the same structure the Charactermancer's
+			// buildSubraceRecords builds for this trait, and matches Roll20's own native
+			// compendium-built Dragonborn (confirmed live, not guessed): a Resource tracking uses
+			// = proficiency bonus (full recovery on Long Rest), and two Attack records - one per
+			// shape (Cone/Line), since the real rule lets the player choose the shape each use.
+			// Deliberately no level-5/11/17 damage scaling: neither the race data (prose-only, no
+			// structured scaling field) nor Roll20's own native build models it here either.
+			if (/^breath weapon$/i.test(entry.name)) {
+				const {id: resourceId, base: resourceBase} = makeBase("Resource");
+				ints[resourceId] = {
+					...resourceBase,
+					name: "Draconic Breath Weapon",
+					recordName: `${raceName} Breath Weapon Resource`,
+					maxValueFormula: {customFormula: "@{pb}"},
+					recoveryRate: {"Long Rest": {type: "Full"}},
+					parentID: featId,
+					sourceID: speciesId,
+					childIDs: "[]",
+					cascades: {},
+					relations: {},
+				};
+				featChildren.push(resourceId);
+
+				const saveFormula = {flatValue: 8, ability: {ability: "Constitution", add: true, multiplier: 1}, proficiency: {add: true}};
+				for (const [shape, size] of [["Line", "30 ft*"], ["Cone", "15 ft"]]) {
+					const atkName = `Breath Weapon (${shape})`;
+					const {id: atkId, base: atkBase} = makeBase("Attack");
+					const {id: dmgId, base: dmgBase} = makeBase("Damage");
+					ints[atkId] = {
+						...atkBase,
+						name: atkName,
+						recordName: `${raceName} ${atkName}`,
+						actionType: "Action",
+						aoe: {shape, size},
+						attack: {type: "Attack Save"},
+						save: {saveAbility: "Dexterity", saveFormula, onFail: "1d10 damage determined by Draconic Ancestry"},
+						parentID: featId,
+						sourceID: speciesId,
+						childIDs: JSON.stringify([dmgId]),
+						cascades: {},
+						relations: {},
+					};
+					ints[dmgId] = {
+						...dmgBase,
+						name: `${atkName} Damage`,
+						recordName: `${raceName} ${atkName} Damage`,
+						ability: "none",
+						damageType: "Draconic Ancestry",
+						diceCount: 1, diceSize: "d10",
+						overrideCrit: false, critDiceSize: "",
+						parentID: atkId,
+						sourceID: speciesId,
+						childIDs: "[]",
+						cascades: {},
+						relations: {},
+					};
+					featChildren.push(atkId);
+				}
 			}
 
 			if (featChildren.length) ints[featId].childIDs = JSON.stringify(featChildren);
@@ -47819,7 +47772,12 @@ function d20plusItems () {
 	};
 
 	d20plus.items.parseProperty = function (property) {
-		if (Renderer.item.getProperty(property)) return Renderer.item.getProperty(property).name;
+		// A property is usually a plain string code, but some (e.g. Lance's conditional
+		// "Two-Handed unless mounted") are instead an object like {uid: "2H|XPHB", note: "..."}
+		// - Renderer.item.getProperty only accepts a string code and throws on an object
+		// (it calls uid.toLowerCase() internally), so unwrap .uid first.
+		const code = typeof property === "string" ? property : (property && property.uid) || "";
+		if (Renderer.item.getProperty(code)) return Renderer.item.getProperty(code).name;
 		return "n/a";
 	};
 
