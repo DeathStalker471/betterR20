@@ -31,12 +31,18 @@ function build (data) {
 // weapon attacks from build2024Store plus any spell-derived attacks import2024Spells
 // would have added by the time this real code path runs) - isSpellDerived also adds a
 // same-named Spell-type integrant, matching how a real spell's Attack mirror is paired.
-function makeAbilitiesChar (attackList) {
+// `actionList` is the set of {name, actionType} plain "Action"-type integrants (e.g.
+// Multiattack) that also occupy a row in the same repeating_npcaction-family accessor
+// and must be counted alongside attackList when computing positions.
+function makeAbilitiesChar (attackList, actionList) {
 	const created = [];
 	const integrants = {};
 	(attackList || []).forEach((i, idx) => {
 		integrants[`int${idx}`] = { type: 'Attack', actionType: i.actionType, name: i.name };
 		if (i.isSpellDerived) integrants[`spell${idx}`] = { type: 'Spell', name: i.name };
+	});
+	(actionList || []).forEach((i, idx) => {
+		integrants[`act${idx}`] = { type: 'Action', actionType: i.actionType, name: i.name };
 	});
 	const storeAttrObj = {
 		get: (key) => (key === 'name' ? 'store' : (key === 'current' ? { integrants: { integrants } } : undefined)),
@@ -261,6 +267,30 @@ describe('import2024TokenActions', () => {
 		expect(multi.action).not.toContain('repeating_npcaction');
 	});
 
+	test('a plain Action entry sorting before real attacks (e.g. Multiattack before Scimitar/Shortbow) shifts their positions, not just the Attack-only subset', () => {
+		setFlags({ tokenactions: true });
+		const char = makeAbilitiesChar(
+			[{ name: 'Scimitar', actionType: 'Action' }, { name: 'Shortbow', actionType: 'Action' }],
+			[{ name: 'Multiattack', actionType: 'Action' }],
+		);
+		const meta = baseMeta();
+		meta.actions = [
+			{ id: 'a1', name: 'Multiattack', isAttack: false, desc: 'Makes two attacks.' },
+			{ id: 'a2', name: 'Scimitar', isAttack: true },
+			{ id: 'a3', name: 'Shortbow', isAttack: true },
+		];
+		ctx.d20plus.monsters.import2024TokenActions(char, meta, {});
+
+		// Combined alphabetical order across Attack AND Action rows: Multiattack(0),
+		// Scimitar(1), Shortbow(2) - Scimitar must NOT land on position 0, which is what
+		// the old Attack-only filter computed and which fired Multiattack's own text instead.
+		const scimitar = char._created.find(a => a.name.endsWith('-Scimitar'));
+		expect(scimitar.action).toBe('/w gm %{selected|repeating_npcaction_$1_action}');
+
+		const shortbow = char._created.find(a => a.name.endsWith('-Shortbow'));
+		expect(shortbow.action).toBe('/w gm %{selected|repeating_npcaction_$2_action}');
+	});
+
 	test('combined Legendary Actions macro links attack-type entries by position and inlines non-attack ones', () => {
 		setFlags({ tokenactions: true, tokenactionsExpanded: false });
 		const char = makeAbilitiesChar(defaultAttacks);
@@ -307,8 +337,10 @@ describe('import2024TokenActions', () => {
 		expect(char._created.find(a => a.name === 'Skill-Check').action).toContain('npc_acrobatics');
 		expect(char._created.find(a => a.name === 'Saving-Throw').action).toContain('npc_str_save');
 		expect(char._created.find(a => a.name === 'Ability-Check').action).toContain('strength_mod');
+		// Must include &{tracker} or the roll never reaches the turn order - whispering with
+		// /w gm does not suppress it (confirmed live - see base-macro.js).
 		expect(char._created.find(a => a.name === 'Initiative').action)
-			.toBe('/w gm [[1d20+@{selected|initiative_bonus}]]');
+			.toBe('/w gm [[1d20+@{selected|initiative_bonus} &{tracker}]]');
 	});
 
 	test('Perception keeps npc_perception live but bakes the senses text', () => {

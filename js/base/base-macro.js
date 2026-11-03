@@ -73,7 +73,13 @@ const baseMacro = function () {
 		return `/w gm %{selected|npc_perception} &{template:default} {{name=Senses}} {{Senses=${sensesText}}}`;
 	};
 
-	d20plus.macro.actionMacroInit2024 = "/w gm [[1d20+@{selected|initiative_bonus}]]";
+	// Must include &{tracker} or the roll never gets added to the turn order (confirmed live:
+	// the old string here had no &{tracker} at all). Whispering with /w gm does NOT suppress
+	// &{tracker} - confirmed live, the tracker still updates even on a whispered roll - so this
+	// keeps /w gm for consistency with every other monster token-action macro in this file
+	// (Skill-Check, Saving-Throw, Perception, Stats, ...), which all hide monster details from
+	// players by default.
+	d20plus.macro.actionMacroInit2024 = "/w gm [[1d20+@{selected|initiative_bonus} &{tracker}]]";
 
 	d20plus.macro.actionMacroDrImmunities2024 = function (vulnerabilitiesText) {
 		return `/w gm &{template:default} {{name=DR/Immunities}} {{Resistance=@{selected|npc_resistances}}} {{Vulnerability=${vulnerabilitiesText}}} {{Immunity=@{selected|npc_immunities}}} {{Condition Immunity=@{selected|npc_condition_immunities}}}`;

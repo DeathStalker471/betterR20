@@ -277,6 +277,11 @@ function tools5eConfig () {
 			"default": false,
 			"_type": "boolean",
 		},
+		"autoOpenInitiativeTracker": {
+			"name": "Auto-Open Turn Order When Initiative Is Rolled",
+			"default": true,
+			"_type": "boolean",
+		},
 		"showDifficulty": {
 			"name": "Show Difficulty in Tracker",
 			"default": true,
