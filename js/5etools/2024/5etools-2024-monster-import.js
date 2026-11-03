@@ -61,6 +61,41 @@ function d20plus2024MonsterImport() {
 		return null;
 	}
 
+	const SAVE_ABILITY_FULL = {str: "Strength", dex: "Dexterity", con: "Constitution", int: "Intelligence", wis: "Wisdom", cha: "Charisma"};
+
+	// Shared by both the {@damage}-tag pattern and the bare-flat-number fallback - extracts
+	// every damage clause from a section of text (text after {@h} for attack-roll damage, or
+	// after {@actSaveFail} for saving-throw damage).
+	function extractDamagesFromSection(section) {
+		const damages = [];
+		const dmgPattern = /\{@damage\s+([^}]+)}\)\s*(\w+)\s*damage/gi;
+		let m;
+		while ((m = dmgPattern.exec(section)) !== null) {
+			const parsed = parse2024MonsterDamage(m[1]);
+			if (parsed) damages.push({
+				...parsed,
+				damageType: m[2].charAt(0).toUpperCase() + m[2].slice(1).toLowerCase(),
+			});
+		}
+
+		// Fixed/no-dice damage (e.g. Raven's Beak: "{@h}1 piercing damage.") has no {@damage}
+		// tag at all - fall back to the bare number when the tagged pattern above found
+		// nothing, so these still import as a rollable Attack instead of a plain-text Action.
+		if (damages.length === 0) {
+			const flatPattern = /(\d+)\s+(\w+)\s*damage/gi;
+			let fm;
+			while ((fm = flatPattern.exec(section)) !== null) {
+				damages.push({
+					diceCount: 0,
+					diceSize: "",
+					bonus: parseInt(fm[1], 10),
+					damageType: fm[2].charAt(0).toUpperCase() + fm[2].slice(1).toLowerCase(),
+				});
+			}
+		}
+		return damages;
+	}
+
 	function extractMonsterAttackInfo(entries) {
 		const result = {
 			isAttack: false,
@@ -70,6 +105,12 @@ function d20plus2024MonsterImport() {
 			reach: 5,
 			reachText: "5 ft.",
 			range: "",
+			// Saving-throw-based damage (breath weapons and similar recharge abilities) - not
+			// an attack roll at all, so handled as an independent branch from isAttack/toHit.
+			isSave: false,
+			saveAbility: null,
+			saveDC: null,
+			onSucceedHalf: false,
 		};
 
 		for (const entry of (entries || [])) {
@@ -113,34 +154,23 @@ function d20plus2024MonsterImport() {
 
 			// Damages: {@damage XdY+Z} tags in the hit section (after {@h})
 			const hitSection = entry.split(/\{@h}/i)[1];
-			if (hitSection) {
-				const dmgPattern = /\{@damage\s+([^}]+)}\)\s*(\w+)\s*damage/gi;
-				let m;
-				while ((m = dmgPattern.exec(hitSection)) !== null) {
-					const parsed = parse2024MonsterDamage(m[1]);
-					if (parsed) result.damages.push({
-						...parsed,
-						damageType: m[2].charAt(0).toUpperCase() + m[2].slice(1).toLowerCase(),
-					});
-				}
+			if (hitSection) result.damages.push(...extractDamagesFromSection(hitSection));
 
-				// Fixed/no-dice damage (e.g. Raven's Beak: "{@h}1 piercing damage.") has no
-				// {@damage} tag at all - fall back to the bare number when the tagged pattern
-				// above found nothing, so these still import as a rollable Attack instead of
-				// falling through to a plain-text Action.
-				if (result.damages.length === 0) {
-					const flatPattern = /(\d+)\s+(\w+)\s*damage/gi;
-					let fm;
-					while ((fm = flatPattern.exec(hitSection)) !== null) {
-						result.damages.push({
-							diceCount: 0,
-							diceSize: "",
-							bonus: parseInt(fm[1], 10),
-							damageType: fm[2].charAt(0).toUpperCase() + fm[2].slice(1).toLowerCase(),
-						});
-					}
-				}
+			// Saving-throw damage (e.g. breath weapons): {@actSave dex} {@dc N}, ... {@actSaveFail}
+			// X ({@damage NdM}) Type damage. {@actSaveSuccess} Half damage.
+			const saveMatch = entry.match(/\{@actSave\s+(\w+)}/i);
+			if (saveMatch) {
+				result.isSave = true;
+				result.saveAbility = SAVE_ABILITY_FULL[saveMatch[1].toLowerCase()] || null;
 			}
+			const dcMatch = entry.match(/\{@dc\s+(\d+)}/i);
+			if (dcMatch) result.saveDC = parseInt(dcMatch[1], 10);
+
+			const failSection = entry.split(/\{@actSaveFail\b[^}]*}/i)[1];
+			if (failSection) result.damages.push(...extractDamagesFromSection(failSection));
+
+			const successSection = entry.split(/\{@actSaveSuccess\b[^}]*}/i)[1];
+			if (successSection && /\bhalf\b/i.test(successSection)) result.onSucceedHalf = true;
 		}
 
 		return result;
@@ -490,6 +520,33 @@ function d20plus2024MonsterImport() {
 			return saveAbilityMap[winner || matches[0]];
 		};
 
+		// Shared by both attack-roll and saving-throw Attack integrants: builds one Damage
+		// child per parsed damage clause, parented to attackIntId.
+		const buildDamageIntegrants = (attackIntId, name, damages) => {
+			const damageIds = [];
+			for (let i = 0; i < damages.length; i++) {
+				const dmg = damages[i];
+				const { id: dmgId, base: dmgBase } = monsterCtx.makeIntegrantBase("Damage", arrayPosition++);
+				integrants[dmgId] = {
+					...dmgBase,
+					name: i === 0 ? `${name} Damage` : `${name} Damage ${i + 1}`,
+					damageType: dmg.damageType,
+					diceCount: dmg.diceCount,
+					diceSize: dmg.diceSize,
+					_bonus: dmg.bonus,
+					ability: "none",
+					overrideCrit: false,
+					critDiceSize: "",
+					parentID: attackIntId,
+					childIDs: "[]",
+					cascades: {},
+					relations: {},
+				};
+				damageIds.push(dmgId);
+			}
+			return damageIds;
+		};
+
 		const buildAttackIntegrants = (actionData, actionType, displayOrder, metaCategory) => {
 			const name = d20plus.importer.getCleanText(renderer.render(actionData.name));
 			const text = d20plus.importer.getCleanText(renderer.render({ entries: actionData.entries }, 1));
@@ -497,28 +554,7 @@ function d20plus2024MonsterImport() {
 
 			if (attackInfo.isAttack && attackInfo.damages.length > 0) {
 				const { id: attackIntId, base: attackBase } = monsterCtx.makeIntegrantBase("Attack", arrayPosition++);
-				const damageIds = [];
-
-				for (let i = 0; i < attackInfo.damages.length; i++) {
-					const dmg = attackInfo.damages[i];
-					const { id: dmgId, base: dmgBase } = monsterCtx.makeIntegrantBase("Damage", arrayPosition++);
-					integrants[dmgId] = {
-						...dmgBase,
-						name: i === 0 ? `${name} Damage` : `${name} Damage ${i + 1}`,
-						damageType: dmg.damageType,
-						diceCount: dmg.diceCount,
-						diceSize: dmg.diceSize,
-						_bonus: dmg.bonus,
-						ability: "none",
-						overrideCrit: false,
-						critDiceSize: "",
-						parentID: attackIntId,
-						childIDs: "[]",
-						cascades: {},
-						relations: {},
-					};
-					damageIds.push(dmgId);
-				}
+				const damageIds = buildDamageIntegrants(attackIntId, name, attackInfo.damages);
 
 				integrants[attackIntId] = {
 					...attackBase,
@@ -545,6 +581,48 @@ function d20plus2024MonsterImport() {
 				// repeating_npcaction-family accessor only indexes true Attack integrants,
 				// sorted alphabetically by name - not creation order, and not plain
 				// Action-type entries like Multiattack).
+				tokenActionMeta[metaCategory].push({ id: attackIntId, name, isAttack: true });
+			} else if (!attackInfo.isAttack && attackInfo.isSave && attackInfo.saveAbility && attackInfo.damages.length > 0) {
+				// Saving-throw damage (breath weapons and similar recharge abilities) - no
+				// attack roll at all, so no abilityBonus/proficiencyLevel. Shape confirmed live
+				// against Roll20's own native Dragonborn Breath Weapon (compendium-built, not
+				// ours): a non-spell save uses attack.type "Attack Save" (not "Spell Save",
+				// which is spell-specific), and an explicit DC is set via save.saveFormula -
+				// there's no bare save.dc field.
+				const { id: attackIntId, base: attackBase } = monsterCtx.makeIntegrantBase("Attack", arrayPosition++);
+				const damageIds = buildDamageIntegrants(attackIntId, name, attackInfo.damages);
+
+				const dmg = attackInfo.damages[0];
+				const dmgDesc = dmg.diceCount > 0
+					? `${dmg.diceCount}${dmg.diceSize}${dmg.bonus ? ` + ${dmg.bonus}` : ""}`
+					: `${dmg.bonus}`;
+				const save = {
+					saveAbility: attackInfo.saveAbility,
+					onFail: `Takes ${dmgDesc} ${dmg.damageType} damage.`,
+				};
+				if (attackInfo.onSucceedHalf) save.onSucceed = "Half as much damage.";
+				// 5etools already prints the exact DC via {@dc N}, so encode it as a pure flat
+				// saveFormula (no ability/proficiency component) rather than reverse-engineering
+				// which ability it came from - guaranteed correct regardless of whether the
+				// monster's stats cleanly reproduce 8 + PB + abilityMod.
+				if (attackInfo.saveDC != null) save.saveFormula = {flatValue: attackInfo.saveDC};
+
+				integrants[attackIntId] = {
+					...attackBase,
+					name: name,
+					actionType,
+					description: text,
+					attack: { type: "Attack Save" },
+					save,
+					_reach: true,
+					_reachText: "",
+					range: attackInfo.range,
+					childIDs: JSON.stringify(damageIds),
+					parentID: "",
+					cascades: {},
+					relations: {},
+				};
+				attackDisplayOrder.push(attackIntId);
 				tokenActionMeta[metaCategory].push({ id: attackIntId, name, isAttack: true });
 			} else {
 				const { id, base } = monsterCtx.makeIntegrantBase("Action", arrayPosition++);

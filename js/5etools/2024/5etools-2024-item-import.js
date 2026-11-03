@@ -41,8 +41,12 @@ function d20plus2024ItemImport() {
 			LD: "Loading", H: "Heavy", S: "Special",
 		};
 
-		// Normalise vc.property entries by stripping source suffixes (e.g. "V|XPHB" → "V")
-		const vcProps = (vc.property || []).map(p => p.split("|")[0]);
+		// Normalise vc.property entries by stripping source suffixes (e.g. "V|XPHB" → "V").
+		// A property is usually a plain string, but some (e.g. Lance's conditional "Two-Handed
+		// unless mounted") are instead an object like {uid: "2H|XPHB", note: "..."} - reading
+		// .uid in that case, since a bare object has no .split and previously threw here,
+		// silently aborting the whole item import (that's why Lance could never be drag-dropped).
+		const vcProps = (vc.property || []).map(p => (typeof p === "string" ? p : p.uid || "").split("|")[0]);
 		const hasProp = (key) => vcProps.includes(key);
 		const isVersatile = hasProp("V") || !!d["Alternate Damage"];
 		const itemType = (d["Item Type"] || "").toLowerCase();

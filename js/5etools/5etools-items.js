@@ -275,7 +275,12 @@ function d20plusItems () {
 	};
 
 	d20plus.items.parseProperty = function (property) {
-		if (Renderer.item.getProperty(property)) return Renderer.item.getProperty(property).name;
+		// A property is usually a plain string code, but some (e.g. Lance's conditional
+		// "Two-Handed unless mounted") are instead an object like {uid: "2H|XPHB", note: "..."}
+		// - Renderer.item.getProperty only accepts a string code and throws on an object
+		// (it calls uid.toLowerCase() internally), so unwrap .uid first.
+		const code = typeof property === "string" ? property : (property && property.uid) || "";
+		if (Renderer.item.getProperty(code)) return Renderer.item.getProperty(code).name;
 		return "n/a";
 	};
 

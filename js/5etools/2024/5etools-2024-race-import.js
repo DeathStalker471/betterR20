@@ -123,6 +123,67 @@ function d20plus2024RaceImport() {
 				featChildren.push(senseId);
 			}
 
+			// Breath Weapon (Dragonborn) → build real Resource+Attack(x2)+Damage mechanics instead
+			// of only a text Feature. Mirrors the same structure the Charactermancer's
+			// buildSubraceRecords builds for this trait, and matches Roll20's own native
+			// compendium-built Dragonborn (confirmed live, not guessed): a Resource tracking uses
+			// = proficiency bonus (full recovery on Long Rest), and two Attack records - one per
+			// shape (Cone/Line), since the real rule lets the player choose the shape each use.
+			// Deliberately no level-5/11/17 damage scaling: neither the race data (prose-only, no
+			// structured scaling field) nor Roll20's own native build models it here either.
+			if (/^breath weapon$/i.test(entry.name)) {
+				const {id: resourceId, base: resourceBase} = makeBase("Resource");
+				ints[resourceId] = {
+					...resourceBase,
+					name: "Draconic Breath Weapon",
+					recordName: `${raceName} Breath Weapon Resource`,
+					maxValueFormula: {customFormula: "@{pb}"},
+					recoveryRate: {"Long Rest": {type: "Full"}},
+					parentID: featId,
+					sourceID: speciesId,
+					childIDs: "[]",
+					cascades: {},
+					relations: {},
+				};
+				featChildren.push(resourceId);
+
+				const saveFormula = {flatValue: 8, ability: {ability: "Constitution", add: true, multiplier: 1}, proficiency: {add: true}};
+				for (const [shape, size] of [["Line", "30 ft*"], ["Cone", "15 ft"]]) {
+					const atkName = `Breath Weapon (${shape})`;
+					const {id: atkId, base: atkBase} = makeBase("Attack");
+					const {id: dmgId, base: dmgBase} = makeBase("Damage");
+					ints[atkId] = {
+						...atkBase,
+						name: atkName,
+						recordName: `${raceName} ${atkName}`,
+						actionType: "Action",
+						aoe: {shape, size},
+						attack: {type: "Attack Save"},
+						save: {saveAbility: "Dexterity", saveFormula, onFail: "1d10 damage determined by Draconic Ancestry"},
+						parentID: featId,
+						sourceID: speciesId,
+						childIDs: JSON.stringify([dmgId]),
+						cascades: {},
+						relations: {},
+					};
+					ints[dmgId] = {
+						...dmgBase,
+						name: `${atkName} Damage`,
+						recordName: `${raceName} ${atkName} Damage`,
+						ability: "none",
+						damageType: "Draconic Ancestry",
+						diceCount: 1, diceSize: "d10",
+						overrideCrit: false, critDiceSize: "",
+						parentID: atkId,
+						sourceID: speciesId,
+						childIDs: "[]",
+						cascades: {},
+						relations: {},
+					};
+					featChildren.push(atkId);
+				}
+			}
+
 			if (featChildren.length) ints[featId].childIDs = JSON.stringify(featChildren);
 		}
 

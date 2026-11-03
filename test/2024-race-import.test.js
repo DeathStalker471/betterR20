@@ -194,3 +194,55 @@ describe('import2024Race — Darkvision', () => {
 		expect(senses[0].valueFormula.flatValue).toBe(60);
 	});
 });
+
+// ---------------------------------------------------------------------------
+// Breath Weapon (Dragonborn)
+// ---------------------------------------------------------------------------
+describe('import2024Race — Breath Weapon', () => {
+	const dragonbornRace = {
+		...minRace, name: 'Dragonborn',
+		entries: [{ name: 'Breath Weapon', entries: ['You can use your action to exhale...'] }],
+	};
+
+	test('adds a Resource tracking uses = proficiency bonus', async () => {
+		const model = makeCharModel();
+		await ctx.d20plus.importer.import2024Race(model, makeRaceData(dragonbornRace));
+		const resources = intsByType(model.getStore(), 'Resource');
+		expect(resources).toHaveLength(1);
+		expect(resources[0].maxValueFormula).toEqual({ customFormula: '@{pb}' });
+		expect(resources[0].recoveryRate).toEqual({ 'Long Rest': { type: 'Full' } });
+	});
+
+	test('adds a rollable Attack per shape (Cone and Line), not a plain Action', async () => {
+		const model = makeCharModel();
+		await ctx.d20plus.importer.import2024Race(model, makeRaceData(dragonbornRace));
+		const attacks = intsByType(model.getStore(), 'Attack');
+		expect(attacks).toHaveLength(2);
+		const shapes = attacks.map(a => a.aoe.shape).sort();
+		expect(shapes).toEqual(['Cone', 'Line']);
+		for (const atk of attacks) {
+			expect(atk.attack.type).toBe('Attack Save');
+			expect(atk.save).toMatchObject({
+				saveAbility: 'Dexterity',
+				saveFormula: { flatValue: 8, ability: { ability: 'Constitution', add: true, multiplier: 1 }, proficiency: { add: true } },
+			});
+		}
+	});
+
+	test('each Attack has a 1d10 Damage child with the Draconic Ancestry placeholder type', async () => {
+		const model = makeCharModel();
+		await ctx.d20plus.importer.import2024Race(model, makeRaceData(dragonbornRace));
+		const damages = intsByType(model.getStore(), 'Damage');
+		expect(damages).toHaveLength(2);
+		for (const dmg of damages) {
+			expect(dmg).toMatchObject({ diceCount: 1, diceSize: 'd10', damageType: 'Draconic Ancestry', ability: 'none' });
+		}
+	});
+
+	test('does not add Breath Weapon mechanics for a race without that trait', async () => {
+		const model = makeCharModel();
+		await ctx.d20plus.importer.import2024Race(model, makeRaceData(minRace));
+		expect(intsByType(model.getStore(), 'Resource')).toHaveLength(0);
+		expect(intsByType(model.getStore(), 'Attack')).toHaveLength(0);
+	});
+});
