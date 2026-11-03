@@ -65,6 +65,7 @@ const betteR205etools = function () {
 				// Better20 jukebox tab
 				d20plus.remoteLibre.init();
 				d20plus.jukeboxWidget.init();
+				d20plus.turnOrder.init();
 			}
 			d20plus.engine.fixHandleHtmlInput();
 			// d20.Campaign.pages.each(d20plus.bindGraphics);

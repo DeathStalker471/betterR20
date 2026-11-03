@@ -576,11 +576,10 @@ function d20plus2024MonsterImport() {
 				};
 				attackDisplayOrder.push(attackIntId);
 				// isAttack: true - this has a real attack-roll/damage chain, so
-				// import2024TokenActions addresses it by its live position among
-				// same-actionType Attack integrants (see that file for why: Roll20's
-				// repeating_npcaction-family accessor only indexes true Attack integrants,
-				// sorted alphabetically by name - not creation order, and not plain
-				// Action-type entries like Multiattack).
+				// import2024TokenActions addresses it by its live position among ALL
+				// same-actionType entries, both Attack and plain Action-type ones like
+				// Multiattack (see that file for why both must count), sorted alphabetically
+				// by name - not creation order.
 				tokenActionMeta[metaCategory].push({ id: attackIntId, name, isAttack: true });
 			} else if (!attackInfo.isAttack && attackInfo.isSave && attackInfo.saveAbility && attackInfo.damages.length > 0) {
 				// Saving-throw damage (breath weapons and similar recharge abilities) - no
@@ -672,12 +671,12 @@ function d20plus2024MonsterImport() {
 		// Explicitly populating them causes the sheet to use a lookup that fails to
 		// match integrants by shortID, so bonus/reaction actions don't appear.
 
-		// Position numbers are NOT assigned here. Roll20's repeating_npcaction-family
-		// accessor only indexes true Attack-type integrants (never plain Action-type ones
-		// like Multiattack or this monster's own Spellcasting summary), sorted alphabetically
-		// by name - and critically, a spell's own attack/save mechanic generates an
-		// additional Attack integrant (via import2024Spell) *after* this function returns,
-		// so any position computed here could never account for those. See
+		// Position numbers are NOT assigned here. Roll20's repeating_npcaction-family accessor
+		// indexes EVERY same-actionType entry together - real Attack-type ones and plain
+		// Action-type ones alike (Multiattack, this monster's own Spellcasting summary) - sorted
+		// alphabetically by name as one combined list. Critically, a spell's own attack/save
+		// mechanic generates an additional Attack integrant (via import2024Spell) *after* this
+		// function returns, so any position computed here could never account for those. See
 		// import2024TokenActions (5etools-2024-monster-tokenactions.js), which computes
 		// positions from the live store once spells actually exist.
 

@@ -426,7 +426,10 @@ function baseMenu () {
                 // OGL "Initiative" ability doesn't exist there - so nothing ever reached the tracker.
                 const charSheetName = d20.Campaign.characters.get((it._model || it.model)?.get("represents"))?.get("charactersheetname");
                 if (d20plus.importer?.is2024Sheet?.(charSheetName)) {
-                    toRoll = `[[1d20+@{selected|initiative_bonus} &{tracker}]]`;
+                    // Whispered to match every other monster-facing roll on the 2024 sheet
+                    // (actionMacroInit2024 and friends in base-macro.js) - confirmed live that
+                    // /w gm does not suppress &{tracker}, so the turn order still gets updated.
+                    toRoll = `/w gm [[1d20+@{selected|initiative_bonus} &{tracker}]]`;
                 } else if (d20plus.sheet === "ogl") {
                     toRoll = `%{selected|Initiative}`;
                 } else if (d20plus.sheet === "shaped") {

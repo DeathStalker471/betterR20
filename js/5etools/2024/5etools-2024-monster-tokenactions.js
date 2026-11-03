@@ -18,14 +18,19 @@ function d20plus2024MonsterTokenActions() {
 		.replace(/-{2,}/g, "-")
 		.replace(/^-+|-+$/g, "");
 
-	// Roll20's repeating_npcaction/-bonusaction/-reaction/-l/-m accessor family only
-	// indexes true "Attack"-type integrants - never plain "Action"-type ones like
-	// Multiattack or a monster's own Spellcasting summary - sorted ALPHABETICALLY BY
-	// NAME (confirmed live against a real Bone Knight import). Critically, a prepared
-	// spell with an attack roll or forced save generates its own Attack integrant
-	// (via import2024Spell, run by import2024Spells) alongside any weapon attacks, and
-	// competes for the same position sequence - so positions can only be computed here,
-	// from the live store, after spells have actually been imported (see
+	// Roll20's repeating_npcaction/-bonusaction/-reaction/-l/-m accessor family indexes
+	// EVERY same-actionType integrant that renders in that Actions block - real "Attack"-type
+	// ones (Scimitar, Shortbow, ...) AND plain "Action"-type ones (Multiattack, a monster's own
+	// Spellcasting summary) alike - sorted ALPHABETICALLY BY NAME as one combined list. (An
+	// earlier version of this comment claimed plain Action-type entries were excluded from that
+	// indexing entirely - that was never actually verified against a case where one of them sorts
+	// before a real attack, and a live Goblin Boss import proved it wrong: "Multiattack" sorts
+	// before "Scimitar"/"Shortbow", so it occupies row 0, pushing the real attacks to rows 1/2 -
+	// and the old Attack-only filter below computed Scimitar as row 0, so its macro fired
+	// Multiattack's text instead.) Critically, a prepared spell with an attack roll or forced save
+	// generates its own Attack integrant (via import2024Spell, run by import2024Spells) alongside
+	// any weapon attacks, and competes for the same position sequence - so positions can only be
+	// computed here, from the live store, after spells have actually been imported (see
 	// 5etools-monsters.js, which now awaits import2024Spells before calling this).
 	function getLiveIntegrants (character) {
 		const storeAttr = character.attribs && character.attribs.find(a => a.get("name") === "store");
@@ -37,10 +42,11 @@ function d20plus2024MonsterTokenActions() {
 		return Object.values((store && store.integrants && store.integrants.integrants) || {});
 	}
 
-	// Returns a Map of integrant name -> 0-based position among same-actionType Attacks.
+	// Returns a Map of integrant name -> 0-based position among ALL same-actionType entries
+	// (Attack-type and plain Action-type together - see comment above for why both must count).
 	function getAttackPositions (character, actionType) {
 		const names = getLiveIntegrants(character)
-			.filter(i => i.type === "Attack" && i.actionType === actionType)
+			.filter(i => (i.type === "Attack" || i.type === "Action") && i.actionType === actionType)
 			.map(i => i.name)
 			.sort((a, b) => a.localeCompare(b));
 		const map = new Map();
