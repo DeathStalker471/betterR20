@@ -13,12 +13,6 @@
 				"wis"
 			],
 			"startingProficiencies": {
-				"armor": [
-					"light"
-				],
-				"weapons": [
-					"simple"
-				],
 				"skills": [
 					{
 						"choose": {
@@ -33,6 +27,17 @@
 							],
 							"count": 2
 						}
+					}
+				],
+				"weapons": [
+					"simple"
+				],
+				"armor": [
+					"light"
+				],
+				"armorProficiencies": [
+					{
+						"light": true
 					}
 				]
 			},

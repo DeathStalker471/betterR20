@@ -19,21 +19,6 @@
 				"dex"
 			],
 			"startingProficiencies": {
-				"weapons": [
-					"simple",
-					"{@item shortsword|phb|shortswords}"
-				],
-				"tools": [
-					"any one type of {@item artisan's tools|PHB} or any one {@item musical instrument|PHB} of your choice"
-				],
-				"toolProficiencies": [
-					{
-						"anyArtisansTool": 1
-					},
-					{
-						"anyMusicalInstrument": 1
-					}
-				],
 				"skills": [
 					{
 						"choose": {
@@ -47,6 +32,21 @@
 							],
 							"count": 2
 						}
+					}
+				],
+				"weapons": [
+					"simple",
+					"{@item shortsword|phb|shortswords}"
+				],
+				"tools": [
+					"any one type of {@item artisan's tools|PHB} or any one {@item musical instrument|PHB} of your choice"
+				],
+				"toolProficiencies": [
+					{
+						"anyArtisansTool": 1
+					},
+					{
+						"anyMusicalInstrument": 1
 					}
 				]
 			},
@@ -745,7 +745,7 @@
 					"type": "list",
 					"items": [
 						"You can use Dexterity instead of Strength for the attack and damage rolls of your unarmed strikes and monk weapons.",
-						"You can roll a {@dice d4} in place of the normal damage of your unarmed strike or monk weapon. This die changes as you gain monk levels, as shown in the Martial Arts column of the Monk table.",
+						"You can roll a {@damage d4} in place of the normal damage of your unarmed strike or monk weapon. This die changes as you gain monk levels, as shown in the Martial Arts column of the Monk table.",
 						"When you use the {@action Attack} action with an unarmed strike or a monk weapon on your turn, you can make one unarmed strike as a bonus action. For example, if you take the {@action Attack} action and attack with a quarterstaff, you can also make an unarmed strike as a bonus action, assuming you haven't already taken a bonus action this turn."
 					]
 				},
@@ -1519,13 +1519,13 @@
 					"entries": [
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "Breath of Winter",
-							"name": "Breath of Winter (17th Level Required)"
+							"name": "Breath of Winter (17th Level Required)",
+							"optionalfeature": "Breath of Winter"
 						},
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "Clench of the North Wind",
-							"name": "Clench of the North Wind (6th Level Required)"
+							"name": "Clench of the North Wind (6th Level Required)",
+							"optionalfeature": "Clench of the North Wind"
 						},
 						{
 							"type": "refOptionalfeature",
@@ -1536,8 +1536,8 @@
 						},
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "Eternal Mountain Defense",
-							"name": "Eternal Mountain Defense (17th Level Required)"
+							"name": "Eternal Mountain Defense (17th Level Required)",
+							"optionalfeature": "Eternal Mountain Defense"
 						},
 						{
 							"type": "refOptionalfeature",
@@ -1553,28 +1553,28 @@
 						},
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "Flames of the Phoenix",
-							"name": "Flames of the Phoenix (11th Level Required)"
+							"name": "Flames of the Phoenix (11th Level Required)",
+							"optionalfeature": "Flames of the Phoenix"
 						},
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "Gong of the Summit",
-							"name": "Gong of the Summit (6th Level Required)"
+							"name": "Gong of the Summit (6th Level Required)",
+							"optionalfeature": "Gong of the Summit"
 						},
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "Mist Stance",
-							"name": "Mist Stance (11th Level Required)"
+							"name": "Mist Stance (11th Level Required)",
+							"optionalfeature": "Mist Stance"
 						},
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "Ride the Wind",
-							"name": "Ride the Wind (11th Level Required)"
+							"name": "Ride the Wind (11th Level Required)",
+							"optionalfeature": "Ride the Wind"
 						},
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "River of Hungry Flame",
-							"name": "River of Hungry Flame (17th Level Required)"
+							"name": "River of Hungry Flame (17th Level Required)",
+							"optionalfeature": "River of Hungry Flame"
 						},
 						{
 							"type": "refOptionalfeature",
@@ -1594,8 +1594,8 @@
 						},
 						{
 							"type": "refOptionalfeature",
-							"optionalfeature": "Wave of Rolling Earth",
-							"name": "Wave of Rolling Earth (17th Level Required)"
+							"name": "Wave of Rolling Earth (17th Level Required)",
+							"optionalfeature": "Wave of Rolling Earth"
 						}
 					]
 				}
@@ -2433,7 +2433,7 @@
 					"type": "entries",
 					"name": "Kensei Weapons",
 					"entries": [
-						"Choose two types of weapons to be your kensei weapons: one melee weapon and one ranged weapon. Each of these weapons can be any {@filter simple or martial weapon that lacks the heavy and special properties|items|source=phb|type=simple weapon;martial weapon|property=!heavy;!special|category=basic}. The longbow is also a valid choice. You gain proficiency with these weapons if you don't already have it. Weapons of the chosen types are monk weapons for you. Many of this tradition's features work only with your kensei weapons. When you reach 6th, 11th, and 17th level in this class, you can choose another type of weapon\u2014either melee or ranged\u2014to be a kensei weapon for you, following the criteria above."
+						"Choose two types of weapons to be your kensei weapons: one melee weapon and one ranged weapon. Each of these weapons can be any {@filter simple or martial weapon that lacks the heavy and special properties|items|source=phb|type=simple weapon;martial weapon|property=!heavy;!special|category=basic|miscellaneous=}. The longbow is also a valid choice. You gain proficiency with these weapons if you don't already have it. Weapons of the chosen types are monk weapons for you. Many of this tradition's features work only with your kensei weapons. When you reach 6th, 11th, and 17th level in this class, you can choose another type of weapon\u2014either melee or ranged\u2014to be a kensei weapon for you, following the criteria above."
 					]
 				},
 				{

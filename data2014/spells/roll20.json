@@ -1172,6 +1172,13 @@
 		}
 	},
 	{
+		"name": "Goodberry",
+		"source": "PHB",
+		"data": {
+			"Healing": "1"
+		}
+	},
+	{
 		"name": "Grasping Vine",
 		"source": "PHB",
 		"data": {
@@ -1834,6 +1841,13 @@
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1",
 			"Target": "10 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Shillelagh",
+		"source": "PHB",
+		"data": {
+			"Damage": "1d8"
 		}
 	},
 	{

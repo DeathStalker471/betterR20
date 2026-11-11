@@ -880,7 +880,8 @@
 			"page": 90,
 			"otherSources": [
 				{
-					"source": "ToD"
+					"source": "ToD",
+					"page": 185
 				}
 			],
 			"typicalSpeakers": [
@@ -1198,7 +1199,8 @@
 			"page": 93,
 			"otherSources": [
 				{
-					"source": "ToD"
+					"source": "ToD",
+					"page": 188
 				}
 			],
 			"script": "Draconic"
@@ -1251,7 +1253,7 @@
 			],
 			"script": "Dwarvish",
 			"entries": [
-				" Orc is a harsh, grating language with hard consonants. It has no script of its own but is written in the Dwarvish script."
+				"Orc is a harsh, grating language with hard consonants. It has no script of its own but is written in the Dwarvish script."
 			],
 			"hasFluffImages": true
 		},

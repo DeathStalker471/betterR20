@@ -629,13 +629,13 @@
 								{
 									"type": "table",
 									"caption": "Chaotic Flares",
-									"colStyles": [
-										"col-2 text-center",
-										"col-10"
-									],
 									"colLabels": [
 										"d4",
 										"Flare"
+									],
+									"colStyles": [
+										"col-2 text-center",
+										"col-10"
 									],
 									"rows": [
 										[
@@ -2061,7 +2061,7 @@
 							"type": "item",
 							"name": "Commanding Rally",
 							"entries": [
-								"As a bonus action, you can command one ally within 30 feet of yourself to attack. If that ally can see or hear you, they can immediately make one weapon attack as a reaction. If the attack hits, the ally can roll a {@dice d8} and add the number rolled as a bonus to the attack's damage roll. You can use this bonus action a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest."
+								"As a bonus action, you can command one ally within 30 feet of yourself to attack. If that ally can see or hear you, they can immediately make one weapon attack as a reaction. If the attack hits, the ally can roll a {@damage d8} and add the number rolled as a bonus to the attack's damage roll. You can use this bonus action a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest."
 							]
 						}
 					]
@@ -2781,7 +2781,7 @@
 				{
 					"type": "list",
 					"items": [
-						"When you take the {@action Attack} action and attack with only a {@item glaive|phb}, {@item halberd|phb}, {@item quarterstaff|phb}, or {@item spear|phb}, you can use a bonus action to make a melee attack with the opposite end of the weapon; this attack uses the same ability modifier as the primary attack. The weapon's damage die for this attack is a {@dice d4}, and the attack deals bludgeoning damage.",
+						"When you take the {@action Attack} action and attack with only a {@item glaive|phb}, {@item halberd|phb}, {@item quarterstaff|phb}, or {@item spear|phb}, you can use a bonus action to make a melee attack with the opposite end of the weapon; this attack uses the same ability modifier as the primary attack. The weapon's damage die for this attack is a {@damage d4}, and the attack deals bludgeoning damage.",
 						"While you are wielding a {@item glaive|phb}, {@item halberd|phb}, {@item pike|phb}, {@item quarterstaff|phb}, or {@item spear|phb}, other creatures provoke an opportunity attack from you when they enter the reach you have with that weapon."
 					]
 				}
@@ -3231,13 +3231,13 @@
 								"Each time you gain a level, you can replace one of the runes you know with another one from the Rune Spells table.",
 								{
 									"type": "table",
-									"colStyles": [
-										"col-2",
-										"col-10"
-									],
 									"colLabels": [
 										"Rune",
 										"Spell"
+									],
+									"colStyles": [
+										"col-2",
+										"col-10"
 									],
 									"rows": [
 										[
@@ -3413,15 +3413,15 @@
 				"Your connection to an Outer Plane infuses you with the energy there. Choose a type of plane listed in the Planar Infusion table. Your choice gives you resistance to a damage type and the ability to cast a cantrip, as specified in the table. You can cast this cantrip without material components, and your spellcasting ability for it is Intelligence, Wisdom, or Charisma (choose when you select this feat).",
 				{
 					"type": "table",
-					"colStyles": [
-						"col-4",
-						"col-4",
-						"col-4"
-					],
 					"colLabels": [
 						"Plane",
 						"Damage Resistance",
 						"Cantrip"
+					],
+					"colStyles": [
+						"col-4",
+						"col-4",
+						"col-4"
 					],
 					"rows": [
 						[
@@ -3990,7 +3990,7 @@
 							"type": "item",
 							"name": "Precise Strike",
 							"entries": [
-								"Once per turn, when you make a weapon attack roll against a creature, you can cause the attack roll to have advantage. If the attack hits, you roll a {@dice d8} and add the number rolled as a bonus to the attack's damage roll. You can use this benefit a number of times equal to your proficiency bonus, but a use is expended only if the attack hits. You regain all expended uses when you finish a long rest."
+								"Once per turn, when you make a weapon attack roll against a creature, you can cause the attack roll to have advantage. If the attack hits, you roll a {@damage d8} and add the number rolled as a bonus to the attack's damage roll. You can use this benefit a number of times equal to your proficiency bonus, but a use is expended only if the attack hits. You regain all expended uses when you finish a long rest."
 							]
 						}
 					]
