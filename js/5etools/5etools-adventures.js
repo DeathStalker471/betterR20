@@ -126,7 +126,16 @@ function d20plusAdventure () {
 		// accident).
 		async function resolveFrom (source, matchAnyName) {
 			if (!remaining.length || !source) return;
-			const filename = monsterDataUrls[source] || monsterDataUrls[source.toLowerCase()];
+			// monsterDataUrls' real keys use mixed case for some sources (e.g. "ToA", not "TOA"/
+			// "toa"), while a reference's own declared source is always upper-cased by
+			// extractCreatureRefs, and adventure/book metadata's `source` field doesn't reliably
+			// match the bestiary index's casing either (confirmed live: ToA's own adventure metadata
+			// reports source "TOA", which matches neither "ToA" nor "toa" via a plain lowercase
+			// fallback) - so match case-insensitively against monsterDataUrls' actual keys instead of
+			// guessing at one specific casing.
+			const sourceLower = source.toLowerCase();
+			const realKey = Object.keys(monsterDataUrls).find(k => k.toLowerCase() === sourceLower);
+			const filename = realKey ? monsterDataUrls[realKey] : null;
 			if (!filename) {
 				d20plus.ut.log(`Bestiary: no file for source "${source}" — skipping`);
 				return;
@@ -153,7 +162,8 @@ function d20plusAdventure () {
 
 		// Tier 2: the core Monster Manual for the active ruleset.
 		if (remaining.length) {
-			const uses2024Mm = d20plus.importer.shouldUse2024?.() && !!(monsterDataUrls["XMM"] || monsterDataUrls["xmm"]);
+			const hasKeyCi = key => Object.keys(monsterDataUrls).some(k => k.toLowerCase() === key.toLowerCase());
+			const uses2024Mm = d20plus.importer.shouldUse2024?.() && hasKeyCi("XMM");
 			const mmKey = uses2024Mm ? "XMM" : "MM";
 			if (mmKey.toLowerCase() !== (primarySource || "").toLowerCase()) await resolveFrom(mmKey, true);
 		}
