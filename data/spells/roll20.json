@@ -302,6 +302,8 @@
 		"name": "Holy Star of Mystra",
 		"source": "FRHoF",
 		"data": {
+			"Damage": "4d10",
+			"Spell Attack": "Ranged",
 			"Add Casting Modifier": "Yes"
 		}
 	},
@@ -1310,6 +1312,13 @@
 		}
 	},
 	{
+		"name": "Goodberry",
+		"source": "PHB",
+		"data": {
+			"Healing": "1"
+		}
+	},
+	{
 		"name": "Grasping Vine",
 		"source": "PHB",
 		"data": {
@@ -1972,6 +1981,13 @@
 			"Higher Spell Slot Die": "d8",
 			"Higher Spell Slot Dice": "1",
 			"Target": "10 foot radius Sphere"
+		}
+	},
+	{
+		"name": "Shillelagh",
+		"source": "PHB",
+		"data": {
+			"Damage": "1d8"
 		}
 	},
 	{
@@ -3248,6 +3264,13 @@
 		}
 	},
 	{
+		"name": "Aura of Life",
+		"source": "XPHB",
+		"data": {
+			"Healing": "1"
+		}
+	},
+	{
 		"name": "Aura of Vitality",
 		"source": "XPHB",
 		"data": {
@@ -4071,6 +4094,13 @@
 		}
 	},
 	{
+		"name": "Goodberry",
+		"source": "XPHB",
+		"data": {
+			"Healing": "1"
+		}
+	},
+	{
 		"name": "Grasping Vine",
 		"source": "XPHB",
 		"data": {
@@ -4133,6 +4163,13 @@
 			"Damage": "14d6",
 			"Damage Type": "Necrotic",
 			"Save Success": "Half damage"
+		}
+	},
+	{
+		"name": "Heal",
+		"source": "XPHB",
+		"data": {
+			"Healing": "70"
 		}
 	},
 	{
@@ -4755,6 +4792,8 @@
 		"name": "Shillelagh",
 		"source": "XPHB",
 		"data": {
+			"Damage": "1d8",
+			"Damage Type": "Force",
 			"data-Cantrip Scaling": "dice"
 		}
 	},

@@ -96,8 +96,10 @@
 				}
 			],
 			"startingProficiencies": {
-				"armor": [
-					"light"
+				"skills": [
+					{
+						"any": 3
+					}
 				],
 				"weapons": [
 					"simple",
@@ -114,9 +116,12 @@
 						"anyMusicalInstrument": 3
 					}
 				],
-				"skills": [
+				"armor": [
+					"light"
+				],
+				"armorProficiencies": [
 					{
-						"any": 3
+						"light": true
 					}
 				]
 			},
@@ -174,9 +179,6 @@
 					"cha": 13
 				},
 				"proficienciesGained": {
-					"armor": [
-						"light"
-					],
 					"skills": [
 						{
 							"choose": {
@@ -210,6 +212,14 @@
 					"toolProficiencies": [
 						{
 							"anyMusicalInstrument": 1
+						}
+					],
+					"armor": [
+						"light"
+					],
+					"armorProficiencies": [
+						{
+							"light": true
 						}
 					]
 				}

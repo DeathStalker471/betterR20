@@ -3920,6 +3920,7 @@
 					]
 				}
 			],
+			"familiar": true,
 			"damageTags": [
 				"P"
 			],
