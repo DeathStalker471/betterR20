@@ -11,7 +11,8 @@ function d20plusMonsters () {
 		<span class="type col-2" title="type (tag)">TYP[${Parser.monTypeToFullObj(it.type).asText.uppercaseFirst()}]</span>
 		<span class="environment col-3" title="environment">${(it.environment || []).map(c => `ENV[${c.uppercaseFirst()}]`).join(", ")}</span>
 		<span class="cr col-1" title="cr">${it.cr === undefined ? "CR[Unknown]" : `CR[${(it.cr.cr || it.cr)}]`}</span>
-		<span title="source [Full source name is ${Parser.sourceJsonToFull(it.source)}]" class="source col-1">SRC[${Parser.sourceJsonToAbv(it.source)}]</span>`;
+		<span title="source [Full source name is ${Parser.sourceJsonToFull(it.source)}]" class="source col-1">SRC[${Parser.sourceJsonToAbv(it.source)}]</span>
+		${it._b20FoundIn ? `<span title="This is the copy of this creature bundled inside ${Parser.sourceJsonToFull(it._b20FoundIn)}'s own file, not ${Parser.sourceJsonToFull(it.source)}'s - another copy of the same creature may also be listed separately" class="col-1">(via ${Parser.sourceJsonToAbv(it._b20FoundIn)})</span>` : ""}`;
 	d20plus.monsters._listIndexConverter = (m) => {
 		m.__pType = m.__pType || Parser.monTypeToFullObj(m.type).types[0]; // only filter using first primary type
 		m.__pTags = {} // additional filters (include conditional traits and all related items)
@@ -84,7 +85,7 @@ function d20plusMonsters () {
 		origImportQueue.forEach((m, i) => {
 			temp += `
 				<div>
-					<span class="name col-3 ib">${m.name}</span>
+					<span class="name col-3 ib">${m.name}${m._b20FoundIn ? ` <span title="Bundled inside ${Parser.sourceJsonToFull(m._b20FoundIn)}'s own file, not ${Parser.sourceJsonToFull(m.source)}'s">(via ${Parser.sourceJsonToAbv(m._b20FoundIn)})</span>` : ""}</span>
 					<span title="${Parser.sourceJsonToFull(m.source)}" class="src col-1 ib">SRC[${Parser.sourceJsonToAbv(m.source)}]</span>
 					<span class="cr col-2 ib">${m.cr === undefined ? "CR[Unknown]" : `CR[${(m.cr.cr || m.cr)}]`}</span>
 					<span class="col-2 ib"><input class="target-rename" style="max-width: calc(100% - 18px);" placeholder="Rename To..."></span>
@@ -214,31 +215,34 @@ function d20plusMonsters () {
 
 		const toLoad = Object.keys(monsterDataUrls)
 			.filter(src => !(SourceUtil.isNonstandardSource(src) && filterUnofficial))
-			.map(src => d20plus.monsters.formMonsterUrl(monsterDataUrls[src]));
+			.map(src => ({src, url: d20plus.monsters.formMonsterUrl(monsterDataUrls[src])}));
 
 		if (toLoad.length) {
-			const dataStack = (await Promise.all(toLoad.map(async url => {
+			const dataStack = await Promise.all(toLoad.map(async ({src, url}) => {
 				try {
-					return await DataUtil.loadJSON(url);
+					return {src, data: await DataUtil.loadJSON(url)};
 				} catch (e) {
 					console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
-					return [];
+					return {src, data: null};
 				}
-			}))).flat();
-
-			let toShow = [];
-
-			const seen = {};
-			await Promise.all(dataStack.map(async d => {
-				const toAdd = d.monster.filter(m => {
-					const out = !(seen[m.source] && seen[m.source].has(m.name));
-					if (!seen[m.source]) seen[m.source] = new Set();
-					seen[m.source].add(m.name);
-					return out;
-				});
-
-				toShow = toShow.concat(toAdd);
 			}));
+
+			// Keep every copy of a (source, name) pair instead of silently dropping duplicates - some
+			// books bundle a reprint of another book's monster, tagged with that monster's ORIGINAL
+			// source, so their own `_copy` can resolve it (e.g. GoS embeds its own copy of ToA's
+			// "Fenthaza"). The same (source, name) can legitimately appear in more than one loaded
+			// file, and which copy "won" under the old silent-drop dedup depended on nondeterministic
+			// Promise.all resolution order. Tag each entry with which book's file it actually came
+			// from (when that differs from its own declared source) so the list can show every copy
+			// and the user picks, rather than the tool guessing for them.
+			let toShow = [];
+			dataStack.forEach(({src, data}) => {
+				if (!data) return;
+				(data.monster || []).forEach(m => {
+					if (src !== m.source) m._b20FoundIn = src;
+					toShow.push(m);
+				});
+			});
 
 			await d20plus.importer.showImportList(
 				"monster",

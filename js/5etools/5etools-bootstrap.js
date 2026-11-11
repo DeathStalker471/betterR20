@@ -138,24 +138,47 @@ const betteR205etools = function () {
 
 		// DataUtil.pDoMetaMerge() (vendored) has no cycle detection: two homebrew sources
 		// depending on each other (e.g. two books each listing the other as a dependency)
-		// deadlocks it silently. Only gate idents that declare dependencies/includes, so
-		// plain index files loaded concurrently by unrelated siblings aren't falsely flagged.
+		// deadlocks it silently - its own `_merging[ident] ||= ...` cache (lib/utils.js) just
+		// awaits a promise that can only resolve after itself.
+		//
+		// IMPORTANT: that same native cache already correctly coalesces concurrent *non*-circular
+		// requests for the same ident - e.g. "Import Monsters From All Sources" fetches every
+		// official bestiary file in parallel, and many books declare the same `_meta.dependencies`
+		// source (confirmed live: ToA declares `dependencies: {monster: ["MM", "VGM"]}`, and GoS/
+		// MoT/RoT/BGDiA/PotA/PaBTSO/WBtW/VEoR all transitively need ToA itself, for their own
+		// reprinted-via-`_copy` monsters). All of those concurrent requests for the same ident are
+		// meant to share the one in-flight merge, not fail. An earlier version of this guard used a
+		// plain `Set` of "idents currently merging" and threw as soon as a second request for the
+		// same ident came in - which fired constantly for these totally normal concurrent siblings,
+		// not just true cycles, and silently dropped entire sourcebooks (ToA, HotDQ, CoS, WDH, GoS,
+		// MoT, RoT, BGDiA, PotA, PaBTSO, WBtW, VEoR all confirmed affected) whenever the dependency
+		// they shared lost the race. Use a timeout instead: let the native cache coalesce as
+		// designed, and only treat it as circular if this specific merge genuinely never finishes
+		// (real fetch+merge of one bestiary file is ~150-400ms per network logs, so 20s is already
+		// a very generous margin before assuming deadlock rather than "still loading").
 		const origPDoMetaMerge = DataUtil.pDoMetaMerge.bind(DataUtil);
-		const activeMerges = new Set();
+		const CYCLE_TIMEOUT_MS = 20000;
 		DataUtil.pDoMetaMerge = async function (ident, data, options) {
 			const canCycle = !!(data && data._meta && (data._meta.dependencies || data._meta.includes));
-			if (canCycle) {
-				if (activeMerges.has(ident)) {
-					const err = new Error(`Circular homebrew dependency: "${ident}" requires itself to already be loaded.`);
+			const mergePromise = origPDoMetaMerge(ident, data, options);
+			if (!canCycle) return mergePromise;
+
+			// Prevent an eventual rejection of the losing (timed-out) promise from surfacing as an
+			// unhandled rejection once nothing else is awaiting it.
+			mergePromise.catch(() => {});
+
+			let timer;
+			const timeout = new Promise((resolve, reject) => {
+				timer = setTimeout(() => {
+					const err = new Error(`Circular homebrew dependency: "${ident}" did not resolve within ${CYCLE_TIMEOUT_MS}ms - likely requires itself to already be loaded.`);
 					err.isCircularHomebrewDependency = true;
-					throw err;
-				}
-				activeMerges.add(ident);
-			}
+					reject(err);
+				}, CYCLE_TIMEOUT_MS);
+			});
 			try {
-				return await origPDoMetaMerge(ident, data, options);
+				return await Promise.race([mergePromise, timeout]);
 			} finally {
-				activeMerges.delete(ident);
+				clearTimeout(timer);
 			}
 		};
 
