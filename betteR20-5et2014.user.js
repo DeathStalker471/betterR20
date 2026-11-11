@@ -30937,24 +30937,47 @@ const betteR205etools = function () {
 
 		// DataUtil.pDoMetaMerge() (vendored) has no cycle detection: two homebrew sources
 		// depending on each other (e.g. two books each listing the other as a dependency)
-		// deadlocks it silently. Only gate idents that declare dependencies/includes, so
-		// plain index files loaded concurrently by unrelated siblings aren't falsely flagged.
+		// deadlocks it silently - its own `_merging[ident] ||= ...` cache (lib/utils.js) just
+		// awaits a promise that can only resolve after itself.
+		//
+		// IMPORTANT: that same native cache already correctly coalesces concurrent *non*-circular
+		// requests for the same ident - e.g. "Import Monsters From All Sources" fetches every
+		// official bestiary file in parallel, and many books declare the same `_meta.dependencies`
+		// source (confirmed live: ToA declares `dependencies: {monster: ["MM", "VGM"]}`, and GoS/
+		// MoT/RoT/BGDiA/PotA/PaBTSO/WBtW/VEoR all transitively need ToA itself, for their own
+		// reprinted-via-`_copy` monsters). All of those concurrent requests for the same ident are
+		// meant to share the one in-flight merge, not fail. An earlier version of this guard used a
+		// plain `Set` of "idents currently merging" and threw as soon as a second request for the
+		// same ident came in - which fired constantly for these totally normal concurrent siblings,
+		// not just true cycles, and silently dropped entire sourcebooks (ToA, HotDQ, CoS, WDH, GoS,
+		// MoT, RoT, BGDiA, PotA, PaBTSO, WBtW, VEoR all confirmed affected) whenever the dependency
+		// they shared lost the race. Use a timeout instead: let the native cache coalesce as
+		// designed, and only treat it as circular if this specific merge genuinely never finishes
+		// (real fetch+merge of one bestiary file is ~150-400ms per network logs, so 20s is already
+		// a very generous margin before assuming deadlock rather than "still loading").
 		const origPDoMetaMerge = DataUtil.pDoMetaMerge.bind(DataUtil);
-		const activeMerges = new Set();
+		const CYCLE_TIMEOUT_MS = 20000;
 		DataUtil.pDoMetaMerge = async function (ident, data, options) {
 			const canCycle = !!(data && data._meta && (data._meta.dependencies || data._meta.includes));
-			if (canCycle) {
-				if (activeMerges.has(ident)) {
-					const err = new Error(`Circular homebrew dependency: "${ident}" requires itself to already be loaded.`);
+			const mergePromise = origPDoMetaMerge(ident, data, options);
+			if (!canCycle) return mergePromise;
+
+			// Prevent an eventual rejection of the losing (timed-out) promise from surfacing as an
+			// unhandled rejection once nothing else is awaiting it.
+			mergePromise.catch(() => {});
+
+			let timer;
+			const timeout = new Promise((resolve, reject) => {
+				timer = setTimeout(() => {
+					const err = new Error(`Circular homebrew dependency: "${ident}" did not resolve within ${CYCLE_TIMEOUT_MS}ms - likely requires itself to already be loaded.`);
 					err.isCircularHomebrewDependency = true;
-					throw err;
-				}
-				activeMerges.add(ident);
-			}
+					reject(err);
+				}, CYCLE_TIMEOUT_MS);
+			});
 			try {
-				return await origPDoMetaMerge(ident, data, options);
+				return await Promise.race([mergePromise, timeout]);
 			} finally {
-				activeMerges.delete(ident);
+				clearTimeout(timer);
 			}
 		};
 
@@ -35322,7 +35345,8 @@ function d20plusMonsters () {
 		<span class="type col-2" title="type (tag)">TYP[${Parser.monTypeToFullObj(it.type).asText.uppercaseFirst()}]</span>
 		<span class="environment col-3" title="environment">${(it.environment || []).map(c => `ENV[${c.uppercaseFirst()}]`).join(", ")}</span>
 		<span class="cr col-1" title="cr">${it.cr === undefined ? "CR[Unknown]" : `CR[${(it.cr.cr || it.cr)}]`}</span>
-		<span title="source [Full source name is ${Parser.sourceJsonToFull(it.source)}]" class="source col-1">SRC[${Parser.sourceJsonToAbv(it.source)}]</span>`;
+		<span title="source [Full source name is ${Parser.sourceJsonToFull(it.source)}]" class="source col-1">SRC[${Parser.sourceJsonToAbv(it.source)}]</span>
+		${it._b20FoundIn ? `<span title="This is the copy of this creature bundled inside ${Parser.sourceJsonToFull(it._b20FoundIn)}'s own file, not ${Parser.sourceJsonToFull(it.source)}'s - another copy of the same creature may also be listed separately" class="col-1">(via ${Parser.sourceJsonToAbv(it._b20FoundIn)})</span>` : ""}`;
 	d20plus.monsters._listIndexConverter = (m) => {
 		m.__pType = m.__pType || Parser.monTypeToFullObj(m.type).types[0]; // only filter using first primary type
 		m.__pTags = {} // additional filters (include conditional traits and all related items)
@@ -35395,7 +35419,7 @@ function d20plusMonsters () {
 		origImportQueue.forEach((m, i) => {
 			temp += `
 				<div>
-					<span class="name col-3 ib">${m.name}</span>
+					<span class="name col-3 ib">${m.name}${m._b20FoundIn ? ` <span title="Bundled inside ${Parser.sourceJsonToFull(m._b20FoundIn)}'s own file, not ${Parser.sourceJsonToFull(m.source)}'s">(via ${Parser.sourceJsonToAbv(m._b20FoundIn)})</span>` : ""}</span>
 					<span title="${Parser.sourceJsonToFull(m.source)}" class="src col-1 ib">SRC[${Parser.sourceJsonToAbv(m.source)}]</span>
 					<span class="cr col-2 ib">${m.cr === undefined ? "CR[Unknown]" : `CR[${(m.cr.cr || m.cr)}]`}</span>
 					<span class="col-2 ib"><input class="target-rename" style="max-width: calc(100% - 18px);" placeholder="Rename To..."></span>
@@ -35525,31 +35549,34 @@ function d20plusMonsters () {
 
 		const toLoad = Object.keys(monsterDataUrls)
 			.filter(src => !(SourceUtil.isNonstandardSource(src) && filterUnofficial))
-			.map(src => d20plus.monsters.formMonsterUrl(monsterDataUrls[src]));
+			.map(src => ({src, url: d20plus.monsters.formMonsterUrl(monsterDataUrls[src])}));
 
 		if (toLoad.length) {
-			const dataStack = (await Promise.all(toLoad.map(async url => {
+			const dataStack = await Promise.all(toLoad.map(async ({src, url}) => {
 				try {
-					return await DataUtil.loadJSON(url);
+					return {src, data: await DataUtil.loadJSON(url)};
 				} catch (e) {
 					console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
-					return [];
+					return {src, data: null};
 				}
-			}))).flat();
-
-			let toShow = [];
-
-			const seen = {};
-			await Promise.all(dataStack.map(async d => {
-				const toAdd = d.monster.filter(m => {
-					const out = !(seen[m.source] && seen[m.source].has(m.name));
-					if (!seen[m.source]) seen[m.source] = new Set();
-					seen[m.source].add(m.name);
-					return out;
-				});
-
-				toShow = toShow.concat(toAdd);
 			}));
+
+			// Keep every copy of a (source, name) pair instead of silently dropping duplicates - some
+			// books bundle a reprint of another book's monster, tagged with that monster's ORIGINAL
+			// source, so their own `_copy` can resolve it (e.g. GoS embeds its own copy of ToA's
+			// "Fenthaza"). The same (source, name) can legitimately appear in more than one loaded
+			// file, and which copy "won" under the old silent-drop dedup depended on nondeterministic
+			// Promise.all resolution order. Tag each entry with which book's file it actually came
+			// from (when that differs from its own declared source) so the list can show every copy
+			// and the user picks, rather than the tool guessing for them.
+			let toShow = [];
+			dataStack.forEach(({src, data}) => {
+				if (!data) return;
+				(data.monster || []).forEach(m => {
+					if (src !== m.source) m._b20FoundIn = src;
+					toShow.push(m);
+				});
+			});
 
 			await d20plus.importer.showImportList(
 				"monster",
@@ -48328,7 +48355,7 @@ function tools5eTool () {
 				const $win = $("#d20plus-shapeshiftbuild");
 				$win.dialog("open");
 
-				const toLoad = Object.keys(monsterDataUrls).map(src => d20plus.monsters.formMonsterUrl(monsterDataUrls[src]));
+				const toLoad = Object.keys(monsterDataUrls).map(src => ({src, url: d20plus.monsters.formMonsterUrl(monsterDataUrls[src])}));
 
 				const $fltr = $win.find(`.filter`);
 				$fltr.off("keydown").off("keyup");
@@ -48337,29 +48364,27 @@ function tools5eTool () {
 				const $lst = $win.find(`.list`);
 				let tokenList;
 
-				const dataStack = (await Promise.all(toLoad.map(async url => {
+				const dataStack = await Promise.all(toLoad.map(async ({src, url}) => {
 					try {
-						return await DataUtil.loadJSON(url);
+						return {src, data: await DataUtil.loadJSON(url)};
 					} catch (e) {
 						console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
-						return [];
+						return {src, data: null};
 					}
-				}))).flat();
+				}));
 
 				$lst.empty();
+
+				// Keep every copy of a (source, name) pair instead of silently dropping duplicates -
+				// see the matching comment in d20plus.monsters.buttonAll (5etools-monsters.js) for why.
 				let toShow = [];
-
-				const seen = {};
-				await Promise.all(dataStack.map(async d => {
-					const toAdd = d.monster.filter(m => {
-						const out = !(seen[m.source] && seen[m.source].has(m.name));
-						if (!seen[m.source]) seen[m.source] = new Set();
-						seen[m.source].add(m.name);
-						return out;
+				dataStack.forEach(({src, data}) => {
+					if (!data) return;
+					(data.monster || []).forEach(m => {
+						if (src !== m.source) m._b20FoundIn = src;
+						toShow.push(m);
 					});
-
-					toShow = toShow.concat(toAdd);
-				}));
+				});
 
 				toShow = toShow.sort((a, b) => SortUtil.ascSort(a.name, b.name));
 
@@ -48374,6 +48399,7 @@ function tools5eTool () {
 									<span class="type col-4">TYP[${m.__pType.uppercaseFirst()}]</span>
 									<span class="cr col-2">${m.cr === undefined ? "CR[Unknown]" : `CR[${(m.cr.cr || m.cr)}]`}</span>
 									<span title="${Parser.sourceJsonToFull(m.source)}" class="source">SRC[${Parser.sourceJsonToAbv(m.source)}]</span>
+									${m._b20FoundIn ? `<span title="Bundled inside ${Parser.sourceJsonToFull(m._b20FoundIn)}'s own file, not ${Parser.sourceJsonToFull(m.source)}'s">(via ${Parser.sourceJsonToAbv(m._b20FoundIn)})</span>` : ""}
 								</label>
 							`;
 				});
@@ -48489,31 +48515,29 @@ function tools5eTool () {
 
 				let tokenList;
 
-				const toLoad = Object.keys(monsterDataUrls).map(src => d20plus.monsters.formMonsterUrl(monsterDataUrls[src]));
+				const toLoad = Object.keys(monsterDataUrls).map(src => ({src, url: d20plus.monsters.formMonsterUrl(monsterDataUrls[src])}));
 
-				const dataStack = (await Promise.all(toLoad.map(async url => {
+				const dataStack = await Promise.all(toLoad.map(async ({src, url}) => {
 					try {
-						return await DataUtil.loadJSON(url);
+						return {src, data: await DataUtil.loadJSON(url)};
 					} catch (e) {
 						console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
-						return [];
+						return {src, data: null};
 					}
-				}))).flat();
+				}));
 
 				$lst.empty();
+
+				// Keep every copy of a (source, name) pair instead of silently dropping duplicates -
+				// see the matching comment in d20plus.monsters.buttonAll (5etools-monsters.js) for why.
 				let toShow = [];
-
-				const seen = {};
-				await Promise.all(dataStack.map(async d => {
-					const toAdd = d.monster.filter(m => {
-						const out = !(seen[m.source] && seen[m.source].has(m.name));
-						if (!seen[m.source]) seen[m.source] = new Set();
-						seen[m.source].add(m.name);
-						return out;
+				dataStack.forEach(({src, data}) => {
+					if (!data) return;
+					(data.monster || []).forEach(m => {
+						if (src !== m.source) m._b20FoundIn = src;
+						toShow.push(m);
 					});
-
-					toShow = toShow.concat(toAdd);
-				}));
+				});
 
 				toShow = toShow.sort((a, b) => SortUtil.ascSort(a.name, b.name));
 
@@ -48528,6 +48552,7 @@ function tools5eTool () {
 								<span class="type col-4">TYP[${m.__pType.uppercaseFirst()}]</span>
 								<span class="cr col-2">${m.cr === undefined ? "CR[Unknown]" : `CR[${(m.cr.cr || m.cr)}]`}</span>
 								<span title="${Parser.sourceJsonToFull(m.source)}" class="source">SRC[${Parser.sourceJsonToAbv(m.source)}]</span>
+								${m._b20FoundIn ? `<span title="Bundled inside ${Parser.sourceJsonToFull(m._b20FoundIn)}'s own file, not ${Parser.sourceJsonToFull(m.source)}'s">(via ${Parser.sourceJsonToAbv(m._b20FoundIn)})</span>` : ""}
 								</label>
 								`;
 				});
@@ -49400,13 +49425,18 @@ function d20plusAdventure () {
 		return [...names];
 	}
 
-	// Fetch creature data from CDN, grouped by source. `homebrewMonsters`, if given, is checked
-	// first (name+source, falling back to name-only) since homebrew-defined creatures won't
-	// exist on the official CDN under any source code.
-	async function fetchCreatureData (refs, homebrewMonsters) {
+	// Fetch creature data from CDN. Resolution order mirrors how the book is actually run: try the
+	// adventure/book's own bestiary first (its own reskins/renames should win over a same-named
+	// entry elsewhere, regardless of what source a given {@creature Name|Source} reference happens
+	// to declare), then the core Monster Manual for whichever ruleset is active (2014 "MM" vs 2024
+	// "XMM" - see d20plus.importer.shouldUse2024), then fall back to whatever source each remaining
+	// reference actually declared. `homebrewMonsters`, if given, is checked first of all (name+
+	// source, falling back to name-only) since homebrew-defined creatures won't exist on the
+	// official CDN under any source code.
+	async function fetchCreatureData (refs, homebrewMonsters, primarySource) {
 		if (!refs.length) return [];
 		const result = [];
-		const remaining = [];
+		let remaining = [];
 		if (homebrewMonsters?.length) {
 			refs.forEach(ref => {
 				const nameLower = ref.name.toLowerCase();
@@ -49419,26 +49449,63 @@ function d20plusAdventure () {
 			remaining.push(...refs);
 		}
 
-		const bySource = {};
-		remaining.forEach(({name, source}) => {
-			if (!bySource[source]) bySource[source] = new Set();
-			bySource[source].add(name.toLowerCase());
-		});
-		for (const [source, names] of Object.entries(bySource)) {
-			const filename = monsterDataUrls[source] || monsterDataUrls[source.toLowerCase()];
+		// Fetches one bestiary source and claims matching names out of `remaining`. With
+		// `matchAnyName`, any remaining ref whose NAME matches is claimed regardless of its own
+		// declared source (used for the primary-book and core-MM tiers, which are meant to override
+		// a reference's own source tag). Without it, only refs that specifically declared THIS
+		// source are matched (the original, conservative per-reference behaviour, used as the last
+		// resort so an unrelated same-named creature from another tier's file is never picked up by
+		// accident).
+		async function resolveFrom (source, matchAnyName) {
+			if (!remaining.length || !source) return;
+			// monsterDataUrls' real keys use mixed case for some sources (e.g. "ToA", not "TOA"/
+			// "toa"), while a reference's own declared source is always upper-cased by
+			// extractCreatureRefs, and adventure/book metadata's `source` field doesn't reliably
+			// match the bestiary index's casing either (confirmed live: ToA's own adventure metadata
+			// reports source "TOA", which matches neither "ToA" nor "toa" via a plain lowercase
+			// fallback) - so match case-insensitively against monsterDataUrls' actual keys instead of
+			// guessing at one specific casing.
+			const sourceLower = source.toLowerCase();
+			const realKey = Object.keys(monsterDataUrls).find(k => k.toLowerCase() === sourceLower);
+			const filename = realKey ? monsterDataUrls[realKey] : null;
 			if (!filename) {
 				d20plus.ut.log(`Bestiary: no file for source "${source}" — skipping`);
-				continue;
+				return;
 			}
+			let data;
 			try {
-				const data = await DataUtil.loadJSON(`${MONSTER_DATA_DIR}${filename}`);
-				(data.monster || []).forEach(m => {
-					if (names.has(m.name.toLowerCase())) result.push(m);
-				});
+				data = await DataUtil.loadJSON(`${MONSTER_DATA_DIR}${filename}`);
 			} catch (e) {
 				d20plus.ut.log(`Bestiary fetch failed for "${source}": ${e.message || e}`);
+				return;
 			}
+			const byName = new Map((data.monster || []).map(m => [m.name.toLowerCase(), m]));
+			remaining = remaining.filter(ref => {
+				if (!matchAnyName && ref.source.toLowerCase() !== source.toLowerCase()) return true;
+				const match = byName.get(ref.name.toLowerCase());
+				if (!match) return true;
+				result.push(match);
+				return false;
+			});
 		}
+
+		// Tier 1: the adventure/book's own bestiary.
+		await resolveFrom(primarySource, true);
+
+		// Tier 2: the core Monster Manual for the active ruleset.
+		if (remaining.length) {
+			const hasKeyCi = key => Object.keys(monsterDataUrls).some(k => k.toLowerCase() === key.toLowerCase());
+			const uses2024Mm = d20plus.importer.shouldUse2024?.() && hasKeyCi("XMM");
+			const mmKey = uses2024Mm ? "XMM" : "MM";
+			if (mmKey.toLowerCase() !== (primarySource || "").toLowerCase()) await resolveFrom(mmKey, true);
+		}
+
+		// Tier 3: anything else - whatever source each remaining reference actually declared.
+		if (remaining.length) {
+			const sources = [...new Set(remaining.map(ref => ref.source))];
+			for (const source of sources) await resolveFrom(source, false);
+		}
+
 		return result;
 	}
 
@@ -50127,7 +50194,7 @@ function d20plusAdventure () {
 		d20plus.ut.log("Fetching referenced creature/item data...");
 		const [monsters, items] = await Promise.all([
 			(toImport.includes("Creatures") && hasCreatures)
-				? fetchCreatureData(extractCreatureRefs(sections), opts.homebrewData?.monster)
+				? fetchCreatureData(extractCreatureRefs(sections), opts.homebrewData?.monster, contentSource || meta.source)
 					.catch(e => { d20plus.ut.log("Creature fetch error: " + e); return []; })
 				: Promise.resolve([]),
 			(toImport.includes("Items") && hasItems)
