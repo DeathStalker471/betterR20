@@ -54,15 +54,6 @@
 				}
 			],
 			"startingProficiencies": {
-				"armor": [
-					"light",
-					"medium",
-					"shield"
-				],
-				"weapons": [
-					"simple",
-					"martial"
-				],
 				"skills": [
 					{
 						"choose": {
@@ -78,6 +69,22 @@
 							],
 							"count": 3
 						}
+					}
+				],
+				"weapons": [
+					"simple",
+					"martial"
+				],
+				"armor": [
+					"light",
+					"medium",
+					"shield"
+				],
+				"armorProficiencies": [
+					{
+						"light": true,
+						"medium": true,
+						"shield": true
 					}
 				]
 			},
@@ -135,11 +142,6 @@
 					"wis": 13
 				},
 				"proficienciesGained": {
-					"armor": [
-						"light",
-						"medium",
-						"shield"
-					],
 					"skills": [
 						{
 							"choose": {
@@ -160,6 +162,18 @@
 					"weapons": [
 						"simple",
 						"martial"
+					],
+					"armor": [
+						"light",
+						"medium",
+						"shield"
+					],
+					"armorProficiencies": [
+						{
+							"light": true,
+							"medium": true,
+							"shield": true
+						}
 					]
 				}
 			},
@@ -685,8 +699,8 @@
 				"{@i 1st-level ranger {@variantrule optional class features|tce|optional feature}, which replaces the Natural Explorer feature}",
 				"You are an unsurpassed explorer and survivor, both in the wilderness and in dealing with others on your travels. You gain the Canny benefit below, and you gain an additional benefit below when you reach 6th level and 10th level in this class.",
 				{
-					"name": "Canny",
 					"type": "entries",
+					"name": "Canny",
 					"entries": [
 						"Choose one of your skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses the chosen skill.",
 						"You can also speak, read, and write two additional languages of your choice."
@@ -2025,7 +2039,7 @@
 			"entries": [
 				"{@i 15th-level Fey Wanderer feature}",
 				"You can slip in and out of the Feywild to move in a blink of an eye: you can cast {@spell misty step} without expending a spell slot. You can do so a number of times equal to your Wisdom modifier (minimum of once), and you regain all expended uses when you finish a long rest.",
-				"In addition, whenever you cast {@i misty step}, you can bring along one willing creature you can see within 5 feet of you. That creature teleports to an unoccupied space of your choice within 5 feet of your destination space."
+				"In addition, whenever you cast {@spell misty step}, you can bring along one willing creature you can see within 5 feet of you. That creature teleports to an unoccupied space of your choice within 5 feet of your destination space."
 			]
 		},
 		{

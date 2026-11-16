@@ -79,13 +79,6 @@
 				}
 			],
 			"startingProficiencies": {
-				"weapons": [
-					"{@item dagger|phb|daggers}",
-					"{@item dart|phb|darts}",
-					"{@item sling|phb|slings}",
-					"{@item quarterstaff|phb|quarterstaffs}",
-					"{@item light crossbow|phb|light crossbows}"
-				],
 				"skills": [
 					{
 						"choose": {
@@ -100,6 +93,13 @@
 							"count": 2
 						}
 					}
+				],
+				"weapons": [
+					"{@item dagger|phb|daggers}",
+					"{@item dart|phb|darts}",
+					"{@item sling|phb|slings}",
+					"{@item quarterstaff|phb|quarterstaffs}",
+					"{@item light crossbow|phb|light crossbows}"
 				]
 			},
 			"startingEquipment": {
@@ -1083,6 +1083,7 @@
 					"name": "Full Moon",
 					"known": {
 						"1": [
+							"sacred flame#c",
 							"shield",
 							"ray of sickness",
 							"color spray"

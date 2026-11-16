@@ -169,7 +169,7 @@ function tools5eTool () {
 				const $win = $("#d20plus-shapeshiftbuild");
 				$win.dialog("open");
 
-				const toLoad = Object.keys(monsterDataUrls).map(src => d20plus.monsters.formMonsterUrl(monsterDataUrls[src]));
+				const toLoad = Object.keys(monsterDataUrls).map(src => ({src, url: d20plus.monsters.formMonsterUrl(monsterDataUrls[src])}));
 
 				const $fltr = $win.find(`.filter`);
 				$fltr.off("keydown").off("keyup");
@@ -178,29 +178,27 @@ function tools5eTool () {
 				const $lst = $win.find(`.list`);
 				let tokenList;
 
-				const dataStack = (await Promise.all(toLoad.map(async url => {
+				const dataStack = await Promise.all(toLoad.map(async ({src, url}) => {
 					try {
-						return await DataUtil.loadJSON(url);
+						return {src, data: await DataUtil.loadJSON(url)};
 					} catch (e) {
 						console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
-						return [];
+						return {src, data: null};
 					}
-				}))).flat();
+				}));
 
 				$lst.empty();
+
+				// Keep every copy of a (source, name) pair instead of silently dropping duplicates -
+				// see the matching comment in d20plus.monsters.buttonAll (5etools-monsters.js) for why.
 				let toShow = [];
-
-				const seen = {};
-				await Promise.all(dataStack.map(async d => {
-					const toAdd = d.monster.filter(m => {
-						const out = !(seen[m.source] && seen[m.source].has(m.name));
-						if (!seen[m.source]) seen[m.source] = new Set();
-						seen[m.source].add(m.name);
-						return out;
+				dataStack.forEach(({src, data}) => {
+					if (!data) return;
+					(data.monster || []).forEach(m => {
+						if (src !== m.source) m._b20FoundIn = src;
+						toShow.push(m);
 					});
-
-					toShow = toShow.concat(toAdd);
-				}));
+				});
 
 				toShow = toShow.sort((a, b) => SortUtil.ascSort(a.name, b.name));
 
@@ -215,6 +213,7 @@ function tools5eTool () {
 									<span class="type col-4">TYP[${m.__pType.uppercaseFirst()}]</span>
 									<span class="cr col-2">${m.cr === undefined ? "CR[Unknown]" : `CR[${(m.cr.cr || m.cr)}]`}</span>
 									<span title="${Parser.sourceJsonToFull(m.source)}" class="source">SRC[${Parser.sourceJsonToAbv(m.source)}]</span>
+									${m._b20FoundIn ? `<span title="Bundled inside ${Parser.sourceJsonToFull(m._b20FoundIn)}'s own file, not ${Parser.sourceJsonToFull(m.source)}'s">(via ${Parser.sourceJsonToAbv(m._b20FoundIn)})</span>` : ""}
 								</label>
 							`;
 				});
@@ -330,31 +329,29 @@ function tools5eTool () {
 
 				let tokenList;
 
-				const toLoad = Object.keys(monsterDataUrls).map(src => d20plus.monsters.formMonsterUrl(monsterDataUrls[src]));
+				const toLoad = Object.keys(monsterDataUrls).map(src => ({src, url: d20plus.monsters.formMonsterUrl(monsterDataUrls[src])}));
 
-				const dataStack = (await Promise.all(toLoad.map(async url => {
+				const dataStack = await Promise.all(toLoad.map(async ({src, url}) => {
 					try {
-						return await DataUtil.loadJSON(url);
+						return {src, data: await DataUtil.loadJSON(url)};
 					} catch (e) {
 						console.warn(`betteR20: Failed to load monster data from ${url} - skipping. Error:`, e.message);
-						return [];
+						return {src, data: null};
 					}
-				}))).flat();
+				}));
 
 				$lst.empty();
+
+				// Keep every copy of a (source, name) pair instead of silently dropping duplicates -
+				// see the matching comment in d20plus.monsters.buttonAll (5etools-monsters.js) for why.
 				let toShow = [];
-
-				const seen = {};
-				await Promise.all(dataStack.map(async d => {
-					const toAdd = d.monster.filter(m => {
-						const out = !(seen[m.source] && seen[m.source].has(m.name));
-						if (!seen[m.source]) seen[m.source] = new Set();
-						seen[m.source].add(m.name);
-						return out;
+				dataStack.forEach(({src, data}) => {
+					if (!data) return;
+					(data.monster || []).forEach(m => {
+						if (src !== m.source) m._b20FoundIn = src;
+						toShow.push(m);
 					});
-
-					toShow = toShow.concat(toAdd);
-				}));
+				});
 
 				toShow = toShow.sort((a, b) => SortUtil.ascSort(a.name, b.name));
 
@@ -369,6 +366,7 @@ function tools5eTool () {
 								<span class="type col-4">TYP[${m.__pType.uppercaseFirst()}]</span>
 								<span class="cr col-2">${m.cr === undefined ? "CR[Unknown]" : `CR[${(m.cr.cr || m.cr)}]`}</span>
 								<span title="${Parser.sourceJsonToFull(m.source)}" class="source">SRC[${Parser.sourceJsonToAbv(m.source)}]</span>
+								${m._b20FoundIn ? `<span title="Bundled inside ${Parser.sourceJsonToFull(m._b20FoundIn)}'s own file, not ${Parser.sourceJsonToFull(m.source)}'s">(via ${Parser.sourceJsonToAbv(m._b20FoundIn)})</span>` : ""}
 								</label>
 								`;
 				});

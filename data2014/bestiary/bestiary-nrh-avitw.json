@@ -67,6 +67,7 @@
 					]
 				}
 			],
+			"familiar": true,
 			"tokenCustom": true,
 			"traitTags": [
 				"Keen Senses"

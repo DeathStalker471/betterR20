@@ -2661,6 +2661,7 @@
 					]
 				}
 			],
+			"familiar": true,
 			"tokenCustom": true,
 			"traitTags": [
 				"Spider Climb"

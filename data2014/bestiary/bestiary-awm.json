@@ -186,6 +186,7 @@
 					]
 				}
 			],
+			"familiar": true,
 			"tokenCustom": true,
 			"traitTags": [
 				"Pack Tactics"

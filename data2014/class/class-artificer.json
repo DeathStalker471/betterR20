@@ -75,10 +75,21 @@
 				}
 			],
 			"startingProficiencies": {
-				"armor": [
-					"light",
-					"medium",
-					"shield"
+				"skills": [
+					{
+						"choose": {
+							"from": [
+								"arcana",
+								"history",
+								"investigation",
+								"medicine",
+								"nature",
+								"perception",
+								"sleight of hand"
+							],
+							"count": 2
+						}
+					}
 				],
 				"weapons": [
 					"simple",
@@ -99,20 +110,16 @@
 						"anyArtisansTool": 1
 					}
 				],
-				"skills": [
+				"armor": [
+					"light",
+					"medium",
+					"shield"
+				],
+				"armorProficiencies": [
 					{
-						"choose": {
-							"from": [
-								"arcana",
-								"history",
-								"investigation",
-								"medicine",
-								"nature",
-								"perception",
-								"sleight of hand"
-							],
-							"count": 2
-						}
+						"light": true,
+						"medium": true,
+						"shield": true
 					}
 				]
 			},
@@ -161,11 +168,6 @@
 					"int": 13
 				},
 				"proficienciesGained": {
-					"armor": [
-						"light",
-						"medium",
-						"shield"
-					],
 					"tools": [
 						"{@item thieves' tools|PHB}",
 						"{@item tinker's tools|PHB}"
@@ -174,6 +176,18 @@
 						{
 							"thieves' tools": true,
 							"tinker's tools": true
+						}
+					],
+					"armor": [
+						"light",
+						"medium",
+						"shield"
+					],
+					"armorProficiencies": [
+						{
+							"light": true,
+							"medium": true,
+							"shield": true
 						}
 					]
 				}

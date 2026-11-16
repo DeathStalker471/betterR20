@@ -142,6 +142,11 @@ function baseConfig () {
 			"_type": "boolean",
 			"_player": true,
 		},
+		"autoOpenInitiativeTracker": {
+			"name": "Auto-Open Turn Order When Initiative Is Rolled",
+			"default": true,
+			"_type": "boolean",
+		},
 		"hideDefaultJournalSearch": {
 			"name": "Hide Default Journal Search Bar",
 			"default": false,

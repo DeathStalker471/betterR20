@@ -1797,8 +1797,8 @@
 				"The doll is a Tiny construct. Destroying the doll causes the child's soul within it to become trapped in {@adventure the Soulmonger|ToA|5|The Soulmonger}.",
 				{
 					"type": "statblockInline",
-					"dataType": "object",
-					"data": {
+					"statblockType": "object",
+					"statblockData": {
 						"name": "Clay No-Face",
 						"isNpc": true,
 						"source": "ToA",
@@ -2662,7 +2662,7 @@
 							"name": "Resolution",
 							"page": 194,
 							"entries": [
-								"This curse can't be broken until the character is reduced to 0 hit points by a silvered weapon. If the character survives, the curse can be broken as described in the \"{@book Loup Garou Lycanthropy|VRGR|5|Loup Garou Lycanthropy}\" section of {@book chapter 5|VRGR|5}. Treat the character as a {@creature werewolf} whose loup garou progenitor has been killed."
+								"This curse can't be broken until the character is reduced to 0 hit points by a silvered weapon. If the character survives, the curse can be broken as described in the \"{@creature Loup Garou|VRGR|5|Loup Garou Lycanthropy}\" section of {@book chapter 5|VRGR|5}. Treat the character as a {@creature werewolf} whose loup garou progenitor has been killed."
 							]
 						}
 					]
@@ -2761,8 +2761,8 @@
 				"The doll is a Tiny construct. Destroying the doll causes the child's soul within it to become trapped in {@adventure the Soulmonger|ToA|5|The Soulmonger}.",
 				{
 					"type": "statblockInline",
-					"dataType": "object",
-					"data": {
+					"statblockType": "object",
+					"statblockData": {
 						"name": "Joho",
 						"isNpc": true,
 						"source": "ToA",
@@ -3646,8 +3646,8 @@
 				"The doll is a Tiny construct. Destroying the doll causes the child's soul within it to become trapped in {@adventure the Soulmonger|ToA|5|The Soulmonger}.",
 				{
 					"type": "statblockInline",
-					"dataType": "object",
-					"data": {
+					"statblockType": "object",
+					"statblockData": {
 						"name": "Strawbundle",
 						"isNpc": true,
 						"source": "ToA",

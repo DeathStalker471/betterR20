@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-const SCRIPT_VERSION = process.env.SCRIPT_VERSION || "1.36.1.8-beta";
+const SCRIPT_VERSION = process.env.SCRIPT_VERSION || "1.36.1.9-beta";
 const SCRIPT_REPO = process.env.SCRIPT_REPO || "https://github.com/DeathStalker471/betterR20/releases/latest/download/";
 
 const SCRIPT_BETA_DESCRIPTION = `This version contains following changes
@@ -208,6 +208,7 @@ const SCRIPTS = {
 		"base/base-ui",
 		"base/base-mod",
 		"base/base-macro",
+		"base/base-turnorder",
 		"base/base-chat-languages",
 		"base/base-chat-emoji",
 		"base/base-chat",
@@ -262,6 +263,7 @@ const SCRIPTS = {
 		"base/base-ui",
 		"base/base-mod",
 		"base/base-macro",
+		"base/base-turnorder",
 		"base/base-chat-languages",
 		"base/base-chat-emoji",
 		"base/base-chat",
@@ -290,6 +292,7 @@ const SCRIPTS = {
 		"5etools/2024/5etools-2024-sheet-config",
 		"5etools/2024/5etools-2024-ogl-translator",
 		"5etools/2024/5etools-2024-monster-import",
+		"5etools/2024/5etools-2024-monster-tokenactions",
 		"5etools/2024/5etools-2024-npc-sidekick-data",
 		"5etools/2024/5etools-2024-npc-converter",
 		"5etools/2024/5etools-2024-npc-level-up",
@@ -356,6 +359,7 @@ const SCRIPTS = {
 		"base/base-ui",
 		"base/base-mod",
 		"base/base-macro",
+		"base/base-turnorder",
 		"base/base-chat-languages",
 		"base/base-chat-emoji",
 		"base/base-chat",
@@ -383,6 +387,7 @@ const SCRIPTS = {
 		"5etools/2024/5etools-2024-sheet-config",
 		"5etools/2024/5etools-2024-ogl-translator",
 		"5etools/2024/5etools-2024-monster-import",
+		"5etools/2024/5etools-2024-monster-tokenactions",
 		"5etools/2024/5etools-2024-npc-sidekick-data",
 		"5etools/2024/5etools-2024-npc-converter",
 		"5etools/2024/5etools-2024-npc-level-up",

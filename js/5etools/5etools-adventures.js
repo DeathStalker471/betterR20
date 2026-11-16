@@ -93,13 +93,18 @@ function d20plusAdventure () {
 		return [...names];
 	}
 
-	// Fetch creature data from CDN, grouped by source. `homebrewMonsters`, if given, is checked
-	// first (name+source, falling back to name-only) since homebrew-defined creatures won't
-	// exist on the official CDN under any source code.
-	async function fetchCreatureData (refs, homebrewMonsters) {
+	// Fetch creature data from CDN. Resolution order mirrors how the book is actually run: try the
+	// adventure/book's own bestiary first (its own reskins/renames should win over a same-named
+	// entry elsewhere, regardless of what source a given {@creature Name|Source} reference happens
+	// to declare), then the core Monster Manual for whichever ruleset is active (2014 "MM" vs 2024
+	// "XMM" - see d20plus.importer.shouldUse2024), then fall back to whatever source each remaining
+	// reference actually declared. `homebrewMonsters`, if given, is checked first of all (name+
+	// source, falling back to name-only) since homebrew-defined creatures won't exist on the
+	// official CDN under any source code.
+	async function fetchCreatureData (refs, homebrewMonsters, primarySource) {
 		if (!refs.length) return [];
 		const result = [];
-		const remaining = [];
+		let remaining = [];
 		if (homebrewMonsters?.length) {
 			refs.forEach(ref => {
 				const nameLower = ref.name.toLowerCase();
@@ -112,26 +117,63 @@ function d20plusAdventure () {
 			remaining.push(...refs);
 		}
 
-		const bySource = {};
-		remaining.forEach(({name, source}) => {
-			if (!bySource[source]) bySource[source] = new Set();
-			bySource[source].add(name.toLowerCase());
-		});
-		for (const [source, names] of Object.entries(bySource)) {
-			const filename = monsterDataUrls[source] || monsterDataUrls[source.toLowerCase()];
+		// Fetches one bestiary source and claims matching names out of `remaining`. With
+		// `matchAnyName`, any remaining ref whose NAME matches is claimed regardless of its own
+		// declared source (used for the primary-book and core-MM tiers, which are meant to override
+		// a reference's own source tag). Without it, only refs that specifically declared THIS
+		// source are matched (the original, conservative per-reference behaviour, used as the last
+		// resort so an unrelated same-named creature from another tier's file is never picked up by
+		// accident).
+		async function resolveFrom (source, matchAnyName) {
+			if (!remaining.length || !source) return;
+			// monsterDataUrls' real keys use mixed case for some sources (e.g. "ToA", not "TOA"/
+			// "toa"), while a reference's own declared source is always upper-cased by
+			// extractCreatureRefs, and adventure/book metadata's `source` field doesn't reliably
+			// match the bestiary index's casing either (confirmed live: ToA's own adventure metadata
+			// reports source "TOA", which matches neither "ToA" nor "toa" via a plain lowercase
+			// fallback) - so match case-insensitively against monsterDataUrls' actual keys instead of
+			// guessing at one specific casing.
+			const sourceLower = source.toLowerCase();
+			const realKey = Object.keys(monsterDataUrls).find(k => k.toLowerCase() === sourceLower);
+			const filename = realKey ? monsterDataUrls[realKey] : null;
 			if (!filename) {
 				d20plus.ut.log(`Bestiary: no file for source "${source}" — skipping`);
-				continue;
+				return;
 			}
+			let data;
 			try {
-				const data = await DataUtil.loadJSON(`${MONSTER_DATA_DIR}${filename}`);
-				(data.monster || []).forEach(m => {
-					if (names.has(m.name.toLowerCase())) result.push(m);
-				});
+				data = await DataUtil.loadJSON(`${MONSTER_DATA_DIR}${filename}`);
 			} catch (e) {
 				d20plus.ut.log(`Bestiary fetch failed for "${source}": ${e.message || e}`);
+				return;
 			}
+			const byName = new Map((data.monster || []).map(m => [m.name.toLowerCase(), m]));
+			remaining = remaining.filter(ref => {
+				if (!matchAnyName && ref.source.toLowerCase() !== source.toLowerCase()) return true;
+				const match = byName.get(ref.name.toLowerCase());
+				if (!match) return true;
+				result.push(match);
+				return false;
+			});
 		}
+
+		// Tier 1: the adventure/book's own bestiary.
+		await resolveFrom(primarySource, true);
+
+		// Tier 2: the core Monster Manual for the active ruleset.
+		if (remaining.length) {
+			const hasKeyCi = key => Object.keys(monsterDataUrls).some(k => k.toLowerCase() === key.toLowerCase());
+			const uses2024Mm = d20plus.importer.shouldUse2024?.() && hasKeyCi("XMM");
+			const mmKey = uses2024Mm ? "XMM" : "MM";
+			if (mmKey.toLowerCase() !== (primarySource || "").toLowerCase()) await resolveFrom(mmKey, true);
+		}
+
+		// Tier 3: anything else - whatever source each remaining reference actually declared.
+		if (remaining.length) {
+			const sources = [...new Set(remaining.map(ref => ref.source))];
+			for (const source of sources) await resolveFrom(source, false);
+		}
+
 		return result;
 	}
 
@@ -820,7 +862,7 @@ function d20plusAdventure () {
 		d20plus.ut.log("Fetching referenced creature/item data...");
 		const [monsters, items] = await Promise.all([
 			(toImport.includes("Creatures") && hasCreatures)
-				? fetchCreatureData(extractCreatureRefs(sections), opts.homebrewData?.monster)
+				? fetchCreatureData(extractCreatureRefs(sections), opts.homebrewData?.monster, contentSource || meta.source)
 					.catch(e => { d20plus.ut.log("Creature fetch error: " + e); return []; })
 				: Promise.resolve([]),
 			(toImport.includes("Items") && hasItems)

@@ -207,59 +207,107 @@ function d20plusImporter () {
 			case "Below": defaulttoken.bar_location = "below"; break;
 		}
 
-		// Token bars — Jumpgate 2024 stores HP/AC in the store blob, not individual attribs.
-		// Use static values from the store; OGL path links bars to attributes as before.
+		// Token bars — one config-driven pass shared by 2014/OGL and Jumpgate 2024 sheets.
+		// Bars are always static snapshots taken at import time, never linked via barN_link:
+		// a linked bar live-reads from the character's attribute, so every token dragged from
+		// the same journal character would share one HP/AC instead of being independently
+		// editable once multiple copies are on the map.
 		const storeAttr = character.attribs?.find(a => a.get("name") === "store");
-		if (storeAttr) {
-			const store = storeAttr.get("current");
-			if (store && typeof store === "object") {
-				const hp = store.hitpoints?.currentHP;
-				if (hp != null) {
-					defaulttoken.bar1_value = String(hp);
-					defaulttoken.bar1_max = String(hp);
+		const store2024 = storeAttr?.get("current");
+		const store = store2024 && typeof store2024 === "object" ? store2024 : null;
+
+		// Resolves an NPC_SHEET_ATTRIBUTES key to a value from the Jumpgate 2024 store blob.
+		// Keys with no 2024 equivalent (e.g. spell_save_dc - never stored anywhere in the
+		// store) resolve to undefined, and the bar is simply left unset.
+		function resolve2024BarValue (cfgKey) {
+			if (!store) return undefined;
+			switch (cfgKey) {
+				case "npc_hpbase": return store.hitpoints?.currentHP;
+				case "npc_ac": {
+					const acInt = Object.values(store.integrants?.integrants || {}).find(i => i.type === "Armor Class");
+					return acInt?.valueFormula?.flatValue;
 				}
-				const acInt = Object.values(store.integrants?.integrants || {})
-					.find(i => i.type === "Armor Class");
-				if (acInt?.valueFormula?.flatValue != null) {
-					defaulttoken.bar2_value = String(acInt.valueFormula.flatValue);
+				case "npc_speed": {
+					const spdInt = Object.values(store.integrants?.integrants || {}).find(i => i.type === "Speed" && i.name === "Walking");
+					return spdInt?.valueFormula?.flatValue;
 				}
-			}
-		} else if (character.attribs) {
-			// OGL: link bars to attributes by name/id
-			const bar1AttrName = d20plus.cfg.getOrDefault("token", "bar1");
-			if (bar1AttrName) {
-				const bar1Attr = character.attribs.find(a => a.get("name").toLowerCase() === bar1AttrName.toLowerCase());
-				if (bar1Attr) {
-					defaulttoken.bar1_link = bar1Attr.id;
-					defaulttoken.bar1_value = bar1Attr.get("current");
-					if (d20plus.cfg.getOrDefault("token", "bar1_max")) {
-						defaulttoken.bar1_max = bar1Attr.get("max") || bar1Attr.get("current");
-					}
-				}
-			}
-			const bar2AttrName = d20plus.cfg.getOrDefault("token", "bar2");
-			if (bar2AttrName) {
-				const bar2Attr = character.attribs.find(a => a.get("name").toLowerCase() === bar2AttrName.toLowerCase());
-				if (bar2Attr) {
-					defaulttoken.bar2_link = bar2Attr.id;
-					defaulttoken.bar2_value = bar2Attr.get("current");
-					if (d20plus.cfg.getOrDefault("token", "bar2_max")) {
-						defaulttoken.bar2_max = bar2Attr.get("max") || bar2Attr.get("current");
-					}
-				}
-			}
-			const bar3AttrName = d20plus.cfg.getOrDefault("token", "bar3");
-			if (bar3AttrName) {
-				const bar3Attr = character.attribs.find(a => a.get("name").toLowerCase() === bar3AttrName.toLowerCase());
-				if (bar3Attr) {
-					defaulttoken.bar3_link = bar3Attr.id;
-					defaulttoken.bar3_value = bar3Attr.get("current");
-					if (d20plus.cfg.getOrDefault("token", "bar3_max")) {
-						defaulttoken.bar3_max = bar3Attr.get("max") || bar3Attr.get("current");
-					}
-				}
+				case "npc_challenge": return store.npc?.challengeRating;
+				case "npc_hpformula": return store.npc?.rollHP;
+				case "npc_legendary_actions": return store.npc?.legendaryActionCount;
+				case "passive": return store.npc?.passivePerception;
+				default: return undefined;
 			}
 		}
+
+		// Roll/Maximise HP only apply to whichever bar (if any) is currently configured to
+		// show HP (npc_hpbase) - ported from the never-called d20plus.bindGraphics, which had
+		// the right idea but depends on Roll20 page APIs that may no longer exist.
+		const HP_BAR_KEY = "npc_hpbase";
+		const wantsMaximiseHp = d20plus.cfg.getOrDefault("token", "maximiseHp");
+		const wantsRollHp = !wantsMaximiseHp && d20plus.cfg.getOrDefault("token", "rollHP");
+		let rolledHp = null;
+		if (wantsRollHp && d20plus.cfg.getCfgKey("token", HP_BAR_KEY)) {
+			const formula = store
+				? store.npc?.rollHP
+				: character.attribs?.find(a => a.get("name").toLowerCase() === "npc_hpformula")?.get("current");
+			if (formula) {
+				rolledHp = await new Promise(resolve => {
+					d20plus.ut.randomRoll(formula, result => resolve(result.total), () => resolve(null));
+				});
+			}
+		}
+
+		["bar1", "bar2", "bar3"].forEach(barName => {
+			const cfgKey = d20plus.cfg.getOrDefault("token", barName);
+			if (!cfgKey) return;
+
+			let value;
+			let max;
+			if (store) {
+				value = resolve2024BarValue(cfgKey);
+				if (value == null) return;
+				max = value;
+			} else if (character.attribs) {
+				const attr = character.attribs.find(a => a.get("name").toLowerCase() === cfgKey.toLowerCase());
+				if (!attr) return;
+				value = attr.get("current");
+				max = attr.get("max") || attr.get("current");
+			} else {
+				return;
+			}
+
+			if (cfgKey === HP_BAR_KEY) {
+				if (wantsMaximiseHp) {
+					const formula = store
+						? store.npc?.rollHP
+						: character.attribs?.find(a => a.get("name").toLowerCase() === "npc_hpformula")?.get("current");
+					// Only a simple "NdM(+/-K)" formula is handled arithmetically - anything more
+					// exotic (compound dice like "4d6+2d4") is left as the plain HP snapshot rather
+					// than guessed at. (eval() was deliberately not ported here: this formula comes
+					// from monster JSON, which can be loaded from an arbitrary homebrew URL.)
+					const m = formula && /^(\d+)d(\d+)([+-]\d+)?$/.exec(String(formula).replace(/\s/g, ""));
+					if (m) {
+						const maxHp = Number(m[1]) * Number(m[2]) + (m[3] ? Number(m[3]) : 0);
+						value = maxHp;
+						max = maxHp;
+					}
+				} else if (rolledHp != null) {
+					value = rolledHp;
+					max = rolledHp;
+				}
+			}
+
+			defaulttoken[`${barName}_value`] = value;
+			if (d20plus.cfg.getOrDefault("token", `${barName}_max`)) {
+				defaulttoken[`${barName}_max`] = max;
+			}
+			if (d20plus.cfg.getOrDefault("token", `${barName}_reveal`)) {
+				defaulttoken[`showplayers_${barName}`] = true;
+			}
+		});
+
+		defaulttoken.showname = !!d20plus.cfg.getOrDefault("token", "name");
+		defaulttoken.showplayers_name = !!d20plus.cfg.getOrDefault("token", "name_reveal");
 
 		// ensure any portrait URL exists
 		let outPortraitUrl = portraitUrl || avatar;

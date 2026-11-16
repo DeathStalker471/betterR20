@@ -320,3 +320,80 @@ describe('build2024Store — arrayPosition', () => {
 		expect(Math.min(...positions)).toBe(100);
 	});
 });
+
+// ---------------------------------------------------------------------------
+// Attacks
+// ---------------------------------------------------------------------------
+describe('build2024Store — Attacks', () => {
+	test('finesse weapon (Dex/Con tie) resolves to Dexterity, not the Strength default', () => {
+		const skeleton = {
+			...goblin, name: 'Skeleton', cr: '1/4',
+			str: 10, dex: 14, con: 15, int: 6, wis: 8, cha: 5,
+			action: [{ name: 'Shortsword', entries: [
+				'{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d6 + 2}) piercing damage.',
+			] }],
+		};
+		const attack = intsByType(build(skeleton), 'Attack')[0];
+		expect(attack.attack.abilityBonus).toBe('Dexterity');
+	});
+
+	test('non-weapon melee attack (Shadow Strength Drain) resolves to Dexterity', () => {
+		const shadow = {
+			...goblin, name: 'Shadow', cr: '1/2',
+			str: 6, dex: 14, con: 13, int: 6, wis: 10, cha: 8,
+			action: [{ name: 'Strength Drain', entries: [
+				'{@atk mw} {@hit 4} to hit, reach 5 ft., one creature. {@h}9 ({@damage 2d6 + 2}) necrotic damage.',
+			] }],
+		};
+		const attack = intsByType(build(shadow), 'Attack')[0];
+		expect(attack.attack.abilityBonus).toBe('Dexterity');
+	});
+
+	test('a default-matching melee attack (no tie, no finesse) still resolves to Strength', () => {
+		const orc = {
+			...goblin, name: 'Orc', cr: '1/2',
+			str: 16, dex: 12, con: 16, int: 7, wis: 11, cha: 10,
+			action: [{ name: 'Greataxe', entries: [
+				'{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}9 ({@damage 1d12 + 3}) slashing damage.',
+			] }],
+		};
+		const attack = intsByType(build(orc), 'Attack')[0];
+		expect(attack.attack.abilityBonus).toBe('Strength');
+	});
+
+	test('fixed/no-dice damage (Raven Beak) imports as a structured Attack, not a plain Action', () => {
+		const raven = {
+			...goblin, name: 'Raven', cr: '0',
+			str: 2, dex: 14, con: 8, int: 2, wis: 12, cha: 6,
+			action: [{ name: 'Beak', entries: [
+				'{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}1 piercing damage.',
+			] }],
+		};
+		const store = build(raven);
+		expect(intsByType(store, 'Action')).toHaveLength(0);
+		const attack = intsByType(store, 'Attack')[0];
+		expect(attack).toBeDefined();
+		expect(attack.attack.abilityBonus).toBe('Dexterity');
+		const dmg = intsByType(store, 'Damage')[0];
+		expect(dmg).toMatchObject({ diceCount: 0, diceSize: '', _bonus: 1, damageType: 'Piercing' });
+	});
+
+	test('saving-throw damage (breath weapon) imports as a structured Attack, not a plain Action', () => {
+		const dragon = {
+			...goblin, name: 'Young Red Dragon', cr: '17',
+			str: 23, dex: 10, con: 21, int: 14, wis: 11, cha: 19,
+			action: [{ name: 'Fire Breath', entries: [
+				'{@actSave dex} {@dc 18}, each creature in a 60-foot-long, 5-foot-wide {@variantrule Line [Area of Effect]|XPHB|Line}. {@actSaveFail} 45 ({@damage 10d8}) Fire damage. {@actSaveSuccess} Half damage.',
+			] }],
+		};
+		const store = build(dragon);
+		expect(intsByType(store, 'Action')).toHaveLength(0);
+		const attack = intsByType(store, 'Attack')[0];
+		expect(attack).toBeDefined();
+		expect(attack.attack.type).toBe('Attack Save');
+		expect(attack.attack.abilityBonus).toBeUndefined();
+		expect(attack.save).toMatchObject({ saveAbility: 'Dexterity', saveFormula: {flatValue: 18}, onSucceed: 'Half as much damage.' });
+		const dmg = intsByType(store, 'Damage')[0];
+		expect(dmg).toMatchObject({ diceCount: 10, diceSize: 'd8', damageType: 'Fire' });
+	});
+});
