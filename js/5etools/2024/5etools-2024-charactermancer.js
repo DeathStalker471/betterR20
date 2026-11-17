@@ -2582,7 +2582,7 @@ function d20plus2024Charactermancer () {
 
 		// Do not show unowned content so it can be imported instead
 		if (body.includes("showUnownedContent: true")) {
-			args[1] = body.replace("showUnownedContent: true", "showUnownedContent: false");
+			args[1] = {...args[1], body: body.replace("showUnownedContent: true", "showUnownedContent: false")};
 		}
 
 		const response = await _origFetch.apply(this, args);
