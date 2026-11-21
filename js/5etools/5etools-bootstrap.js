@@ -146,6 +146,17 @@ const betteR205etools = function () {
 			};
 		});
 
+		// Renderer.item.pPopulatePropertyAndTypeReference() (vendored) has the same
+		// Renderer.get().baseUrl problem as above, but fetches items-base.json directly rather
+		// than going through DataLoader.pCacheAndGetAllSite/pCacheAndGet - not covered by the
+		// wrapping above. Called directly by our own Item/Adventure/2024-background importers.
+		const origPPopulatePropertyAndTypeReference = Renderer.item.pPopulatePropertyAndTypeReference.bind(Renderer.item);
+		Renderer.item.pPopulatePropertyAndTypeReference = function (...args) {
+			const prevBaseUrl = Renderer.get().baseUrl;
+			Renderer.get().setBaseUrl(BASE_SITE_URL);
+			return origPPopulatePropertyAndTypeReference(...args).finally(() => Renderer.get().setBaseUrl(prevBaseUrl));
+		};
+
 		// Renderer.redirect.pInit() (vendored) fetches from the live 5e.tools site with no
 		// try/catch, which is always CORS-blocked - pre-seed it so the request never fires.
 		Renderer.redirect._P_LOADING_VERSION_REDIRECT_LOOKUP = Promise.resolve({});
