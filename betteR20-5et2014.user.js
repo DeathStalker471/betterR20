@@ -2,7 +2,7 @@
 // @name         betteR20-beta-5et2014-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.11-beta-testing
+// @version      1.36.1.12-beta-testing
 // @updateURL    https://deathstalker471.github.io/betterR20/betteR20-5et2014.meta.js
 // @downloadURL  https://deathstalker471.github.io/betterR20/betteR20-5et2014.user.js
 // @description  Enhance your Roll20 experience
@@ -31,7 +31,7 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `5et2014`;
-B20_VERSION = `1.36.1.11-beta-testing`;
+B20_VERSION = `1.36.1.12-beta-testing`;
 B20_REPO_URL = `https://deathstalker471.github.io/betterR20/`;
 
 // TODO automate to use mirror if main site is unavailable
@@ -30944,6 +30944,17 @@ const betteR205etools = function () {
 				}
 			};
 		});
+
+		// Renderer.item.pPopulatePropertyAndTypeReference() (vendored) has the same
+		// Renderer.get().baseUrl problem as above, but fetches items-base.json directly rather
+		// than going through DataLoader.pCacheAndGetAllSite/pCacheAndGet - not covered by the
+		// wrapping above. Called directly by our own Item/Adventure/2024-background importers.
+		const origPPopulatePropertyAndTypeReference = Renderer.item.pPopulatePropertyAndTypeReference.bind(Renderer.item);
+		Renderer.item.pPopulatePropertyAndTypeReference = function (...args) {
+			const prevBaseUrl = Renderer.get().baseUrl;
+			Renderer.get().setBaseUrl(BASE_SITE_URL);
+			return origPPopulatePropertyAndTypeReference(...args).finally(() => Renderer.get().setBaseUrl(prevBaseUrl));
+		};
 
 		// Renderer.redirect.pInit() (vendored) fetches from the live 5e.tools site with no
 		// try/catch, which is always CORS-blocked - pre-seed it so the request never fires.
