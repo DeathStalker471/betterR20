@@ -2,7 +2,7 @@
 // @name         betteR20-beta-5etools-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.10-beta-testing
+// @version      1.36.1.11-beta-testing
 // @updateURL    https://deathstalker471.github.io/betterR20/betteR20-5etools.meta.js
 // @downloadURL  https://deathstalker471.github.io/betterR20/betteR20-5etools.user.js
 // @description  Enhance your Roll20 experience
@@ -31,7 +31,7 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `5etools`;
-B20_VERSION = `1.36.1.10-beta-testing`;
+B20_VERSION = `1.36.1.11-beta-testing`;
 B20_REPO_URL = `https://deathstalker471.github.io/betterR20/`;
 
 // TODO automate to use mirror if main site is unavailable
@@ -31256,6 +31256,30 @@ const betteR205etools = function () {
 		IS_VTT = true; // global variable from 5etools' utils.js
 
 		Renderer.get().setBaseUrl(LINK_BASE_URL);
+
+		// DataUtil.class.loadRawJSON() and other vendored "official site data" loaders
+		// (DataTypeLoaderSingleSource._pGetSiteData, etc.) build their fetch URL from
+		// Renderer.get().baseUrl - the same property just set to LINK_BASE_URL above. That's
+		// correct for rendered-entry hyperlinks (book.html etc. only exist on the real site), but
+		// wrong for data: the bare 5e.tools domain never sends an Access-Control-Allow-Origin
+		// header (confirmed live, with and without an Origin header), while this build's own
+		// BASE_SITE_URL (e.g. cdn.5e.tools/2024/ for the Jumpgate build) does. Since both read/
+		// write the same global, every "Official Sources" class/background/feat/etc. import has
+		// been CORS-blocked since LINK_BASE_URL was introduced (commit 3ac9b91f, "5E Tools web
+		// link fix") - force the correct base right before any such vendored fetch, then restore
+		// LINK_BASE_URL immediately after so link rendering is unaffected.
+		["pCacheAndGetAllSite", "pCacheAndGet"].forEach(fnName => {
+			const origFn = DataLoader[fnName].bind(DataLoader);
+			DataLoader[fnName] = async function (...args) {
+				const prevBaseUrl = Renderer.get().baseUrl;
+				Renderer.get().setBaseUrl(BASE_SITE_URL);
+				try {
+					return await origFn(...args);
+				} finally {
+					Renderer.get().setBaseUrl(prevBaseUrl);
+				}
+			};
+		});
 
 		// Renderer.redirect.pInit() (vendored) fetches from the live 5e.tools site with no
 		// try/catch, which is always CORS-blocked - pre-seed it so the request never fires.
