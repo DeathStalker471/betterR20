@@ -198,6 +198,11 @@ const d20plusTemplate = function () {
 			$wrpSettings.append(d20plus.template5e.settingsHtmlPtImportFooter);
 
 			$("#bind-drop-locations").on(window.mousedowntype, d20plus.bindDropLocations);
+			$("#b20-clear-data-cache").on(window.mousedowntype, () => {
+				if (!confirm(`This will reload the page and re-download all official 5etools data fresh (classes, items, races, bestiary, etc.), bypassing your browser's cache. Continue?`)) return;
+				sessionStorage.setItem(CACHE_BUST_FLAG, "1");
+				window.location.reload();
+			});
 			//$("#initiativewindow .characterlist").before(d20plus.template5e.initiativeHeaders);
 
 			//d20plus.setTurnOrderTemplate();
@@ -525,6 +530,7 @@ ${IMPORT_CATEGORIES.filter(ic => ic.playerImport).map(ic => `<option value="${ic
 
 	d20plus.template5e.settingsHtmlPtImportFooter = `
 <p><a class="btn bind-drop-locations" href="#" id="bind-drop-locations" style="margin-top: 5px;width: 100%;box-sizing: border-box;">Bind Drag-n-Drop</a></p>
+<p><a class="btn" href="#" id="b20-clear-data-cache" title="If an Official Sources import is missing content you know 5etools has (e.g. a newly-added class or item), your browser may have an old cached copy of that data file. This reloads the page and re-downloads official 5etools data fresh, bypassing the cache." style="margin-top: 5px;width: 100%;box-sizing: border-box;">Clear 5etools Data Cache</a></p>
 <p><strong>Readme</strong></p>
 <p>
 You can drag-and-drop imported handouts to character sheets.<br>
