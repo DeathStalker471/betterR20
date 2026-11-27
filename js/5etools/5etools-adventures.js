@@ -22,6 +22,15 @@ function d20plusAdventure () {
 		}
 	}
 
+	// The point of pulling classes/subclasses/races out of a book/adventure is "extension content a
+	// table doesn't already have" - the core rulebooks are the one thing every table already has, in
+	// either ruleset, so anything sourced from them is excluded regardless of whether it's otherwise
+	// official or homebrew.
+	const CORE_SOURCES = new Set(["PHB", "MM", "XPHB", "XMM"]);
+	function isNonCoreSource (source) {
+		return !!source && !CORE_SOURCES.has(source.toUpperCase());
+	}
+
 	// Walk all entries and detect what content types are present
 	function scanContent (entries) {
 		const result = {hasMaps: false, hasCreatures: false, hasItems: false};
@@ -91,6 +100,100 @@ function d20plusAdventure () {
 		}
 		walk(entries);
 		return [...names];
+	}
+
+	// Extract all {@class Name|Source} references and inline class statblocks from content, except
+	// core-book classes (PHB/MM/XPHB/XMM) - see CORE_SOURCES. Does NOT pick up subclasses (those are
+	// extractSubclassRefs below) - a subclass added to a core class (e.g. a new subclass for the
+	// core Bard) is still extension content, but the base Bard class itself is not.
+	function extractClassRefs (entries) {
+		const CLASS_RE = /\{@class ([^|}]+?)(?:\|([^|}]*?))?(?:\|[^}]*)?\}/g;
+		const refs = new Map();
+		function walk (e) {
+			if (typeof e === "string") {
+				let m;
+				CLASS_RE.lastIndex = 0;
+				while ((m = CLASS_RE.exec(e))) {
+					const name = m[1].trim();
+					const source = (m[2] || "PHB").trim().toUpperCase();
+					if (isNonCoreSource(source)) refs.set(`${name.toLowerCase()}|${source}`, {name, source});
+				}
+			} else if (Array.isArray(e)) {
+				e.forEach(walk);
+			} else if (e && typeof e === "object") {
+				if (e.type === "statblock" && (e.tag === "class" || e.prop === "class") && e.name) {
+					const source = (e.source || "PHB").toUpperCase();
+					if (isNonCoreSource(source)) refs.set(`${e.name.toLowerCase()}|${source}`, {name: e.name, source});
+				}
+				for (const v of Object.values(e)) {
+					if (v && typeof v === "object") walk(v);
+				}
+			}
+		}
+		walk(entries);
+		return [...refs.values()];
+	}
+
+	// Extract subclass statblocks from content, except ones whose own source is a core book - what
+	// matters is the SUBCLASS's own source, not its parent class's, so a new subclass for a core
+	// class (confirmed live: Ravenloft: The Horrors Within adds "College of Spirits" to the core
+	// XPHB Bard) still counts as extension content. Every book checked so far presents a new
+	// subclass as its own dedicated statblock entry (never via extra {@class} tag pipe segments),
+	// so only that form is handled here. A statblock's own `name` carries the parent class as a
+	// parenthetical display qualifier (e.g. "Reanimator (Artificer)") that isn't part of the real
+	// subclass entity's name (confirmed live: the actual subclass is just "Reanimator") - strip it,
+	// same as the "(Subrace)" qualifier extractRaceRefs already strips.
+	function extractSubclassRefs (entries) {
+		const refs = new Map();
+		function walk (e) {
+			if (Array.isArray(e)) { e.forEach(walk); return; }
+			if (typeof e !== "object" || !e) return;
+			if (e.type === "statblock" && (e.tag === "subclass" || e.prop === "subclass") && e.name && e.className) {
+				const source = (e.source || "PHB").toUpperCase();
+				if (isNonCoreSource(source)) {
+					const name = e.name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+					refs.set(`${name.toLowerCase()}|${source}`, {name, source, className: e.className, classSource: (e.classSource || "PHB").toUpperCase()});
+				}
+			}
+			for (const v of Object.values(e)) {
+				if (v && typeof v === "object") walk(v);
+			}
+		}
+		walk(entries);
+		return [...refs.values()];
+	}
+
+	// Extract all {@race Name|Source} references and inline race statblocks from content, except
+	// core-book races (PHB/MM/XPHB/XMM) - same reasoning as extractClassRefs. A
+	// "{@race Name (Subrace)|Source}" tag names the base race with its subrace as a parenthetical
+	// qualifier - strip that off so it matches on the base race name; the subrace itself comes
+	// along automatically via Renderer.race.mergeSubraces in fetchRaceData.
+	function extractRaceRefs (entries) {
+		const RACE_RE = /\{@race ([^|}]+?)(?:\|([^|}]*?))?(?:\|[^}]*)?\}/g;
+		const refs = new Map();
+		function walk (e) {
+			if (typeof e === "string") {
+				let m;
+				RACE_RE.lastIndex = 0;
+				while ((m = RACE_RE.exec(e))) {
+					const name = m[1].trim().replace(/\s*\([^)]*\)\s*$/, "").trim();
+					const source = (m[2] || "PHB").trim().toUpperCase();
+					if (isNonCoreSource(source)) refs.set(`${name.toLowerCase()}|${source}`, {name, source});
+				}
+			} else if (Array.isArray(e)) {
+				e.forEach(walk);
+			} else if (e && typeof e === "object") {
+				if (e.type === "statblock" && (e.tag === "race" || e.prop === "race") && e.name) {
+					const source = (e.source || "PHB").toUpperCase();
+					if (isNonCoreSource(source)) refs.set(`${e.name.toLowerCase()}|${source}`, {name: e.name, source});
+				}
+				for (const v of Object.values(e)) {
+					if (v && typeof v === "object") walk(v);
+				}
+			}
+		}
+		walk(entries);
+		return [...refs.values()];
 	}
 
 	// Fetch creature data from CDN. Resolution order mirrors how the book is actually run: try the
@@ -209,6 +312,109 @@ function d20plusAdventure () {
 			d20plus.ut.log(`Item fetch failed: ${e.message || e}`);
 			return result;
 		}
+	}
+
+	// Fetch class data matching the extracted {@class} refs (already filtered to non-core sources -
+	// see extractClassRefs). Checks the book/adventure's own bundled homebrew classes first (for a
+	// brew that bundles its own classes alongside the narrative - same convention as monster/item
+	// above), then the official site data via the same d20plus.classes machinery the standalone
+	// Class importer uses (DataLoader.pCacheAndGetAllSite, which also covers an officially-sourced
+	// book like World of Warcraft - see the isSiteSource fix in 5etools-bootstrap.js). Strips any
+	// attached `.subclasses` - subclasses are a separate "Subclasses" import step
+	// (fetchSubclassData), so a GM importing Classes here isn't also forced through the
+	// per-class subclass-strategy dialog that d20plus.classes.handoutBuilder would otherwise trigger.
+	async function fetchClassData (refs, homebrewData) {
+		if (!refs.length) return [];
+		const nameSourceSet = new Set(refs.map(r => `${r.name.toLowerCase()}|${r.source}`));
+		const result = [];
+
+		const claim = cls => {
+			const key = `${cls.name.toLowerCase()}|${(cls.source || "").toUpperCase()}`;
+			if (!nameSourceSet.has(key)) return;
+			const clsCopy = {...cls};
+			delete clsCopy.subclasses;
+			result.push(clsCopy);
+			nameSourceSet.delete(key);
+		};
+
+		if (homebrewData?.class?.length) homebrewData.class.forEach(claim);
+		if (!nameSourceSet.size) return result;
+
+		try {
+			const official = await d20plus.classes._pLoadMergedClassJON();
+			official.class.forEach(claim);
+		} catch (e) {
+			d20plus.ut.log(`Class fetch failed: ${e.message || e}`);
+		}
+
+		return result;
+	}
+
+	// Fetch subclass data matching the extracted subclass refs (already filtered to non-core sources
+	// - see extractSubclassRefs). Same homebrew-first-then-official resolution order as
+	// fetchClassData. Imported directly via d20plus.subclasses, not attached under a class, since
+	// each ref already carries its own className/classSource.
+	async function fetchSubclassData (refs, homebrewData) {
+		if (!refs.length) return [];
+		const nameSourceSet = new Set(refs.map(r => `${r.name.toLowerCase()}|${r.source}`));
+		const result = [];
+
+		const claim = sc => {
+			const key = `${sc.name.toLowerCase()}|${(sc.source || "").toUpperCase()}`;
+			if (!nameSourceSet.has(key)) return;
+			result.push(sc);
+			nameSourceSet.delete(key);
+		};
+
+		if (homebrewData?.subclass?.length) homebrewData.subclass.forEach(claim);
+		if (!nameSourceSet.size) return result;
+
+		try {
+			const official = await d20plus.classes._pLoadMergedClassJON();
+			official.subclass.forEach(claim);
+		} catch (e) {
+			d20plus.ut.log(`Subclass fetch failed: ${e.message || e}`);
+		}
+
+		return result;
+	}
+
+	// Fetch race (+ merged subraces) data matching the extracted {@race} refs (already filtered to
+	// non-core sources - see extractRaceRefs). Same homebrew-first-then-official resolution order as
+	// fetchClassData. Official races live in a single combined file (RACE_DATA_URL), unlike
+	// classes/subclasses, so this doesn't go through DataLoader at all.
+	async function fetchRaceData (refs, homebrewData) {
+		if (!refs.length) return [];
+		const nameSourceSet = new Set(refs.map(r => `${r.name.toLowerCase()}|${r.source}`));
+		const result = [];
+
+		const claim = race => {
+			const key = `${race.name.toLowerCase()}|${(race.source || "").toUpperCase()}`;
+			if (!nameSourceSet.has(key)) return;
+			result.push(race);
+			nameSourceSet.delete(key);
+		};
+
+		if (homebrewData?.race?.length) {
+			let brewRaces = MiscUtil.copy(homebrewData.race);
+			if (homebrewData.subrace?.length) {
+				brewRaces = brewRaces.concat(d20plus.races.adoptSubraces(brewRaces, MiscUtil.copy(homebrewData.subrace), true));
+			}
+			Renderer.race.mergeSubraces(brewRaces).forEach(claim);
+		}
+
+		if (!nameSourceSet.size) return result;
+
+		try {
+			const official = await DataUtil.loadJSON(RACE_DATA_URL);
+			const toImport = MiscUtil.copy(official.race);
+			if (official.subrace?.length) toImport.push(...d20plus.races.adoptSubraces(official.race, official.subrace, false));
+			Renderer.race.mergeSubraces(toImport).forEach(claim);
+		} catch (e) {
+			d20plus.ut.log(`Race fetch failed: ${e.message || e}`);
+		}
+
+		return result;
 	}
 
 	// Strip "Map X.X: " prefix and lowercase for fuzzy Foundry matching
@@ -748,9 +954,18 @@ function d20plusAdventure () {
 			return;
 		}
 
-		// Detect what content types are present
+		// Detect what content types are present. Classes/subclasses/races are extracted (not just
+		// detected) up front here, since extractClassRefs/extractSubclassRefs/extractRaceRefs already
+		// filter out core-book (PHB/MM/XPHB/XMM) content - see CORE_SOURCES - and the same ref lists
+		// get reused below when actually fetching, instead of re-walking the content a second time.
 		const {hasMaps, hasCreatures, hasItems} = scanContent(sections);
-		d20plus.ut.log(`Content scan [${meta.name}]: maps=${hasMaps} creatures=${hasCreatures} items=${hasItems}`);
+		const classRefs = extractClassRefs(sections);
+		const subclassRefs = extractSubclassRefs(sections);
+		const raceRefs = extractRaceRefs(sections);
+		const hasClasses = classRefs.length > 0;
+		const hasSubclasses = subclassRefs.length > 0;
+		const hasRaces = raceRefs.length > 0;
+		d20plus.ut.log(`Content scan [${meta.name}]: maps=${hasMaps} creatures=${hasCreatures} items=${hasItems} classes=${hasClasses} subclasses=${hasSubclasses} races=${hasRaces}`);
 
 		// Fetch Foundry wall data upfront if maps exist
 		let foundryMaps = null;
@@ -806,6 +1021,9 @@ function d20plusAdventure () {
 		if (hasMaps) checkboxOptions.push("Maps");
 		if (hasMaps && hasCreatures) checkboxOptions.push("Place Tokens");
 		if (hasCreatures) checkboxOptions.push("Creatures");
+		if (hasClasses) checkboxOptions.push("Classes");
+		if (hasSubclasses) checkboxOptions.push("Subclasses");
+		if (hasRaces) checkboxOptions.push("Races");
 		if (hasItems) checkboxOptions.push("Items");
 
 		$("#d20plus-import").dialog("open");
@@ -855,12 +1073,14 @@ function d20plusAdventure () {
 			? buildAreaCreatures(sections)
 			: {};
 
-		// Pre-fetch all creature and item data from CDN before opening selection dialogs,
-		// so the subsequent dialog callbacks are synchronous (no async inside setInterval).
-		// For homebrew, opts.homebrewData carries the monster/item arrays bundled in the SAME
-		// uploaded/fetched file, since those won't exist on the official CDN by source code.
-		d20plus.ut.log("Fetching referenced creature/item data...");
-		const [monsters, items] = await Promise.all([
+		// Pre-fetch all creature/item/class/subclass/race data before opening selection dialogs, so
+		// the subsequent dialog callbacks are synchronous (no async inside setInterval). For
+		// homebrew, opts.homebrewData carries the monster/item/class/subclass/race/subrace arrays
+		// bundled in the SAME uploaded/fetched file, since those won't exist on the official CDN by
+		// source code. classRefs/subclassRefs/raceRefs were already extracted (and already filtered
+		// to non-core sources) above, when deciding which checkboxes to show.
+		d20plus.ut.log("Fetching referenced creature/item/class/subclass/race data...");
+		const [monsters, items, classes, subclasses, races] = await Promise.all([
 			(toImport.includes("Creatures") && hasCreatures)
 				? fetchCreatureData(extractCreatureRefs(sections), opts.homebrewData?.monster, contentSource || meta.source)
 					.catch(e => { d20plus.ut.log("Creature fetch error: " + e); return []; })
@@ -869,16 +1089,31 @@ function d20plusAdventure () {
 				? fetchItemData(extractItemRefs(sections), opts.homebrewData)
 					.catch(e => { d20plus.ut.log("Item fetch error: " + e); return []; })
 				: Promise.resolve([]),
+			(toImport.includes("Classes") && hasClasses)
+				? fetchClassData(classRefs, opts.homebrewData)
+					.catch(e => { d20plus.ut.log("Class fetch error: " + e); return []; })
+				: Promise.resolve([]),
+			(toImport.includes("Subclasses") && hasSubclasses)
+				? fetchSubclassData(subclassRefs, opts.homebrewData)
+					.catch(e => { d20plus.ut.log("Subclass fetch error: " + e); return []; })
+				: Promise.resolve([]),
+			(toImport.includes("Races") && hasRaces)
+				? fetchRaceData(raceRefs, opts.homebrewData)
+					.catch(e => { d20plus.ut.log("Race fetch error: " + e); return []; })
+				: Promise.resolve([]),
 		]);
 		if (monsters.length) d20plus.ut.log(`Found ${monsters.length} creature(s) to import.`);
 		if (items.length) d20plus.ut.log(`Found ${items.length} item(s) to import.`);
+		if (classes.length) d20plus.ut.log(`Found ${classes.length} class(es) to import.`);
+		if (subclasses.length) d20plus.ut.log(`Found ${subclasses.length} subclass(es) to import.`);
+		if (races.length) d20plus.ut.log(`Found ${races.length} race(s) to import.`);
 
 		const RETURNED_IDS = {};
 		const interval = d20plus.cfg.get("import", "importIntervalHandout") || d20plus.cfg.getDefault("import", "importIntervalHandout");
 		const $stsName = $("#import-name");
 		const $stsRemain = $("#import-remaining");
 
-		// Sequential dialog chain: monsters → [place tokens] → items → handouts
+		// Sequential dialog chain: monsters → [place tokens] → classes → races → items → handouts
 		if (monsters.length) {
 			d20plus.importer.showImportList(
 				"monster",
@@ -901,7 +1136,60 @@ function d20plusAdventure () {
 			if (toImport.includes("Place Tokens") && savedMaps.length) {
 				placeTokensOnMaps(savedMaps, areaCreatures, monsters);
 			}
-			doItemImport();
+			doClassImport();
+		}
+
+		function doClassImport () {
+			if (classes.length) {
+				d20plus.importer.showImportList(
+					"class",
+					classes,
+					d20plus.classes.handoutBuilder,
+					{
+						saveIdsTo: RETURNED_IDS,
+						callback: doSubclassImport,
+						builderOptions: {isHomebrew: false},
+					},
+				);
+			} else {
+				doSubclassImport();
+			}
+		}
+
+		function doSubclassImport () {
+			if (subclasses.length) {
+				d20plus.importer.showImportList(
+					"subclass",
+					subclasses,
+					d20plus.subclasses.handoutBuilder,
+					{
+						saveIdsTo: RETURNED_IDS,
+						callback: doRaceImport,
+						groupOptions: d20plus.subclasses._groupOptions,
+						listItemBuilder: d20plus.subclasses._listItemBuilder,
+						listIndex: d20plus.subclasses._listCols,
+						listIndexConverter: d20plus.subclasses._listIndexConverter,
+					},
+				);
+			} else {
+				doRaceImport();
+			}
+		}
+
+		function doRaceImport () {
+			if (races.length) {
+				d20plus.importer.showImportList(
+					"race",
+					races,
+					d20plus.races.handoutBuilder,
+					{
+						saveIdsTo: RETURNED_IDS,
+						callback: doItemImport,
+					},
+				);
+			} else {
+				doItemImport();
+			}
 		}
 
 		function doItemImport () {
@@ -1040,6 +1328,10 @@ function d20plusAdventure () {
 			itemEntry: data.itemEntry,
 			itemTypeAdditionalEntries: data.itemTypeAdditionalEntries,
 			itemMastery: data.itemMastery,
+			class: data.class,
+			subclass: data.subclass,
+			race: data.race,
+			subrace: data.subrace,
 		};
 
 		if (useType === "Adventure") {

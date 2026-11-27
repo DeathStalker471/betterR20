@@ -122,6 +122,28 @@ const betteR205etools = function () {
 
 		Renderer.get().setBaseUrl(LINK_BASE_URL);
 
+		// SourceUtil.isSiteSource() (vendored) checks the source against our vendored copy of
+		// Parser.SOURCE_JSON_TO_FULL - a static table that lags behind 5etools' live site. When a
+		// source is missing from it (confirmed live: "WoW", the World of Warcraft crossover book,
+		// added to 5etools after our vendored copy was taken), DataLoader's internal partitioning
+		// (DataLoaderCache._set_getPartition -> _set_getPartition_fromSource) can't tell site data
+		// apart from prerelease/homebrew data, falls through to PARTITION_UNKNOWN, and silently
+		// drops the entity from every "all site X" aggregate (DataLoader.pCacheAndGetAllSite) - even
+		// though it still fetches, dereferences and caches the individual entity correctly (confirmed
+		// live: Death Knight/Shaman/etc. fully resolved classes, inherited features and all, just
+		// invisible to the "Official Sources" Class/Subclass import list). Nothing marks it as
+		// prerelease or homebrew either, so it's safe to treat "not recognized as anything else" as
+		// "is a site source" - this can only ever ADD a source to the official-import lists, never
+		// remove one, so a genuinely bad/unknown source has no way to break anything by being let
+		// through here.
+		const origIsSiteSource = SourceUtil.isSiteSource.bind(SourceUtil);
+		SourceUtil.isSiteSource = function (source) {
+			if (origIsSiteSource(source)) return true;
+			if (typeof PrereleaseUtil !== "undefined" && PrereleaseUtil.hasSourceJson(source)) return false;
+			if (typeof BrewUtil2 !== "undefined" && BrewUtil2.hasSourceJson(source)) return false;
+			return true;
+		};
+
 		// DataUtil.class.loadRawJSON() and other vendored "official site data" loaders
 		// (DataTypeLoaderSingleSource._pGetSiteData, etc.) build their fetch URL from
 		// Renderer.get().baseUrl - the same property just set to LINK_BASE_URL above. That's
@@ -156,6 +178,32 @@ const betteR205etools = function () {
 			Renderer.get().setBaseUrl(BASE_SITE_URL);
 			return origPPopulatePropertyAndTypeReference(...args).finally(() => Renderer.get().setBaseUrl(prevBaseUrl));
 		};
+
+		// DataUtil.loadJSON() (vendored) has no cache-busting by default, so once a browser caches
+		// any 5etools-domain data file (data/class/index.json, a bestiary file, etc.), it keeps
+		// serving that same stale copy on every later page load until the browser's own HTTP cache
+		// entry naturally expires - even after 5etools adds new content to that exact file (confirmed
+		// live: a browser served a stale data/class/index.json missing newly-added "World of
+		// Warcraft" (source "WoW") classes via a plain XHR, while a cache-busted fetch to the
+		// identical URL returned the current version immediately). The vendored loader already
+		// supports an `isBustCache` option (DataUtil._loadJson -> appends `?t=<timestamp>` and sets
+		// `Cache-Control: no-cache, no-store`, the same mechanism BrewUtil already uses for homebrew).
+		//
+		// Forcing that on for every single page load would mean every GM re-downloads every official
+		// data file on every reload, with no local caching at all - not worth it just to guard against
+		// the rare case of 5etools adding content to a file this browser already has cached. Instead,
+		// only do it when the GM explicitly asks (the "Clear 5etools Data Cache" button, see
+		// 5etools-template.js), via the one-shot sessionStorage flag it sets before reloading - then
+		// consume the flag so only that one reload's fetches are cache-busted.
+		if (sessionStorage.getItem(CACHE_BUST_FLAG)) {
+			sessionStorage.removeItem(CACHE_BUST_FLAG);
+			const origLoadJSON = DataUtil.loadJSON.bind(DataUtil);
+			DataUtil.loadJSON = function (url) {
+				const isOfficial5etoolsUrl = typeof url === "string" && (url.startsWith(BASE_SITE_URL) || url.startsWith(LINK_BASE_URL));
+				if (!isOfficial5etoolsUrl) return origLoadJSON(url);
+				return DataUtil._loadJson(url, {isDoDataMerge: true, isBustCache: true});
+			};
+		}
 
 		// Renderer.redirect.pInit() (vendored) fetches from the live 5e.tools site with no
 		// try/catch, which is always CORS-blocked - pre-seed it so the request never fires.
