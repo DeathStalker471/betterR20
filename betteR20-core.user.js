@@ -2,7 +2,7 @@
 // @name         betteR20-beta-core-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.12-beta-testing
+// @version      1.36.1.13-beta-testing
 // @updateURL    https://deathstalker471.github.io/betterR20/betteR20-core.meta.js
 // @downloadURL  https://deathstalker471.github.io/betterR20/betteR20-core.user.js
 // @description  Enhance your Roll20 experience
@@ -31,7 +31,7 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `core`;
-B20_VERSION = `1.36.1.12-beta-testing`;
+B20_VERSION = `1.36.1.13-beta-testing`;
 B20_REPO_URL = `https://deathstalker471.github.io/betterR20/`;
 
 // TODO automate to use mirror if main site is unavailable
@@ -42,6 +42,11 @@ LINK_BASE_URL = `https://5e.tools/`;
 
 SITE_JS_URL = `${BASE_SITE_URL}js/`;
 DATA_URL = `${BASE_SITE_URL}data/`;
+
+// Set by the "Clear 5etools Data Cache" button (5etools-template.js) just before it reloads the
+// page, then consumed+cleared on the next init (5etools-bootstrap.js) so only that one reload's
+// official-data fetches bypass the browser's HTTP cache.
+CACHE_BUST_FLAG = "betteR20-cache-bust-pending";
 
 DATA_URL_MODULES = `https://raw.githubusercontent.com/5etools-mirror-1/roll20-module/master`;
 DATA_URL_IMG_REPO = ``; // obsolete as of 1.35.11

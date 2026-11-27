@@ -2,7 +2,7 @@
 // @name         betteR20-beta-5etools-death-jumpagate-import
 // @namespace    https://5e.tools/
 // @license      MIT (https://opensource.org/licenses/MIT)
-// @version      1.36.1.12-beta-testing
+// @version      1.36.1.13-beta-testing
 // @updateURL    https://deathstalker471.github.io/betterR20/betteR20-5etools.meta.js
 // @downloadURL  https://deathstalker471.github.io/betterR20/betteR20-5etools.user.js
 // @description  Enhance your Roll20 experience
@@ -31,7 +31,7 @@ ART_HANDOUT = "betteR20-art";
 CONFIG_HANDOUT = "betteR20-config";
 
 B20_NAME = `5etools`;
-B20_VERSION = `1.36.1.12-beta-testing`;
+B20_VERSION = `1.36.1.13-beta-testing`;
 B20_REPO_URL = `https://deathstalker471.github.io/betterR20/`;
 
 // TODO automate to use mirror if main site is unavailable
@@ -42,6 +42,11 @@ LINK_BASE_URL = `https://5e.tools/`;
 
 SITE_JS_URL = `${BASE_SITE_URL}js/`;
 DATA_URL = `${BASE_SITE_URL}data/`;
+
+// Set by the "Clear 5etools Data Cache" button (5etools-template.js) just before it reloads the
+// page, then consumed+cleared on the next init (5etools-bootstrap.js) so only that one reload's
+// official-data fetches bypass the browser's HTTP cache.
+CACHE_BUST_FLAG = "betteR20-cache-bust-pending";
 
 DATA_URL_MODULES = `https://raw.githubusercontent.com/5etools-mirror-1/roll20-module/master`;
 DATA_URL_IMG_REPO = `https://cdn.5e.tools/2024/img/`; // obsolete as of 1.35.11
@@ -31257,6 +31262,28 @@ const betteR205etools = function () {
 
 		Renderer.get().setBaseUrl(LINK_BASE_URL);
 
+		// SourceUtil.isSiteSource() (vendored) checks the source against our vendored copy of
+		// Parser.SOURCE_JSON_TO_FULL - a static table that lags behind 5etools' live site. When a
+		// source is missing from it (confirmed live: "WoW", the World of Warcraft crossover book,
+		// added to 5etools after our vendored copy was taken), DataLoader's internal partitioning
+		// (DataLoaderCache._set_getPartition -> _set_getPartition_fromSource) can't tell site data
+		// apart from prerelease/homebrew data, falls through to PARTITION_UNKNOWN, and silently
+		// drops the entity from every "all site X" aggregate (DataLoader.pCacheAndGetAllSite) - even
+		// though it still fetches, dereferences and caches the individual entity correctly (confirmed
+		// live: Death Knight/Shaman/etc. fully resolved classes, inherited features and all, just
+		// invisible to the "Official Sources" Class/Subclass import list). Nothing marks it as
+		// prerelease or homebrew either, so it's safe to treat "not recognized as anything else" as
+		// "is a site source" - this can only ever ADD a source to the official-import lists, never
+		// remove one, so a genuinely bad/unknown source has no way to break anything by being let
+		// through here.
+		const origIsSiteSource = SourceUtil.isSiteSource.bind(SourceUtil);
+		SourceUtil.isSiteSource = function (source) {
+			if (origIsSiteSource(source)) return true;
+			if (typeof PrereleaseUtil !== "undefined" && PrereleaseUtil.hasSourceJson(source)) return false;
+			if (typeof BrewUtil2 !== "undefined" && BrewUtil2.hasSourceJson(source)) return false;
+			return true;
+		};
+
 		// DataUtil.class.loadRawJSON() and other vendored "official site data" loaders
 		// (DataTypeLoaderSingleSource._pGetSiteData, etc.) build their fetch URL from
 		// Renderer.get().baseUrl - the same property just set to LINK_BASE_URL above. That's
@@ -31291,6 +31318,32 @@ const betteR205etools = function () {
 			Renderer.get().setBaseUrl(BASE_SITE_URL);
 			return origPPopulatePropertyAndTypeReference(...args).finally(() => Renderer.get().setBaseUrl(prevBaseUrl));
 		};
+
+		// DataUtil.loadJSON() (vendored) has no cache-busting by default, so once a browser caches
+		// any 5etools-domain data file (data/class/index.json, a bestiary file, etc.), it keeps
+		// serving that same stale copy on every later page load until the browser's own HTTP cache
+		// entry naturally expires - even after 5etools adds new content to that exact file (confirmed
+		// live: a browser served a stale data/class/index.json missing newly-added "World of
+		// Warcraft" (source "WoW") classes via a plain XHR, while a cache-busted fetch to the
+		// identical URL returned the current version immediately). The vendored loader already
+		// supports an `isBustCache` option (DataUtil._loadJson -> appends `?t=<timestamp>` and sets
+		// `Cache-Control: no-cache, no-store`, the same mechanism BrewUtil already uses for homebrew).
+		//
+		// Forcing that on for every single page load would mean every GM re-downloads every official
+		// data file on every reload, with no local caching at all - not worth it just to guard against
+		// the rare case of 5etools adding content to a file this browser already has cached. Instead,
+		// only do it when the GM explicitly asks (the "Clear 5etools Data Cache" button, see
+		// 5etools-template.js), via the one-shot sessionStorage flag it sets before reloading - then
+		// consume the flag so only that one reload's fetches are cache-busted.
+		if (sessionStorage.getItem(CACHE_BUST_FLAG)) {
+			sessionStorage.removeItem(CACHE_BUST_FLAG);
+			const origLoadJSON = DataUtil.loadJSON.bind(DataUtil);
+			DataUtil.loadJSON = function (url) {
+				const isOfficial5etoolsUrl = typeof url === "string" && (url.startsWith(BASE_SITE_URL) || url.startsWith(LINK_BASE_URL));
+				if (!isOfficial5etoolsUrl) return origLoadJSON(url);
+				return DataUtil._loadJson(url, {isDoDataMerge: true, isBustCache: true});
+			};
+		}
 
 		// Renderer.redirect.pInit() (vendored) fetches from the live 5e.tools site with no
 		// try/catch, which is always CORS-blocked - pre-seed it so the request never fires.
@@ -49725,6 +49778,15 @@ function d20plusAdventure () {
 		}
 	}
 
+	// The point of pulling classes/subclasses/races out of a book/adventure is "extension content a
+	// table doesn't already have" - the core rulebooks are the one thing every table already has, in
+	// either ruleset, so anything sourced from them is excluded regardless of whether it's otherwise
+	// official or homebrew.
+	const CORE_SOURCES = new Set(["PHB", "MM", "XPHB", "XMM"]);
+	function isNonCoreSource (source) {
+		return !!source && !CORE_SOURCES.has(source.toUpperCase());
+	}
+
 	// Walk all entries and detect what content types are present
 	function scanContent (entries) {
 		const result = {hasMaps: false, hasCreatures: false, hasItems: false};
@@ -49794,6 +49856,100 @@ function d20plusAdventure () {
 		}
 		walk(entries);
 		return [...names];
+	}
+
+	// Extract all {@class Name|Source} references and inline class statblocks from content, except
+	// core-book classes (PHB/MM/XPHB/XMM) - see CORE_SOURCES. Does NOT pick up subclasses (those are
+	// extractSubclassRefs below) - a subclass added to a core class (e.g. a new subclass for the
+	// core Bard) is still extension content, but the base Bard class itself is not.
+	function extractClassRefs (entries) {
+		const CLASS_RE = /\{@class ([^|}]+?)(?:\|([^|}]*?))?(?:\|[^}]*)?\}/g;
+		const refs = new Map();
+		function walk (e) {
+			if (typeof e === "string") {
+				let m;
+				CLASS_RE.lastIndex = 0;
+				while ((m = CLASS_RE.exec(e))) {
+					const name = m[1].trim();
+					const source = (m[2] || "PHB").trim().toUpperCase();
+					if (isNonCoreSource(source)) refs.set(`${name.toLowerCase()}|${source}`, {name, source});
+				}
+			} else if (Array.isArray(e)) {
+				e.forEach(walk);
+			} else if (e && typeof e === "object") {
+				if (e.type === "statblock" && (e.tag === "class" || e.prop === "class") && e.name) {
+					const source = (e.source || "PHB").toUpperCase();
+					if (isNonCoreSource(source)) refs.set(`${e.name.toLowerCase()}|${source}`, {name: e.name, source});
+				}
+				for (const v of Object.values(e)) {
+					if (v && typeof v === "object") walk(v);
+				}
+			}
+		}
+		walk(entries);
+		return [...refs.values()];
+	}
+
+	// Extract subclass statblocks from content, except ones whose own source is a core book - what
+	// matters is the SUBCLASS's own source, not its parent class's, so a new subclass for a core
+	// class (confirmed live: Ravenloft: The Horrors Within adds "College of Spirits" to the core
+	// XPHB Bard) still counts as extension content. Every book checked so far presents a new
+	// subclass as its own dedicated statblock entry (never via extra {@class} tag pipe segments),
+	// so only that form is handled here. A statblock's own `name` carries the parent class as a
+	// parenthetical display qualifier (e.g. "Reanimator (Artificer)") that isn't part of the real
+	// subclass entity's name (confirmed live: the actual subclass is just "Reanimator") - strip it,
+	// same as the "(Subrace)" qualifier extractRaceRefs already strips.
+	function extractSubclassRefs (entries) {
+		const refs = new Map();
+		function walk (e) {
+			if (Array.isArray(e)) { e.forEach(walk); return; }
+			if (typeof e !== "object" || !e) return;
+			if (e.type === "statblock" && (e.tag === "subclass" || e.prop === "subclass") && e.name && e.className) {
+				const source = (e.source || "PHB").toUpperCase();
+				if (isNonCoreSource(source)) {
+					const name = e.name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+					refs.set(`${name.toLowerCase()}|${source}`, {name, source, className: e.className, classSource: (e.classSource || "PHB").toUpperCase()});
+				}
+			}
+			for (const v of Object.values(e)) {
+				if (v && typeof v === "object") walk(v);
+			}
+		}
+		walk(entries);
+		return [...refs.values()];
+	}
+
+	// Extract all {@race Name|Source} references and inline race statblocks from content, except
+	// core-book races (PHB/MM/XPHB/XMM) - same reasoning as extractClassRefs. A
+	// "{@race Name (Subrace)|Source}" tag names the base race with its subrace as a parenthetical
+	// qualifier - strip that off so it matches on the base race name; the subrace itself comes
+	// along automatically via Renderer.race.mergeSubraces in fetchRaceData.
+	function extractRaceRefs (entries) {
+		const RACE_RE = /\{@race ([^|}]+?)(?:\|([^|}]*?))?(?:\|[^}]*)?\}/g;
+		const refs = new Map();
+		function walk (e) {
+			if (typeof e === "string") {
+				let m;
+				RACE_RE.lastIndex = 0;
+				while ((m = RACE_RE.exec(e))) {
+					const name = m[1].trim().replace(/\s*\([^)]*\)\s*$/, "").trim();
+					const source = (m[2] || "PHB").trim().toUpperCase();
+					if (isNonCoreSource(source)) refs.set(`${name.toLowerCase()}|${source}`, {name, source});
+				}
+			} else if (Array.isArray(e)) {
+				e.forEach(walk);
+			} else if (e && typeof e === "object") {
+				if (e.type === "statblock" && (e.tag === "race" || e.prop === "race") && e.name) {
+					const source = (e.source || "PHB").toUpperCase();
+					if (isNonCoreSource(source)) refs.set(`${e.name.toLowerCase()}|${source}`, {name: e.name, source});
+				}
+				for (const v of Object.values(e)) {
+					if (v && typeof v === "object") walk(v);
+				}
+			}
+		}
+		walk(entries);
+		return [...refs.values()];
 	}
 
 	// Fetch creature data from CDN. Resolution order mirrors how the book is actually run: try the
@@ -49912,6 +50068,109 @@ function d20plusAdventure () {
 			d20plus.ut.log(`Item fetch failed: ${e.message || e}`);
 			return result;
 		}
+	}
+
+	// Fetch class data matching the extracted {@class} refs (already filtered to non-core sources -
+	// see extractClassRefs). Checks the book/adventure's own bundled homebrew classes first (for a
+	// brew that bundles its own classes alongside the narrative - same convention as monster/item
+	// above), then the official site data via the same d20plus.classes machinery the standalone
+	// Class importer uses (DataLoader.pCacheAndGetAllSite, which also covers an officially-sourced
+	// book like World of Warcraft - see the isSiteSource fix in 5etools-bootstrap.js). Strips any
+	// attached `.subclasses` - subclasses are a separate "Subclasses" import step
+	// (fetchSubclassData), so a GM importing Classes here isn't also forced through the
+	// per-class subclass-strategy dialog that d20plus.classes.handoutBuilder would otherwise trigger.
+	async function fetchClassData (refs, homebrewData) {
+		if (!refs.length) return [];
+		const nameSourceSet = new Set(refs.map(r => `${r.name.toLowerCase()}|${r.source}`));
+		const result = [];
+
+		const claim = cls => {
+			const key = `${cls.name.toLowerCase()}|${(cls.source || "").toUpperCase()}`;
+			if (!nameSourceSet.has(key)) return;
+			const clsCopy = {...cls};
+			delete clsCopy.subclasses;
+			result.push(clsCopy);
+			nameSourceSet.delete(key);
+		};
+
+		if (homebrewData?.class?.length) homebrewData.class.forEach(claim);
+		if (!nameSourceSet.size) return result;
+
+		try {
+			const official = await d20plus.classes._pLoadMergedClassJON();
+			official.class.forEach(claim);
+		} catch (e) {
+			d20plus.ut.log(`Class fetch failed: ${e.message || e}`);
+		}
+
+		return result;
+	}
+
+	// Fetch subclass data matching the extracted subclass refs (already filtered to non-core sources
+	// - see extractSubclassRefs). Same homebrew-first-then-official resolution order as
+	// fetchClassData. Imported directly via d20plus.subclasses, not attached under a class, since
+	// each ref already carries its own className/classSource.
+	async function fetchSubclassData (refs, homebrewData) {
+		if (!refs.length) return [];
+		const nameSourceSet = new Set(refs.map(r => `${r.name.toLowerCase()}|${r.source}`));
+		const result = [];
+
+		const claim = sc => {
+			const key = `${sc.name.toLowerCase()}|${(sc.source || "").toUpperCase()}`;
+			if (!nameSourceSet.has(key)) return;
+			result.push(sc);
+			nameSourceSet.delete(key);
+		};
+
+		if (homebrewData?.subclass?.length) homebrewData.subclass.forEach(claim);
+		if (!nameSourceSet.size) return result;
+
+		try {
+			const official = await d20plus.classes._pLoadMergedClassJON();
+			official.subclass.forEach(claim);
+		} catch (e) {
+			d20plus.ut.log(`Subclass fetch failed: ${e.message || e}`);
+		}
+
+		return result;
+	}
+
+	// Fetch race (+ merged subraces) data matching the extracted {@race} refs (already filtered to
+	// non-core sources - see extractRaceRefs). Same homebrew-first-then-official resolution order as
+	// fetchClassData. Official races live in a single combined file (RACE_DATA_URL), unlike
+	// classes/subclasses, so this doesn't go through DataLoader at all.
+	async function fetchRaceData (refs, homebrewData) {
+		if (!refs.length) return [];
+		const nameSourceSet = new Set(refs.map(r => `${r.name.toLowerCase()}|${r.source}`));
+		const result = [];
+
+		const claim = race => {
+			const key = `${race.name.toLowerCase()}|${(race.source || "").toUpperCase()}`;
+			if (!nameSourceSet.has(key)) return;
+			result.push(race);
+			nameSourceSet.delete(key);
+		};
+
+		if (homebrewData?.race?.length) {
+			let brewRaces = MiscUtil.copy(homebrewData.race);
+			if (homebrewData.subrace?.length) {
+				brewRaces = brewRaces.concat(d20plus.races.adoptSubraces(brewRaces, MiscUtil.copy(homebrewData.subrace), true));
+			}
+			Renderer.race.mergeSubraces(brewRaces).forEach(claim);
+		}
+
+		if (!nameSourceSet.size) return result;
+
+		try {
+			const official = await DataUtil.loadJSON(RACE_DATA_URL);
+			const toImport = MiscUtil.copy(official.race);
+			if (official.subrace?.length) toImport.push(...d20plus.races.adoptSubraces(official.race, official.subrace, false));
+			Renderer.race.mergeSubraces(toImport).forEach(claim);
+		} catch (e) {
+			d20plus.ut.log(`Race fetch failed: ${e.message || e}`);
+		}
+
+		return result;
 	}
 
 	// Strip "Map X.X: " prefix and lowercase for fuzzy Foundry matching
@@ -50451,9 +50710,18 @@ function d20plusAdventure () {
 			return;
 		}
 
-		// Detect what content types are present
+		// Detect what content types are present. Classes/subclasses/races are extracted (not just
+		// detected) up front here, since extractClassRefs/extractSubclassRefs/extractRaceRefs already
+		// filter out core-book (PHB/MM/XPHB/XMM) content - see CORE_SOURCES - and the same ref lists
+		// get reused below when actually fetching, instead of re-walking the content a second time.
 		const {hasMaps, hasCreatures, hasItems} = scanContent(sections);
-		d20plus.ut.log(`Content scan [${meta.name}]: maps=${hasMaps} creatures=${hasCreatures} items=${hasItems}`);
+		const classRefs = extractClassRefs(sections);
+		const subclassRefs = extractSubclassRefs(sections);
+		const raceRefs = extractRaceRefs(sections);
+		const hasClasses = classRefs.length > 0;
+		const hasSubclasses = subclassRefs.length > 0;
+		const hasRaces = raceRefs.length > 0;
+		d20plus.ut.log(`Content scan [${meta.name}]: maps=${hasMaps} creatures=${hasCreatures} items=${hasItems} classes=${hasClasses} subclasses=${hasSubclasses} races=${hasRaces}`);
 
 		// Fetch Foundry wall data upfront if maps exist
 		let foundryMaps = null;
@@ -50509,6 +50777,9 @@ function d20plusAdventure () {
 		if (hasMaps) checkboxOptions.push("Maps");
 		if (hasMaps && hasCreatures) checkboxOptions.push("Place Tokens");
 		if (hasCreatures) checkboxOptions.push("Creatures");
+		if (hasClasses) checkboxOptions.push("Classes");
+		if (hasSubclasses) checkboxOptions.push("Subclasses");
+		if (hasRaces) checkboxOptions.push("Races");
 		if (hasItems) checkboxOptions.push("Items");
 
 		$("#d20plus-import").dialog("open");
@@ -50558,12 +50829,14 @@ function d20plusAdventure () {
 			? buildAreaCreatures(sections)
 			: {};
 
-		// Pre-fetch all creature and item data from CDN before opening selection dialogs,
-		// so the subsequent dialog callbacks are synchronous (no async inside setInterval).
-		// For homebrew, opts.homebrewData carries the monster/item arrays bundled in the SAME
-		// uploaded/fetched file, since those won't exist on the official CDN by source code.
-		d20plus.ut.log("Fetching referenced creature/item data...");
-		const [monsters, items] = await Promise.all([
+		// Pre-fetch all creature/item/class/subclass/race data before opening selection dialogs, so
+		// the subsequent dialog callbacks are synchronous (no async inside setInterval). For
+		// homebrew, opts.homebrewData carries the monster/item/class/subclass/race/subrace arrays
+		// bundled in the SAME uploaded/fetched file, since those won't exist on the official CDN by
+		// source code. classRefs/subclassRefs/raceRefs were already extracted (and already filtered
+		// to non-core sources) above, when deciding which checkboxes to show.
+		d20plus.ut.log("Fetching referenced creature/item/class/subclass/race data...");
+		const [monsters, items, classes, subclasses, races] = await Promise.all([
 			(toImport.includes("Creatures") && hasCreatures)
 				? fetchCreatureData(extractCreatureRefs(sections), opts.homebrewData?.monster, contentSource || meta.source)
 					.catch(e => { d20plus.ut.log("Creature fetch error: " + e); return []; })
@@ -50572,16 +50845,31 @@ function d20plusAdventure () {
 				? fetchItemData(extractItemRefs(sections), opts.homebrewData)
 					.catch(e => { d20plus.ut.log("Item fetch error: " + e); return []; })
 				: Promise.resolve([]),
+			(toImport.includes("Classes") && hasClasses)
+				? fetchClassData(classRefs, opts.homebrewData)
+					.catch(e => { d20plus.ut.log("Class fetch error: " + e); return []; })
+				: Promise.resolve([]),
+			(toImport.includes("Subclasses") && hasSubclasses)
+				? fetchSubclassData(subclassRefs, opts.homebrewData)
+					.catch(e => { d20plus.ut.log("Subclass fetch error: " + e); return []; })
+				: Promise.resolve([]),
+			(toImport.includes("Races") && hasRaces)
+				? fetchRaceData(raceRefs, opts.homebrewData)
+					.catch(e => { d20plus.ut.log("Race fetch error: " + e); return []; })
+				: Promise.resolve([]),
 		]);
 		if (monsters.length) d20plus.ut.log(`Found ${monsters.length} creature(s) to import.`);
 		if (items.length) d20plus.ut.log(`Found ${items.length} item(s) to import.`);
+		if (classes.length) d20plus.ut.log(`Found ${classes.length} class(es) to import.`);
+		if (subclasses.length) d20plus.ut.log(`Found ${subclasses.length} subclass(es) to import.`);
+		if (races.length) d20plus.ut.log(`Found ${races.length} race(s) to import.`);
 
 		const RETURNED_IDS = {};
 		const interval = d20plus.cfg.get("import", "importIntervalHandout") || d20plus.cfg.getDefault("import", "importIntervalHandout");
 		const $stsName = $("#import-name");
 		const $stsRemain = $("#import-remaining");
 
-		// Sequential dialog chain: monsters → [place tokens] → items → handouts
+		// Sequential dialog chain: monsters → [place tokens] → classes → races → items → handouts
 		if (monsters.length) {
 			d20plus.importer.showImportList(
 				"monster",
@@ -50604,7 +50892,60 @@ function d20plusAdventure () {
 			if (toImport.includes("Place Tokens") && savedMaps.length) {
 				placeTokensOnMaps(savedMaps, areaCreatures, monsters);
 			}
-			doItemImport();
+			doClassImport();
+		}
+
+		function doClassImport () {
+			if (classes.length) {
+				d20plus.importer.showImportList(
+					"class",
+					classes,
+					d20plus.classes.handoutBuilder,
+					{
+						saveIdsTo: RETURNED_IDS,
+						callback: doSubclassImport,
+						builderOptions: {isHomebrew: false},
+					},
+				);
+			} else {
+				doSubclassImport();
+			}
+		}
+
+		function doSubclassImport () {
+			if (subclasses.length) {
+				d20plus.importer.showImportList(
+					"subclass",
+					subclasses,
+					d20plus.subclasses.handoutBuilder,
+					{
+						saveIdsTo: RETURNED_IDS,
+						callback: doRaceImport,
+						groupOptions: d20plus.subclasses._groupOptions,
+						listItemBuilder: d20plus.subclasses._listItemBuilder,
+						listIndex: d20plus.subclasses._listCols,
+						listIndexConverter: d20plus.subclasses._listIndexConverter,
+					},
+				);
+			} else {
+				doRaceImport();
+			}
+		}
+
+		function doRaceImport () {
+			if (races.length) {
+				d20plus.importer.showImportList(
+					"race",
+					races,
+					d20plus.races.handoutBuilder,
+					{
+						saveIdsTo: RETURNED_IDS,
+						callback: doItemImport,
+					},
+				);
+			} else {
+				doItemImport();
+			}
 		}
 
 		function doItemImport () {
@@ -50743,6 +51084,10 @@ function d20plusAdventure () {
 			itemEntry: data.itemEntry,
 			itemTypeAdditionalEntries: data.itemTypeAdditionalEntries,
 			itemMastery: data.itemMastery,
+			class: data.class,
+			subclass: data.subclass,
+			race: data.race,
+			subrace: data.subrace,
 		};
 
 		if (useType === "Adventure") {
@@ -51366,6 +51711,11 @@ const d20plusTemplate = function () {
 			$wrpSettings.append(d20plus.template5e.settingsHtmlPtImportFooter);
 
 			$("#bind-drop-locations").on(window.mousedowntype, d20plus.bindDropLocations);
+			$("#b20-clear-data-cache").on(window.mousedowntype, () => {
+				if (!confirm(`This will reload the page and re-download all official 5etools data fresh (classes, items, races, bestiary, etc.), bypassing your browser's cache. Continue?`)) return;
+				sessionStorage.setItem(CACHE_BUST_FLAG, "1");
+				window.location.reload();
+			});
 			//$("#initiativewindow .characterlist").before(d20plus.template5e.initiativeHeaders);
 
 			//d20plus.setTurnOrderTemplate();
@@ -51693,6 +52043,7 @@ ${IMPORT_CATEGORIES.filter(ic => ic.playerImport).map(ic => `<option value="${ic
 
 	d20plus.template5e.settingsHtmlPtImportFooter = `
 <p><a class="btn bind-drop-locations" href="#" id="bind-drop-locations" style="margin-top: 5px;width: 100%;box-sizing: border-box;">Bind Drag-n-Drop</a></p>
+<p><a class="btn" href="#" id="b20-clear-data-cache" title="If an Official Sources import is missing content you know 5etools has (e.g. a newly-added class or item), your browser may have an old cached copy of that data file. This reloads the page and re-downloads official 5etools data fresh, bypassing the cache." style="margin-top: 5px;width: 100%;box-sizing: border-box;">Clear 5etools Data Cache</a></p>
 <p><strong>Readme</strong></p>
 <p>
 You can drag-and-drop imported handouts to character sheets.<br>
